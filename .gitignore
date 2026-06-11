@@ -1,0 +1,22 @@
+/node_modules
+/dist
+
+# misc
+.DS_Store
+.env
+build.zip
+/temp
+*.local
+
+# github
+.github/copilot-instructions.md
+.github/instructions/
+
+# VitePress build output
+docs/.vitepress/dist
+docs/.vitepress/cache
+docs/export
+docs/.vitepress/.temp
+
+# Tailwind CSS build output
+*.css.map
