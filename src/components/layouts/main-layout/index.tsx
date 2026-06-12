@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { LayoutProvider } from './components/context';
 import { Wrapper } from './components/wrapper';
 
-export function Layout40() {
+export function MainLayout() {
   return (
     <>
       <Helmet>

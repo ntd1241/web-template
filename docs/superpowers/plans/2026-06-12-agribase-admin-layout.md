@@ -26,6 +26,7 @@
 ## Task 1: Documentation Guidance
 
 **Files:**
+
 - Modify: `AGENTS.md`
 
 - [x] Add `docs/04-specific-design-system.md` as the highest-priority UI reference.
@@ -35,6 +36,7 @@
 ## Task 2: Design Tokens And Font Foundation
 
 **Files:**
+
 - Modify: `src/styles/globals.css`
 
 - [x] Import Be Vietnam Pro and Inter from Google Fonts.
@@ -46,14 +48,15 @@
 ## Task 3: New Layout Shell
 
 **Files:**
-- Create: `src/components/layouts/layout-40/index.tsx`
-- Create: `src/components/layouts/layout-40/components/context.tsx`
-- Create: `src/components/layouts/layout-40/components/wrapper.tsx`
-- Create: `src/components/layouts/layout-40/components/sidebar.tsx`
-- Create: `src/components/layouts/layout-40/components/sidebar-primary.tsx`
-- Create: `src/components/layouts/layout-40/components/sidebar-secondary.tsx`
-- Create: `src/components/layouts/layout-40/components/sidebar-header.tsx`
-- Create: `src/components/layouts/layout-40/components/header.tsx`
+
+- Create: `src/components/layouts/main-layout/index.tsx`
+- Create: `src/components/layouts/main-layout/components/context.tsx`
+- Create: `src/components/layouts/main-layout/components/wrapper.tsx`
+- Create: `src/components/layouts/main-layout/components/sidebar.tsx`
+- Create: `src/components/layouts/main-layout/components/sidebar-primary.tsx`
+- Create: `src/components/layouts/main-layout/components/sidebar-secondary.tsx`
+- Create: `src/components/layouts/main-layout/components/sidebar-header.tsx`
+- Create: `src/components/layouts/main-layout/components/header.tsx`
 
 - [x] Copy the structural pattern from `layout-20`.
 - [x] Use a 56px dark icon rail, a 224-240px light sidebar, and a 64px topbar.
@@ -64,7 +67,8 @@
 ## Task 4: Sample Employee Table Page
 
 **Files:**
-- Create: `src/pages/layout-40/page.tsx`
+
+- Create: `src/pages/main-layout/page.tsx`
 
 - [x] Build a full-height page with page title, breadcrumb, and user chip in the topbar.
 - [x] Add a data card with toolbar: title, subtitle, search, filter/refresh, and primary action.
@@ -75,19 +79,21 @@
 ## Task 5: Routing Integration
 
 **Files:**
+
 - Modify: `src/routing/app-routing-setup.tsx`
 
 - [x] Import `Layout40` and `Layout40Page`.
-- [x] Register `/layout-40` as the AgriBase admin sample route.
+- [x] Register `/main-layout` as the AgriBase admin sample route.
 - [x] Keep the existing fallback route unchanged.
 
 ## Task 6: Verification
 
 **Commands:**
+
 - `npm run build`
 
 - [x] Run TypeScript/Vite production build.
 - [x] Start the dev server.
-- [x] Inspect `/layout-40` at 1366px desktop.
-- [x] Inspect `/layout-40` at 1920px desktop.
+- [x] Inspect `/main-layout` at 1366px desktop.
+- [x] Inspect `/main-layout` at 1920px desktop.
 - [x] Fix visual overflow, bad spacing, or broken table scroll discovered during QA.

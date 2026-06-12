@@ -19,15 +19,69 @@ interface Employee {
 }
 
 const employees: Employee[] = [
-  { initials: 'M', name: 'Mẫn Minh', username: 'manminhn', roles: ['Nhân viên'], avatar: 'slate' },
-  { initials: 'T', name: 'Thanh Hiếu', username: 'thanhhieu', roles: ['Nhân viên'], avatar: 'amber' },
-  { initials: 'T', name: 'Trần Thanh Huy', username: 'tranthanhhuy', roles: ['Nhân viên'], avatar: 'red' },
-  { initials: 'M', name: 'Minh Nguyệt Mẫn', username: 'minhnguyetman', roles: ['Chủ sở hữu', 'Quản lý'], avatar: 'green' },
-  { initials: 'Đ', name: 'Đỗ Trần Minh Chu', username: 'dotranminhchu', roles: ['Chủ sở hữu', 'Quản lý'], avatar: 'amber' },
-  { initials: 'H', name: 'HTX Xanh Cao Nguyên', username: 'htxxanhcaonguyen', roles: ['Nhân viên'], avatar: 'brown' },
-  { initials: 'H', name: 'Huỳnh Minh Chỉnh', username: 'huynhminhchinh', roles: ['Nhân viên'], avatar: 'slate' },
-  { initials: 'M', name: 'Minh Đức Uy', username: 'minhducuy', roles: ['Chủ sở hữu', 'Quản lý'], avatar: 'brown' },
-  { initials: 'T', name: 'Trương Tài', username: 'truongtai', roles: ['Nhân viên'], avatar: 'lime' },
+  {
+    initials: 'M',
+    name: 'Mẫn Minh',
+    username: 'manminhn',
+    roles: ['Nhân viên'],
+    avatar: 'slate',
+  },
+  {
+    initials: 'T',
+    name: 'Thanh Hiếu',
+    username: 'thanhhieu',
+    roles: ['Nhân viên'],
+    avatar: 'amber',
+  },
+  {
+    initials: 'T',
+    name: 'Trần Thanh Huy',
+    username: 'tranthanhhuy',
+    roles: ['Nhân viên'],
+    avatar: 'red',
+  },
+  {
+    initials: 'M',
+    name: 'Minh Nguyệt Mẫn',
+    username: 'minhnguyetman',
+    roles: ['Chủ sở hữu', 'Quản lý'],
+    avatar: 'green',
+  },
+  {
+    initials: 'Đ',
+    name: 'Đỗ Trần Minh Chu',
+    username: 'dotranminhchu',
+    roles: ['Chủ sở hữu', 'Quản lý'],
+    avatar: 'amber',
+  },
+  {
+    initials: 'H',
+    name: 'HTX Xanh Cao Nguyên',
+    username: 'htxxanhcaonguyen',
+    roles: ['Nhân viên'],
+    avatar: 'brown',
+  },
+  {
+    initials: 'H',
+    name: 'Huỳnh Minh Chỉnh',
+    username: 'huynhminhchinh',
+    roles: ['Nhân viên'],
+    avatar: 'slate',
+  },
+  {
+    initials: 'M',
+    name: 'Minh Đức Uy',
+    username: 'minhducuy',
+    roles: ['Chủ sở hữu', 'Quản lý'],
+    avatar: 'brown',
+  },
+  {
+    initials: 'T',
+    name: 'Trương Tài',
+    username: 'truongtai',
+    roles: ['Nhân viên'],
+    avatar: 'lime',
+  },
 ];
 
 const avatarClasses: Record<Employee['avatar'], string> = {
@@ -40,8 +94,10 @@ const avatarClasses: Record<Employee['avatar'], string> = {
 };
 
 const roleClasses: Record<Employee['roles'][number], string> = {
-  'Nhân viên': 'border-agribase-azure-light bg-agribase-azure-bg text-agribase-azure-dark',
-  'Chủ sở hữu': 'border-agribase-red-light bg-agribase-red-bg text-agribase-red-dark',
+  'Nhân viên':
+    'border-agribase-azure-light bg-agribase-azure-bg text-agribase-azure-dark',
+  'Chủ sở hữu':
+    'border-agribase-red-light bg-agribase-red-bg text-agribase-red-dark',
   'Quản lý': 'border-[#ddd6ff] bg-agribase-violet-bg text-agribase-violet-dark',
 };
 
@@ -57,8 +113,12 @@ function EmployeeCell({ employee }: { employee: Employee }) {
         {employee.initials}
       </div>
       <div className="min-w-0">
-        <div className="truncate text-[14px] font-semibold leading-5 text-agribase-azure-darkest">{employee.name}</div>
-        <div className="mt-0.5 truncate text-[12px] leading-4 text-agribase-azure-muted">{employee.username}</div>
+        <div className="truncate text-[14px] font-semibold leading-5 text-agribase-azure-darkest">
+          {employee.name}
+        </div>
+        <div className="mt-0.5 truncate text-[12px] leading-4 text-agribase-azure-muted">
+          {employee.username}
+        </div>
       </div>
     </div>
   );
@@ -66,7 +126,12 @@ function EmployeeCell({ employee }: { employee: Employee }) {
 
 function RoleBadge({ role }: { role: Employee['roles'][number] }) {
   return (
-    <span className={cn('inline-flex items-center rounded-md border px-2.5 py-1 text-[11px] font-medium', roleClasses[role])}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded-md border px-2.5 py-1 text-[11px] font-medium',
+        roleClasses[role],
+      )}
+    >
       {role}
     </span>
   );
@@ -81,14 +146,18 @@ function StatusBadge() {
   );
 }
 
-export function Layout40Page() {
+export function MainLayoutPage() {
   return (
     <div className="flex h-full min-h-0 flex-col p-6">
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-agribase-admin-card border border-agribase-grey-100 bg-agribase-surface shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex shrink-0 flex-col gap-4 border-b border-agribase-grey-100 bg-agribase-surface p-5 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <h2 className="text-[18px] font-bold leading-6 text-zinc-900">Danh sách nhân viên</h2>
-            <p className="mt-1 text-[13px] leading-5 text-agribase-grey-500">Quản lý tài khoản truy cập hệ thống</p>
+            <h2 className="text-[18px] font-bold leading-6 text-zinc-900">
+              Danh sách nhân viên
+            </h2>
+            <p className="mt-1 text-[13px] leading-5 text-agribase-grey-500">
+              Quản lý tài khoản truy cập hệ thống
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -148,7 +217,10 @@ export function Layout40Page() {
             </thead>
             <tbody className="divide-y divide-agribase-grey-100 bg-white">
               {employees.map((employee) => (
-                <tr key={employee.username} className="group transition-colors hover:bg-agribase-surface-alt focus-within:bg-agribase-surface-alt">
+                <tr
+                  key={employee.username}
+                  className="group transition-colors hover:bg-agribase-surface-alt focus-within:bg-agribase-surface-alt"
+                >
                   <td className="px-6 py-3.5">
                     <EmployeeCell employee={employee} />
                   </td>
@@ -164,7 +236,9 @@ export function Layout40Page() {
                   </td>
                   <td className="px-6 py-3.5 text-right">
                     {employee.roles.includes('Chủ sở hữu') ? (
-                      <span className="text-[12px] text-agribase-grey-400">-</span>
+                      <span className="text-[12px] text-agribase-grey-400">
+                        -
+                      </span>
                     ) : (
                       <button
                         className="inline-flex items-center gap-1.5 rounded-lg border border-agribase-azure-border bg-agribase-azure-bg px-3 py-1.5 text-[12px] font-medium text-agribase-azure-primary opacity-0 transition-[background,opacity] hover:bg-[#e8f3fb] focus:opacity-100 group-hover:opacity-100"
