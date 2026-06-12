@@ -95,10 +95,10 @@ const avatarClasses: Record<Employee['avatar'], string> = {
 
 const roleClasses: Record<Employee['roles'][number], string> = {
   'Nhân viên':
-    'border-agribase-azure-light bg-agribase-azure-bg text-agribase-azure-dark',
+    'border-admin-blue-light bg-admin-blue-bg text-admin-blue-dark',
   'Chủ sở hữu':
-    'border-agribase-red-light bg-agribase-red-bg text-agribase-red-dark',
-  'Quản lý': 'border-[#ddd6ff] bg-agribase-violet-bg text-agribase-violet-dark',
+    'border-admin-red-light bg-admin-red-bg text-admin-red-dark',
+  'Quản lý': 'border-[#ddd6ff] bg-admin-violet-bg text-admin-violet-dark',
 };
 
 function EmployeeCell({ employee }: { employee: Employee }) {
@@ -113,10 +113,10 @@ function EmployeeCell({ employee }: { employee: Employee }) {
         {employee.initials}
       </div>
       <div className="min-w-0">
-        <div className="truncate text-[14px] font-semibold leading-5 text-agribase-azure-darkest">
+        <div className="truncate text-[14px] font-semibold leading-5 text-admin-blue-darkest">
           {employee.name}
         </div>
-        <div className="mt-0.5 truncate text-[12px] leading-4 text-agribase-azure-muted">
+        <div className="mt-0.5 truncate text-[12px] leading-4 text-admin-blue-muted">
           {employee.username}
         </div>
       </div>
@@ -139,8 +139,8 @@ function RoleBadge({ role }: { role: Employee['roles'][number] }) {
 
 function StatusBadge() {
   return (
-    <span className="inline-flex items-center justify-center gap-1.5 rounded-md bg-agribase-success-bg px-2.5 py-1 text-[12px] font-medium text-agribase-success-text">
-      <span className="size-1.5 rounded-full bg-agribase-success-dot" />
+    <span className="inline-flex items-center justify-center gap-1.5 rounded-md bg-admin-success-bg px-2.5 py-1 text-[12px] font-medium text-admin-success-text">
+      <span className="size-1.5 rounded-full bg-admin-success-dot" />
       Hoạt động
     </span>
   );
@@ -149,13 +149,13 @@ function StatusBadge() {
 export function MainLayoutPage() {
   return (
     <div className="flex h-full min-h-0 flex-col p-6">
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-agribase-admin-card border border-agribase-grey-100 bg-agribase-surface shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]">
-        <div className="flex shrink-0 flex-col gap-4 border-b border-agribase-grey-100 bg-agribase-surface p-5 xl:flex-row xl:items-center xl:justify-between">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-admin-card border border-admin-neutral-100 bg-admin-surface shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="flex shrink-0 flex-col gap-4 border-b border-admin-neutral-100 bg-admin-surface p-5 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h2 className="text-[18px] font-bold leading-6 text-zinc-900">
               Danh sách nhân viên
             </h2>
-            <p className="mt-1 text-[13px] leading-5 text-agribase-grey-500">
+            <p className="mt-1 text-[13px] leading-5 text-admin-neutral-500">
               Quản lý tài khoản truy cập hệ thống
             </p>
           </div>
@@ -163,16 +163,16 @@ export function MainLayoutPage() {
           <div className="flex flex-wrap items-center gap-3">
             <label className="relative block">
               <span className="sr-only">Tìm kiếm nhân viên</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-agribase-grey-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-neutral-400" />
               <input
-                className="h-9 w-64 rounded-agribase-control border border-agribase-grey-100 bg-agribase-surface-alt px-3 pl-9 text-[13px] text-agribase-grey-800 outline-none transition-[border-color,box-shadow,background] placeholder:text-agribase-grey-400 focus:border-[#2f8f3f] focus:bg-white focus:shadow-[0_0_0_2px_rgba(47,143,63,0.20)]"
+                className="h-9 w-64 rounded-admin-control border border-admin-neutral-100 bg-admin-surface-alt px-3 pl-9 text-[13px] text-admin-neutral-800 outline-none transition-[border-color,box-shadow,background] placeholder:text-admin-neutral-400 focus:border-[#2f8f3f] focus:bg-white focus:shadow-[0_0_0_2px_rgba(47,143,63,0.20)]"
                 placeholder="Tìm kiếm theo trường"
                 type="search"
               />
             </label>
 
             <button
-              className="flex size-9 items-center justify-center rounded-agribase-control border border-agribase-grey-100 bg-white text-agribase-grey-600 shadow-sm transition-colors hover:bg-agribase-surface-alt"
+              className="flex size-9 items-center justify-center rounded-admin-control border border-admin-neutral-100 bg-white text-admin-neutral-600 shadow-sm transition-colors hover:bg-admin-surface-alt"
               type="button"
               aria-label="Lọc danh sách"
             >
@@ -180,7 +180,7 @@ export function MainLayoutPage() {
             </button>
 
             <button
-              className="flex size-9 items-center justify-center rounded-agribase-control border border-agribase-grey-100 bg-white text-agribase-grey-600 shadow-sm transition-colors hover:bg-agribase-surface-alt"
+              className="flex size-9 items-center justify-center rounded-admin-control border border-admin-neutral-100 bg-white text-admin-neutral-600 shadow-sm transition-colors hover:bg-admin-surface-alt"
               type="button"
               aria-label="Làm mới danh sách"
             >
@@ -188,7 +188,7 @@ export function MainLayoutPage() {
             </button>
 
             <button
-              className="inline-flex h-9 items-center gap-2 rounded-agribase-control bg-[#2f8f3f] px-4 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-[#267a2b]"
+              className="inline-flex h-9 items-center gap-2 rounded-admin-control bg-[#2f8f3f] px-4 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-[#267a2b]"
               type="button"
             >
               <Plus className="size-4" />
@@ -199,27 +199,27 @@ export function MainLayoutPage() {
 
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full min-w-[860px] border-collapse text-left">
-            <thead className="sticky top-0 z-10 border-b border-agribase-grey-100 bg-agribase-page">
+            <thead className="sticky top-0 z-10 border-b border-admin-neutral-100 bg-admin-page">
               <tr>
-                <th className="w-[36%] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-agribase-azure-dark">
+                <th className="w-[36%] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-admin-blue-dark">
                   Nhân viên
                 </th>
-                <th className="w-[30%] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-agribase-azure-dark">
+                <th className="w-[30%] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-admin-blue-dark">
                   Vai trò
                 </th>
-                <th className="w-[18%] px-6 py-3 text-center text-[12px] font-semibold uppercase tracking-[0.06em] text-agribase-azure-dark">
+                <th className="w-[18%] px-6 py-3 text-center text-[12px] font-semibold uppercase tracking-[0.06em] text-admin-blue-dark">
                   Trạng thái
                 </th>
-                <th className="px-6 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.06em] text-agribase-azure-dark">
+                <th className="px-6 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.06em] text-admin-blue-dark">
                   Thao tác
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-agribase-grey-100 bg-white">
+            <tbody className="divide-y divide-admin-neutral-100 bg-white">
               {employees.map((employee) => (
                 <tr
                   key={employee.username}
-                  className="group transition-colors hover:bg-agribase-surface-alt focus-within:bg-agribase-surface-alt"
+                  className="group transition-colors hover:bg-admin-surface-alt focus-within:bg-admin-surface-alt"
                 >
                   <td className="px-6 py-3.5">
                     <EmployeeCell employee={employee} />
@@ -236,12 +236,12 @@ export function MainLayoutPage() {
                   </td>
                   <td className="px-6 py-3.5 text-right">
                     {employee.roles.includes('Chủ sở hữu') ? (
-                      <span className="text-[12px] text-agribase-grey-400">
+                      <span className="text-[12px] text-admin-neutral-400">
                         -
                       </span>
                     ) : (
                       <button
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-agribase-azure-border bg-agribase-azure-bg px-3 py-1.5 text-[12px] font-medium text-agribase-azure-primary opacity-0 transition-[background,opacity] hover:bg-[#e8f3fb] focus:opacity-100 group-hover:opacity-100"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-admin-blue-border bg-admin-blue-bg px-3 py-1.5 text-[12px] font-medium text-admin-blue-primary opacity-0 transition-[background,opacity] hover:bg-[#e8f3fb] focus:opacity-100 group-hover:opacity-100"
                         type="button"
                       >
                         <ShieldCheck className="size-3.5" />
@@ -255,35 +255,35 @@ export function MainLayoutPage() {
           </table>
         </div>
 
-        <footer className="flex shrink-0 items-center justify-between border-t border-agribase-grey-100 bg-white p-4 text-[13px] text-agribase-grey-600">
+        <footer className="flex shrink-0 items-center justify-between border-t border-admin-neutral-100 bg-white p-4 text-[13px] text-admin-neutral-600">
           <div className="flex items-center gap-3">
             <button
-              className="inline-flex h-8 items-center gap-2 rounded-agribase-control border border-agribase-grey-100 bg-agribase-surface-alt px-3 text-[13px] font-medium text-agribase-grey-700 hover:bg-white"
+              className="inline-flex h-8 items-center gap-2 rounded-admin-control border border-admin-neutral-100 bg-admin-surface-alt px-3 text-[13px] font-medium text-admin-neutral-700 hover:bg-white"
               type="button"
             >
               10 dòng
-              <ChevronDown className="size-4 text-agribase-grey-400" />
+              <ChevronDown className="size-4 text-admin-neutral-400" />
             </button>
             <span>9 kết quả</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
-              className="flex size-8 items-center justify-center rounded-agribase-control bg-agribase-page text-agribase-grey-400 transition-colors hover:bg-agribase-grey-50"
+              className="flex size-8 items-center justify-center rounded-admin-control bg-admin-page text-admin-neutral-400 transition-colors hover:bg-admin-neutral-50"
               type="button"
               aria-label="Trang trước"
             >
               <ChevronLeft className="size-4" />
             </button>
             <button
-              className="flex size-8 items-center justify-center rounded-agribase-control bg-agribase-grey-600 text-[13px] font-medium text-white shadow-sm"
+              className="flex size-8 items-center justify-center rounded-admin-control bg-admin-neutral-600 text-[13px] font-medium text-white shadow-sm"
               type="button"
               aria-label="Trang 1"
             >
               1
             </button>
             <button
-              className="flex size-8 items-center justify-center rounded-agribase-control bg-agribase-page text-agribase-grey-400 transition-colors hover:bg-agribase-grey-50"
+              className="flex size-8 items-center justify-center rounded-admin-control bg-admin-page text-admin-neutral-400 transition-colors hover:bg-admin-neutral-50"
               type="button"
               aria-label="Trang sau"
             >

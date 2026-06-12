@@ -6,11 +6,11 @@ export function MainLayout() {
   return (
     <>
       <Helmet>
-        <title>AgriBase Admin</title>
+        <title>Admin Template</title>
       </Helmet>
 
       <LayoutProvider
-        bodyClassName="bg-agribase-page overflow-hidden"
+        bodyClassName="bg-admin-page overflow-hidden"
         style={
           {
             '--sidebar-width': '280px',

@@ -7,7 +7,7 @@ export function Wrapper() {
   const { isMobile } = useLayout();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-agribase-page text-agribase-grey-800">
+    <div className="flex h-screen w-full overflow-hidden bg-admin-page text-admin-neutral-800">
       {!isMobile && <Sidebar />}
 
       <div className="flex min-w-0 flex-1 flex-col">

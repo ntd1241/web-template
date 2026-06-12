@@ -1,10 +1,10 @@
 import {
+  Blocks,
   BarChart3,
   CircleHelp,
   Home,
-  Leaf,
   Settings,
-  Sprout,
+  Workflow,
   Users,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -18,7 +18,7 @@ import {
 const railItems = [
   { icon: Home, label: 'Tổng quan', path: '/' },
   { icon: Users, label: 'Nhân sự', path: '/' },
-  { icon: Sprout, label: 'Vùng sản xuất', path: '/' },
+  { icon: Workflow, label: 'Vận hành', path: '/' },
   { icon: BarChart3, label: 'Báo cáo', path: '/' },
   { icon: Settings, label: 'Cài đặt', path: '/' },
 ];
@@ -27,13 +27,13 @@ export function SidebarPrimary() {
   const { pathname } = useLocation();
 
   return (
-    <div className="flex w-(--sidebar-collapsed-width) shrink-0 flex-col items-center bg-agribase-grey-900 py-4 text-white">
+    <div className="flex w-(--sidebar-collapsed-width) shrink-0 flex-col items-center bg-admin-neutral-900 py-4 text-white">
       <Link
         to="/"
-        className="mb-6 flex size-8 items-center justify-center rounded-lg bg-white text-agribase-primary shadow-sm"
-        aria-label="AgriBase"
+        className="mb-6 flex size-8 items-center justify-center rounded-lg bg-white text-admin-primary shadow-sm"
+        aria-label="Trang chủ"
       >
-        <Leaf className="size-5" />
+        <Blocks className="size-5" />
       </Link>
 
       <nav className="flex flex-1 flex-col items-center gap-2">
@@ -50,7 +50,7 @@ export function SidebarPrimary() {
                   className={cn(
                     'flex size-10 items-center justify-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white',
                     active &&
-                      'bg-agribase-primary text-white shadow-sm hover:bg-agribase-primary',
+                      'bg-admin-primary text-white shadow-sm hover:bg-admin-primary',
                   )}
                 >
                   <Icon className="size-5" />

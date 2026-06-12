@@ -2,9 +2,10 @@ import {
   BarChart3,
   Boxes,
   Building2,
+  BriefcaseBusiness,
   ClipboardList,
+  FileText,
   LayoutDashboard,
-  MapPinned,
   PackageCheck,
   Settings2,
   UserRound,
@@ -35,12 +36,12 @@ const menuGroups = [
     ],
   },
   {
-    title: 'Vùng sản xuất',
+    title: 'Vận hành',
     items: [
       { icon: Settings2, label: 'Thiết lập đồng bộ', path: '/' },
-      { icon: Users, label: 'Thành viên', path: '/' },
-      { icon: MapPinned, label: 'Điểm sản xuất', path: '/' },
-      { icon: ClipboardList, label: 'QR điểm sản xuất', path: '/' },
+      { icon: BriefcaseBusiness, label: 'Công việc', path: '/' },
+      { icon: FileText, label: 'Tài liệu', path: '/' },
+      { icon: ClipboardList, label: 'Biểu mẫu', path: '/' },
     ],
   },
 ];
@@ -49,13 +50,13 @@ export function SidebarSecondary() {
   const { pathname } = useLocation();
 
   return (
-    <div className="flex w-(--sidebar-menu-width) min-w-0 flex-col bg-agribase-surface">
+    <div className="flex w-(--sidebar-menu-width) min-w-0 flex-col bg-admin-surface">
       <SidebarHeader />
       <ScrollArea className="min-h-0 flex-1">
         <nav className="space-y-6 px-3 py-4">
           {menuGroups.map((group) => (
             <section key={group.title}>
-              <h2 className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-agribase-grey-500">
+              <h2 className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-neutral-500">
                 {group.title}
               </h2>
               <div className="space-y-1">
@@ -69,7 +70,7 @@ export function SidebarSecondary() {
                       key={item.label}
                       to={item.path}
                       className={cn(
-                        'flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-agribase-azure-text transition-colors hover:bg-agribase-surface-alt hover:text-agribase-primary-dark',
+                        'flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-admin-blue-text transition-colors hover:bg-admin-surface-alt hover:text-admin-primary-dark',
                         active &&
                           'bg-[#dff3df] text-[#267a2b] hover:bg-[#dff3df] hover:text-[#267a2b]',
                       )}
@@ -84,7 +85,7 @@ export function SidebarSecondary() {
           ))}
         </nav>
       </ScrollArea>
-      <div className="border-t border-agribase-grey-100 px-4 py-3 text-[11px] font-medium text-agribase-grey-400">
+      <div className="border-t border-admin-neutral-100 px-4 py-3 text-[11px] font-medium text-admin-neutral-400">
         v0.0.1
       </div>
     </div>

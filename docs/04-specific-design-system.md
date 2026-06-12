@@ -1,6 +1,7 @@
-# Design System — AgriBase
+# Specific Design System Reference
 > Tài liệu này được sinh ra từ Figma design tokens + HTML screens thực tế.  
 > Tất cả giá trị màu, font, spacing lấy trực tiếp từ `design-token.json` và markup đã export.
+> Đây là case study tham khảo, không phải brand identity của template. Khi áp dụng vào code, hãy đổi tên token/component sang dạng generic và chỉ giữ lại pattern phù hợp cho admin app Việt Nam.
 
 ---
 
@@ -23,7 +24,7 @@ Tài liệu này tổng hợp từ các export Figma/PXCode sau. Khi cần dựn
 ## Mục lục
 
 0. [Nguồn quan sát](#nguồn-quan-sát)
-1. [Brand & Identity](#1-brand--identity)
+1. [Reference Identity](#1-reference-identity)
 2. [Color System](#2-color-system)
 3. [Typography](#3-typography)
 4. [Spacing & Border Radius](#4-spacing--border-radius)
@@ -52,9 +53,9 @@ Tài liệu này tổng hợp từ các export Figma/PXCode sau. Khi cần dựn
 
 ---
 
-## 1. Brand & Identity
+## 1. Reference Identity
 
-**Tên dự án:** AgriBase  
+**Reference source:** External Vietnamese admin product  
 **Lĩnh vực:** Quản lý nông nghiệp — truy xuất nguồn gốc, nhật ký canh tác, kiểm nghiệm  
 **Ngôn ngữ thiết kế:** Modern Card UI, thiên nhiên, minh bạch, dễ đọc trên thiết bị ngoài trời
 
@@ -116,7 +117,7 @@ Tài liệu này tổng hợp từ các export Figma/PXCode sau. Khi cần dựn
 --color-grey-surface: #fafafb /* card surface alt */
 ```
 
-#### Orange / Amber — Vùng sản xuất, cảnh báo
+#### Orange / Amber — Vận hành, cảnh báo
 ```
 --color-orange-dark:    #bb4d00   /* Rose of Sharon — heading */
 --color-orange-mid:     #e17100   /* Mango Tango */
@@ -171,7 +172,7 @@ Mỗi section card dùng bộ màu riêng — **border card, header text, icon b
 | Thông tin canh tác | `#007a55` | `#d0fae5` | `#ecfdf5` | `#ecfdf5` |
 | Quy trình canh tác | `#165988` | `#d2e4f1` | `#eff5fa` | `#1a69a1` (icon trắng) |
 | Nông dân liên kết | `#13773c` | `#d1eddd` | `#eff9f3` | `#d1eddd` |
-| Vùng sản xuất | `#bb4d00` | `#fef3c6` | `#fffbeb` | `#fef3c6` |
+| Vận hành | `#bb4d00` | `#fef3c6` | `#fffbeb` | `#fef3c6` |
 | Hình ảnh | `#1a69a1` | `#d2e4f1` | `#eff5fa` | — |
 | Bản đồ / Vị trí | `#7f22fe` | `#ede9fe` | `#f5f3ff` | — |
 
@@ -360,7 +361,7 @@ LEFT (col-span-8):          RIGHT (col-span-4):
 │ Map Card             │   │ Nông dân liên kết    │
 │                      │   │ (green border alt)   │
 └──────────────────────┘   ├─────────────────────┤
-                           │ Vùng sản xuất        │
+                           │ Vận hành             │
                            │ (amber border)       │
                            └─────────────────────┘
 ```
@@ -1101,7 +1102,7 @@ Tailwind class tương đương:
 
 ## 15. Admin Shell — Sidebar, Topbar, Breadcrumb
 
-Các màn hình admin export dùng shell riêng, khác với header public/logged-in ở mục 5-6. Shell này phục vụ trang quản trị mật độ cao như Nhân sự, QR điểm sản xuất, Quản lý lô hàng, Đơn xuất.
+Các màn hình admin export dùng shell riêng, khác với header public/logged-in ở mục 5-6. Shell này phục vụ trang quản trị mật độ cao như Nhân sự, QR/tài liệu vận hành, Quản lý lô hàng, Đơn xuất.
 
 ### 15.1 Desktop shell chuẩn
 
@@ -1250,7 +1251,7 @@ Không dùng `max-width` trong admin list pages. Nội dung nên chiếm toàn b
 
 ## 16. Toolbar, Search & Filters
 
-Toolbar trong AgriBase thường nằm trong card/bảng, không tách thành section marketing. Toolbar phải giúp thao tác nhanh: tiêu đề, mô tả ngắn, search, filter, refresh, primary action.
+Toolbar trong reference UI thường nằm trong card/bảng, không tách thành section marketing. Toolbar phải giúp thao tác nhanh: tiêu đề, mô tả ngắn, search, filter, refresh, primary action.
 
 ### 16.1 List toolbar inside table card
 
@@ -1409,7 +1410,7 @@ Màn hình Quản lý lô hàng dùng filter panel cố định bên trái bản
 
 ## 17. Data Table
 
-AgriBase có 2 loại bảng cần support:
+Reference UI có 2 loại bảng cần support:
 
 1. **Semantic HTML table** cho dữ liệu có cột rõ, cần sticky header, scroll ngang.
 2. **Grid table** dùng `grid-cols-12` cho list đơn giản hoặc background table trong modal/form.
@@ -1478,7 +1479,7 @@ Agent nên ưu tiên HTML `<table>` cho bảng thật. Dùng grid table khi expo
 | Lô hàng | `#f4f4f6` | `#374151`, 14px semibold | none |
 | QR | custom header bg gần `#f4f4f6` | `#3f3c48`, 14px semibold | none |
 
-Khi cần đồng nhất AgriBase, ưu tiên variant Nhân viên cho admin identity: header xanh `#165988`, uppercase 12px cho bảng quản trị; dùng 14px none-case cho bảng nghiệp vụ nhiều cột.
+Khi cần đồng nhất template admin Việt Nam, ưu tiên variant Nhân viên cho admin identity: header xanh `#165988`, uppercase 12px cho bảng quản trị; dùng 14px none-case cho bảng nghiệp vụ nhiều cột.
 
 ### 17.3 Body rows
 
@@ -1785,7 +1786,7 @@ Pagination luôn nằm trong footer của card/table, không nằm trôi nổi d
 
 ## 19. Modal, Dialog & Bottom Sheet Panel
 
-AgriBase dùng modal cho phân quyền và form nghiệp vụ. Modal phải có header, body scroll, footer cố định.
+Reference UI dùng modal cho phân quyền và form nghiệp vụ. Modal phải có header, body scroll, footer cố định.
 
 ### 19.1 Permission modal
 
@@ -1921,7 +1922,7 @@ Màn hình đơn xuất có panel lô hàng xuất nổi dưới modal, màu cam
 
 ## 20. Detail Form & Form Sections
 
-Form nghiệp vụ trong AgriBase dùng layout compact, label trên field, section chia bằng divider.
+Form nghiệp vụ trong reference UI dùng layout compact, label trên field, section chia bằng divider.
 
 ### 20.1 Form section
 
@@ -2155,7 +2156,7 @@ For native select, wrap trong `.relative` và đặt chevron absolute right 8px,
 
 ## 22. Avatar, Initials & Entity Cell
 
-AgriBase dùng avatar chữ cái cho người dùng/nhân viên.
+Reference UI dùng avatar chữ cái cho người dùng/nhân viên.
 
 ### 22.1 Avatar sizes
 

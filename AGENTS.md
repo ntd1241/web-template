@@ -7,7 +7,7 @@ This project is a Metronic 9 React starter template being adapted into a reusabl
 - `docs/03-permission-system-design.md`
 - `docs/04-specific-design-system.md`
 
-Treat those files as the desired direction, not as a perfect description of the current repository. They were written concept-first, before a full codebase pass, so the actual code always wins when there is a mismatch.
+Treat the first three files as the desired direction, not as a perfect description of the current repository. `docs/04-specific-design-system.md` is a reference case study extracted from an external product; use it to understand concrete Vietnamese admin patterns, then generalize those patterns for this template. The actual code always wins when there is a mismatch.
 
 ## Current Stack Facts
 
@@ -21,9 +21,9 @@ Treat those files as the desired direction, not as a perfect description of the 
 
 ## How To Use The Docs
 
-Use `docs/04-specific-design-system.md` as the highest-priority UI reference when building AgriBase-like screens. It contains extracted tokens, shell structure, table patterns, modal details, and concrete HTML references from the target product.
+Use `docs/02-design-system.md` as the primary UX direction for Vietnamese admin apps: dense, operational, table-first, keyboard-friendly, low-ornament, and optimized for 1366px to 1920px desktop workflows.
 
-Use `docs/02-design-system.md` as the general UX direction for Vietnamese admin apps: dense, operational, table-first, keyboard-friendly, low-ornament, and optimized for 1366px to 1920px desktop workflows.
+Use `docs/04-specific-design-system.md` only as a concrete reference case study. Do not copy its product name, brand identity, or domain-specific labels into generic template code. Prefer neutral names such as `admin-*`, `main-layout`, `template`, `organization`, and `employee` when turning its patterns into reusable implementation.
 
 Use `docs/01-coding-convention.md` for intended conventions when adding new business features, but adapt it to the current repo:
 
@@ -41,9 +41,8 @@ Use `docs/03-permission-system-design.md` when implementing auth, RBAC, permissi
 - The coding convention document mentions React 18, React Router 6, Tailwind 3 config, Zustand 4, Axios, and `tailwind.config.ts`. The current project uses React 19, React Router 7 packages, Tailwind 4 `@theme`, and does not currently include Zustand or Axios.
 - The proposed folder structure in `docs/01-coding-convention.md` is a target architecture. The current repository still uses Metronic's starter structure.
 - `docs/02-design-system.md` specifies Ant Design-like blue tokens such as `#1677FF`, while the current CSS tokens are still mostly Metronic/shadcn zinc-based variables. When restyling, update tokens deliberately in `src/styles/globals.css` / `src/styles/config.metronic.css` instead of hardcoding colors in components.
-- `docs/04-specific-design-system.md` supersedes the generic blue admin palette for AgriBase work. Its primary palette is green `#009966`, admin action blue `#1a69a1`, dark icon rail `#322e37`, and page background `#f4f4f6`.
-- For AgriBase admin shells, use `src/components/layouts/layout-20` as the closest existing Metronic base because it already has a two-part sidebar: icon rail plus secondary menu.
 - The docs describe future app-level concepts such as auth stores, API clients, route guards, feature pages, and permission constants. These should be introduced only when the relevant feature is implemented.
+- The current generic Vietnamese admin shell lives in `src/components/layouts/main-layout`, with a sample data-table screen in `src/pages/main-layout/page.tsx`.
 
 ## UI Implementation Rules
 
