@@ -77,6 +77,8 @@ import { Layout38 } from '@/components/layouts/layout-38';
 import { Layout38Page } from '@/pages/layout-38/page';
 import { Layout39 } from '@/components/layouts/layout-39';
 import { Layout39Page } from '@/pages/layout-39/page';
+import { Layout40 } from '@/components/layouts/layout-40';
+import { Layout40Page } from '@/pages/layout-40/page';
 
 export function AppRoutingSetup() {
   return (
@@ -198,6 +200,9 @@ export function AppRoutingSetup() {
       </Route>
       <Route element={<Layout39 />}>
         <Route path="/layout-39" element={<Layout39Page />} />
+      </Route>
+      <Route element={<Layout40 />}>
+        <Route path="/layout-40" element={<Layout40Page />} />
       </Route>
       <Route path="*" element={<Navigate to="/layout-1" replace />} />
     </Routes>

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 /* Tailwind Core */
 @import 'tailwindcss';
 
@@ -8,30 +10,86 @@
 
 /** Colors - https://tailwindcss.com/docs/colors **/
 :root {
-  --background: var(--color-white);
-  --foreground: var(--color-zinc-950);
-  --card: var(--color-white);
-  --card-foreground: var(--color-zinc-950);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-zinc-950);
-  --primary: var(--color-zinc-900);
-  --primary-foreground: var(--color-white);
-  --secondary: var(--color-zinc-100);
-  --secondary-foreground: var(--color-zinc-900);
-  --muted: var(--color-zinc-100);
-  --muted-foreground: var(--color-zinc-500);
-  --accent: var(--color-zinc-100);
-  --accent-foreground: var(--color-zinc-900);
-  --destructive: var(--color-red-600);
-  --destructive-foreground: var(--color-white);
+  --agribase-primary: #009966;
+  --agribase-primary-dark: #007a55;
+  --agribase-primary-darker: #13773c;
+  --agribase-primary-bright: #00bc7d;
+  --agribase-primary-tint: #5ee9b5;
+  --agribase-primary-border: #a4f4cf;
+  --agribase-primary-soft: #d1eddd;
+  --agribase-primary-foam: #d0fae5;
+  --agribase-primary-bg: #ecfdf5;
+  --agribase-primary-bg-light: #eff9f3;
+  --agribase-primary-bg-pale: #f2faf2;
+  --agribase-azure-darkest: #0e3754;
+  --agribase-azure-dark: #165988;
+  --agribase-azure-primary: #1a69a1;
+  --agribase-azure-bright: #2b7fff;
+  --agribase-azure-text: #62748e;
+  --agribase-azure-muted: #99a1af;
+  --agribase-azure-light: #a5cae4;
+  --agribase-azure-border: #d2e4f1;
+  --agribase-azure-bg: #eff5fa;
+  --agribase-grey-900: #322e37;
+  --agribase-grey-800: #3f3c48;
+  --agribase-grey-700: #4b4a59;
+  --agribase-grey-600: #58586a;
+  --agribase-grey-500: #858595;
+  --agribase-grey-400: #a3a4b0;
+  --agribase-grey-300: #c2c3ca;
+  --agribase-grey-200: #d1d2d7;
+  --agribase-grey-100: #e0e1e5;
+  --agribase-grey-50: #ebecee;
+  --agribase-grey-bg: #f4f4f6;
+  --agribase-surface: #ffffff;
+  --agribase-surface-alt: #fafafb;
+  --agribase-amber-dark: #bb4d00;
+  --agribase-amber-primary: #fe9a00;
+  --agribase-amber-light: #ffcc80;
+  --agribase-amber-border: #fef3c6;
+  --agribase-amber-bg: #fffbeb;
+  --agribase-violet-dark: #7008e7;
+  --agribase-violet-primary: #7f22fe;
+  --agribase-violet-light: #8e51ff;
+  --agribase-violet-border: #ede9fe;
+  --agribase-violet-bg: #f5f3ff;
+  --agribase-red-dark: #ad3821;
+  --agribase-red-primary: #c6313f;
+  --agribase-red-light: #f8b8ab;
+  --agribase-red-bg: #fef2f0;
+  --agribase-success-text: #388e2f;
+  --agribase-success-dot: #66b75e;
+  --agribase-success-bg: #e6f4e7;
+  --agribase-font-primary: 'Be Vietnam Pro', sans-serif;
+  --agribase-font-secondary: 'Inter', sans-serif;
+  --agribase-admin-icon-rail-width: 56px;
+  --agribase-admin-sidebar-width: 224px;
+  --agribase-admin-topbar-height: 64px;
+
+  --background: var(--agribase-surface);
+  --foreground: var(--agribase-grey-800);
+  --card: var(--agribase-surface);
+  --card-foreground: var(--agribase-grey-800);
+  --popover: var(--agribase-surface);
+  --popover-foreground: var(--agribase-grey-800);
+  --primary: var(--agribase-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--agribase-azure-bg);
+  --secondary-foreground: var(--agribase-azure-dark);
+  --muted: var(--agribase-grey-bg);
+  --muted-foreground: var(--agribase-grey-500);
+  --accent: var(--agribase-primary-bg);
+  --accent-foreground: var(--agribase-primary-dark);
+  --destructive: var(--agribase-red-primary);
+  --destructive-foreground: #ffffff;
   --chart-1: var(--color-blue-500);
   --chart-2: var(--color-green-500);
   --chart-3: var(--color-yellow-500);
   --chart-4: var(--color-red-500);
   --chart-5: var(--color-purple-500);
-  --border: oklch(94% 0.004 286.32); /* between --color-zinc-100 and --color-zinc-200 */
-  --input: var(--color-zinc-200);
-  --ring: var(--color-zinc-400);
+  --border: var(--agribase-grey-100);
+  --input: var(--agribase-grey-200);
+  --ring: var(--agribase-primary);
   --radius: 0.5rem;
 }
 
@@ -64,6 +122,10 @@
 
 /** Theme Setup **/
 @theme inline {
+  --font-sans: var(--agribase-font-primary);
+  --font-agribase: var(--agribase-font-primary);
+  --font-agribase-secondary: var(--agribase-font-secondary);
+
   /** Base Colors **/
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -81,6 +143,38 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-agribase-primary: var(--agribase-primary);
+  --color-agribase-primary-dark: var(--agribase-primary-dark);
+  --color-agribase-primary-bright: var(--agribase-primary-bright);
+  --color-agribase-primary-border: var(--agribase-primary-border);
+  --color-agribase-primary-bg: var(--agribase-primary-bg);
+  --color-agribase-azure-dark: var(--agribase-azure-dark);
+  --color-agribase-azure-primary: var(--agribase-azure-primary);
+  --color-agribase-azure-text: var(--agribase-azure-text);
+  --color-agribase-azure-border: var(--agribase-azure-border);
+  --color-agribase-azure-bg: var(--agribase-azure-bg);
+  --color-agribase-grey-900: var(--agribase-grey-900);
+  --color-agribase-grey-800: var(--agribase-grey-800);
+  --color-agribase-grey-600: var(--agribase-grey-600);
+  --color-agribase-grey-500: var(--agribase-grey-500);
+  --color-agribase-grey-100: var(--agribase-grey-100);
+  --color-agribase-page: var(--agribase-grey-bg);
+  --color-agribase-surface: var(--agribase-surface);
+  --color-agribase-surface-alt: var(--agribase-surface-alt);
+  --color-agribase-amber-dark: var(--agribase-amber-dark);
+  --color-agribase-amber-primary: var(--agribase-amber-primary);
+  --color-agribase-amber-border: var(--agribase-amber-border);
+  --color-agribase-amber-bg: var(--agribase-amber-bg);
+  --color-agribase-violet-dark: var(--agribase-violet-dark);
+  --color-agribase-violet-primary: var(--agribase-violet-primary);
+  --color-agribase-violet-border: var(--agribase-violet-border);
+  --color-agribase-violet-bg: var(--agribase-violet-bg);
+  --color-agribase-red-dark: var(--agribase-red-dark);
+  --color-agribase-red-primary: var(--agribase-red-primary);
+  --color-agribase-red-bg: var(--agribase-red-bg);
+  --color-agribase-success-text: var(--agribase-success-text);
+  --color-agribase-success-dot: var(--agribase-success-dot);
+  --color-agribase-success-bg: var(--agribase-success-bg);
 
   /** Base Styles **/
   --color-border: var(--border);
@@ -90,6 +184,14 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --radius-agribase-card: 21px;
+  --radius-agribase-admin-card: 12px;
+  --radius-agribase-control: 8px;
+  --radius-agribase-field: 6px;
+
+  --spacing-agribase-rail: var(--agribase-admin-icon-rail-width);
+  --spacing-agribase-sidebar: var(--agribase-admin-sidebar-width);
+  --spacing-agribase-topbar: var(--agribase-admin-topbar-height);
 
   /** Animations **/
   --animate-marquee: marquee var(--duration) infinite linear;
@@ -115,6 +217,12 @@
 
 /** Global Styles **/
 @layer base {
+  body {
+    font-family: var(--agribase-font-primary);
+    background: var(--agribase-grey-bg);
+    color: var(--agribase-grey-800);
+  }
+
   * {
     @apply border-border;
   }
