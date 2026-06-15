@@ -1,10 +1,16 @@
-import { ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { useDataGrid } from '@/components/ui/data-grid';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { type ReactNode } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useDataGrid } from '@/components/ui/data-grid';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataGridPaginationProps {
   sizes?: number[];
@@ -55,8 +61,12 @@ function DataGridPagination(props: DataGridPaginationProps) {
   const paginationMoreLimit = mergedProps?.moreLimit || 5;
 
   // Determine the start and end of the pagination group
-  const currentGroupStart = Math.floor(pageIndex / paginationMoreLimit) * paginationMoreLimit;
-  const currentGroupEnd = Math.min(currentGroupStart + paginationMoreLimit, pageCount);
+  const currentGroupStart =
+    Math.floor(pageIndex / paginationMoreLimit) * paginationMoreLimit;
+  const currentGroupEnd = Math.min(
+    currentGroupStart + paginationMoreLimit,
+    pageCount,
+  );
 
   // Render page buttons based on the current group
   const renderPageButtons = () => {
@@ -133,7 +143,11 @@ function DataGridPagination(props: DataGridPaginationProps) {
           mergedProps?.sizesSkeleton
         ) : (
           <>
-            <div className="text-sm text-muted-foreground">Rows per page</div>
+            {mergedProps?.sizesLabel ? (
+              <div className="text-sm text-muted-foreground">
+                {mergedProps.sizesLabel}
+              </div>
+            ) : null}
             <Select
               value={`${pageSize}`}
               indicatorPosition="right"
@@ -153,6 +167,11 @@ function DataGridPagination(props: DataGridPaginationProps) {
                 ))}
               </SelectContent>
             </Select>
+            {mergedProps?.sizesDescription ? (
+              <div className="text-sm text-muted-foreground">
+                {mergedProps.sizesDescription}
+              </div>
+            ) : null}
           </>
         )}
       </div>
@@ -161,7 +180,9 @@ function DataGridPagination(props: DataGridPaginationProps) {
           mergedProps?.infoSkeleton
         ) : (
           <>
-            <div className="text-sm text-muted-foreground text-nowrap order-2 sm:order-1">{paginationInfo}</div>
+            <div className="text-sm text-muted-foreground text-nowrap order-2 sm:order-1">
+              {paginationInfo}
+            </div>
             {pageCount > 1 && (
               <div className="flex items-center space-x-1 order-1 sm:order-2">
                 <Button

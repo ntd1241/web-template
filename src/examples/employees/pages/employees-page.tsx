@@ -99,9 +99,16 @@ export function EmployeesExamplePage() {
         recordCount={total}
         isLoading={isLoading}
         emptyMessage="Không tìm thấy nhân viên phù hợp"
+        tableLayout={{ headerSticky: true }}
+        tableClassNames={{
+          headerSticky: 'sticky top-0 z-10 bg-admin-page',
+          headerRow:
+            '[&>th]:h-auto [&>th]:bg-admin-page [&>th]:px-6 [&>th]:py-3 [&>th]:text-[12px] [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-[0.06em] [&>th]:text-admin-blue-dark',
+          bodyRow: 'hover:bg-admin-surface-alt [&>td]:px-6',
+        }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
               <CardTitle className="text-[18px]">Danh sách nhân viên</CardTitle>
               <CardDescription>
@@ -118,7 +125,7 @@ export function EmployeesExamplePage() {
             </CardToolbar>
           </CardHeader>
 
-          <CardTable className="min-h-0 flex-1 overflow-auto">
+          <CardTable className="min-h-0 flex-1">
             <ScrollArea className="h-full">
               <DataGridTable />
               <ScrollBar orientation="horizontal" />
