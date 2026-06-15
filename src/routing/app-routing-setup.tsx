@@ -1,3 +1,4 @@
+import { exampleRoutes } from '@/examples/example-routes';
 import { Layout1Page } from '@/pages/layout-1/page';
 import { Layout2Page } from '@/pages/layout-2/page';
 import { Layout3Page } from '@/pages/layout-3/page';
@@ -204,6 +205,8 @@ export function AppRoutingSetup() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainLayoutPage />} />
       </Route>
+      {/* Trang example chỉ có ở dev — production build tự loại (DCE). Xóa dòng này + thư mục src/examples để gỡ. */}
+      {exampleRoutes}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

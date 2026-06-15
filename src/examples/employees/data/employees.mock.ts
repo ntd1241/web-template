@@ -1,0 +1,77 @@
+import type { Employee } from '../model/employee';
+
+/** Mock dataset cho chế độ mock-first (VITE_USE_MOCK=1). Dữ liệu thật sẽ thay bằng API. */
+export const MOCK_EMPLOYEES: Employee[] = [
+  {
+    id: 'e01',
+    name: 'Mẫn Minh',
+    username: 'manminhn',
+    roles: ['nhan-vien'],
+    status: 'active',
+    avatarTone: 'slate',
+  },
+  {
+    id: 'e02',
+    name: 'Thanh Hiếu',
+    username: 'thanhhieu',
+    roles: ['nhan-vien'],
+    status: 'active',
+    avatarTone: 'amber',
+  },
+  {
+    id: 'e03',
+    name: 'Trần Thanh Huy',
+    username: 'tranthanhhuy',
+    roles: ['nhan-vien'],
+    status: 'locked',
+    avatarTone: 'red',
+  },
+  {
+    id: 'e04',
+    name: 'Minh Nguyệt Mẫn',
+    username: 'minhnguyetman',
+    roles: ['chu-so-huu', 'quan-ly'],
+    status: 'active',
+    avatarTone: 'green',
+  },
+  {
+    id: 'e05',
+    name: 'Đỗ Trần Minh Chu',
+    username: 'dotranminhchu',
+    roles: ['chu-so-huu', 'quan-ly'],
+    status: 'active',
+    avatarTone: 'amber',
+  },
+  {
+    id: 'e06',
+    name: 'HTX Xanh Cao Nguyên',
+    username: 'htxxanhcaonguyen',
+    roles: ['nhan-vien'],
+    status: 'active',
+    avatarTone: 'brown',
+  },
+  {
+    id: 'e07',
+    name: 'Huỳnh Minh Chỉnh',
+    username: 'huynhminhchinh',
+    roles: ['nhan-vien'],
+    status: 'active',
+    avatarTone: 'slate',
+  },
+  {
+    id: 'e08',
+    name: 'Minh Đức Uy',
+    username: 'minhducuy',
+    roles: ['chu-so-huu', 'quan-ly'],
+    status: 'locked',
+    avatarTone: 'brown',
+  },
+  {
+    id: 'e09',
+    name: 'Trương Tài',
+    username: 'truongtai',
+    roles: ['nhan-vien'],
+    status: 'active',
+    avatarTone: 'lime',
+  },
+];

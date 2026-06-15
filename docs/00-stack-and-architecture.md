@@ -66,7 +66,10 @@ src/
     └── setup.ts                 # setup Vitest + Testing Library
 ```
 
-`features/` chưa tồn tại — tạo khi bắt đầu domain thật (xem §4).
+`src/examples/` chứa feature mẫu (dev-only, loại khỏi production build) — xem
+`src/examples/README.md`. `features/` chưa tồn tại — tạo khi bắt đầu domain thật (xem §4).
+`examples/<domain>` là **khuôn copy-được** cho `features/<domain>`: cùng cấu trúc feature-first.
+Bắt đầu feature mới bằng cách copy `src/examples/employees/`.
 
 ---
 

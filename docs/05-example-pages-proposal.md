@@ -1,6 +1,8 @@
 # Example Pages Proposal
 
-Tài liệu này đề xuất các trang example nên có cho template admin generic hướng thị trường Việt Nam. Các trang code sau này nên đặt trong `src/pages/example`, mỗi trang đại diện cho một nhu cầu quản trị phổ biến và một kiểu giao diện/luồng thao tác khác nhau.
+Tài liệu này đề xuất các trang example nên có cho template admin generic hướng thị trường Việt Nam. Mỗi trang đại diện cho một nhu cầu quản trị phổ biến và một kiểu giao diện/luồng thao tác khác nhau.
+
+> 📌 **Vị trí code (đã chốt):** mỗi example là một **feature-first module** đặt trong `src/examples/<domain>/` (không phải `src/pages/example`). Examples là **dev-only** (loại khỏi production build) và đăng ký route tập trung ở `src/examples/example-routes.tsx`. Chi tiết: `src/examples/README.md` và `docs/00` §2. Mẫu tham chiếu hiện có: `src/examples/employees/`.
 
 Mục tiêu không phải tạo thật nhiều CRUD giống nhau. Mục tiêu là có đủ mẫu để khi bắt đầu dự án mới, agent/dev có thể copy một page gần đúng về layout, chỉnh domain data, rồi đi tiếp nhanh.
 

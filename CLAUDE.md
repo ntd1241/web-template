@@ -110,9 +110,17 @@ Most stack mismatches have been **resolved** by the foundation setup — see `do
 - `README.md`'s legacy "Supabase Auth / demo user" flow does not apply — the template is backend-agnostic,
   **mock-first** (`VITE_USE_MOCK=1`). Auth is abstracted via `src/stores/auth.store.ts` + `src/lib/axios.ts`.
 
-## Adding a New Example Page
+## Examples vs Features
 
-Place under `src/pages/example/<domain>` per `docs/05-example-pages-proposal.md`, export the page as a
-**named** export, register it in `src/routing/app-routing-setup.tsx`, compose from `src/components/ui`,
-and include the standard states (loading skeleton, empty, error+retry, permission-aware actions). Use
-`MainLayoutPage` as the reference for the table/management pattern once it is componentized.
+`src/examples/<domain>/` holds **dev-only reference features** (excluded from the production build via
+DCE — see `src/examples/README.md`). Each example is a full **feature-first** module
+(`model/ data/ schemas/ api/ hooks/ components/ pages/ index.ts`) that mirrors a real
+`src/features/<domain>/` so devs copy it and adapt. `src/examples/employees/` is the canonical
+data-table reference (DataGrid + React Query mock-first + debounced search + server pagination +
+permission-gated action + loading/empty/error states).
+
+When adding a new example: put it under `src/examples/<domain>/`, register its route **only** in
+`src/examples/example-routes.tsx` (the single DEV-gated entry point), use **named** exports, compose
+from `src/components/ui` (see `docs/06`), and include the standard states. Do not register example
+routes directly in `app-routing-setup.tsx` — keep them isolated so the whole folder stays deletable.
+Follow `docs/05-example-pages-proposal.md` for which pages to build.
