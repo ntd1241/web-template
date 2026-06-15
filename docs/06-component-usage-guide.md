@@ -27,6 +27,22 @@ rg -n "<button|<input|<table|<thead|<tbody|<tr|<td|<th" src/pages/<your-page>.ts
 npm run build                                                                        # phải exit 0
 ```
 
+### 0.1 Style admin đã nằm sẵn trong component — ĐỪNG vá lại ở page
+
+Concept admin đã được nướng vào **default** của component dùng chung. Page chỉ cần lắp ráp, không
+thêm class style. Nếu cần đổi diện mạo chung, **sửa default của component/token**, không override per-page.
+
+- **Bảng (`DataGrid`/`DataGridTable`)** mặc định: header **sticky** nền `bg-admin-page`, nhãn header
+  HOA 12px `text-admin-blue-dark`, cell `px-6 py-3`, row hover `bg-admin-surface-alt`. → Dùng
+  `DataGrid` là có sẵn, **không** truyền `tableClassNames` để lặp lại các style này.
+- **Input/Textarea/Select** mặc định nền xám nhẹ `bg-admin-surface-alt`, **trắng khi focus/mở**. →
+  **Không** thêm `bg-...` cho ô tìm kiếm/dropdown ở page.
+- Chỉ truyền `tableClassNames`/`className` khi thật sự **đặc thù 1 trang** (vd `min-w` cột), không phải
+  để dựng lại look chung.
+
+> Quy ước này được áp dụng từ `data-grid.tsx`, `data-grid-table.tsx`, `input.tsx`, `textarea.tsx`,
+> `select.tsx`. Đổi diện mạo admin chung = sửa các file này (hoặc token trong `globals.css`).
+
 ---
 
 ## 1. Bảng tra cứu: HTML thô → Component project
@@ -100,6 +116,9 @@ import { Input, InputWrapper } from '@/components/ui/input';
   />
 </InputWrapper>
 ```
+
+> Nền xám nhẹ + trắng-khi-focus là **default** (xem §0.1). Không thêm `bg-admin-surface-alt`/`bg-white`
+> vào `InputWrapper` ở page nữa.
 
 ---
 
@@ -213,6 +232,9 @@ return (
 
 Ghi chú quan trọng:
 
+- Diện mạo admin (header sticky/HOA, cell `px-6`, hover row) là **default** (xem §0.1) — chỉ cần
+  `<DataGrid>`, **không** truyền `tableLayout`/`tableClassNames` để dựng lại. Đổi look chung = sửa
+  `data-grid.tsx` / `data-grid-table.tsx`.
 - Độ rộng/căn lề cột đặt qua `meta.headerClassName` / `meta.cellClassName` (đã khai báo trong
   `data-grid.tsx`), không style trực tiếp `<th>/<td>` (vì DataGrid tự render bảng).
 - `DataGridPagination.info` hỗ trợ placeholder `{from} {to} {count}`. Label tiếng Việt truyền qua

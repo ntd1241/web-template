@@ -86,6 +86,12 @@ When checking a change made by another agent or yourself, gate on:
   `rg -n "<button|<input|<table|<thead|<tbody|<tr|<td|<th" <file>`
 - **Tokens over hex.** New code uses `admin-*` token classes, not `bg-[#...]`. Existing hardcoded
   hex in `main-layout` is being migrated — don't add more.
+- **Style at the root, not per page.** The admin look is baked into shared-component defaults:
+  `DataGrid`/`DataGridTable` (sticky header, `px-6` cells, uppercase `admin-blue-dark` header, row
+  hover) and `Input`/`Textarea`/`Select` (gray `admin-surface-alt` field, white on focus). Reject PRs
+  that re-create this via per-page `tableClassNames`/`className`/`bg-*` wrappers. To change the shared
+  look, edit the component CVA (or a token in `globals.css`) — see `docs/06` §0.1. Per-page overrides
+  are only for genuinely page-specific needs (e.g. a column `min-w`).
 - **Conventions:** named exports for new components/pages; `handle*` handlers; `is/has/can` booleans;
   no `any` (use `unknown`); `import type` for types; `cn()` for conditional classes; one component
   per file; files under ~400 lines.

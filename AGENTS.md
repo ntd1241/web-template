@@ -62,6 +62,7 @@ Vitest + Husky. New domain work goes in `src/features/<domain>/` per `docs/00` �
 - Forms should use Vietnamese validation copy, clear required markers, compact spacing, and predictable tab order.
 - Prefer Lucide icons when a matching icon exists. Keep icon-only controls to familiar actions or provide accessible labels/tooltips.
 - Do not create one-off button/input/table variants if an existing `src/components/ui` component can be extended cleanly.
+- The admin look lives in shared-component defaults (DataGrid table style; gray `Input`/`Select` fields). Style at the root — edit the component CVA or a token — instead of re-patching per page with `tableClassNames`/`className`/`bg-*`. See `docs/06` §0.1.
 
 ## Verification
 
