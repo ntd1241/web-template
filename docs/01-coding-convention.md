@@ -1,8 +1,15 @@
 # Coding Convention & Project Structure
+
 ## Vite + React + TypeScript + Tailwind CSS
 
 > Tài liệu quy định cấu trúc, đặt tên, và pattern coding cho toàn bộ dự án.  
 > Mục tiêu: nhất quán, dễ đọc, dễ tìm kiếm, dễ maintain.
+
+> ⚠️ **Về stack/version:** file này mô tả _ý tưởng convention_ (đa số vẫn đúng), nhưng phần
+> **stack cụ thể và số phiên bản** (đặc biệt §9 Routing, §10 Tailwind, §16 Tooling/Libraries) đã
+> được cập nhật trong **`docs/00-stack-and-architecture.md`** — coi `docs/00` + `package.json` là
+> nguồn đúng. Khác biệt chính: dự án dùng **React 19, React Router 7 (declarative), Tailwind 4
+> (`@theme`, không có `tailwind.config.ts`)**, và Prettier **`semi: true`**.
 
 ---
 
@@ -158,50 +165,50 @@ features/products/
 
 ### 2.1 Files & Folders
 
-| Loại | Convention | Ví dụ |
-|---|---|---|
-| React Component | `PascalCase.tsx` | `ProductTable.tsx` |
-| Custom Hook | `camelCase.ts`, prefix `use` | `useProductList.ts` |
-| Utility / Helper | `camelCase.ts` | `format.ts`, `validators.ts` |
-| Type file | `camelCase.types.ts` | `product.types.ts` |
-| Schema file | `camelCase.schema.ts` | `product.schema.ts` |
-| API file | `camelCase.api.ts` | `product.api.ts` |
-| Constants file | `camelCase.constants.ts` | `product.constants.ts` |
-| Query file | `camelCase.queries.ts` | `product.queries.ts` |
-| Page component | `PascalCase + Page.tsx` | `ProductListPage.tsx` |
-| Layout component | `PascalCase + Layout.tsx` | `AppLayout.tsx` |
-| Folder | `kebab-case` | `product-form/`, `order-detail/` |
+| Loại             | Convention                   | Ví dụ                            |
+| ---------------- | ---------------------------- | -------------------------------- |
+| React Component  | `PascalCase.tsx`             | `ProductTable.tsx`               |
+| Custom Hook      | `camelCase.ts`, prefix `use` | `useProductList.ts`              |
+| Utility / Helper | `camelCase.ts`               | `format.ts`, `validators.ts`     |
+| Type file        | `camelCase.types.ts`         | `product.types.ts`               |
+| Schema file      | `camelCase.schema.ts`        | `product.schema.ts`              |
+| API file         | `camelCase.api.ts`           | `product.api.ts`                 |
+| Constants file   | `camelCase.constants.ts`     | `product.constants.ts`           |
+| Query file       | `camelCase.queries.ts`       | `product.queries.ts`             |
+| Page component   | `PascalCase + Page.tsx`      | `ProductListPage.tsx`            |
+| Layout component | `PascalCase + Layout.tsx`    | `AppLayout.tsx`                  |
+| Folder           | `kebab-case`                 | `product-form/`, `order-detail/` |
 
 ### 2.2 Variables & Functions
 
 ```typescript
 // ✅ camelCase cho variable và function
-const productList = []
-const isLoading = false
+const productList = [];
+const isLoading = false;
 function fetchProducts() {}
-const handleSubmit = () => {}
+const handleSubmit = () => {};
 
 // ✅ PascalCase cho class và type/interface
 class ProductService {}
-type ProductStatus = 'active' | 'inactive'
+type ProductStatus = 'active' | 'inactive';
 interface ProductFormValues {}
 
 // ✅ SCREAMING_SNAKE_CASE cho constants không thay đổi
-const MAX_PAGE_SIZE = 100
-const API_BASE_URL = '/api/v1'
-const DATE_FORMAT_VN = 'dd/MM/yyyy'
+const MAX_PAGE_SIZE = 100;
+const API_BASE_URL = '/api/v1';
+const DATE_FORMAT_VN = 'dd/MM/yyyy';
 
 // ✅ Prefix rõ ràng cho boolean
-const isLoading = true
-const hasError = false
-const canEdit = true
-const shouldRefetch = false
+const isLoading = true;
+const hasError = false;
+const canEdit = true;
+const shouldRefetch = false;
 
 // ✅ Prefix cho handlers
-const handleSubmit = () => {}
-const handleDeleteRow = () => {}
-const handleFilterChange = () => {}
-const handlePageChange = () => {}
+const handleSubmit = () => {};
+const handleDeleteRow = () => {};
+const handleFilterChange = () => {};
+const handlePageChange = () => {};
 
 // ✅ Prefix cho async functions
 async function fetchProductById(id: string) {}
@@ -219,9 +226,9 @@ async function deleteProduct(id: string) {}
 
 // ✅ Props interface: [ComponentName]Props
 interface ProductTableProps {
-  data: Product[]
-  loading: boolean
-  onEdit: (id: string) => void
+  data: Product[];
+  loading: boolean;
+  onEdit: (id: string) => void;
 }
 
 // ✅ Component đặt tên khớp với tên file
@@ -233,35 +240,35 @@ interface ProductTableProps {
 ```typescript
 // Interface cho object shape (có thể extend)
 interface Product {
-  id: string
-  name: string
-  price: number
+  id: string;
+  name: string;
+  price: number;
 }
 
 // Type cho union, intersection, hoặc alias đơn giản
-type ProductStatus = 'active' | 'inactive' | 'discontinued'
-type ProductId = string
+type ProductStatus = 'active' | 'inactive' | 'discontinued';
+type ProductId = string;
 
 // DTO: suffix Dto
 interface CreateProductDto {
-  name: string
-  price: number
-  categoryId: string
+  name: string;
+  price: number;
+  categoryId: string;
 }
 interface UpdateProductDto extends Partial<CreateProductDto> {}
 
 // Response wrapper
 interface ApiResponse<T> {
-  data: T
-  message: string
-  success: boolean
+  data: T;
+  message: string;
+  success: boolean;
 }
 
 interface PaginatedResponse<T> {
-  items: T[]
-  total: number
-  page: number
-  pageSize: number
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 ```
 
@@ -322,19 +329,19 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 
 ```typescript
 // Partial — tất cả field optional (dùng cho update form)
-type UpdateProductDto = Partial<Product>
+type UpdateProductDto = Partial<Product>;
 
 // Pick — chỉ lấy một số field
-type ProductPreview = Pick<Product, 'id' | 'name' | 'price'>
+type ProductPreview = Pick<Product, 'id' | 'name' | 'price'>;
 
 // Omit — bỏ một số field
-type CreateProductDto = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+type CreateProductDto = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;
 
 // Required — tất cả field required
-type ProductWithDetails = Required<Product>
+type ProductWithDetails = Required<Product>;
 
 // Record — map key → value
-type StatusConfig = Record<OrderStatus, { label: string; color: string }>
+type StatusConfig = Record<OrderStatus, { label: string; color: string }>;
 ```
 
 ---
@@ -406,23 +413,28 @@ export default ProductTable
 // Có thể có sub-component nhỏ trong cùng file nếu chỉ dùng nội bộ
 
 // ✅ Props destructuring ngay tại parameter
-const Button = ({ label, onClick, disabled = false, variant = 'primary' }) => {}
+const Button = ({
+  label,
+  onClick,
+  disabled = false,
+  variant = 'primary',
+}) => {};
 
 // ✅ Default props tại parameter, không dùng defaultProps
 // ❌ sai
-Button.defaultProps = { disabled: false }
+Button.defaultProps = { disabled: false };
 
 // ✅ Children prop — khai báo rõ kiểu
 interface CardProps {
-  children: React.ReactNode
-  title?: string
+  children: React.ReactNode;
+  title?: string;
 }
 
 // ✅ Event handler props đặt tên: on + Event (onSubmit, onChange, onDelete)
 // ✅ Callback từ component lên parent: đặt rõ tham số
 interface TableProps {
-  onRowClick: (id: string) => void          // ✅ rõ ràng
-  onSelectionChange: (ids: string[]) => void // ✅ rõ ràng
+  onRowClick: (id: string) => void; // ✅ rõ ràng
+  onSelectionChange: (ids: string[]) => void; // ✅ rõ ràng
   // ❌ sai: onClick: () => void — không biết click gì
 }
 
@@ -488,47 +500,47 @@ const sortedProducts = useMemo(
 // hooks/useProductList.ts
 
 interface UseProductListOptions {
-  initialPage?: number
-  initialPageSize?: number
+  initialPage?: number;
+  initialPageSize?: number;
 }
 
 interface UseProductListReturn {
   // Data
-  products: Product[]
-  total: number
+  products: Product[];
+  total: number;
   // State
-  isLoading: boolean
-  error: Error | null
+  isLoading: boolean;
+  error: Error | null;
   // Filter & Pagination
-  filters: ProductFilters
-  pagination: PaginationState
+  filters: ProductFilters;
+  pagination: PaginationState;
   // Actions
-  setFilters: (filters: Partial<ProductFilters>) => void
-  setPage: (page: number) => void
-  setPageSize: (size: number) => void
-  refetch: () => void
+  setFilters: (filters: Partial<ProductFilters>) => void;
+  setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  refetch: () => void;
 }
 
 export function useProductList(
-  options: UseProductListOptions = {}
+  options: UseProductListOptions = {},
 ): UseProductListReturn {
-  const { initialPage = 1, initialPageSize = 20 } = options
+  const { initialPage = 1, initialPageSize = 20 } = options;
 
-  const [filters, setFiltersState] = useState<ProductFilters>({})
+  const [filters, setFiltersState] = useState<ProductFilters>({});
   const [pagination, setPagination] = useState({
     page: initialPage,
     pageSize: initialPageSize,
-  })
+  });
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: productQueryKeys.list({ ...filters, ...pagination }),
     queryFn: () => productApi.getList({ ...filters, ...pagination }),
-  })
+  });
 
   const setFilters = useCallback((newFilters: Partial<ProductFilters>) => {
-    setFiltersState((prev) => ({ ...prev, ...newFilters }))
-    setPagination((prev) => ({ ...prev, page: 1 })) // Reset về trang 1
-  }, [])
+    setFiltersState((prev) => ({ ...prev, ...newFilters }));
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset về trang 1
+  }, []);
 
   return {
     products: data?.items ?? [],
@@ -541,7 +553,7 @@ export function useProductList(
     setPage: (page) => setPagination((p) => ({ ...p, page })),
     setPageSize: (pageSize) => setPagination({ page: 1, pageSize }),
     refetch,
-  }
+  };
 }
 ```
 
@@ -556,18 +568,18 @@ export function useProductList(
 // Convention nhất quán với React Query và các lib phổ biến
 
 // ✅ Đặt tên hook mô tả rõ chức năng
-useProductList()      // query list
-useProductForm()      // form state + submit
-useProductColumns()   // table column definitions
-usePermission()       // check quyền
-useLocalStorage()     // persisted state
+useProductList(); // query list
+useProductForm(); // form state + submit
+useProductColumns(); // table column definitions
+usePermission(); // check quyền
+useLocalStorage(); // persisted state
 
 // ✅ Không gọi API trực tiếp trong component — luôn qua hook
 // ❌ sai (trong component):
-const { data } = useQuery({ queryFn: () => fetch('/api/products') })
+const { data } = useQuery({ queryFn: () => fetch('/api/products') });
 
 // ✅ đúng:
-const { products } = useProductList()
+const { products } = useProductList();
 ```
 
 ---
@@ -595,8 +607,8 @@ Global Client State (Zustand)
 
 ```typescript
 // app/store.ts — khai báo store
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // Tách store theo domain, không tạo một store khổng lồ
 export const useAuthStore = create<AuthState>()(
@@ -608,14 +620,14 @@ export const useAuthStore = create<AuthState>()(
       setToken: (token) => set({ token }),
       logout: () => set({ user: null, token: null }),
     }),
-    { name: 'auth-storage' }
-  )
-)
+    { name: 'auth-storage' },
+  ),
+);
 
 export const useAppStore = create<AppState>()((set) => ({
   sidebarCollapsed: false,
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-}))
+}));
 
 // ✅ Mỗi store trong file riêng ở features/[name]/store/
 // ✅ Tên: use[Domain]Store
@@ -634,11 +646,11 @@ export const productQueryKeys = {
     [...productQueryKeys.lists(), params] as const,
   details: () => [...productQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...productQueryKeys.details(), id] as const,
-}
+};
 
 // Sử dụng
-useQuery({ queryKey: productQueryKeys.list({ page: 1, pageSize: 20 }) })
-queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() })
+useQuery({ queryKey: productQueryKeys.list({ page: 1, pageSize: 20 }) });
+queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
 ```
 
 ---
@@ -649,34 +661,34 @@ queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() })
 
 ```typescript
 // lib/axios.ts
-import axios from 'axios'
+import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
-})
+});
 
 // Request interceptor: attach token
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+  const token = useAuthStore.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 // Response interceptor: normalize error
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const message = error.response?.data?.message ?? 'Đã có lỗi xảy ra'
+    const message = error.response?.data?.message ?? 'Đã có lỗi xảy ra';
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout()
+      useAuthStore.getState().logout();
     }
-    return Promise.reject(new Error(message))
-  }
-)
+    return Promise.reject(new Error(message));
+  },
+);
 
-export default api
+export default api;
 ```
 
 ### 7.2 API Module
@@ -684,18 +696,21 @@ export default api
 ```typescript
 // features/products/api/product.api.ts
 
-import api from '@/lib/axios'
-import type { Product, CreateProductDto, UpdateProductDto } from '../types/product.types'
-import type { PaginatedResponse, ApiResponse } from '@/types/api.types'
+import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
+import api from '@/lib/axios';
+import type {
+  CreateProductDto,
+  Product,
+  UpdateProductDto,
+} from '../types/product.types';
 
-const BASE = '/products'
+const BASE = '/products';
 
 export const productApi = {
   getList: (params: ProductListParams) =>
     api.get<PaginatedResponse<Product>>(BASE, { params }),
 
-  getById: (id: string) =>
-    api.get<ApiResponse<Product>>(`${BASE}/${id}`),
+  getById: (id: string) => api.get<ApiResponse<Product>>(`${BASE}/${id}`),
 
   create: (data: CreateProductDto) =>
     api.post<ApiResponse<Product>>(BASE, data),
@@ -703,12 +718,11 @@ export const productApi = {
   update: (id: string, data: UpdateProductDto) =>
     api.put<ApiResponse<Product>>(`${BASE}/${id}`, data),
 
-  delete: (id: string) =>
-    api.delete<ApiResponse<void>>(`${BASE}/${id}`),
+  delete: (id: string) => api.delete<ApiResponse<void>>(`${BASE}/${id}`),
 
   deleteMany: (ids: string[]) =>
     api.delete<ApiResponse<void>>(BASE, { data: { ids } }),
-}
+};
 ```
 
 ### 7.3 React Query Definitions
@@ -716,17 +730,17 @@ export const productApi = {
 ```typescript
 // features/products/api/product.queries.ts
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { productApi } from './product.api'
-import { productQueryKeys } from '@/constants/queryKeys'
-import { toast } from '@/components/ui/toast'
+import { productQueryKeys } from '@/constants/queryKeys';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/components/ui/toast';
+import { productApi } from './product.api';
 
 export function useProductListQuery(params: ProductListParams) {
   return useQuery({
     queryKey: productQueryKeys.list(params),
     queryFn: () => productApi.getList(params),
     staleTime: 1000 * 60 * 5, // 5 phút
-  })
+  });
 }
 
 export function useProductDetailQuery(id: string) {
@@ -734,37 +748,37 @@ export function useProductDetailQuery(id: string) {
     queryKey: productQueryKeys.detail(id),
     queryFn: () => productApi.getById(id),
     enabled: !!id,
-  })
+  });
 }
 
 export function useCreateProductMutation() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: productApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() })
-      toast.success('Thêm sản phẩm thành công')
+      queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
+      toast.success('Thêm sản phẩm thành công');
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 }
 
 export function useDeleteProductMutation() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: productApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() })
-      toast.success('Xóa sản phẩm thành công')
+      queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
+      toast.success('Xóa sản phẩm thành công');
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 }
 ```
 
@@ -778,7 +792,7 @@ Dùng **React Hook Form** + **Zod** cho tất cả form.
 
 ```typescript
 // features/products/schemas/product.schema.ts
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const createProductSchema = z.object({
   name: z
@@ -795,13 +809,13 @@ export const createProductSchema = z.object({
     .max(1_000_000_000, 'Giá vượt quá giới hạn'),
   categoryId: z.string().min(1, 'Vui lòng chọn danh mục'),
   description: z.string().optional(),
-})
+});
 
-export const updateProductSchema = createProductSchema.partial()
+export const updateProductSchema = createProductSchema.partial();
 
 // Infer TypeScript type từ schema
-export type CreateProductFormValues = z.infer<typeof createProductSchema>
-export type UpdateProductFormValues = z.infer<typeof updateProductSchema>
+export type CreateProductFormValues = z.infer<typeof createProductSchema>;
+export type UpdateProductFormValues = z.infer<typeof updateProductSchema>;
 ```
 
 ### 8.2 Form Hook
@@ -809,20 +823,23 @@ export type UpdateProductFormValues = z.infer<typeof updateProductSchema>
 ```typescript
 // features/products/hooks/useProductForm.ts
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import {
   createProductSchema,
   type CreateProductFormValues,
-} from '../schemas/product.schema'
+} from '../schemas/product.schema';
 
 interface UseProductFormOptions {
-  defaultValues?: Partial<CreateProductFormValues>
-  onSuccess?: () => void
+  defaultValues?: Partial<CreateProductFormValues>;
+  onSuccess?: () => void;
 }
 
-export function useProductForm({ defaultValues, onSuccess }: UseProductFormOptions = {}) {
-  const { mutate: createProduct, isPending } = useCreateProductMutation()
+export function useProductForm({
+  defaultValues,
+  onSuccess,
+}: UseProductFormOptions = {}) {
+  const { mutate: createProduct, isPending } = useCreateProductMutation();
 
   const form = useForm<CreateProductFormValues>({
     resolver: zodResolver(createProductSchema),
@@ -833,18 +850,18 @@ export function useProductForm({ defaultValues, onSuccess }: UseProductFormOptio
       categoryId: '',
       ...defaultValues,
     },
-  })
+  });
 
   const onSubmit = form.handleSubmit((values) => {
     createProduct(values, {
       onSuccess: () => {
-        form.reset()
-        onSuccess?.()
+        form.reset();
+        onSuccess?.();
       },
-    })
-  })
+    });
+  });
 
-  return { form, onSubmit, isSubmitting: isPending }
+  return { form, onSubmit, isSubmitting: isPending };
 }
 ```
 
@@ -888,7 +905,10 @@ const ProductForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
 ## 9. Routing
 
-Dùng **React Router v6** với code splitting.
+> Thực tế dự án dùng **React Router 7** với cú pháp **declarative `<Routes>/<Route>`** trong
+> `src/routing/app-routing-setup.tsx` (không dùng `createBrowserRouter` như ví dụ dưới). Path khai
+> báo tập trung ở `src/constants/routes.ts`. Ví dụ `createBrowserRouter` dưới đây giữ lại để tham
+> khảo pattern lazy-load + route constants, không phải cấu trúc hiện tại.
 
 ### 9.1 Khai báo Routes
 
@@ -950,18 +970,18 @@ export const ROUTES = {
     LIST: '/orders',
     DETAIL: '/orders/:id',
   },
-} as const
+} as const;
 
 // Helper để build path có params
 export function buildPath(path: string, params: Record<string, string>) {
   return Object.entries(params).reduce(
     (p, [key, val]) => p.replace(`:${key}`, val),
-    path
-  )
+    path,
+  );
 }
 
 // Sử dụng
-navigate(buildPath(ROUTES.PRODUCTS.DETAIL, { id: product.id }))
+navigate(buildPath(ROUTES.PRODUCTS.DETAIL, { id: product.id }));
 ```
 
 ---
@@ -990,40 +1010,46 @@ export function cn(...inputs: ClassValue[]) {
 
 ### 10.2 CSS Variables cho Design Tokens
 
+> ⚠️ Dự án dùng **Tailwind 4**, **không có `tailwind.config.ts`**. Design token khai báo trực tiếp
+> trong `src/styles/globals.css`: biến `--admin-*` rồi map qua `@theme inline` thành class
+> (`bg-admin-surface`, `text-admin-blue-dark`, `rounded-admin-card`...). Palette template là
+> **xanh lá** (`--admin-primary: #009966`), không phải `#1677FF`. Đoạn `:root`/`tailwind.config.ts`
+> dưới đây là minh họa khái niệm token — chỉnh token thật ở `globals.css`.
+
 ```css
 /* styles/theme.css */
 :root {
   /* Colors từ Design System */
-  --color-primary:        #1677FF;
-  --color-primary-hover:  #0958D9;
-  --color-primary-light:  #E6F4FF;
-  --color-primary-border: #91CAFF;
+  --color-primary: #1677ff;
+  --color-primary-hover: #0958d9;
+  --color-primary-light: #e6f4ff;
+  --color-primary-border: #91caff;
 
-  --color-success:        #52C41A;
-  --color-success-light:  #F6FFED;
-  --color-warning:        #FA8C16;
-  --color-warning-light:  #FFF7E6;
-  --color-danger:         #FF4D4F;
-  --color-danger-light:   #FFF2F0;
+  --color-success: #52c41a;
+  --color-success-light: #f6ffed;
+  --color-warning: #fa8c16;
+  --color-warning-light: #fff7e6;
+  --color-danger: #ff4d4f;
+  --color-danger-light: #fff2f0;
 
-  --color-text-primary:   #141414;
+  --color-text-primary: #141414;
   --color-text-secondary: #595959;
-  --color-text-disabled:  #BFBFBF;
-  --color-border:         #D9D9D9;
-  --color-border-light:   #F0F0F0;
-  --color-bg-page:        #F5F5F5;
-  --color-bg-card:        #FFFFFF;
-  --color-bg-table-header:#FAFAFA;
+  --color-text-disabled: #bfbfbf;
+  --color-border: #d9d9d9;
+  --color-border-light: #f0f0f0;
+  --color-bg-page: #f5f5f5;
+  --color-bg-card: #ffffff;
+  --color-bg-table-header: #fafafa;
 
   /* Spacing */
-  --sidebar-width:        240px;
-  --sidebar-collapsed:    64px;
-  --page-header-height:   48px;
-  --toolbar-height:       52px;
-  --pagination-height:    48px;
-  --table-row-height:     40px;
-  --input-height:         32px;
-  --button-height:        32px;
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+  --page-header-height: 48px;
+  --toolbar-height: 52px;
+  --pagination-height: 48px;
+  --table-row-height: 40px;
+  --input-height: 32px;
+  --button-height: 32px;
 }
 ```
 
@@ -1055,25 +1081,25 @@ export default {
       },
       height: {
         'page-header': 'var(--page-header-height)',
-        'toolbar': 'var(--toolbar-height)',
-        'pagination': 'var(--pagination-height)',
-        'row': 'var(--table-row-height)',
-        'input': 'var(--input-height)',
-        'btn': 'var(--button-height)',
+        toolbar: 'var(--toolbar-height)',
+        pagination: 'var(--pagination-height)',
+        row: 'var(--table-row-height)',
+        input: 'var(--input-height)',
+        btn: 'var(--button-height)',
       },
       width: {
         sidebar: 'var(--sidebar-width)',
       },
       fontSize: {
-        'xs':   ['11px', '16px'],
-        'sm':   ['12px', '18px'],
-        'base': ['13px', '20px'],
-        'md':   ['14px', '22px'],
-        'title':['16px', '24px'],
+        xs: ['11px', '16px'],
+        sm: ['12px', '18px'],
+        base: ['13px', '20px'],
+        md: ['14px', '22px'],
+        title: ['16px', '24px'],
       },
     },
   },
-}
+};
 ```
 
 ### 10.3 Quy tắc Tailwind
@@ -1089,8 +1115,8 @@ const tableHeaderClass = cn(
   'bg-[var(--color-bg-table-header)]',
   'border-b-2 border-border',
   'text-sm font-semibold text-text-secondary',
-  'whitespace-nowrap'
-)
+  'whitespace-nowrap',
+);
 
 // ✅ Dùng design token class thay vì hardcode màu
 // ❌ sai: className="bg-[#1677FF] text-[#141414]"
@@ -1290,20 +1316,18 @@ resolve: {
 ```typescript
 // Thứ tự import — cách nhau bằng 1 dòng trống:
 // 1. Node modules
-import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-
+import { useCallback, useState } from 'react';
+import { ROUTES } from '@/constants/routes';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { usePermission } from '@/hooks/usePermission';
 // 2. Internal — absolute paths (@/)
-import { Button } from '@/components/ui/button'
-import { usePermission } from '@/hooks/usePermission'
-import { cn } from '@/lib/utils'
-import { ROUTES } from '@/constants/routes'
-
+import { Button } from '@/components/ui/button';
+import { ProductTable } from '../components/ProductTable';
 // 3. Feature-local — relative paths
-import { useProductList } from '../hooks/useProductList'
-import { ProductTable } from '../components/ProductTable'
-import type { Product } from '../types/product.types'
+import { useProductList } from '../hooks/useProductList';
+import type { Product } from '../types/product.types';
 
 // ✅ Luôn dùng absolute path (@/) cho import cross-feature
 // ✅ Dùng relative path (./) cho import trong cùng feature
@@ -1314,17 +1338,17 @@ import type { Product } from '../types/product.types'
 
 ```typescript
 // ✅ Default export cho React components (1 file = 1 component)
-export default ProductTable
+export default ProductTable;
 
 // ✅ Named export cho utilities, hooks, types, constants
 export function useProductList() {}
-export const productApi = {}
-export type { Product, CreateProductDto }
+export const productApi = {};
+export type { Product, CreateProductDto };
 
 // ✅ Barrel file (index.ts) tại feature root — chỉ export public API
 // features/products/index.ts
-export { default as ProductListPage } from './pages/ProductListPage'
-export { default as ProductDetailPage } from './pages/ProductDetailPage'
+export { default as ProductListPage } from './pages/ProductListPage';
+export { default as ProductDetailPage } from './pages/ProductDetailPage';
 // Không export internal components, hooks, api
 
 // ❌ Không re-export tất cả từ thư mục con
@@ -1377,8 +1401,8 @@ class ErrorBoundary extends Component<
 
 // ✅ Pattern cho error từ API
 interface ApiError {
-  message: string
-  errors?: Record<string, string[]>  // Field-level errors từ server
+  message: string;
+  errors?: Record<string, string[]>; // Field-level errors từ server
 }
 
 // Trong mutation onError:
@@ -1388,12 +1412,12 @@ onError: (error: ApiError) => {
     Object.entries(error.errors).forEach(([field, messages]) => {
       form.setError(field as keyof FormValues, {
         message: messages[0],
-      })
-    })
+      });
+    });
   } else {
-    toast.error(error.message)
+    toast.error(error.message);
   }
-}
+};
 ```
 
 ---
@@ -1421,7 +1445,7 @@ const {open: showImport, close: hideImport} = useModal()
 
 ```typescript
 // ✅ Virtualization cho bảng > 100 dòng — dùng @tanstack/react-virtual
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 // ✅ Stable column definitions — khai báo ngoài component
 // ❌ sai: const columns = [...] // bên trong component → recreate mỗi render
@@ -1436,23 +1460,23 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 ```typescript
 // hooks/useDebounce.ts
 export function useDebounce<T>(value: T, delay = 300): T {
-  const [debouncedValue, setDebouncedValue] = useState(value)
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(timer)
-  }, [value, delay])
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
 
-  return debouncedValue
+  return debouncedValue;
 }
 
 // Sử dụng trong search
-const [search, setSearch] = useState('')
-const debouncedSearch = useDebounce(search, 300)
+const [search, setSearch] = useState('');
+const debouncedSearch = useDebounce(search, 300);
 
 useEffect(() => {
-  setFilters({ keyword: debouncedSearch })
-}, [debouncedSearch])
+  setFilters({ keyword: debouncedSearch });
+}, [debouncedSearch]);
 ```
 
 ---
@@ -1514,18 +1538,22 @@ Ví dụ:
 
 ```markdown
 ## Mô tả
+
 [Mô tả ngắn những gì PR này làm]
 
 ## Ticket
+
 [Link Jira / ticket]
 
 ## Loại thay đổi
+
 - [ ] Bug fix
 - [ ] Feature mới
 - [ ] Refactor
 - [ ] Config / chore
 
 ## Checklist
+
 - [ ] Code không có lỗi TypeScript
 - [ ] Không có `console.log` debug
 - [ ] Đã test trên Chrome
@@ -1557,8 +1585,8 @@ module.exports = {
     '@typescript-eslint/consistent-type-imports': 'error',
 
     // React
-    'react/react-in-jsx-scope': 'off',    // Vite không cần import React
-    'react/prop-types': 'off',            // Dùng TypeScript thay
+    'react/react-in-jsx-scope': 'off', // Vite không cần import React
+    'react/prop-types': 'off', // Dùng TypeScript thay
     'react-hooks/exhaustive-deps': 'warn',
 
     // General
@@ -1566,23 +1594,34 @@ module.exports = {
     'prefer-const': 'error',
     'no-var': 'error',
   },
-}
+};
 ```
 
 ### 16.2 Prettier
 
+`.prettierrc` **thực tế** (theo file trong repo — để `npm run format` quyết định, đừng sửa tay theo trí nhớ):
+
 ```json
-// .prettierrc
 {
-  "semi": false,
-  "singleQuote": true,
+  "printWidth": 80,
   "tabWidth": 2,
-  "printWidth": 100,
-  "trailingComma": "es5",
+  "endOfLine": "lf",
+  "singleQuote": true,
+  "trailingComma": "all",
   "bracketSpacing": true,
-  "arrowParens": "always"
+  "semi": true,
+  "bracketSameLine": false,
+  "jsxSingleQuote": false,
+  "arrowParens": "always",
+  "plugins": [
+    "prettier-plugin-tailwindcss",
+    "@ianvs/prettier-plugin-sort-imports"
+  ]
 }
 ```
+
+> Lưu ý: **`semi: true`** (có dấu chấm phẩy), `printWidth: 80`, `trailingComma: all`, và import được
+> tự sắp xếp bởi `@ianvs/prettier-plugin-sort-imports` (`importOrder` trong `.prettierrc`).
 
 ### 16.3 tsconfig.json
 
@@ -1606,36 +1645,25 @@ module.exports = {
 }
 ```
 
-### 16.4 Thư viện bắt buộc
+### 16.4 Thư viện chính
 
-```json
-{
-  "dependencies": {
-    "react": "^18",
-    "react-dom": "^18",
-    "react-router-dom": "^6",
-    "@tanstack/react-query": "^5",
-    "react-hook-form": "^7",
-    "@hookform/resolvers": "^3",
-    "zod": "^3",
-    "zustand": "^4",
-    "axios": "^1",
-    "clsx": "^2",
-    "tailwind-merge": "^2",
-    "lucide-react": "latest",
-    "date-fns": "^3"
-  },
-  "devDependencies": {
-    "vite": "^5",
-    "@vitejs/plugin-react": "^4",
-    "typescript": "^5",
-    "tailwindcss": "^3",
-    "autoprefixer": "^10",
-    "eslint": "^8",
-    "prettier": "^3"
-  }
-}
-```
+> ⚠️ **Số phiên bản dưới đây đã cũ.** Phiên bản đúng luôn lấy từ `package.json`. Bảng này chỉ liệt
+> kê các lib _vai trò cốt lõi_ đã chốt cho template (chi tiết: `docs/00-stack-and-architecture.md`).
+
+| Vai trò      | Thư viện                                                | Thực tế                      |
+| ------------ | ------------------------------------------------------- | ---------------------------- |
+| UI           | `react`, `react-dom`                                    | **19**                       |
+| Routing      | `react-router` / `react-router-dom`                     | **7** (declarative)          |
+| Server state | `@tanstack/react-query`                                 | **5**                        |
+| Global state | `zustand`                                               | đã cài                       |
+| HTTP         | `axios`                                                 | đã cài                       |
+| Form         | `react-hook-form`, `@hookform/resolvers`, `zod`         | đã cài                       |
+| i18n         | `react-intl`                                            | đã cài                       |
+| Class utils  | `clsx`, `tailwind-merge` (qua `cn()`)                   | đã cài                       |
+| Icon         | `lucide-react`                                          | đã cài                       |
+| Build/CSS    | `vite` **7**, `tailwindcss` **4** (`@tailwindcss/vite`) | không có `tailwind.config.*` |
+| Test         | `vitest`, `@testing-library/react`                      | jsdom                        |
+| Chất lượng   | `eslint`, `prettier`, `husky`, `lint-staged`            | pre-commit                   |
 
 ### 16.5 Environment Variables
 
@@ -1652,13 +1680,13 @@ VITE_API_URL=https://api.yourdomain.com/api/v1
 ```typescript
 // types/env.d.ts — typed env vars
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string
-  readonly VITE_APP_NAME: string
-  readonly VITE_APP_VERSION: string
+  readonly VITE_API_URL: string;
+  readonly VITE_APP_NAME: string;
+  readonly VITE_APP_VERSION: string;
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv;
 }
 ```
 
@@ -1669,36 +1697,43 @@ interface ImportMeta {
 Trước khi tạo PR, review lại:
 
 **Structure**
+
 - [ ] File đặt đúng thư mục (feature module, không đặt lung tung)
 - [ ] Tên file/folder theo convention
 - [ ] Không có code "chết" (unused imports, unused variables)
 
 **TypeScript**
+
 - [ ] Không có `any`
 - [ ] Props có interface định nghĩa rõ ràng
 - [ ] Không dùng non-null assertion (`!`) bừa bãi
 
 **React**
+
 - [ ] Không fetch data trực tiếp trong component (dùng hook)
 - [ ] Handler đặt tên đúng `handle*`
 - [ ] Không có logic phức tạp trong JSX
 
 **State**
+
 - [ ] Server state dùng React Query
 - [ ] Global client state dùng Zustand
 - [ ] Không lưu server data vào Zustand
 
 **Form**
+
 - [ ] Dùng React Hook Form + Zod
 - [ ] Error message tiếng Việt, rõ nghĩa
 - [ ] Có loading state khi submit
 
 **CSS/Tailwind**
+
 - [ ] Dùng design token (`text-primary`, `bg-primary`) thay vì hardcode màu
 - [ ] Dùng `cn()` cho conditional classes
 - [ ] Không viết `style={{}}` inline (ngoại lệ: dynamic values thực sự)
 
 **Git**
+
 - [ ] Commit message đúng conventional commits
 - [ ] Không có `console.log` (trừ `console.error`, `console.warn`)
 - [ ] Không commit file `.env`
