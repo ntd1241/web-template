@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // Define input size variants
 const textareaVariants = cva(
   `
-    w-full bg-background border border-input bg-background text-foreground shadow-xs shadow-black/5 transition-[color,box-shadow] 
+    w-full bg-admin-surface-alt focus-visible:bg-background border border-input text-foreground shadow-xs shadow-black/5 transition-[color,box-shadow,background-color]
     text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] 
     focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 aria-invalid:border-destructive
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 dark:aria-invalid:border-destructive dark:aria-invalid:ring-destructive/20
@@ -31,7 +31,13 @@ function Textarea({
   variant,
   ...props
 }: React.ComponentProps<'textarea'> & VariantProps<typeof textareaVariants>) {
-  return <textarea data-slot="textarea" className={cn(textareaVariants({ variant }), className)} {...props} />;
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(textareaVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }
 
 export { Textarea, textareaVariants };

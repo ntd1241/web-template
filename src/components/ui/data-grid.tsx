@@ -1,8 +1,13 @@
 'use client';
 
-import { createContext, ReactNode, useContext } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
+import {
+  type ColumnFiltersState,
+  type RowData,
+  type SortingState,
+  type Table,
+} from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
-import { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table';
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -117,7 +122,11 @@ function DataGridProvider<TData extends object>({
   );
 }
 
-function DataGrid<TData extends object>({ children, table, ...props }: DataGridProps<TData>) {
+function DataGrid<TData extends object>({
+  children,
+  table,
+  ...props
+}: DataGridProps<TData>) {
   const defaultProps: Partial<DataGridProps<TData>> = {
     loadingMode: 'skeleton',
     tableLayout: {
@@ -126,7 +135,7 @@ function DataGrid<TData extends object>({ children, table, ...props }: DataGridP
       rowBorder: true,
       rowRounded: false,
       stripped: false,
-      headerSticky: false,
+      headerSticky: true,
       headerBackground: true,
       headerBorder: true,
       width: 'fixed',
@@ -141,7 +150,7 @@ function DataGrid<TData extends object>({ children, table, ...props }: DataGridP
       base: '',
       header: '',
       headerRow: '',
-      headerSticky: 'sticky top-0 z-10 bg-background/90 backdrop-blur-xs',
+      headerSticky: 'sticky top-0 z-10 bg-admin-page',
       body: '',
       bodyRow: '',
       footer: '',
@@ -184,7 +193,14 @@ function DataGridContainer({
   border?: boolean;
 }) {
   return (
-    <div data-slot="data-grid" className={cn('grid w-full', border && 'border border-border rounded-lg', className)}>
+    <div
+      data-slot="data-grid"
+      className={cn(
+        'grid w-full',
+        border && 'border border-border rounded-lg',
+        className,
+      )}
+    >
       {children}
     </div>
   );

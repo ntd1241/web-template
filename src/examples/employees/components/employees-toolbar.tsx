@@ -18,7 +18,7 @@ export function EmployeesToolbar({
 }: EmployeesToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <InputWrapper className="w-64 bg-admin-surface-alt focus-within:bg-admin-surface">
+      <InputWrapper className="w-64">
         <Search />
         <Input
           type="search"

@@ -30,7 +30,7 @@ export function useEmployeeColumns({
         accessorKey: 'name',
         header: 'Nhân viên',
         cell: ({ row }) => <EmployeeCell employee={row.original} />,
-        meta: { headerClassName: 'min-w-[260px]', cellClassName: 'py-3' },
+        meta: { headerClassName: 'min-w-[260px]' },
       },
       {
         id: 'roles',

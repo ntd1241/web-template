@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // Define input size variants
 const inputVariants = cva(
   `
-    flex w-full bg-background border border-input shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 
+    flex w-full bg-admin-surface-alt focus-visible:bg-background border border-input shadow-xs shadow-black/5 transition-[color,box-shadow,background-color] text-foreground placeholder:text-muted-foreground/80
     focus-visible:ring-ring/30  focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]     
     disabled:cursor-not-allowed disabled:opacity-60 
     [&[readonly]]:bg-muted/80 [&[readonly]]:cursor-not-allowed
@@ -75,10 +75,11 @@ const inputGroupVariants = cva(
 const inputWrapperVariants = cva(
   `
     flex items-center gap-1.5
-    has-[:focus-visible]:ring-ring/30 
+    has-[:focus-visible]:ring-ring/30
     has-[:focus-visible]:border-ring
-    has-[:focus-visible]:outline-none 
+    has-[:focus-visible]:outline-none
     has-[:focus-visible]:ring-[3px]
+    has-[:focus-visible]:bg-background
 
     [&_[data-slot=datefield]]:grow 
     [&_[data-slot=input]]:data-focus-within:ring-transparent  
@@ -122,7 +123,14 @@ function Input({
   variant,
   ...props
 }: React.ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
-  return <input data-slot="input" type={type} className={cn(inputVariants({ variant }), className)} {...props} />;
+  return (
+    <input
+      data-slot="input"
+      type={type}
+      className={cn(inputVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }
 
 function InputAddon({
@@ -131,11 +139,26 @@ function InputAddon({
   mode,
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof inputAddonVariants>) {
-  return <div data-slot="input-addon" className={cn(inputAddonVariants({ variant, mode }), className)} {...props} />;
+  return (
+    <div
+      data-slot="input-addon"
+      className={cn(inputAddonVariants({ variant, mode }), className)}
+      {...props}
+    />
+  );
 }
 
-function InputGroup({ className, ...props }: React.ComponentProps<'div'> & VariantProps<typeof inputGroupVariants>) {
-  return <div data-slot="input-group" className={cn(inputGroupVariants(), className)} {...props} />;
+function InputGroup({
+  className,
+  ...props
+}: React.ComponentProps<'div'> & VariantProps<typeof inputGroupVariants>) {
+  return (
+    <div
+      data-slot="input-group"
+      className={cn(inputGroupVariants(), className)}
+      {...props}
+    />
+  );
 }
 
 function InputWrapper({
@@ -146,10 +169,21 @@ function InputWrapper({
   return (
     <div
       data-slot="input-wrapper"
-      className={cn(inputVariants({ variant }), inputWrapperVariants({ variant }), className)}
+      className={cn(
+        inputVariants({ variant }),
+        inputWrapperVariants({ variant }),
+        className,
+      )}
       {...props}
     />
   );
 }
 
-export { Input, InputAddon, InputGroup, InputWrapper, inputVariants, inputAddonVariants };
+export {
+  Input,
+  InputAddon,
+  InputGroup,
+  InputWrapper,
+  inputVariants,
+  inputAddonVariants,
+};
