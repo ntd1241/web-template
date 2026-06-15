@@ -1,22 +1,22 @@
-import { MenuConfig } from "@/config/types";
 import {
   ChartLine,
   Cog,
-  GlobeLock,
-  Gauge,
-  LockKeyholeOpen,
-  Mailbox,
-  OctagonAlert,
-  Settings,
-  Users,
   Download,
   FileChartLine,
-  SquareActivity,
+  Gauge,
+  GlobeLock,
   House,
-  Settings2,
+  LockKeyholeOpen,
+  Mailbox,
   Network,
-  ShieldUser
-} from "lucide-react";
+  OctagonAlert,
+  Settings,
+  Settings2,
+  ShieldUser,
+  SquareActivity,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR: MenuConfig = [
   {
@@ -25,27 +25,27 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'API Setup',
         path: '#',
-        icon: Settings
+        icon: Settings,
       },
       {
         title: 'Team Settings',
         path: '/layout-26',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'Authentication',
         path: '#',
-        icon: Mailbox
+        icon: Mailbox,
       },
       {
         title: 'Endpoints Configs',
         path: '#',
-        icon: Cog
+        icon: Cog,
       },
       {
         title: 'Rate Limiting',
         path: '#',
-        icon: ChartLine
+        icon: ChartLine,
       },
     ],
   },
@@ -55,22 +55,22 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Data Encryption',
         path: '#',
-        icon: GlobeLock
+        icon: GlobeLock,
       },
       {
         title: 'Rate Limiting',
         path: '#',
-        icon: Gauge
+        icon: Gauge,
       },
       {
         title: 'Access Control',
         path: '#',
-        icon: LockKeyholeOpen
+        icon: LockKeyholeOpen,
       },
       {
         title: 'Incident Response',
         path: '#',
-        icon: OctagonAlert
+        icon: OctagonAlert,
       },
     ],
   },
@@ -80,46 +80,46 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Fetching Data',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Custom Reports',
         path: '#',
-        icon: FileChartLine
+        icon: FileChartLine,
       },
       {
         title: 'Real Time Analytics',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_HEADER: MenuConfig = [
   {
     title: 'Dashboards',
     path: '/layout-26',
-    icon: House
+    icon: House,
   },
   {
     title: 'Public Profile',
     path: '#',
-    icon: Users
+    icon: Users,
   },
   {
     title: 'Account Settings',
     path: '#',
-    icon: Settings2
+    icon: Settings2,
   },
   {
     title: 'Network',
     path: '#',
-    icon: Network
+    icon: Network,
   },
   {
     title: 'Authentication',
     path: '#',
-    icon: ShieldUser
+    icon: ShieldUser,
   },
 ];

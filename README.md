@@ -1,95 +1,66 @@
-# Metronic 9 | All-in-One Tailwind based HTML/React/Next.js Template for Modern Web Applications
+# Admin Web Template (Vietnamese market)
 
-## Getting Started
+Template admin/web tái sử dụng, build trên **Metronic 9 + ReUI**, hướng tới thị trường Việt Nam:
+dense, table-first, desktop 1366–1920px. Mục tiêu: copy một example page gần đúng, đổi domain data,
+triển khai dự án thật nhanh nhất.
 
-Refer to the [Metronic Vite Documentation](https://docs.keenthemes.com/metronic-react)
-for comprehensive guidance on setting up and getting started your project with Metronic.
+## Stack
 
-## ReUI Components
+Vite 7 · React 19 · TypeScript (strict) · Tailwind CSS 4 (`@theme`) · React Router 7 ·
+TanStack React Query 5 · Zustand · Axios · react-hook-form + zod · react-intl · Vitest + Testing Library.
 
-Metronic now leverages [ReUI](https://v1.reui.io), our open-source React component library.
+Chi tiết & kiến trúc: **[`docs/00-stack-and-architecture.md`](docs/00-stack-and-architecture.md)**.
 
-Star the [ReUI on GitHub](https://github.com/keenthemes/reui) to help us grow the project and stay updated on new features!
-
-## Login with Supabase Auth
-
-This project uses Supabase for authentication. Follow these steps to set up and test the login functionality:
-
-### Prerequisites
-
-- Node.js 16.x or higher
-- Npm or Yarn
-- Tailwind CSS 4.x
-- React 19.x
-- A Supabase account and project
-
-### Installation
-
-To set up the project dependencies, including those required for React 19, use the `--force` flag to resolve any dependency conflicts:
+## Bắt đầu
 
 ```bash
-npm install --force
+npm install --force        # --force do React 19 peer ranges
+cp .env.example .env.local # cấu hình env (mặc định mock-first, chạy được ngay)
+npm run dev                # http://localhost:5173  (/ = trang quản lý nhân viên mẫu)
 ```
 
-### Environment Setup
+Template chạy **mock-first**: `VITE_USE_MOCK=1` nên không cần backend. Khi có API thật, đặt
+`VITE_USE_MOCK=0` và `VITE_API_URL`. Auth được trừu tượng hóa (`src/stores/auth.store.ts` +
+`src/lib/axios.ts`) — backend-agnostic, không gắn cứng với nhà cung cấp nào.
 
-1. Make sure your `.env` file is configured with Supabase credentials:
-
-```
-
-VITE_SUPABASE_URL=https://your-project-url.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-for-admin-functions
-
-```
-
-### Creating a Demo User
-
-For testing purposes, you can create a demo user with:
+## Lệnh
 
 ```bash
-npm run create-demo-user
+npm run build      # tsc + vite build (cổng xác thực, exit 0)
+npm run test:run   # vitest chạy 1 lần
+npm run lint       # eslint --fix
+npm run format     # prettier --write .
 ```
 
-This will create a user with the following credentials:
+Pre-commit (husky) chạy `lint-staged` trên file staged.
 
-- Email: demo@kt.com
-- Password: demo123
+## Tài liệu
 
-### Login Features
+| File | Nội dung |
+|---|---|
+| [`docs/00`](docs/00-stack-and-architecture.md) | Stack, foundation, data flow, cách thêm feature — **đọc đầu tiên** |
+| [`docs/01`](docs/01-coding-convention.md) | Convention: naming, TS, React, Tailwind, form, routing |
+| [`docs/02`](docs/02-design-system.md) | UX direction (admin Việt, dense, table-first) |
+| [`docs/03`](docs/03-permission-system-design.md) | Permission / RBAC |
+| [`docs/04`](docs/04-specific-design-system.md) | Case study tham chiếu (không copy brand) |
+| [`docs/05`](docs/05-example-pages-proposal.md) | Danh mục example pages cần dựng |
+| [`docs/06`](docs/06-component-usage-guide.md) | Dùng component project thay HTML thô (DataGrid…) |
+| [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) | Hướng dẫn cho coding agent & quy tắc review |
 
-The login implementation includes:
+## Cấu trúc nhanh
 
-- Email/Password authentication
-- Google OAuth integration
-- Password reset flow
-- Error handling
-- Token management
-- Protected routes
-
-### Setting Up the Demo Layout
-
-Follow the [Metronic Vite Documentation](https://docs.keenthemes.com/metronic-vite/guides/layouts) to configure and use the demo layout of your choice.
-
-### Development
-
-Start the development server:
-
-```bash
-npm run dev
+```
+src/
+├── providers/      # AppProviders (gom mọi provider)
+├── config/env.ts   # env type hóa
+├── lib/            # axios, query-client, utils(cn)
+├── stores/         # Zustand (auth, ui)
+├── constants/      # routes, query-keys
+├── i18n/           # react-intl (vi mặc định)
+├── mocks/          # mock-first data layer
+├── components/ui/  # base components (ReUI/Metronic)
+├── components/layouts/main-layout   # shell template (route /)
+└── pages/          # main-layout (template) + layout-1..39 (demo Metronic)
 ```
 
-Visit `http://localhost:5173/auth/signin` to test the login functionality.
-
-### Testing Login
-
-You can test login using:
-
-1. The demo account credentials
-2. Register a new account (when implemented)
-3. Google Sign-in (requires proper OAuth setup in Supabase)
-
-### Reporting Issues
-
-If you encounter any issues or have suggestions for improvement, please contact us at [support@keenthemes.com](mailto:support@keenthemes.com).
-Include a detailed description of the issue or suggestion, and we will work to address it in the next stable release.
+> Nguồn gốc: Metronic 9 by KeenThemes — xem [ReUI](https://v1.reui.io) cho component library.

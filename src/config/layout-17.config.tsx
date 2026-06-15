@@ -1,4 +1,3 @@
-import { MenuConfig } from "@/config/types";
 import {
   BarChart3,
   FolderCode,
@@ -8,6 +7,7 @@ import {
   UserCircle,
   Users,
 } from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {

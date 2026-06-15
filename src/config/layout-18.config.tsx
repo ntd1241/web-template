@@ -1,23 +1,23 @@
-import { MenuConfig } from "@/config/types";
 import {
+  Bell,
+  Blocks,
   ChartLine,
   Cog,
-  GlobeLock,
+  CreditCard,
+  Download,
+  FileChartLine,
   Gauge,
+  GlobeLock,
+  Key,
   LockKeyholeOpen,
   Mailbox,
   OctagonAlert,
-  Settings,
-  Users,
-  Download,
-  FileChartLine,
-  SquareActivity,
   Rocket,
-  CreditCard,
-  Blocks,
-  Bell,
-  Key
-} from "lucide-react";
+  Settings,
+  SquareActivity,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR: MenuConfig = [
   {
@@ -26,27 +26,27 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'API Setup',
         path: '#',
-        icon: Settings
+        icon: Settings,
       },
       {
         title: 'Team Settings',
         path: '/layout-18',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'Authentication',
         path: '#',
-        icon: Mailbox
+        icon: Mailbox,
       },
       {
         title: 'Endpoints Configs',
         path: '#',
-        icon: Cog
+        icon: Cog,
       },
       {
         title: 'Rate Limiting',
         path: '#',
-        icon: ChartLine
+        icon: ChartLine,
       },
     ],
   },
@@ -56,22 +56,22 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Data Encryption',
         path: '#',
-        icon: GlobeLock
+        icon: GlobeLock,
       },
       {
         title: 'Rate Limiting',
         path: '#',
-        icon: Gauge
+        icon: Gauge,
       },
       {
         title: 'Access Control',
         path: '#',
-        icon: LockKeyholeOpen
+        icon: LockKeyholeOpen,
       },
       {
         title: 'Incident Response',
         path: '#',
-        icon: OctagonAlert
+        icon: OctagonAlert,
       },
     ],
   },
@@ -81,42 +81,42 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Fetching Data',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Custom Reports',
         path: '#',
-        icon: FileChartLine
+        icon: FileChartLine,
       },
       {
         title: 'Real Time Analytics',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_HEADER: MenuConfig = [
   {
     title: 'Dashboards',
-    path: '#'
+    path: '#',
   },
   {
     title: 'My Account',
-    path: '/layout-18'
+    path: '/layout-18',
   },
   {
     title: 'Public Profile',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Network',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Authentication',
-    path: '#'
+    path: '#',
   },
 ];
 
@@ -124,36 +124,36 @@ export const MENU_NAVBAR: MenuConfig = [
   {
     title: 'Account Starter',
     path: '#',
-    icon: Rocket
+    icon: Rocket,
   },
   {
     title: 'Billing',
     path: '/layout-18',
-    icon: CreditCard
+    icon: CreditCard,
   },
   {
     title: 'Security',
     path: '#',
-    icon: LockKeyholeOpen
+    icon: LockKeyholeOpen,
   },
   {
     title: 'Members & Roles',
     path: '#',
-    icon: Users
+    icon: Users,
   },
   {
     title: 'Integrations',
     path: '#',
-    icon: Blocks
+    icon: Blocks,
   },
   {
     title: 'Notifications',
     path: '#',
-    icon: Bell
+    icon: Bell,
   },
   {
     title: 'API Keys',
     path: '#',
-    icon: Key
+    icon: Key,
   },
 ];

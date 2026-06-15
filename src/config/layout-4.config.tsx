@@ -343,7 +343,7 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Timesheets',
         path: '#',
-      }
+      },
     ],
   },
   {
@@ -365,7 +365,7 @@ export const MENU_SIDEBAR: MenuConfig = [
           },
           {
             title: 'Inbound Stock',
-              path: '#',
+            path: '#',
           },
           {
             title: 'Outbound Stock',

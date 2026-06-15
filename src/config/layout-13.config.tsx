@@ -1,17 +1,17 @@
-import { MenuConfig } from "@/config/types";
 import {
+  Bolt,
+  Briefcase,
   ChartLine,
   Cog,
-  UserRoundCog,
-  Bolt,
-  Users,
   Download,
   FileChartLine,
-  SquareActivity,
+  Megaphone,
   Newspaper,
-  Briefcase,
-  Megaphone
-} from "lucide-react";
+  SquareActivity,
+  UserRoundCog,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {
@@ -20,31 +20,31 @@ export const MENU_SIDEBAR_MAIN: MenuConfig = [
       {
         title: 'Dashboards',
         path: '#',
-        icon: Bolt
+        icon: Bolt,
       },
       {
         title: 'Public Profiles',
         path: '/layout-13',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'Account Settings',
         path: '#',
-        icon: UserRoundCog
+        icon: UserRoundCog,
       },
       {
         title: 'Network',
         path: '#',
         icon: Cog,
-        badge: 'Beta'
+        badge: 'Beta',
       },
       {
         title: 'Authentication',
         path: '#',
-        icon: ChartLine
+        icon: ChartLine,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
@@ -54,34 +54,34 @@ export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
       {
         title: 'About Metronic',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Advertise',
         path: '#',
         icon: FileChartLine,
-        badge: 'Pro'
+        badge: 'Pro',
       },
       {
         title: 'Help',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
       {
         title: 'Blog',
         path: '#',
-        icon: Newspaper
+        icon: Newspaper,
       },
       {
         title: 'Careers',
         path: '#',
-        icon: Briefcase
+        icon: Briefcase,
       },
       {
         title: 'Press',
         path: '#',
-        icon: Megaphone
+        icon: Megaphone,
       },
     ],
-  }
+  },
 ];

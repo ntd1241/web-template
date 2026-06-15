@@ -1,4 +1,3 @@
-import { MenuConfig } from "@/config/types";
 import {
   BarChart3,
   FolderCode,
@@ -9,6 +8,7 @@ import {
   ShieldUser,
   Users,
 } from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {
@@ -35,7 +35,7 @@ export const MENU_SIDEBAR_MAIN: MenuConfig = [
     icon: Users,
     title: 'Network',
     path: '#',
-    separator: true
+    separator: true,
   },
   {
     icon: ScrollText,

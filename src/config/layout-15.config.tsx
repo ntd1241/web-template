@@ -6,9 +6,8 @@ import {
   GalleryVerticalEnd,
   Home,
   Users,
+  type LucideIcon,
 } from 'lucide-react';
-
-import { type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   id: string;
@@ -93,7 +92,7 @@ export const MAIN_NAV: NavConfig = [
     path: '#',
     pinnable: true,
     pinned: true,
-    id: 'company'
+    id: 'company',
   },
 
   {

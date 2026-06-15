@@ -1,22 +1,30 @@
-import { MenuConfig } from "@/config/types";
-import { Rocket, CreditCard, LockKeyholeOpen, Users, Blocks, Bell, Key } from "lucide-react";
+import {
+  Bell,
+  Blocks,
+  CreditCard,
+  Key,
+  LockKeyholeOpen,
+  Rocket,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_HEADER: MenuConfig = [
   {
     title: 'Feedback',
-    path: '/layout-22'
+    path: '/layout-22',
   },
   {
     title: 'Resources',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Support',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Webhooks',
-    path: '#'
+    path: '#',
   },
 ];
 
@@ -24,36 +32,36 @@ export const MENU_NAVBAR: MenuConfig = [
   {
     title: 'Account Starter',
     path: '#',
-    icon: Rocket
+    icon: Rocket,
   },
   {
     title: 'Billing',
     path: '/layout-22',
-    icon: CreditCard
+    icon: CreditCard,
   },
   {
     title: 'Security',
     path: '#',
-    icon: LockKeyholeOpen
+    icon: LockKeyholeOpen,
   },
   {
     title: 'Members & Roles',
     path: '#',
-    icon: Users
+    icon: Users,
   },
   {
     title: 'Integrations',
     path: '#',
-    icon: Blocks
+    icon: Blocks,
   },
   {
     title: 'Notifications',
     path: '#',
-    icon: Bell
+    icon: Bell,
   },
   {
     title: 'API Keys',
     path: '#',
-    icon: Key
+    icon: Key,
   },
 ];

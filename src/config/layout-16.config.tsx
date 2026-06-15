@@ -1,20 +1,20 @@
-import { MenuConfig } from "@/config/types";
 import {
+  BarChart2,
+  Bolt,
+  Briefcase,
   ChartLine,
   Cog,
-  UserRoundCog,
-  Bolt,
-  Users,
   Download,
   FileChartLine,
-  SquareActivity,
-  Newspaper,
-  Briefcase,
-  Megaphone,
-  Palette,
-  BarChart2,
   Handshake,
-} from "lucide-react";
+  Megaphone,
+  Newspaper,
+  Palette,
+  SquareActivity,
+  UserRoundCog,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {
@@ -22,31 +22,31 @@ export const MENU_SIDEBAR_MAIN: MenuConfig = [
       {
         title: 'Home',
         path: '#',
-        icon: Bolt
+        icon: Bolt,
       },
       {
         title: 'Updates',
         path: '/layout-16',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'Inbox',
         path: '#',
-        icon: UserRoundCog
+        icon: UserRoundCog,
       },
       {
         title: 'Clients',
         path: '#',
         icon: Cog,
-        badge: 'Beta'
+        badge: 'Beta',
       },
       {
         title: 'My Tasks',
         path: '#',
-        icon: ChartLine
+        icon: ChartLine,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
@@ -56,36 +56,36 @@ export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
       {
         title: 'About Metronic',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Advertise',
         path: '#',
         icon: FileChartLine,
-        badge: 'Pro'
+        badge: 'Pro',
       },
       {
         title: 'Help',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
       {
         title: 'Blog',
         path: '#',
-        icon: Newspaper
+        icon: Newspaper,
       },
       {
         title: 'Careers',
         path: '#',
-        icon: Briefcase
+        icon: Briefcase,
       },
       {
         title: 'Press',
         path: '#',
-        icon: Megaphone
+        icon: Megaphone,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_SIDEBAR_WORKSPACES: MenuConfig = [
@@ -95,24 +95,24 @@ export const MENU_SIDEBAR_WORKSPACES: MenuConfig = [
       {
         title: 'Business Concepts',
         path: '#',
-        icon: Briefcase
+        icon: Briefcase,
       },
       {
         title: 'KeenThemes Studio',
         path: '#',
-        icon: Palette
+        icon: Palette,
       },
       {
         title: 'Teams',
         path: '#',
         icon: Handshake,
-        badge: 'Pro'
+        badge: 'Pro',
       },
       {
         title: 'Reports',
         path: '#',
-        icon: BarChart2
+        icon: BarChart2,
       },
     ],
-  }
+  },
 ];

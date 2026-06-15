@@ -343,7 +343,7 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Timesheets',
         path: '#',
-      }
+      },
     ],
   },
   {

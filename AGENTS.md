@@ -2,10 +2,12 @@
 
 This project is a Metronic 9 React starter template being adapted into a reusable web/admin template for the Vietnamese market. Before making product, UI, layout, permissions, or project-structure decisions, read these documents:
 
+- `docs/00-stack-and-architecture.md` — source of truth for stack, versions, app foundation (read first).
 - `docs/01-coding-convention.md`
 - `docs/02-design-system.md`
 - `docs/03-permission-system-design.md`
 - `docs/04-specific-design-system.md`
+- `docs/06-component-usage-guide.md` — use project UI components, not raw HTML.
 
 Treat the first three files as the desired direction, not as a perfect description of the current repository. `docs/04-specific-design-system.md` is a reference case study extracted from an external product; use it to understand concrete Vietnamese admin patterns, then generalize those patterns for this template. The actual code always wins when there is a mismatch.
 
@@ -36,10 +38,17 @@ Use `docs/01-coding-convention.md` for intended conventions when adding new busi
 
 Use `docs/03-permission-system-design.md` when implementing auth, RBAC, permissions, route guards, menu filtering, or admin role screens. Frontend permission checks are only UX; backend permission and scope checks remain mandatory.
 
+## App Foundation (scaffolded — see `docs/00`)
+
+The app-level layer is now wired: `src/providers/app-providers.tsx` (QueryClient + i18n + theme +
+router + error boundary), `src/lib/{axios,query-client}.ts`, `src/stores/*.store.ts` (Zustand, auth/ui),
+`src/constants/{routes,query-keys}.ts`, `src/config/env.ts`, `src/i18n/`, `src/mocks/` (mock-first),
+Vitest + Husky. New domain work goes in `src/features/<domain>/` per `docs/00` §4.
+
 ## Important Mismatches To Verify
 
-- The coding convention document mentions React 18, React Router 6, Tailwind 3 config, Zustand 4, Axios, and `tailwind.config.ts`. The current project uses React 19, React Router 7 packages, Tailwind 4 `@theme`, and does not currently include Zustand or Axios.
-- The proposed folder structure in `docs/01-coding-convention.md` is a target architecture. The current repository still uses Metronic's starter structure.
+- `docs/01-coding-convention.md` §9/§10/§16 still show React 18 / Router 6 / Tailwind 3 `tailwind.config.ts` / Prettier `semi:false` in examples; these now carry correction banners. Real stack: React 19, React Router 7 (declarative), Tailwind 4 `@theme` (no config file), Prettier `semi:true`. Zustand, Axios, React Query (wired), react-intl, Vitest are installed. Trust `docs/00` + `package.json`.
+- The proposed folder structure in `docs/01-coding-convention.md` is a target architecture. Existing Metronic `layout-*` files keep their layout-first structure; do not relocate them.
 - `docs/02-design-system.md` specifies Ant Design-like blue tokens such as `#1677FF`, while the current CSS tokens are still mostly Metronic/shadcn zinc-based variables. When restyling, update tokens deliberately in `src/styles/globals.css` / `src/styles/config.metronic.css` instead of hardcoding colors in components.
 - The docs describe future app-level concepts such as auth stores, API clients, route guards, feature pages, and permission constants. These should be introduced only when the relevant feature is implemented.
 - The current generic Vietnamese admin shell lives in `src/components/layouts/main-layout`, with a sample data-table screen in `src/pages/main-layout/page.tsx`.

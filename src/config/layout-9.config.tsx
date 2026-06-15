@@ -88,7 +88,7 @@ export const MENU_MEGA_MOBILE: MenuConfig = [
             path: '#',
           },
           {
-            title: 'Plain', 
+            title: 'Plain',
             icon: File,
             path: '#',
           },

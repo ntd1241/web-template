@@ -23,6 +23,17 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // `any` chỉ cảnh báo: code Metronic legacy còn dùng; code mới nên tránh (dùng `unknown`).
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // Tự fix `import { type X }` — bắt buộc tách type import.
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 );

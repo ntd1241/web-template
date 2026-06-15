@@ -1,21 +1,21 @@
-import { MenuConfig } from "@/config/types";
 import {
+  Briefcase,
   ChartLine,
   Cog,
-  Users,
   Download,
   FileChartLine,
-  SquareActivity,
-  Newspaper,
-  Briefcase,
-  Megaphone,
-  Settings,
-  Mailbox,
   House,
-  Settings2,
+  Mailbox,
+  Megaphone,
   Network,
-  ShieldUser
-} from "lucide-react";
+  Newspaper,
+  Settings,
+  Settings2,
+  ShieldUser,
+  SquareActivity,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {
@@ -24,28 +24,28 @@ export const MENU_SIDEBAR_MAIN: MenuConfig = [
       {
         title: 'API Setup',
         path: '#',
-        icon: Settings
+        icon: Settings,
       },
       {
         title: 'Team Settings',
         path: '/layout-25',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'Authentication',
         path: '#',
-        icon: Mailbox
+        icon: Mailbox,
       },
       {
         title: 'Endpoints Configs',
         path: '#',
-        icon: Cog
+        icon: Cog,
       },
       {
         title: 'Rate Limiting',
         path: '#',
         icon: ChartLine,
-        badge: 'New'
+        badge: 'New',
       },
     ],
   },
@@ -58,7 +58,7 @@ export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
       {
         title: 'About Metronic',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Advertise',
@@ -69,56 +69,56 @@ export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
         title: 'Advanced',
         path: '#',
         icon: Settings,
-        badge: 'Pro'
+        badge: 'Pro',
       },
       {
         title: 'Help',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
       {
         title: 'Blog',
         path: '#',
-        icon: Newspaper
+        icon: Newspaper,
       },
       {
         title: 'Careers',
         path: '#',
-        icon: Briefcase
+        icon: Briefcase,
       },
       {
         title: 'Press',
         path: '#',
-        icon: Megaphone
+        icon: Megaphone,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_HEADER: MenuConfig = [
   {
     title: 'Dashboards',
     path: '#',
-    icon: House
+    icon: House,
   },
   {
     title: 'My Account',
     path: '/layout-25',
-    icon: Settings2
+    icon: Settings2,
   },
   {
     title: 'Public Profile',
     path: '#',
-    icon: Users
+    icon: Users,
   },
   {
     title: 'Network',
     path: '#',
-    icon: Network
+    icon: Network,
   },
   {
     title: 'Authentication',
     path: '#',
-    icon: ShieldUser
+    icon: ShieldUser,
   },
 ];

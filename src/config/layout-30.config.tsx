@@ -1,4 +1,3 @@
-import { MenuConfig } from "@/config/types";
 import {
   BarChart3,
   Bolt,
@@ -16,6 +15,7 @@ import {
   SquareActivity,
   Users,
 } from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {
@@ -37,7 +37,7 @@ export const MENU_SIDEBAR_MAIN: MenuConfig = [
     icon: Users,
     title: 'Network',
     path: '#',
-    separator: true
+    separator: true,
   },
   {
     icon: ScrollText,
@@ -63,18 +63,18 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Team Settings',
         path: '#',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'API’s',
         path: '/layout-30',
-        icon: Bolt
+        icon: Bolt,
       },
-      
+
       {
         title: 'Integrations',
         path: '#',
-        icon: Mailbox
+        icon: Mailbox,
       },
     ],
   },
@@ -84,17 +84,17 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Data Encryption',
         path: '#',
-        icon: GlobeLock
+        icon: GlobeLock,
       },
       {
         title: 'Access Control',
         path: '#',
-        icon: LockKeyholeOpen
+        icon: LockKeyholeOpen,
       },
       {
         title: 'Incident Response',
         path: '#',
-        icon: OctagonAlert
+        icon: OctagonAlert,
       },
     ],
   },
@@ -104,18 +104,18 @@ export const MENU_SIDEBAR: MenuConfig = [
       {
         title: 'Usage Stats',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Custom Reports',
         path: '#',
-        icon: FileChartLine
+        icon: FileChartLine,
       },
       {
         title: 'Real-Time Monitoring',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
     ],
-  }
+  },
 ];

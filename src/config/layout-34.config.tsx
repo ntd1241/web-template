@@ -1,31 +1,31 @@
-import { MenuConfig } from "@/config/types";
+import { MenuConfig } from '@/config/types';
 
 export const MENU_HEADER: MenuConfig = [
   {
     title: 'Metronic 9',
     path: '/layout-34',
-    img: 'tailwindcss.svg'
+    img: 'tailwindcss.svg',
   },
   {
     title: 'Metronic 8',
     path: '#',
-    img: 'bootstrap.svg'
+    img: 'bootstrap.svg',
   },
   {
     title: 'Docs',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Pricing',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Changelog',
-    path: '#'
+    path: '#',
   },
   {
     title: 'Support',
-    path: '#'
+    path: '#',
   },
   {
     title: 'More',
@@ -34,28 +34,28 @@ export const MENU_HEADER: MenuConfig = [
       {
         title: 'Resources',
         desc: 'Explore our comprehensive collection of guides, templates, and learning materials.',
-        path: '#'
+        path: '#',
       },
       {
         title: 'Community',
         desc: 'Join thousands of developers sharing knowledge and building amazing projects.',
-        path: '#'
+        path: '#',
       },
       {
         title: 'Blog',
         desc: 'Stay updated with the latest news, tutorials, and best practices from our team.',
-        path: '#'
+        path: '#',
       },
       {
         title: 'API Reference',
         desc: 'Complete API documentation with examples and integration guides for developers.',
-        path: '#'
+        path: '#',
       },
       {
         title: 'About Us',
         desc: 'Learn more about our mission, team, and the story behind our products.',
-        path: '#'
-      }
-    ]
+        path: '#',
+      },
+    ],
   },
 ];

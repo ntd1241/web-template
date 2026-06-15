@@ -1,23 +1,23 @@
-import { MenuConfig } from "@/config/types";
 import {
-  ChartLine,
-  Cog,
-  UserRoundCog,
+  BarChart2,
   Bolt,
-  Users,
+  Briefcase,
+  Calendar,
+  ChartLine,
+  ClipboardList,
+  Cog,
   Download,
   FileChartLine,
-  SquareActivity,
-  Newspaper,
-  Briefcase,
-  Megaphone,
-  Palette,
-  BarChart2,
-  Handshake,
-  ClipboardList,
   Grid,
-  Calendar
-} from "lucide-react";
+  Handshake,
+  Megaphone,
+  Newspaper,
+  Palette,
+  SquareActivity,
+  UserRoundCog,
+  Users,
+} from 'lucide-react';
+import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR_MAIN: MenuConfig = [
   {
@@ -25,31 +25,31 @@ export const MENU_SIDEBAR_MAIN: MenuConfig = [
       {
         title: 'Home',
         path: '#',
-        icon: Bolt
+        icon: Bolt,
       },
       {
         title: 'Updates',
         path: '/layout-20',
-        icon: Users
+        icon: Users,
       },
       {
         title: 'Inbox',
         path: '#',
-        icon: UserRoundCog
+        icon: UserRoundCog,
       },
       {
         title: 'Clients',
         path: '#',
         icon: Cog,
-        badge: 'Beta'
+        badge: 'Beta',
       },
       {
         title: 'My Tasks',
         path: '#',
-        icon: ChartLine
+        icon: ChartLine,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
@@ -59,36 +59,36 @@ export const MENU_SIDEBAR_RESOURCES: MenuConfig = [
       {
         title: 'About Metronic',
         path: '#',
-        icon: Download
+        icon: Download,
       },
       {
         title: 'Advertise',
         path: '#',
         icon: FileChartLine,
-        badge: 'Pro'
+        badge: 'Pro',
       },
       {
         title: 'Help',
         path: '#',
-        icon: SquareActivity
+        icon: SquareActivity,
       },
       {
         title: 'Blog',
         path: '#',
-        icon: Newspaper
+        icon: Newspaper,
       },
       {
         title: 'Careers',
         path: '#',
-        icon: Briefcase
+        icon: Briefcase,
       },
       {
         title: 'Press',
         path: '#',
-        icon: Megaphone
+        icon: Megaphone,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_SIDEBAR_WORKSPACES: MenuConfig = [
@@ -98,47 +98,47 @@ export const MENU_SIDEBAR_WORKSPACES: MenuConfig = [
       {
         title: 'Business Concepts',
         path: '#',
-        icon: Briefcase
+        icon: Briefcase,
       },
       {
         title: 'KeenThemes Studio',
         path: '#',
-        icon: Palette
+        icon: Palette,
       },
       {
         title: 'Teams',
         path: '#',
         icon: Handshake,
-        badge: 'Pro'
+        badge: 'Pro',
       },
       {
         title: 'Reports',
         path: '#',
-        icon: BarChart2
+        icon: BarChart2,
       },
     ],
-  }
+  },
 ];
 
 export const MENU_TOOLBAR: MenuConfig = [
   {
     title: 'List',
     path: '/layout-14',
-    icon: ClipboardList
+    icon: ClipboardList,
   },
   {
     title: 'Kanban',
     path: '#',
-    icon: Grid
+    icon: Grid,
   },
   {
     title: 'Calendar',
     path: '#',
-    icon: Calendar
+    icon: Calendar,
   },
   {
     title: 'Dashboard',
     path: '#',
-    icon: Bolt
+    icon: Bolt,
   },
 ];
