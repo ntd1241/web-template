@@ -6,6 +6,9 @@ interface UiState {
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  /** Dev-only: hiện các trang chỉ có block-layout (greybox) trong sidebar. */
+  wireframeMode: boolean;
+  toggleWireframeMode: () => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -15,6 +18,9 @@ export const useUiStore = create<UiState>()(
       toggleSidebar: () =>
         set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      wireframeMode: false,
+      toggleWireframeMode: () =>
+        set((state) => ({ wireframeMode: !state.wireframeMode })),
     }),
     { name: 'ui-storage' },
   ),

@@ -1,15 +1,6 @@
 ---
 name: block-layout
-description: >-
-  Greybox/blockframe a new page BEFORE detailed design — lay out the major
-  regions (sidebar, toolbar, table, filter panel, footer, detail panel…) as
-  labeled colored blocks using plain divs + inline styles only, then iterate on
-  structure and responsive behavior. Use this whenever the user wants to "lên
-  layout / block layout / wireframe / khối to / dựng bố cục" for a screen before
-  building real components, or asks to plan a page's structure, or says things
-  like "trang này gồm những phần nào", "chia block trước rồi design sau". Always
-  reach for this when starting a brand-new admin page so the layout + responsive
-  is agreed before any real component work. Not for editing already-built pages.
+description: 'Greybox/blockframe a new page BEFORE detailed design — lay out the major regions (roles panel, toolbar, table, filter panel, footer, detail panel…) as labeled colored blocks using plain divs + inline styles only, then iterate on structure and responsive behavior. Use whenever the user wants to "lên layout / block layout / wireframe / khối to / dựng bố cục" for a screen before building real components, or asks to plan a page''s structure, or says things like "trang này gồm những phần nào", "chia block trước rồi design sau". Always reach for this when starting a brand-new admin page so the layout + responsive is agreed before any real component work. Not for editing already-built pages.'
 ---
 
 # Block Layout (greyboxing)
@@ -49,8 +40,11 @@ an existing page — there's nothing to block out.
    and 1920px) and at a mobile width (~390px). Use the preview tools; resize and
    screenshot.
 5. **Get sign-off** on the structure and responsive behavior from the user.
-6. **Replace blocks one-by-one** with real components per `docs/06`, deleting the
-   greybox when the real page exists.
+6. **Replace blocks one-by-one** with real components per `docs/06`. Keeping the
+   greybox afterwards is encouraged — it's dev-only (excluded from the production
+   build) and documents the intended layout/responsive decision. Treat it as a
+   sketch, not the source of truth; delete it only if it drifts and causes
+   confusion.
 
 ## How to build a block
 
@@ -78,25 +72,20 @@ A tiny local helper keeps it readable (this is a local style object, not externa
 CSS — allowed):
 
 ```tsx
-function block(
-  label: string,
-  color: string,
-  style: React.CSSProperties = {},
-): React.CSSProperties {
+function block(color: string, style: React.CSSProperties = {}): React.CSSProperties {
   return {
     border: '1px solid rgba(0,0,0,0.25)',
     borderRadius: 0,
     background: color,
     color: '#1a1a1a',
-    font: '600 12px/1.3 ui-monospace, monospace',
-    padding: 8,
+    font: '600 12px/1.4 ui-monospace, monospace',
+    padding: 10,
     boxSizing: 'border-box',
     display: 'flex',
-    alignItems: 'flex-start',
     ...style,
   };
-  // `label` is rendered as the div's text child by the caller.
 }
+// usage: <div style={block('rgba(59,130,246,0.12)', { flex: 1 })}>TABLE → DataGrid</div>
 ```
 
 ## Responsive in the same greybox
@@ -114,61 +103,66 @@ Use `window.matchMedia`/a resize listener or a simple `useState` width toggle so
 you can flip between desktop and mobile in the preview. Annotate blocks that
 change (`FILTER → drawer on mobile`).
 
-## Output location & route (dev-only, throwaway)
+## Output location & route (render inside MainLayout)
+
+The app already has `MainLayout` (real sidebar + topbar). Reuse it: the greybox
+blocks out only the **page content area**, which is easier to picture in context
+and transfers directly to the real page. So the greybox root fills the content
+area (`height: 100%`, `padding: 24`) — do NOT block out the app sidebar/topbar
+yourself unless you specifically need to redesign the shell.
 
 Put the greybox under the screen's folder, e.g.
-`src/examples/<domain>/wireframe.tsx`, exporting a named component like
-`EmployeesWireframe`. Register it as a **standalone, full-viewport** route (NOT
-nested in `MainLayout`, so you can block out the app sidebar/topbar too) inside
-the existing DEV-gated block in `src/examples/example-routes.tsx`:
+`src/examples/<domain>/wireframe.tsx`, named export `XxxWireframe`. Register it
+**nested inside the `MainLayout` group** in the DEV-gated block of
+`src/examples/example-routes.tsx`:
 
 ```tsx
 if (import.meta.env.DEV) {
-  const EmployeesWireframe = lazy(() =>
-    import('./employees/wireframe').then((m) => ({ default: m.EmployeesWireframe })),
+  const RolePermissionsWireframe = lazy(() =>
+    import('./role-permissions/wireframe').then((m) => ({ default: m.RolePermissionsWireframe })),
   );
-  // ...existing example routes...
-  // standalone, fills the viewport:
-  <Route path="/example/employees/wireframe" element={
-    <Suspense fallback={<ScreenLoader />}><EmployeesWireframe /></Suspense>
-  } />
+  exampleRoutes = (
+    <Route element={<MainLayout />}>
+      {/* ...existing example routes... */}
+      <Route path="/example/role-permissions/wireframe" element={
+        <Suspense fallback={<ScreenLoader />}><RolePermissionsWireframe /></Suspense>
+      } />
+    </Route>
+  );
 }
 ```
 
-Because it lives in `src/examples/` behind `import.meta.env.DEV`, it is excluded
-from the production build (DCE) and disappears when you delete the file. Delete
-the wireframe once the real page is built.
+Living in `src/examples/` behind `import.meta.env.DEV` means it's excluded from
+the production build (DCE) and vanishes when you delete the file.
 
-## Full example (page content greybox)
+**Make it reachable from the sidebar.** Add an entry in `src/config/menu.config.tsx`
+with a `wireframePath` (and a `path` once the real page exists). Pages that only
+have a `wireframePath` are hidden until the user flips the **"Block layout"**
+switch in the sidebar — that's the intended way to browse greyboxes.
+
+## Full example (content-area greybox, inside MainLayout)
 
 ```tsx
-export function EmployeesWireframe() {
+export function RolePermissionsWireframe() {
+  const isMobile = /* useState + resize listener: window.innerWidth < 768 */ false;
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', gap: 8, padding: 8, boxSizing: 'border-box', background: '#fff' }}>
-      {/* SIDEBAR */}
-      <div style={block('', 'rgba(99,102,241,0.14)', { width: 224, flexDirection: 'column' })}>
-        SIDEBAR → MainLayout sidebar
+    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100%', gap: 8, padding: 24, boxSizing: 'border-box' }}>
+      {/* ROLES PANEL — page content, not the app sidebar */}
+      <div style={block('rgba(99,102,241,0.14)', { flexDirection: 'column', width: isMobile ? 'auto' : 260, height: isMobile ? 48 : 'auto' })}>
+        {isMobile ? 'ROLES → Select/Drawer' : 'ROLES PANEL → role list (Card nav)'}
       </div>
 
       {/* MAIN COLUMN */}
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 8, minWidth: 0 }}>
-        <div style={block('', 'rgba(245,158,11,0.16)', { height: 56 })}>
-          TOPBAR → header (breadcrumb + user)
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 8, minWidth: 0, minHeight: 0 }}>
+        <div style={block('rgba(16,185,129,0.14)', { height: 64 })}>
+          MATRIX HEADER → role name + description + “unsaved” state
         </div>
-        <div style={block('', 'rgba(16,185,129,0.14)', { height: 64 })}>
-          TOOLBAR → search + filter + “Cấp tài khoản” Button
+        <div style={block('rgba(59,130,246,0.12)', { flex: 1, overflow: 'auto' })}>
+          MATRIX → permission grid by module (Table + Checkbox)
         </div>
-        <div style={block('', 'rgba(59,130,246,0.12)', { flex: 1 })}>
-          TABLE → DataGrid (≈ 10 rows, sticky header)
+        <div style={block('rgba(236,72,153,0.14)', { height: 56, justifyContent: 'flex-end', position: 'sticky', bottom: 0 })}>
+          ACTION BAR (sticky) → Reset · Save
         </div>
-        <div style={block('', 'rgba(107,114,128,0.16)', { height: 56 })}>
-          FOOTER → DataGridPagination
-        </div>
-      </div>
-
-      {/* FILTER PANEL (desktop only) */}
-      <div style={block('', 'rgba(236,72,153,0.12)', { width: 280, flexDirection: 'column' })}>
-        FILTER PANEL → Card form (mobile: drawer)
       </div>
     </div>
   );
