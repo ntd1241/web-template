@@ -15,20 +15,46 @@ This is intentionally **lower fidelity than a wireframe**: no real text, no icon
 
 Use it at the **start of a new page** (e.g. a new screen under `src/examples/` or `src/features/`), before writing any real component. Skip it for small tweaks to an existing page — there's nothing to block out.
 
-## Two levels of detail
+## Levels of fidelity
 
-Greyboxing has two passes — go as deep as the decision you're trying to make needs.
+Greyboxing has up to three passes — go only as deep as the decision you're trying to make needs.
 
 - **Level 1 — region greybox.** One block per major region with a `REGION → component` label. Answers "what are the big parts and how are they arranged / reflow". This is usually enough to get the layout signed off.
 - **Level 2 — detailed blockframe.** Once the regions are approved, fill each region with its real internal structure as smaller blocks: every list item, every table row/column, every matrix cell/checkbox, every button. Use real-ish placeholder content (role names, module names, column headers, a checkbox grid with some cells "ticked") so the **density and structure** are visible. Still inline-styled, still no design system — leaf blocks share a pale `leaf` fill with a thin border. This is the pass that surfaces "the matrix is too wide", "the action bar needs a second button", "each role row needs a count".
+- **Level 3 — interactive blockframe (optional, light).** When the decision is about *flow/affordances* (does this collapse, what does this button open, is the drawer the right place), wire just enough interaction with **local `useState` only** — no real data, no API, no design-system components. Keep it light: a collapsible region toggles open/closed, a button toggles a selected/expanded state, a "dialog/drawer" is a plain absolutely-positioned overlay `<div>` (still unstyled blocks) you can open and close. The goal is to *feel the interaction*, not to build it for real.
 
-Both levels live in the same `wireframe.tsx`; deepen it in place. Annotate leaves with the component only where it's not obvious (e.g. the whole matrix `→ DataGrid`), not on every cell.
+All levels live in the same `wireframe.tsx`; deepen it in place. Annotate leaves with the component only where it's not obvious (e.g. the whole matrix `→ DataGrid`), not on every cell.
 
-**Always do Level 1 first and get it signed off before deepening to Level 2** — don't jump straight to detail. The region structure is the expensive decision; lock it, then add detail. When the user asks to block-layout a new page, propose/build Level 1 and stop for approval; only move to Level 2 once they're happy with the regions.
+**Go one level at a time and get sign-off before deepening** — don't jump straight to detail or interaction. The region structure is the expensive decision; lock it, then add detail, then (only if useful) interaction. When the user asks to block-layout a new page, build Level 1 and stop for approval; move to Level 2/3 only once they're happy with the previous level.
+
+### Adding interaction at Level 3 (keep it minimal)
+
+```tsx
+const [openModule, setOpenModule] = useState<string | null>(null);
+const [showDialog, setShowDialog] = useState(false);
+
+// collapsible region: a header block toggles a body block
+<div style={block(C.leaf, { cursor: 'pointer' })} onClick={() => setOpenModule(openModule === m ? null : m)}>
+  {openModule === m ? '▾' : '▸'} {m}
+</div>
+{openModule === m && <div style={block(C.matrix, { ... })}>…rows…</div>}
+
+// button opens a plain overlay "dialog" (not the Dialog component)
+<div style={block(C.btn, { cursor: 'pointer' })} onClick={() => setShowDialog(true)}>+ Thêm vai trò</div>
+{showDialog && (
+  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+       onClick={() => setShowDialog(false)}>
+    <div style={block('#fff', { width: 360, flexDirection: 'column', gap: 8 })} onClick={(e) => e.stopPropagation()}>
+      DIALOG → Dialog (form thêm vai trò)
+      <div style={block(C.btnPrimary, { justifyContent: 'center', cursor: 'pointer' })} onClick={() => setShowDialog(false)}>Đóng</div>
+    </div>
+  </div>
+)}
+```
 
 ## The workflow
 
-Default cadence: **Level 1 → sign-off → Level 2 → sign-off → real components.** Build Level 1 first and stop for approval; don't jump ahead to detail or real components.
+Default cadence: **Level 1 → sign-off → Level 2 → sign-off → (optional Level 3) → real components.** Build Level 1 first and stop for approval; don't jump ahead to detail, interaction, or real components.
 
 1. **List the regions.** Name the big parts of the screen and, for each, the real component it will eventually become. Example for an employees screen: `SIDEBAR → MainLayout sidebar`, `TOOLBAR → search + Button`, `TABLE → DataGrid`, `FILTER PANEL → Card form`, `FOOTER → DataGridPagination`.
 2. **Pick the layout primitive** for how those regions sit together: a flex row (sidebar | content), a flex column (toolbar / table / footer stacked), or a grid. Decide this consciously — it's the one thing the greybox must get right, because it transfers directly to the real JSX.
@@ -37,7 +63,8 @@ Default cadence: **Level 1 → sign-off → Level 2 → sign-off → real compon
 5. **Get sign-off** on the region structure and responsive behavior. **Pause here** — don't deepen until the user is happy with the regions.
 6. **Deepen to Level 2 in place:** fill each region with its internal blocks (list items, table rows/columns, matrix cells/checkboxes, buttons) + placeholder content, so density and structure are visible.
 7. **Verify again** and get sign-off on the detailed structure/density.
-8. **Replace blocks one-by-one** with real components per `docs/06`. Keeping the greybox afterwards is encouraged — it's dev-only (excluded from the production build) and documents the intended layout/responsive decision. Treat it as a sketch, not the source of truth; delete it only if it drifts and causes confusion.
+8. **(Optional) Level 3 — light interaction** with local `useState` (collapsible, button toggles, overlay dialog) when the flow/affordances need validating. Verify and sign off.
+9. **Replace blocks one-by-one** with real components per `docs/06`. Keeping the greybox afterwards is encouraged — it's dev-only (excluded from the production build) and documents the intended layout/responsive decision. Treat it as a sketch, not the source of truth; delete it only if it drifts and causes confusion.
 
 ## How to build a block
 
