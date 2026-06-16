@@ -24,14 +24,20 @@ Greyboxing has two passes — go as deep as the decision you're trying to make n
 
 Both levels live in the same `wireframe.tsx`; deepen it in place. Annotate leaves with the component only where it's not obvious (e.g. the whole matrix `→ DataGrid`), not on every cell.
 
+**Always do Level 1 first and get it signed off before deepening to Level 2** — don't jump straight to detail. The region structure is the expensive decision; lock it, then add detail. When the user asks to block-layout a new page, propose/build Level 1 and stop for approval; only move to Level 2 once they're happy with the regions.
+
 ## The workflow
+
+Default cadence: **Level 1 → sign-off → Level 2 → sign-off → real components.** Build Level 1 first and stop for approval; don't jump ahead to detail or real components.
 
 1. **List the regions.** Name the big parts of the screen and, for each, the real component it will eventually become. Example for an employees screen: `SIDEBAR → MainLayout sidebar`, `TOOLBAR → search + Button`, `TABLE → DataGrid`, `FILTER PANEL → Card form`, `FOOTER → DataGridPagination`.
 2. **Pick the layout primitive** for how those regions sit together: a flex row (sidebar | content), a flex column (toolbar / table / footer stacked), or a grid. Decide this consciously — it's the one thing the greybox must get right, because it transfers directly to the real JSX.
-3. **Build the greybox** as one self-contained `.tsx` page (see rules below).
+3. **Build the Level-1 greybox** (one block per region) as one self-contained `.tsx` page (see rules below).
 4. **Verify in the browser** at the desktop widths this template targets (1366px and 1920px) and at a mobile width (~390px). Use the preview tools; resize and screenshot.
-5. **Get sign-off** on the structure and responsive behavior from the user.
-6. **Replace blocks one-by-one** with real components per `docs/06`. Keeping the greybox afterwards is encouraged — it's dev-only (excluded from the production build) and documents the intended layout/responsive decision. Treat it as a sketch, not the source of truth; delete it only if it drifts and causes confusion.
+5. **Get sign-off** on the region structure and responsive behavior. **Pause here** — don't deepen until the user is happy with the regions.
+6. **Deepen to Level 2 in place:** fill each region with its internal blocks (list items, table rows/columns, matrix cells/checkboxes, buttons) + placeholder content, so density and structure are visible.
+7. **Verify again** and get sign-off on the detailed structure/density.
+8. **Replace blocks one-by-one** with real components per `docs/06`. Keeping the greybox afterwards is encouraged — it's dev-only (excluded from the production build) and documents the intended layout/responsive decision. Treat it as a sketch, not the source of truth; delete it only if it drifts and causes confusion.
 
 ## How to build a block
 
