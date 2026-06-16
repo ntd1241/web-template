@@ -15,6 +15,15 @@ This is intentionally **lower fidelity than a wireframe**: no real text, no icon
 
 Use it at the **start of a new page** (e.g. a new screen under `src/examples/` or `src/features/`), before writing any real component. Skip it for small tweaks to an existing page — there's nothing to block out.
 
+## Two levels of detail
+
+Greyboxing has two passes — go as deep as the decision you're trying to make needs.
+
+- **Level 1 — region greybox.** One block per major region with a `REGION → component` label. Answers "what are the big parts and how are they arranged / reflow". This is usually enough to get the layout signed off.
+- **Level 2 — detailed blockframe.** Once the regions are approved, fill each region with its real internal structure as smaller blocks: every list item, every table row/column, every matrix cell/checkbox, every button. Use real-ish placeholder content (role names, module names, column headers, a checkbox grid with some cells "ticked") so the **density and structure** are visible. Still inline-styled, still no design system — leaf blocks share a pale `leaf` fill with a thin border. This is the pass that surfaces "the matrix is too wide", "the action bar needs a second button", "each role row needs a count".
+
+Both levels live in the same `wireframe.tsx`; deepen it in place. Annotate leaves with the component only where it's not obvious (e.g. the whole matrix `→ DataGrid`), not on every cell.
+
 ## The workflow
 
 1. **List the regions.** Name the big parts of the screen and, for each, the real component it will eventually become. Example for an employees screen: `SIDEBAR → MainLayout sidebar`, `TOOLBAR → search + Button`, `TABLE → DataGrid`, `FILTER PANEL → Card form`, `FOOTER → DataGridPagination`.
