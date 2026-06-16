@@ -23,17 +23,34 @@ if (import.meta.env.DEV) {
     })),
   );
 
+  // Greybox/wireframe — standalone full-viewport, NOT wrapped in MainLayout.
+  const RolePermissionsWireframe = lazy(() =>
+    import('./role-permissions/wireframe').then((m) => ({
+      default: m.RolePermissionsWireframe,
+    })),
+  );
+
   exampleRoutes = (
-    <Route element={<MainLayout />}>
+    <>
+      <Route element={<MainLayout />}>
+        <Route
+          path={ROUTES.EXAMPLE.EMPLOYEES}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <EmployeesExamplePage />
+            </Suspense>
+          }
+        />
+      </Route>
       <Route
-        path={ROUTES.EXAMPLE.EMPLOYEES}
+        path="/example/role-permissions/wireframe"
         element={
           <Suspense fallback={<ScreenLoader />}>
-            <EmployeesExamplePage />
+            <RolePermissionsWireframe />
           </Suspense>
         }
       />
-    </Route>
+    </>
   );
 }
 
