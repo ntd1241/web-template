@@ -1,7 +1,7 @@
-import { Plus, RefreshCw, Search } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Combobox } from '@/components/ui/combobox';
-import { Input, InputWrapper } from '@/components/ui/input';
+import { SearchInput } from '@/components/ui/inputs/search-input';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { EMPLOYEE_ROLE_LABELS, EMPLOYEE_ROLES } from '../model/employee';
 import type { EmployeeRole } from '../model/employee';
 
@@ -9,6 +9,7 @@ const roleOptions = EMPLOYEE_ROLES.map((role) => ({
   value: role,
   label: EMPLOYEE_ROLE_LABELS[role],
   searchableText: EMPLOYEE_ROLE_LABELS[role],
+  group: 'Vai trò',
 }));
 
 function isEmployeeRole(value: string): value is EmployeeRole {
@@ -18,13 +19,13 @@ function isEmployeeRole(value: string): value is EmployeeRole {
 interface EmployeesToolbarProps {
   keyword: string;
   onKeywordChange: (value: string) => void;
-  roleFilter: EmployeeRole | '';
-  onRoleFilterChange: (value: EmployeeRole | '') => void;
+  roleFilter: EmployeeRole[];
+  onRoleFilterChange: (value: EmployeeRole[]) => void;
   onRefresh: () => void;
   canManage: boolean;
 }
 
-/** Toolbar của trang: tìm kiếm + làm mới + nút cấp tài khoản (gated theo quyền). */
+/** Toolbar của trang: tìm kiếm + lọc vai trò + làm mới + nút cấp tài khoản. */
 export function EmployeesToolbar({
   keyword,
   onKeywordChange,
@@ -33,30 +34,28 @@ export function EmployeesToolbar({
   onRefresh,
   canManage,
 }: EmployeesToolbarProps) {
-  const handleRoleFilterChange = (nextValue: string) => {
-    onRoleFilterChange(isEmployeeRole(nextValue) ? nextValue : '');
+  const handleRoleFilterChange = (nextValues: string[]) => {
+    onRoleFilterChange(nextValues.filter(isEmployeeRole));
   };
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <InputWrapper className="w-64">
-        <Search />
-        <Input
-          type="search"
-          placeholder="Tìm theo tên hoặc tên đăng nhập"
-          value={keyword}
-          onChange={(e) => onKeywordChange(e.target.value)}
-        />
-      </InputWrapper>
+      <SearchInput
+        className="w-64"
+        placeholder="Tìm theo tên hoặc tên đăng nhập"
+        value={keyword}
+        debounceMs={0}
+        onSearch={onKeywordChange}
+      />
 
       <div className="w-44">
-        <Combobox
+        <MultiSelect
           value={roleFilter}
           onChange={handleRoleFilterChange}
           options={roleOptions}
-          placeholder="Táº¥t cáº£ vai trÃ²"
-          searchPlaceholder="TÃ¬m vai trÃ²..."
-          emptyMessage="KhÃ´ng cÃ³ vai trÃ² phÃ¹ há»£p"
+          placeholder="Tất cả vai trò"
+          searchPlaceholder="Tìm vai trò..."
+          emptyMessage="Không có vai trò phù hợp"
         />
       </div>
 

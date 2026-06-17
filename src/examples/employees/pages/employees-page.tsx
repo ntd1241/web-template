@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ import { useEmployeeList } from '../hooks/use-employee-list';
 import type { Employee, EmployeeRole } from '../model/employee';
 
 export function EmployeesExamplePage() {
-  const [roleFilter, setRoleFilter] = useState<EmployeeRole | ''>('');
+  const [roleFilter, setRoleFilter] = useState<EmployeeRole[]>([]);
   const {
     keyword,
     onKeywordChange,
@@ -63,18 +63,29 @@ export function EmployeesExamplePage() {
     pendingId,
     onToggleStatus: handleToggleStatus,
   });
+  const filteredEmployees = useMemo(() => {
+    if (roleFilter.length === 0) {
+      return employees;
+    }
+
+    return employees.filter((employee) =>
+      employee.roles.some((role) => roleFilter.includes(role)),
+    );
+  }, [employees, roleFilter]);
+  const filteredTotal =
+    roleFilter.length === 0 ? total : filteredEmployees.length;
   const { columnVisibility, onColumnVisibilityChange } =
     usePersistedColumnVisibility('examples.employees.columnVisibility');
 
   const table = useReactTable({
-    data: employees,
+    data: filteredEmployees,
     columns,
     getRowId: (row) => row.id,
     state: { pagination, columnVisibility },
     onPaginationChange,
     onColumnVisibilityChange,
     manualPagination: true,
-    pageCount: Math.max(1, Math.ceil(total / pagination.pageSize)),
+    pageCount: Math.max(1, Math.ceil(filteredTotal / pagination.pageSize)),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -101,7 +112,7 @@ export function EmployeesExamplePage() {
     <div className="flex h-full min-h-0 flex-col p-6">
       <DataGrid
         table={table}
-        recordCount={total}
+        recordCount={filteredTotal}
         isLoading={isLoading}
         emptyMessage="Không tìm thấy nhân viên phù hợp"
       >
