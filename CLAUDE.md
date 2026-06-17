@@ -27,7 +27,10 @@ Order matters. `docs/00` describes the actual stack/foundation; `AGENTS.md` cove
 - `docs/03-permission-system-design.md` — RBAC, route guards, menu filtering (when touching auth).
 - `docs/04-specific-design-system.md` — external case study; reference only, never copy brand/domain names.
 - `docs/05-example-pages-proposal.md` — the catalogue of example pages this template should grow.
-- `docs/06-component-usage-guide.md` — **the canonical "use this component, not raw HTML" reference.**
+- `docs/06-component-usage-guide.md` — **the canonical "use this component, not raw HTML" hub** (principles
+  + lookup table + review checklist). Per-component detail lives in `docs/components/*.md`
+  (`button`, `forms`, `display`, `data-grid`).
+- `docs/07-lib-utilities.md` — usage of `src/lib/*` helpers (validation factory, format, date, search, errors).
 - `docs/superpowers/plans/*.md` — active implementation plans; check for one before reviewing a change.
 
 **The actual code always wins when a doc disagrees with it.** The convention doc in particular
