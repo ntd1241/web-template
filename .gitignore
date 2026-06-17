@@ -20,3 +20,5 @@ docs/.vitepress/.temp
 
 # Tailwind CSS build output
 *.css.map
+# Codex delegation worktrees
+.worktrees/
