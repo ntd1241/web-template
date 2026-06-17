@@ -60,7 +60,7 @@ export function Header() {
               Tổ chức
             </Link>
             <span className="text-admin-neutral-300">/</span>
-            <span className="text-[#267a2b]">Nhân viên</span>
+            <span className="text-[#0e5cd6]">Nhân viên</span>
           </nav>
         </div>
       </div>

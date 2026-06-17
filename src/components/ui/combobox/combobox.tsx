@@ -142,10 +142,10 @@ export function Combobox<T = unknown>({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) border-border bg-field p-0 text-foreground"
+        className="w-(--radix-popover-trigger-width) border-border bg-popover p-0 text-foreground"
         align="start"
       >
-        <Command shouldFilter={false} className="bg-field text-foreground">
+        <Command shouldFilter={false} className="bg-popover text-foreground">
           <CommandInput
             value={query}
             onValueChange={setQuery}

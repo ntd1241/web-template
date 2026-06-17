@@ -42,7 +42,7 @@ export function MultiSelect<T = unknown>({
   searchPlaceholder = 'Tìm...',
   emptyMessage = 'Không có kết quả',
   disabled = false,
-  maxChips = 3,
+  maxChips = 2,
   className,
 }: MultiSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,14 +98,13 @@ export function MultiSelect<T = unknown>({
           disabled={disabled}
           variant="outline"
           mode="input"
-          autoHeight
           placeholder={!hasSelection}
           className={cn(
-            'min-h-8.5 w-full justify-between border-border bg-field text-foreground',
+            'h-8.5 w-full justify-between border-border bg-field text-foreground',
             className,
           )}
         >
-          <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 text-start">
+          <span className="flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-hidden text-start">
             {hasSelection ? (
               <>
                 {visibleChips.map((option) => {
@@ -152,10 +151,10 @@ export function MultiSelect<T = unknown>({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) border-border bg-field p-0 text-foreground"
+        className="w-(--radix-popover-trigger-width) border-border bg-popover p-0 text-foreground"
         align="start"
       >
-        <Command shouldFilter={false} className="bg-field text-foreground">
+        <Command shouldFilter={false} className="bg-popover text-foreground">
           <CommandInput
             value={query}
             onValueChange={setQuery}

@@ -79,7 +79,8 @@ function DataGridPagination(props: DataGridPaginationProps) {
           mode="icon"
           variant="ghost"
           className={cn(btnBaseClasses, 'text-muted-foreground', {
-            'bg-accent text-accent-foreground': pageIndex === i,
+            'bg-foreground text-background hover:bg-foreground hover:text-background':
+              pageIndex === i,
           })}
           onClick={() => {
             if (pageIndex !== i) {

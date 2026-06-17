@@ -163,7 +163,7 @@ export function MainLayoutPage() {
               <span className="sr-only">Tìm kiếm nhân viên</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-neutral-400" />
               <input
-                className="h-9 w-64 rounded-admin-control border border-border bg-field px-3 pl-9 text-[13px] text-foreground outline-none transition-[border-color,box-shadow,background] placeholder:text-admin-neutral-400 focus:border-[#2f8f3f] focus:bg-white focus:shadow-[0_0_0_2px_rgba(47,143,63,0.20)]"
+                className="h-9 w-64 rounded-admin-control border border-border bg-field px-3 pl-9 text-[13px] text-foreground outline-none transition-[border-color,box-shadow,background] placeholder:text-admin-neutral-400 focus:border-[#1677ff] focus:bg-white focus:shadow-[0_0_0_2px_rgba(22,119,255,0.20)]"
                 placeholder="Tìm kiếm theo trường"
                 type="search"
               />
@@ -186,7 +186,7 @@ export function MainLayoutPage() {
             </button>
 
             <button
-              className="inline-flex h-9 items-center gap-2 rounded-admin-control bg-[#2f8f3f] px-4 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-[#267a2b]"
+              className="inline-flex h-9 items-center gap-2 rounded-admin-control bg-[#1677ff] px-4 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-[#0e5cd6]"
               type="button"
             >
               <Plus className="size-4" />

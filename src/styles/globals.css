@@ -10,17 +10,17 @@
 
 /** Colors - https://tailwindcss.com/docs/colors **/
 :root {
-  --admin-primary: #009966;
-  --admin-primary-dark: #007a55;
-  --admin-primary-darker: #13773c;
-  --admin-primary-bright: #00bc7d;
-  --admin-primary-tint: #5ee9b5;
-  --admin-primary-border: #a4f4cf;
-  --admin-primary-soft: #d1eddd;
-  --admin-primary-foam: #d0fae5;
-  --admin-primary-bg: #ecfdf5;
-  --admin-primary-bg-light: #eff9f3;
-  --admin-primary-bg-pale: #f2faf2;
+  --admin-primary: #1677ff;
+  --admin-primary-dark: #0e5cd6;
+  --admin-primary-darker: #0a47a8;
+  --admin-primary-bright: #4d97ff;
+  --admin-primary-tint: #8fc1ff;
+  --admin-primary-border: #b3d4ff;
+  --admin-primary-soft: #d4e6ff;
+  --admin-primary-foam: #dbeafe;
+  --admin-primary-bg: #eff6ff;
+  --admin-primary-bg-light: #f3f8ff;
+  --admin-primary-bg-pale: #f7faff;
   --admin-blue-darkest: #0e3754;
   --admin-blue-dark: #165988;
   --admin-blue-primary: #1a69a1;
