@@ -35,8 +35,8 @@ Concept admin đã được nướng vào **default** của component dùng chun
 thêm class style. Nếu cần đổi diện mạo chung, **sửa default của component/token**, không override per-page.
 
 - **Bảng (`DataGrid`/`DataGridTable`)** mặc định: header **sticky** nền `bg-muted`, nhãn header
-  HOA 12px `text-secondary-foreground`, cell `px-6 py-3`, row hover `bg-field`. → Dùng
-  `DataGrid` là có sẵn, **không** truyền `tableClassNames` để lặp lại các style này.
+  **chữ thường** (`normal-case`) 12px `text-secondary-foreground` (xanh lam), cell `px-6 py-3`,
+  row hover `bg-field`. → Dùng `DataGrid` là có sẵn, **không** truyền `tableClassNames` để lặp lại.
 - **Input/Textarea/Select** mặc định nền xám nhẹ `bg-field`, **trắng khi focus/mở**. →
   **Không** thêm `bg-...` cho ô tìm kiếm/dropdown ở page.
 - Chỉ truyền `tableClassNames`/`className` khi thật sự **đặc thù 1 trang** (vd `min-w` cột), không phải
@@ -44,6 +44,24 @@ thêm class style. Nếu cần đổi diện mạo chung, **sửa default của 
 
 > Quy ước này được áp dụng từ `data-grid.tsx`, `data-grid-table.tsx`, `input.tsx`, `textarea.tsx`,
 > `select.tsx`. Đổi diện mạo admin chung = sửa các file này (hoặc token trong `globals.css`).
+
+### 0.2 Default text tiếng Việt + hợp lý — gọi component là đủ
+
+Template là **tiếng Việt mặc định** (xem `docs/02`). Mọi text mặc định của component dùng chung
+(label, mô tả, empty state, loading, placeholder, info phân trang…) phải là **tiếng Việt và hợp lý
+sẵn**, để page chỉ cần `<Component />` mà không phải truyền prop để "dịch" lại.
+
+- **Nếu thấy một page đang truyền prop chỉ để đổi text mặc định sang tiếng Việt → đó là dấu hiệu phải
+  sửa default của component, không phải vá ở page.** Ví dụ đã xử lý:
+  - `DataGridPagination` default: `sizesDescription="dòng"`, `info="{count} kết quả"`,
+    `sizesLabel=""` (trước là `'Show' / 'per page' / '{from} - {to} of {count}'`). →
+    Giờ chỉ cần `<DataGridPagination />`.
+  - `DataGridTable` empty/loading fallback: `"Không có dữ liệu"` / `"Đang tải..."`
+    (trước là `'No data available'` / `'Loading...'`).
+- Page **chỉ** truyền các prop text khi **thật sự khác** nhu cầu mặc định (vd một bảng muốn
+  `info="{from}-{to} trên {count}"`), không phải để dịch.
+- Nguồn chữ chung nên tiến tới lấy từ i18n catalog (`src/i18n/messages`, namespace `common.*`)
+  khi component được wire i18n; trước mắt hardcode tiếng Việt ở default là chấp nhận được.
 
 ---
 

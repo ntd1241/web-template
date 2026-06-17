@@ -30,12 +30,12 @@ function DataGridPagination(props: DataGridPaginationProps) {
 
   const defaultProps: Partial<DataGridPaginationProps> = {
     sizes: [5, 10, 25, 50, 100],
-    sizesLabel: 'Show',
-    sizesDescription: 'per page',
+    sizesLabel: '',
+    sizesDescription: 'dòng',
     sizesSkeleton: <Skeleton className="h-8 w-44" />,
     moreLimit: 5,
     more: false,
-    info: '{from} - {to} of {count}',
+    info: '{count} kết quả',
     infoSkeleton: <Skeleton className="h-8 w-60" />,
   };
 
@@ -194,7 +194,7 @@ function DataGridPagination(props: DataGridPaginationProps) {
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
                 >
-                  <span className="sr-only">Go to previous page</span>
+                  <span className="sr-only">Trang trước</span>
                   <ChevronLeftIcon className="size-4" />
                 </Button>
 
@@ -212,7 +212,7 @@ function DataGridPagination(props: DataGridPaginationProps) {
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
                 >
-                  <span className="sr-only">Go to next page</span>
+                  <span className="sr-only">Trang sau</span>
                   <ChevronRightIcon className="size-4" />
                 </Button>
               </div>

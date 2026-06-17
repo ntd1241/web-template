@@ -119,7 +119,7 @@ export function EmployeesExamplePage() {
         <Card className="min-h-0 flex-1 overflow-hidden">
           <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
-              <CardTitle className="text-[18px]">Danh sách nhân viên</CardTitle>
+              <CardTitle>Danh sách nhân viên</CardTitle>
               <CardDescription>
                 Quản lý tài khoản truy cập hệ thống
               </CardDescription>
@@ -144,12 +144,7 @@ export function EmployeesExamplePage() {
           </CardTable>
 
           <CardFooter className="justify-between">
-            <DataGridPagination
-              sizes={[10, 25, 50]}
-              sizesLabel=""
-              sizesDescription="dòng"
-              info="{count} kết quả"
-            />
+            <DataGridPagination />
           </CardFooter>
         </Card>
       </DataGrid>
