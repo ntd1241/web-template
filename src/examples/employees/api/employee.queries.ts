@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { ApiError } from '@/types/api.types';
+import { toastError } from '@/lib/errors';
 import type { EmployeeListParams, EmployeeStatus } from '../model/employee';
 import { employeeApi } from './employee.api';
 
@@ -32,8 +32,8 @@ export function useSetEmployeeStatusMutation() {
       queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
       toast.success('Cập nhật trạng thái thành công');
     },
-    onError: (error: ApiError) => {
-      toast.error(error.message);
+    onError: (error) => {
+      toastError(error);
     },
   });
 }
