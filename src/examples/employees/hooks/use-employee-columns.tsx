@@ -3,17 +3,37 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Lock, LockOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  EmployeeRoleBadge,
-  EmployeeStatusBadge,
-} from '../components/employee-badges';
+  createColumnHelpers,
+  type StatusBadgeConfig,
+} from '@/components/ui/data-grid-columns';
+import { EmployeeRoleBadge } from '../components/employee-badges';
 import { EmployeeCell } from '../components/employee-cell';
-import type { Employee } from '../model/employee';
+import {
+  EMPLOYEE_STATUS_LABELS,
+  type Employee,
+  type EmployeeStatus,
+} from '../model/employee';
 
 interface UseEmployeeColumnsOptions {
   canManage: boolean;
   pendingId: string | null;
   onToggleStatus: (employee: Employee) => void;
 }
+
+const employeeStatusBadgeConfig: StatusBadgeConfig<EmployeeStatus> = {
+  active: {
+    label: EMPLOYEE_STATUS_LABELS.active,
+    className:
+      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-[12px] text-admin-success-text',
+    dotClassName: 'bg-admin-success-dot opacity-100',
+  },
+  locked: {
+    label: EMPLOYEE_STATUS_LABELS.locked,
+    variant: 'outline',
+    className: 'rounded-md px-2.5 py-1 text-[12px] text-admin-neutral-500',
+    dotClassName: 'bg-admin-neutral-400 opacity-100',
+  },
+};
 
 /**
  * Column definitions cho DataGrid (docs/06 §6). Khai báo qua hook + useMemo để
@@ -24,37 +44,38 @@ export function useEmployeeColumns({
   pendingId,
   onToggleStatus,
 }: UseEmployeeColumnsOptions): ColumnDef<Employee>[] {
-  return useMemo(
-    () => [
-      {
-        accessorKey: 'name',
+  return useMemo(() => {
+    const col = createColumnHelpers<Employee>();
+
+    return [
+      col.custom({
+        id: 'name',
         header: 'Nhân viên',
-        cell: ({ row }) => <EmployeeCell employee={row.original} />,
-        meta: { headerClassName: 'min-w-[260px]' },
-      },
-      {
+        cell: (employee) => <EmployeeCell employee={employee} />,
+        headerClassName: 'min-w-[260px]',
+      }),
+      col.custom({
         id: 'roles',
         header: 'Vai trò',
-        cell: ({ row }) => (
+        cell: (employee) => (
           <div className="flex flex-wrap items-center gap-2">
-            {row.original.roles.map((role) => (
+            {employee.roles.map((role) => (
               <EmployeeRoleBadge key={role} role={role} />
             ))}
           </div>
         ),
-        meta: { headerClassName: 'min-w-[200px]' },
-      },
-      {
-        accessorKey: 'status',
+        headerClassName: 'min-w-[200px]',
+      }),
+      col.badge({
+        id: 'status',
         header: 'Trạng thái',
-        cell: ({ row }) => <EmployeeStatusBadge status={row.original.status} />,
-        meta: { headerClassName: 'w-[140px]' },
-      },
-      {
-        id: 'actions',
-        header: () => <span className="block text-right">Thao tác</span>,
-        cell: ({ row }) => {
-          const employee = row.original;
+        get: (employee) => employee.status,
+        config: employeeStatusBadgeConfig,
+        headerClassName: 'w-[140px]',
+      }),
+      col.actions({
+        header: 'Thao tác',
+        cell: (employee) => {
           const isOwner = employee.roles.includes('chu-so-huu');
 
           // Action nhận biết quyền: chủ sở hữu hoặc thiếu quyền → không cho thao tác.
@@ -81,9 +102,9 @@ export function useEmployeeColumns({
             </div>
           );
         },
-        meta: { headerClassName: 'w-[120px]', cellClassName: 'text-right' },
-      },
-    ],
-    [canManage, pendingId, onToggleStatus],
-  );
+        headerClassName: 'w-[120px]',
+        cellClassName: 'text-right',
+      }),
+    ];
+  }, [canManage, pendingId, onToggleStatus]);
 }

@@ -13,6 +13,7 @@ import {
   CardToolbar,
 } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
+import { usePersistedColumnVisibility } from '@/components/ui/data-grid-columns';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -61,13 +62,16 @@ export function EmployeesExamplePage() {
     pendingId,
     onToggleStatus: handleToggleStatus,
   });
+  const { columnVisibility, onColumnVisibilityChange } =
+    usePersistedColumnVisibility('examples.employees.columnVisibility');
 
   const table = useReactTable({
     data: employees,
     columns,
     getRowId: (row) => row.id,
-    state: { pagination },
+    state: { pagination, columnVisibility },
     onPaginationChange,
+    onColumnVisibilityChange,
     manualPagination: true,
     pageCount: Math.max(1, Math.ceil(total / pagination.pageSize)),
     getCoreRowModel: getCoreRowModel(),
