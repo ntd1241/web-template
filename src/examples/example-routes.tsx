@@ -22,6 +22,11 @@ if (import.meta.env.DEV) {
       default: m.EmployeesExamplePage,
     })),
   );
+  const RolePermissionsPage = lazy(() =>
+    import('./role-permissions/pages/role-permissions-page').then((m) => ({
+      default: m.RolePermissionsPage,
+    })),
+  );
 
   // Greybox/wireframe — rendered INSIDE MainLayout so the real shell (sidebar +
   // topbar) surrounds it; the greybox only blocks out the page content area.
@@ -38,6 +43,14 @@ if (import.meta.env.DEV) {
         element={
           <Suspense fallback={<ScreenLoader />}>
             <EmployeesExamplePage />
+          </Suspense>
+        }
+      />
+      <Route
+        path={ROUTES.EXAMPLE.ROLE_PERMISSIONS}
+        element={
+          <Suspense fallback={<ScreenLoader />}>
+            <RolePermissionsPage />
           </Suspense>
         }
       />

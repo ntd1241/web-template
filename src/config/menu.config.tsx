@@ -50,7 +50,7 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
       {
         label: 'Phân quyền',
         icon: ShieldCheck,
-        // Mới có block-layout, chưa làm trang thật → chỉ hiện khi bật wireframe mode.
+        path: ROUTES.EXAMPLE.ROLE_PERMISSIONS,
         wireframePath: '/example/role-permissions/wireframe',
       },
     ],
