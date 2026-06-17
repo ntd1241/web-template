@@ -9,4 +9,13 @@ export const en: Record<string, string> = {
   'common.state.loading': 'Loading...',
   'common.state.empty': 'No data',
   'common.state.error': 'Something went wrong',
+  'validation.required': 'Required',
+  'validation.string.min': 'Minimum {min} characters',
+  'validation.string.max': 'Maximum {max} characters',
+  'validation.string.pattern': 'Invalid value',
+  'validation.number.min': 'Minimum is {min}',
+  'validation.number.max': 'Maximum is {max}',
+  'validation.number.int': 'Must be an integer',
+  'validation.email': 'Invalid email',
+  'validation.phoneVN': 'Invalid phone number',
 };

@@ -12,4 +12,13 @@ export const vi: Record<string, string> = {
   'common.state.loading': 'Đang tải...',
   'common.state.empty': 'Không có dữ liệu',
   'common.state.error': 'Đã có lỗi xảy ra',
+  'validation.required': 'Không được để trống',
+  'validation.string.min': 'Tối thiểu {min} ký tự',
+  'validation.string.max': 'Tối đa {max} ký tự',
+  'validation.string.pattern': 'Giá trị không hợp lệ',
+  'validation.number.min': 'Tối thiểu là {min}',
+  'validation.number.max': 'Tối đa là {max}',
+  'validation.number.int': 'Phải là số nguyên',
+  'validation.email': 'Email không hợp lệ',
+  'validation.phoneVN': 'Số điện thoại không hợp lệ',
 };

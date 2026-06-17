@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MOCK_EMPLOYEES } from '../data/employees.mock';
 import { employeeApi } from './employee.api';
 
 // Ép chế độ mock cho test, độc lập với .env.
@@ -10,7 +11,7 @@ describe('employeeApi.getList (mock)', () => {
   it('phân trang đúng số lượng', async () => {
     const res = await employeeApi.getList({ page: 1, pageSize: 5 });
     expect(res.items).toHaveLength(5);
-    expect(res.total).toBe(9);
+    expect(res.total).toBe(MOCK_EMPLOYEES.length);
     expect(res.page).toBe(1);
   });
 

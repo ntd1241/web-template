@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { env } from '@/config/env';
+import { setValidationLocale } from '@/lib/validation';
 import { DEFAULT_LOCALE, messagesByLocale, type Locale } from './config';
 
 /**
@@ -9,6 +10,10 @@ import { DEFAULT_LOCALE, messagesByLocale, type Locale } from './config';
  */
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale] = useState<Locale>(env.defaultLocale ?? DEFAULT_LOCALE);
+
+  useEffect(() => {
+    setValidationLocale(locale);
+  }, [locale]);
 
   return (
     <IntlProvider
