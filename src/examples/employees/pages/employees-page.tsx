@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,10 @@ import { useSetEmployeeStatusMutation } from '../api/employee.queries';
 import { EmployeesToolbar } from '../components/employees-toolbar';
 import { useEmployeeColumns } from '../hooks/use-employee-columns';
 import { useEmployeeList } from '../hooks/use-employee-list';
-import type { Employee } from '../model/employee';
+import type { Employee, EmployeeRole } from '../model/employee';
 
 export function EmployeesExamplePage() {
+  const [roleFilter, setRoleFilter] = useState<EmployeeRole | ''>('');
   const {
     keyword,
     onKeywordChange,
@@ -116,6 +117,8 @@ export function EmployeesExamplePage() {
               <EmployeesToolbar
                 keyword={keyword}
                 onKeywordChange={onKeywordChange}
+                roleFilter={roleFilter}
+                onRoleFilterChange={setRoleFilter}
                 onRefresh={() => refetch()}
                 canManage={canManage}
               />
