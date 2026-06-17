@@ -1,13 +1,13 @@
 import { Outlet } from 'react-router-dom';
+import { useLayout } from './context';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
-import { useLayout } from './context';
 
 export function Wrapper() {
   const { isMobile } = useLayout();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-admin-page text-admin-neutral-800">
+    <div className="flex h-screen w-full overflow-hidden bg-muted text-foreground">
       {!isMobile && <Sidebar />}
 
       <div className="flex min-w-0 flex-1 flex-col">

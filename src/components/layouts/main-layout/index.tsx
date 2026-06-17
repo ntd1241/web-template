@@ -10,7 +10,7 @@ export function MainLayout() {
       </Helmet>
 
       <LayoutProvider
-        bodyClassName="bg-admin-page overflow-hidden"
+        bodyClassName="bg-muted overflow-hidden"
         style={
           {
             '--sidebar-width': '280px',

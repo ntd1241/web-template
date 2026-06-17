@@ -27,7 +27,7 @@ export function SidebarPrimary() {
     <div className="flex w-(--sidebar-collapsed-width) shrink-0 flex-col items-center bg-admin-neutral-900 py-4 text-white">
       <Link
         to="/"
-        className="mb-6 flex size-8 items-center justify-center rounded-lg bg-white text-admin-primary shadow-sm"
+        className="mb-6 flex size-8 items-center justify-center rounded-lg bg-white text-primary shadow-sm"
         aria-label="Trang chủ"
       >
         <Blocks className="size-5" />
@@ -47,7 +47,7 @@ export function SidebarPrimary() {
                   className={cn(
                     'flex size-10 items-center justify-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white',
                     active &&
-                      'bg-admin-primary text-white shadow-sm hover:bg-admin-primary',
+                      'bg-primary text-white shadow-sm hover:bg-primary',
                   )}
                 >
                   <Icon className="size-5" />

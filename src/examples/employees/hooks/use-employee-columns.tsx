@@ -30,7 +30,7 @@ const employeeStatusBadgeConfig: StatusBadgeConfig<EmployeeStatus> = {
   locked: {
     label: EMPLOYEE_STATUS_LABELS.locked,
     variant: 'outline',
-    className: 'rounded-md px-2.5 py-1 text-[12px] text-admin-neutral-500',
+    className: 'rounded-md px-2.5 py-1 text-[12px] text-muted-foreground',
     dotClassName: 'bg-admin-neutral-400 opacity-100',
   },
 };

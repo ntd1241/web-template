@@ -8,7 +8,7 @@ import {
 } from '../model/employee';
 
 const ROLE_CLASSES: Record<EmployeeRole, string> = {
-  'nhan-vien': 'border-admin-blue-light bg-admin-blue-bg text-admin-blue-dark',
+  'nhan-vien': 'border-admin-blue-light bg-secondary text-secondary-foreground',
   'chu-so-huu': 'border-admin-red-light bg-admin-red-bg text-admin-red-dark',
   'quan-ly': 'border-[#ddd6ff] bg-admin-violet-bg text-admin-violet-dark',
 };
@@ -39,7 +39,7 @@ export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
   return (
     <Badge
       variant="outline"
-      className="gap-1.5 rounded-md px-2.5 py-1 text-[12px] text-admin-neutral-500"
+      className="gap-1.5 rounded-md px-2.5 py-1 text-[12px] text-muted-foreground"
     >
       <BadgeDot className="bg-admin-neutral-400 opacity-100" />
       {EMPLOYEE_STATUS_LABELS.locked}

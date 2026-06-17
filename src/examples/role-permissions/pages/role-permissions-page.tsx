@@ -69,8 +69,9 @@ const tagMeta: Record<
   Xem: {
     icon: Eye,
     label: 'Xem',
-    className: 'border-admin-blue-border bg-admin-blue-bg text-admin-blue-dark',
-    mutedClassName: 'text-admin-blue-dark/50',
+    className:
+      'border-admin-blue-border bg-secondary text-secondary-foreground',
+    mutedClassName: 'text-secondary-foreground/50',
   },
   'Chỉnh sửa': {
     icon: Pencil,
@@ -199,7 +200,7 @@ export function RolePermissionsPage() {
                 'flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors',
                 role.id === selectedRoleId
                   ? 'border-primary bg-primary/8 text-foreground'
-                  : 'border-border bg-background hover:bg-admin-surface-alt',
+                  : 'border-border bg-background hover:bg-field',
               )}
               onClick={() => setSelectedRoleId(role.id)}
             >
@@ -249,7 +250,7 @@ export function RolePermissionsPage() {
         <CardContent className="min-h-0 min-w-0 overflow-hidden p-0">
           <ScrollArea className="h-full w-full max-w-full min-w-0">
             <div className="min-w-[860px]">
-              <div className="sticky top-0 z-10 grid grid-cols-[minmax(240px,1fr)_repeat(4,104px)_86px_82px] border-b bg-admin-page text-[12px] font-semibold text-admin-blue-dark">
+              <div className="sticky top-0 z-10 grid grid-cols-[minmax(240px,1fr)_repeat(4,104px)_86px_82px] border-b bg-muted text-[12px] font-semibold text-secondary-foreground">
                 <div className="border-r px-5 py-3">Module</div>
                 {PERMISSION_TAGS.map((tag) => (
                   <div key={tag} className="border-r px-3 py-3 text-center">
@@ -332,11 +333,11 @@ function ModulePermissionSection({
 
   return (
     <div className="border-b">
-      <div className="grid grid-cols-[minmax(240px,1fr)_repeat(4,104px)_86px_82px] bg-background hover:bg-admin-surface-alt">
+      <div className="grid grid-cols-[minmax(240px,1fr)_repeat(4,104px)_86px_82px] bg-background hover:bg-field">
         <div className="flex min-w-0 items-center gap-3 border-r px-5 py-3">
           <button
             type="button"
-            className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-background hover:bg-admin-surface-alt"
+            className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-background hover:bg-field"
             aria-label={expanded ? 'Thu gọn module' : 'Mở module'}
             onClick={onToggle}
           >
@@ -376,7 +377,7 @@ function ModulePermissionSection({
       </div>
 
       {expanded && (
-        <div className="bg-admin-surface-alt/60 px-5 py-4">
+        <div className="bg-field/60 px-5 py-4">
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {module.groups.map((group) => (
               <PermissionGroupCard
@@ -532,7 +533,7 @@ interface PermissionRowProps {
 
 function PermissionRow({ permission, onTogglePermission }: PermissionRowProps) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 hover:bg-admin-surface-alt">
+    <label className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 hover:bg-field">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">{permission.name}</span>

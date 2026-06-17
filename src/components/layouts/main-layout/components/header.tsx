@@ -23,7 +23,7 @@ export function Header() {
   }, [pathname]);
 
   return (
-    <header className="fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-admin-neutral-100 bg-admin-surface px-5 lg:start-[var(--sidebar-width)] lg:h-(--header-height) lg:px-8">
+    <header className="fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-5 lg:start-[var(--sidebar-width)] lg:h-(--header-height) lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
         {isMobile && (
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -55,7 +55,7 @@ export function Header() {
           <h1 className="truncate text-[18px] font-bold leading-tight text-zinc-900">
             Quản trị Tổ chức
           </h1>
-          <nav className="mt-0.5 flex items-center gap-1.5 text-[12px] font-medium text-admin-neutral-500">
+          <nav className="mt-0.5 flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
             <Link to="/" className="hover:text-admin-neutral-700">
               Tổ chức
             </Link>
@@ -66,14 +66,14 @@ export function Header() {
       </div>
 
       <button
-        className="flex shrink-0 items-center gap-3 rounded-lg p-1.5 text-left transition-colors hover:bg-admin-surface-alt"
+        className="flex shrink-0 items-center gap-3 rounded-lg p-1.5 text-left transition-colors hover:bg-field"
         type="button"
       >
         <span className="hidden text-right sm:block">
           <span className="block text-[14px] font-semibold leading-tight text-admin-blue-darkest">
             Thanh Hiếu
           </span>
-          <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-admin-blue-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-admin-blue-dark">
+          <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
             Tổ chức
           </span>
         </span>

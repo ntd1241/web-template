@@ -78,6 +78,7 @@
   --secondary-foreground: var(--admin-blue-dark);
   --muted: var(--admin-neutral-bg);
   --muted-foreground: var(--admin-neutral-500);
+  --field: var(--admin-surface-alt);
   --accent: var(--admin-primary-bg);
   --accent-foreground: var(--admin-primary-dark);
   --destructive: var(--admin-red-primary);
@@ -106,6 +107,7 @@
   --secondary-foreground: var(--color-zinc-50);
   --muted: var(--color-zinc-900);
   --muted-foreground: var(--color-zinc-500);
+  --field: var(--color-zinc-900);
   --accent: var(--color-zinc-900);
   --accent-foreground: var(--color-zinc-50);
   --destructive: var(--color-red-600);
@@ -135,6 +137,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-field: var(--field);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-primary: var(--primary);
@@ -264,7 +267,7 @@ html {
 }
 
 @utility container-fluid {
-  @apply w-full mx-auto px-4 lg:px-5;
+  @apply mx-auto w-full px-4 lg:px-5;
 }
 
 /* Metronic Configs */

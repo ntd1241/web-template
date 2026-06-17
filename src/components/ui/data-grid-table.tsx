@@ -96,7 +96,7 @@ function DataGridTableHeadRow<TData>({
     <tr
       key={headerGroup.id}
       className={cn(
-        'bg-admin-page',
+        'bg-muted',
         props.tableLayout?.headerBorder && '[&>th]:border-b',
         props.tableLayout?.cellBorder && '[&_>:last-child]:border-e-0',
         props.tableLayout?.stripped && 'bg-transparent',
@@ -150,7 +150,7 @@ function DataGridTableHeadRowCell<TData>({
         isLastLeftPinned ? 'left' : isFirstRightPinned ? 'right' : undefined
       }
       className={cn(
-        'relative h-10 text-left rtl:text-right align-middle text-[12px] font-semibold uppercase tracking-[0.06em] text-admin-blue-dark [&:has([role=checkbox])]:pe-0',
+        'relative h-10 text-left rtl:text-right align-middle text-[12px] font-semibold uppercase tracking-[0.06em] text-secondary-foreground [&:has([role=checkbox])]:pe-0',
         headerCellSpacing,
         props.tableLayout?.cellBorder && 'border-e',
         props.tableLayout?.columnsResizable &&
@@ -218,7 +218,7 @@ function DataGridTableBodyRowSkeleton({ children }: { children: ReactNode }) {
   return (
     <tr
       className={cn(
-        'hover:bg-admin-surface-alt data-[state=selected]:bg-admin-surface-alt',
+        'hover:bg-field data-[state=selected]:bg-field',
         props.onRowClick && 'cursor-pointer',
         !props.tableLayout?.stripped &&
           props.tableLayout?.rowBorder &&
@@ -295,7 +295,7 @@ function DataGridTableBodyRow<TData>({
       }
       onClick={() => props.onRowClick && props.onRowClick(row.original)}
       className={cn(
-        'hover:bg-admin-surface-alt data-[state=selected]:bg-admin-surface-alt',
+        'hover:bg-field data-[state=selected]:bg-field',
         props.onRowClick && 'cursor-pointer',
         !props.tableLayout?.stripped &&
           props.tableLayout?.rowBorder &&

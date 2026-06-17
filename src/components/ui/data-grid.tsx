@@ -150,7 +150,7 @@ function DataGrid<TData extends object>({
       base: '',
       header: '',
       headerRow: '',
-      headerSticky: 'sticky top-0 z-10 bg-admin-page',
+      headerSticky: 'sticky top-0 z-10 bg-muted',
       body: '',
       bodyRow: '',
       footer: '',
