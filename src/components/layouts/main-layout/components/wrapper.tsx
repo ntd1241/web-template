@@ -13,7 +13,7 @@ export function Wrapper() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
         <main
-          className="min-h-0 flex-1 overflow-hidden pt-(--header-height-mobile) lg:ps-[var(--sidebar-width)] lg:pt-(--header-height)"
+          className="min-h-0 flex-1 overflow-hidden pt-(--header-height-mobile) transition-[padding] duration-200 ease-out lg:ps-[var(--sidebar-current-width)] lg:pt-(--header-height)"
           role="content"
         >
           <Outlet />

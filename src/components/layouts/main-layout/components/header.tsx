@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeft, PanelLeftClose } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +14,7 @@ import { SidebarPrimary } from './sidebar-primary';
 import { SidebarSecondary } from './sidebar-secondary';
 
 export function Header() {
-  const { isMobile } = useLayout();
+  const { isMobile, isSidebarOpen, sidebarToggle } = useLayout();
   const { pathname } = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -23,7 +23,7 @@ export function Header() {
   }, [pathname]);
 
   return (
-    <header className="fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-5 lg:start-[var(--sidebar-width)] lg:h-(--header-height) lg:px-8">
+    <header className="fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-5 transition-[inset-inline-start] duration-200 ease-out lg:start-[var(--sidebar-current-width)] lg:h-(--header-height) lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
         {isMobile && (
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -49,6 +49,22 @@ export function Header() {
               </SheetBody>
             </SheetContent>
           </Sheet>
+        )}
+
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            mode="icon"
+            size="sm"
+            aria-label={isSidebarOpen ? 'Thu gọn menu' : 'Mở rộng menu'}
+            onClick={sidebarToggle}
+          >
+            {isSidebarOpen ? (
+              <PanelLeftClose className="size-4" />
+            ) : (
+              <PanelLeft className="size-4" />
+            )}
+          </Button>
         )}
 
         <div className="min-w-0">

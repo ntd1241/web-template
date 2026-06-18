@@ -1,9 +1,10 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutState {
-  style: React.CSSProperties;
+  style: CSSProperties;
   bodyClassName: string;
   isMobile: boolean;
   isSidebarOpen: boolean;
@@ -12,7 +13,7 @@ interface LayoutState {
 
 interface LayoutProviderProps {
   children: ReactNode;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   bodyClassName?: string;
 }
 
@@ -22,14 +23,19 @@ export function LayoutProvider({ children, style: customStyle, bodyClassName = '
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  const sidebarCurrentWidth = isSidebarOpen
+    ? 'var(--sidebar-width)'
+    : 'var(--sidebar-collapsed-width)';
+
   const style = {
     '--sidebar-width': '280px',
     '--sidebar-collapsed-width': '56px',
     '--sidebar-menu-width': '224px',
+    '--sidebar-current-width': sidebarCurrentWidth,
     '--header-height': '64px',
     '--header-height-mobile': '64px',
     ...customStyle,
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   const sidebarToggle = () => setIsSidebarOpen((open) => !open);
 

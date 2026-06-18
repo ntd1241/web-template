@@ -1,14 +1,5 @@
-import { useState } from 'react';
-import { vi } from 'date-fns/locale';
-import { CalendarDate, getLocalTimeZone } from '@internationalized/date';
-import { CalendarDays } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import type { DateValue } from 'react-aria-components';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DateField, DateInput } from '@/components/ui/datefield';
 import {
   FormControl,
   FormField,
@@ -21,11 +12,6 @@ import {
   MultiSelect,
   type MultiSelectOption,
 } from '@/components/ui/multi-select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
@@ -46,6 +32,7 @@ import {
   EMPLOYEE_DEPARTMENTS,
   type CreateEmployeeFormValues,
 } from '../schemas/employee-create.schema';
+import { CreateEmployeeStartDateField } from './create-employee-start-date-field';
 import { EmployeeAvatarDropzone } from './employee-avatar-dropzone';
 import { EmployeeSkillsField } from './employee-skills-field';
 
@@ -55,22 +42,6 @@ const roleOptions: MultiSelectOption[] = EMPLOYEE_ROLES.map((role) => ({
   searchableText: EMPLOYEE_ROLE_LABELS[role],
   group: 'Vai trò',
 }));
-
-function dateToCalendarDate(date: Date | null | undefined): CalendarDate | null {
-  if (!date) {
-    return null;
-  }
-
-  return new CalendarDate(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-  );
-}
-
-function dateValueToDate(value: DateValue | null): Date | undefined {
-  return value?.toDate(getLocalTimeZone());
-}
 
 /** Dấu sao đỏ cho trường bắt buộc. */
 function RequiredMark() {
@@ -88,7 +59,6 @@ export function CreateEmployeeFields({
   onAvatarChange,
 }: CreateEmployeeFieldsProps) {
   const form = useFormContext<CreateEmployeeFormValues>();
-  const [isStartDateOpen, setIsStartDateOpen] = useState(false);
 
   return (
     <div className="space-y-5 px-6 py-5">
@@ -188,75 +158,7 @@ export function CreateEmployeeFields({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => {
-            const handleStartDateChange = (value: DateValue | null) => {
-              field.onChange(dateValueToDate(value));
-            };
-
-            const handleStartDateSelect = (date: Date | undefined) => {
-              if (!date) {
-                return;
-              }
-
-              field.onChange(date);
-              setIsStartDateOpen(false);
-            };
-
-            return (
-              <FormItem>
-                <FormLabel>
-                  Ngày vào làm
-                  <RequiredMark />
-                </FormLabel>
-                <FormControl>
-                  <DateField
-                    aria-label="Ngày vào làm"
-                    className="flex w-full"
-                    granularity="day"
-                    locale="vi-VN"
-                    value={dateToCalendarDate(field.value)}
-                    onBlur={field.onBlur}
-                    onChange={handleStartDateChange}
-                  >
-                    <DateInput className="rounded-e-none border-e-0" />
-                    <Popover
-                      open={isStartDateOpen}
-                      onOpenChange={setIsStartDateOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          aria-label="Chọn ngày vào làm"
-                          variant="outline"
-                          mode="input"
-                          className={cn(
-                            'shrink-0 rounded-s-none px-2.5',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          <CalendarDays />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          locale={vi}
-                          selected={field.value}
-                          onSelect={handleStartDateSelect}
-                          autoFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </DateField>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
-        />
+        <CreateEmployeeStartDateField />
       </div>
 
       <FormField
@@ -273,6 +175,7 @@ export function CreateEmployeeFields({
                 value={field.value}
                 onChange={field.onChange}
                 options={roleOptions}
+                maxChips={roleOptions.length}
                 placeholder="Chọn vai trò"
                 searchPlaceholder="Tìm vai trò..."
                 emptyMessage="Không có vai trò phù hợp"
