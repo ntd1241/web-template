@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { Route } from 'react-router';
 import { MainLayout } from '@/components/layouts/main-layout';
+import { PublicLayout } from '@/components/layouts/public-layout';
 import { ScreenLoader } from '@/components/screen-loader';
 
 /**
@@ -27,6 +28,18 @@ if (import.meta.env.DEV) {
       default: m.RolePermissionsPage,
     })),
   );
+  const MaterialsManagementPage = lazy(() =>
+    import('./material/pages/materials-management-page').then((m) => ({
+      default: m.MaterialsManagementPage,
+    })),
+  );
+  const MaterialPublicDetailPage = lazy(() =>
+    import('./material/public-detail/pages/material-public-detail-page').then(
+      (m) => ({
+        default: m.MaterialPublicDetailPage,
+      }),
+    ),
+  );
 
   // Greybox/wireframe — rendered INSIDE MainLayout so the real shell (sidebar +
   // topbar) surrounds it; the greybox only blocks out the page content area.
@@ -37,32 +50,52 @@ if (import.meta.env.DEV) {
   );
 
   exampleRoutes = (
-    <Route element={<MainLayout />}>
-      <Route
-        path={ROUTES.EXAMPLE.EMPLOYEES}
-        element={
-          <Suspense fallback={<ScreenLoader />}>
-            <EmployeesExamplePage />
-          </Suspense>
-        }
-      />
-      <Route
-        path={ROUTES.EXAMPLE.ROLE_PERMISSIONS}
-        element={
-          <Suspense fallback={<ScreenLoader />}>
-            <RolePermissionsPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/example/role-permissions/wireframe"
-        element={
-          <Suspense fallback={<ScreenLoader />}>
-            <RolePermissionsWireframe />
-          </Suspense>
-        }
-      />
-    </Route>
+    <>
+      <Route element={<MainLayout />}>
+        <Route
+          path={ROUTES.EXAMPLE.EMPLOYEES}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <EmployeesExamplePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIALS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialsManagementPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.ROLE_PERMISSIONS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <RolePermissionsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/example/role-permissions/wireframe"
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <RolePermissionsWireframe />
+            </Suspense>
+          }
+        />
+      </Route>
+      <Route element={<PublicLayout />}>
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_PUBLIC_DETAIL}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialPublicDetailPage />
+            </Suspense>
+          }
+        />
+      </Route>
+    </>
   );
 }
 
