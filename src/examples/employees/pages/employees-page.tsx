@@ -18,6 +18,7 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSetEmployeeStatusMutation } from '../api/employee.queries';
+import { CreateEmployeeDialog } from '../components/create-employee-dialog';
 import { EmployeesToolbar } from '../components/employees-toolbar';
 import { useEmployeeColumns } from '../hooks/use-employee-columns';
 import { useEmployeeList } from '../hooks/use-employee-list';
@@ -25,6 +26,7 @@ import type { Employee, EmployeeRole } from '../model/employee';
 
 export function EmployeesExamplePage() {
   const [roleFilter, setRoleFilter] = useState<EmployeeRole[]>([]);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const {
     keyword,
     onKeywordChange,
@@ -131,6 +133,7 @@ export function EmployeesExamplePage() {
                 roleFilter={roleFilter}
                 onRoleFilterChange={setRoleFilter}
                 onRefresh={() => refetch()}
+                onCreate={() => setIsCreateOpen(true)}
                 canManage={canManage}
               />
             </CardToolbar>
@@ -148,6 +151,11 @@ export function EmployeesExamplePage() {
           </CardFooter>
         </Card>
       </DataGrid>
+
+      <CreateEmployeeDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+      />
     </div>
   );
 }

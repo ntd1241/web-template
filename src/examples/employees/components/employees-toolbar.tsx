@@ -22,6 +22,7 @@ interface EmployeesToolbarProps {
   roleFilter: EmployeeRole[];
   onRoleFilterChange: (value: EmployeeRole[]) => void;
   onRefresh: () => void;
+  onCreate: () => void;
   canManage: boolean;
 }
 
@@ -32,6 +33,7 @@ export function EmployeesToolbar({
   roleFilter,
   onRoleFilterChange,
   onRefresh,
+  onCreate,
   canManage,
 }: EmployeesToolbarProps) {
   const handleRoleFilterChange = (nextValues: string[]) => {
@@ -69,7 +71,7 @@ export function EmployeesToolbar({
       </Button>
 
       {canManage && (
-        <Button variant="primary">
+        <Button variant="primary" onClick={onCreate}>
           <Plus />
           Cấp tài khoản
         </Button>
