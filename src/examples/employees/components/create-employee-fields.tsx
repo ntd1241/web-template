@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { CalendarDate, getLocalTimeZone } from '@internationalized/date';
 import { CalendarDays } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
+import type { DateValue } from 'react-aria-components';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DateField, DateInput } from '@/components/ui/datefield';
 import {
   FormControl,
   FormField,
@@ -53,6 +55,22 @@ const roleOptions: MultiSelectOption[] = EMPLOYEE_ROLES.map((role) => ({
   searchableText: EMPLOYEE_ROLE_LABELS[role],
   group: 'Vai trò',
 }));
+
+function dateToCalendarDate(date: Date | null | undefined): CalendarDate | null {
+  if (!date) {
+    return null;
+  }
+
+  return new CalendarDate(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+  );
+}
+
+function dateValueToDate(value: DateValue | null): Date | undefined {
+  return value?.toDate(getLocalTimeZone());
+}
 
 /** Dấu sao đỏ cho trường bắt buộc. */
 function RequiredMark() {
@@ -173,47 +191,71 @@ export function CreateEmployeeFields({
         <FormField
           control={form.control}
           name="startDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Ngày vào làm
-                <RequiredMark />
-              </FormLabel>
-              <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      mode="input"
-                      className={cn(
-                        'w-full justify-start font-normal',
-                        !field.value && 'text-muted-foreground',
-                      )}
+          render={({ field }) => {
+            const handleStartDateChange = (value: DateValue | null) => {
+              field.onChange(dateValueToDate(value));
+            };
+
+            const handleStartDateSelect = (date: Date | undefined) => {
+              if (!date) {
+                return;
+              }
+
+              field.onChange(date);
+              setIsStartDateOpen(false);
+            };
+
+            return (
+              <FormItem>
+                <FormLabel>
+                  Ngày vào làm
+                  <RequiredMark />
+                </FormLabel>
+                <FormControl>
+                  <DateField
+                    aria-label="Ngày vào làm"
+                    className="flex w-full"
+                    granularity="day"
+                    locale="vi-VN"
+                    value={dateToCalendarDate(field.value)}
+                    onBlur={field.onBlur}
+                    onChange={handleStartDateChange}
+                  >
+                    <DateInput className="rounded-e-none border-e-0" />
+                    <Popover
+                      open={isStartDateOpen}
+                      onOpenChange={setIsStartDateOpen}
                     >
-                      <CalendarDays />
-                      {field.value
-                        ? format(field.value, 'dd/MM/yyyy')
-                        : 'Chọn ngày'}
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    locale={vi}
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date);
-                      setIsStartDateOpen(false);
-                    }}
-                    autoFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          aria-label="Chọn ngày vào làm"
+                          variant="outline"
+                          mode="input"
+                          className={cn(
+                            'shrink-0 rounded-s-none px-2.5',
+                            !field.value && 'text-muted-foreground',
+                          )}
+                        >
+                          <CalendarDays />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          locale={vi}
+                          selected={field.value}
+                          onSelect={handleStartDateSelect}
+                          autoFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </DateField>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
       </div>
 
@@ -304,7 +346,7 @@ export function CreateEmployeeFields({
         )}
       />
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <FormLabel className="text-foreground">
           Tùy chọn cấp tài khoản
         </FormLabel>

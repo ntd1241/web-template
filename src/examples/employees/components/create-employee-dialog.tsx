@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle, Save, UserPlus } from 'lucide-react';
+import { Save, UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   createEmployeeFormSchema,
@@ -104,12 +103,12 @@ export function CreateEmployeeDialog({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="flex min-h-0 flex-1 flex-col"
           >
-            <ScrollArea className="min-h-0 flex-1">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <CreateEmployeeFields
                 avatar={avatar}
                 onAvatarChange={setAvatar}
               />
-            </ScrollArea>
+            </div>
 
             <Separator />
 
@@ -122,12 +121,13 @@ export function CreateEmployeeDialog({
               >
                 Hủy
               </Button>
-              <Button type="submit" variant="primary" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <LoaderCircle className="animate-spin" />
-                ) : (
-                  <Save />
-                )}
+              <Button
+                type="submit"
+                variant="primary"
+                loading={isSubmitting}
+                loadingText="Đang lưu"
+              >
+                <Save />
                 Lưu nhân viên
               </Button>
             </DialogFooter>

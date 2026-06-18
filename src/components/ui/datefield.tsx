@@ -5,16 +5,16 @@ import { inputVariants } from '@/components/ui/input';
 import type { VariantProps } from 'class-variance-authority';
 import {
   composeRenderProps,
-  DateFieldProps,
   DateField as DateFieldRa,
-  DateInputProps as DateInputPropsRa,
   DateInput as DateInputRa,
-  DateSegmentProps,
   DateSegment as DateSegmentRa,
-  DateValue as DateValueRa,
-  TimeFieldProps,
   TimeField as TimeFieldRa,
-  TimeValue as TimeValueRa,
+  type DateFieldProps,
+  type DateInputProps as DateInputPropsRa,
+  type DateSegmentProps,
+  type DateValue as DateValueRa,
+  type TimeFieldProps,
+  type TimeValue as TimeValueRa,
 } from 'react-aria-components';
 
 function DateField<T extends DateValueRa>({ className, children, ...props }: DateFieldProps<T>) {
@@ -57,7 +57,6 @@ function DateSegment({ className, ...props }: DateSegmentProps) {
         ),
       )}
       {...props}
-      data-invalid
     />
   );
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { ChevronDown, LucideIcon } from 'lucide-react';
+import { ChevronDown, LoaderCircle, type LucideIcon } from 'lucide-react';
 import { Slot as SlotPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
@@ -54,7 +54,7 @@ const buttonVariants = cva(
         icon: 'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 shrink-0',
         link: 'text-primary h-auto p-0 bg-transparent rounded-none hover:bg-transparent data-[state=open]:bg-transparent',
         input: `
-            justify-start font-normal hover:bg-background [&_svg]:transition-colors [&_svg]:hover:text-foreground data-[state=open]:bg-background 
+            justify-start bg-field font-normal hover:bg-background [&_svg]:transition-colors [&_svg]:hover:text-foreground data-[state=open]:bg-background 
             focus-visible:border-ring focus-visible:outline-hidden focus-visible:ring-[3px] focus-visible:ring-ring/30 
             [[data-state=open]>&]:border-ring [[data-state=open]>&]:outline-hidden [[data-state=open]>&]:ring-[3px] 
             [[data-state=open]>&]:ring-ring/30 
@@ -359,6 +359,10 @@ const buttonVariants = cva(
 
 function Button({
   className,
+  children,
+  disabled,
+  loading = false,
+  loadingText,
   selected,
   variant,
   shape,
@@ -375,11 +379,27 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     selected?: boolean;
     asChild?: boolean;
+    loading?: boolean;
+    loadingText?: React.ReactNode;
   }) {
   const Comp = asChild ? SlotPrimitive.Slot : 'button';
+  const isDisabled = disabled || loading;
+  const content =
+    loading && !asChild ? (
+      <>
+        <LoaderCircle className="animate-spin" />
+        {loadingText ?? children}
+      </>
+    ) : (
+      children
+    );
+
   return (
     <Comp
       data-slot="button"
+      data-loading={loading || undefined}
+      aria-busy={loading || undefined}
+      aria-disabled={loading && asChild ? true : undefined}
       className={cn(
         buttonVariants({
           variant,
@@ -393,11 +413,14 @@ function Button({
           underline,
           className,
         }),
-        asChild && props.disabled && 'pointer-events-none opacity-50',
+        asChild && isDisabled && 'pointer-events-none opacity-50',
       )}
       {...(selected && { 'data-state': 'open' })}
+      disabled={asChild ? disabled : isDisabled}
       {...props}
-    />
+    >
+      {content}
+    </Comp>
   );
 }
 
