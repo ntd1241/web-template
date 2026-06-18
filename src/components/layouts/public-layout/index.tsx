@@ -8,7 +8,7 @@ export function PublicLayout() {
         <title>Public Info</title>
       </Helmet>
 
-      <div className="min-h-dvh w-full min-w-0 bg-admin-page text-admin-neutral-800">
+      <div className="min-h-dvh w-full min-w-0 grow self-start bg-admin-page text-admin-neutral-800">
         <Outlet />
       </div>
     </>
