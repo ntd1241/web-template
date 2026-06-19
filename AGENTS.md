@@ -1,13 +1,20 @@
 # Agent Instructions
 
-This project is a Metronic 9 React starter template being adapted into a reusable web/admin template for the Vietnamese market. Before making product, UI, layout, permissions, or project-structure decisions, read these documents:
+This project is a Metronic 9 React starter template being adapted into a reusable web/admin template for the Vietnamese market.
+
+## Token Budget / Doc Loading Policy
+
+Do not read every project document by default. Start from the current code and this file, then read only the narrowest relevant docs or sections for the task. Prefer `rg`/targeted excerpts over full-file reads for large docs.
+
+Use this routing:
 
 - `docs/00-stack-and-architecture.md` — source of truth for stack, versions, app foundation (read first).
-- `docs/01-coding-convention.md`
-- `docs/02-design-system.md`
-- `docs/03-permission-system-design.md`
-- `docs/04-specific-design-system.md`
-- `docs/06-component-usage-guide.md` — use project UI components, not raw HTML.
+- `docs/06-component-usage-guide.md` — read relevant component sections before UI implementation.
+- `docs/08-scaffold-builders.md` + `src/builders/README.md` — read when a page/surface might be scaffolded.
+- `docs/01-coding-convention.md` — consult targeted sections for naming, feature structure, forms, routing, or TypeScript questions; do not read the full file unless needed.
+- `docs/02-design-system.md` — consult relevant sections for new UI patterns, form/table behavior, density, or Vietnamese admin UX.
+- `docs/03-permission-system-design.md` — read only when touching auth, RBAC, permissions, route guards, menu filtering, or admin role screens.
+- `docs/04-specific-design-system.md` — read only for visual parity, restyling, layout work, or when a concrete Vietnamese admin reference is needed; prefer targeted sections.
 
 Treat the first three files as the desired direction, not as a perfect description of the current repository. `docs/04-specific-design-system.md` is a reference case study extracted from an external product; use it to understand concrete Vietnamese admin patterns, then generalize those patterns for this template. The actual code always wins when there is a mismatch.
 
@@ -71,4 +78,7 @@ Before claiming work is complete, run the narrowest useful checks:
 
 - `npm run build` for TypeScript and production build validation.
 - `npm run lint` only when its auto-fix behavior is acceptable for the changed files.
-- For UI changes, run the dev server and inspect the relevant page in a browser at desktop widths around 1366px and 1920px.
+- For UI changes, prefer automated tests and focused DOM/assertion checks first.
+- Run browser/live preview only when visual layout, responsive behavior, shared styling, modals/popovers, or user-facing interaction cannot be trusted from tests alone.
+- Browser checks should be narrow: open the route, perform the relevant interaction, inspect console/errors, and avoid full DOM dumps or screenshots unless visual judgment is required.
+- Check both 1366px and 1920px only for layout/restyle/shared component changes or when the task explicitly requires viewport parity.

@@ -11,32 +11,31 @@ plan. Your job is to:
 1. Turn a request into (or validate) a written plan under `docs/superpowers/plans/` before code is written.
 2. Make sure every change follows the rules in `docs/` and in this file.
 3. Review diffs against the relevant plan and the conventions, and **block** anything that drifts.
-4. Verify with the build and, for UI, with the browser at desktop widths before calling work done.
+4. Verify with the narrowest useful checks before calling work done; use browser checks only when
+   visual or interaction risk justifies them.
 
 Default to reviewing and correcting rather than rewriting from scratch. Only author code directly
 when the user explicitly asks you to implement, or when a fix is small and unambiguous.
 
-## Read These Before Any Non-Trivial Change
+## Read Docs Selectively
 
-Order matters. `docs/00` describes the actual stack/foundation; `AGENTS.md` covers how docs relate to code.
+Do not read the whole documentation set for every task. Start with `AGENTS.md`, the current code, and
+the smallest relevant doc sections. Use `rg` and targeted excerpts for large docs.
 
 - `docs/00-stack-and-architecture.md` — **source of truth for stack, versions, and the app foundation.**
 - `AGENTS.md` — how to interpret the docs vs the real code; current stack facts; UI rules.
-- `docs/01-coding-convention.md` — intended structure, naming, TypeScript, React, Tailwind rules.
-- `docs/02-design-system.md` — UX direction (dense, table-first Vietnamese admin).
-- `docs/03-permission-system-design.md` — RBAC, route guards, menu filtering (when touching auth).
-- `docs/04-specific-design-system.md` — external case study; reference only, never copy brand/domain names.
-- `docs/05-example-pages-proposal.md` — the catalogue of example pages this template should grow.
+- `docs/01-coding-convention.md` — consult only relevant sections for structure, naming, TS, forms, routing, or imports.
+- `docs/02-design-system.md` — consult relevant sections for dense Vietnamese admin UX, table/form/dialog behavior, or copy.
+- `docs/03-permission-system-design.md` — read only when touching auth, RBAC, permissions, route guards, menu filtering, or admin role screens.
+- `docs/04-specific-design-system.md` — external case study; read targeted sections only for visual parity, restyling, or concrete reference patterns.
+- `docs/05-example-pages-proposal.md` — consult when adding or prioritizing example pages.
 - `docs/06-component-usage-guide.md` — **the canonical "use this component, not raw HTML" hub** (principles
   + lookup table + review checklist). Per-component detail lives in `docs/components/*.md`
   (`button`, `forms`, `display`, `data-grid`).
-- `docs/07-lib-utilities.md` — usage of `src/lib/*` helpers (validation factory, format, date, search, errors).
-- `docs/08-scaffold-builders.md` — **model-first codegen builders** (table builder now): how agents
-  USE a builder (`npm run gen:table`, scaffold-and-own rules) and how to CREATE a new one. New data
-  tables are scaffolded via the builder, not hand-written `ColumnDef[]` — and you **MUST actually run
-  `npm run gen:table`**, not hand-write a generated-looking file (a test enforces banner + badge
-  config match the spec). The builder index lives in `src/builders/README.md` (registry); skill
-  `use-builder` is the generic "check the registry, prefer a builder" gate (one skill for all builders).
+- `docs/07-lib-utilities.md` — consult when using `src/lib/*` helpers (validation factory, format, date, search, errors).
+- `docs/08-scaffold-builders.md` — read when using or creating scaffold builders. The builder index lives
+  in `src/builders/README.md` (registry); skill `use-builder` is the generic "check the registry,
+  prefer a builder" gate.
 - `docs/superpowers/plans/*.md` — active implementation plans; check for one before reviewing a change.
 
 **The actual code always wins when a doc disagrees with it.** The convention doc in particular
@@ -54,8 +53,10 @@ npm run lint             # eslint src --fix  (auto-fixes; only run when auto-fix
 npm run format           # prettier --write .
 ```
 
-Verification = `npm run build` clean **and** `npm run test:run` green, plus browser inspection for UI
-work. Husky pre-commit runs `lint-staged` (eslint --fix + prettier) on staged files.
+Verification = `npm run build` clean and the narrowest relevant tests green. Browser inspection is
+required for layout/restyle/shared component work, complex modals/popovers, responsive behavior, or
+when tests cannot cover the visible interaction. Avoid full DOM dumps and screenshots unless visual
+judgment is needed. Husky pre-commit runs `lint-staged` (eslint --fix + prettier) on staged files.
 `npm run dev -- --host 127.0.0.1` when a stable host is needed for screenshots.
 
 ## Architecture (the big picture)
