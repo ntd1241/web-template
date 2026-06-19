@@ -16,7 +16,7 @@ Read `AGENTS.md` first. Do not load the entire documentation set.
 - Start from current code and relevant diffs.
 - Use `rg` and targeted excerpts for large docs.
 - Consult only the docs routed by `AGENTS.md`.
-- Check `docs/superpowers/plans/` only for a plan covering the changed area.
+- Check `docs/engineering/plans/` only for a plan covering the changed area.
 - Current code, `package.json`, and `docs/00-stack-and-architecture.md` win over older examples.
 
 ## Commands
@@ -36,7 +36,7 @@ npm run format
 ## Review Gates
 
 - **Plan/scope:** changes must match the relevant plan or request; reject unrelated refactors.
-- **Builders:** for pages or repeatable UI surfaces, enforce the `use-builder` workflow and registry in `src/builders/README.md`. Generated-looking files must come from the real builder command.
+- **Builders:** for pages or repeatable UI surfaces, enforce `docs/workflows/implement-ui.md`, the `use-builder` gate, and the registry. Generated-looking files must come from the real builder command.
 - **UI primitives:** management pages compose `src/components/ui`; do not recreate reusable raw buttons, inputs, or tables.
 - **Shared styling:** shared admin appearance belongs in component defaults or tokens, not repeated per-page class overrides.
 - **Types/conventions:** named exports for new components/pages, `handle*` handlers, `is/has/can` booleans, no new `any`, `import type`, and `@/` cross-folder imports.
