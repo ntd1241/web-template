@@ -14,7 +14,6 @@ Doc routing:
 - `docs/01-coding-convention.md` — targeted sections for naming, feature structure, TypeScript, forms, routing, or imports.
 - `docs/02-design-system.md` — targeted sections for dense Vietnamese admin UX, tables, forms, dialogs, copy, and interaction behavior.
 - `docs/03-permission-system-design.md` — only for auth, RBAC, permissions, route guards, menu filtering, or admin role screens.
-- `docs/04-specific-design-system.md` — only for visual parity, restyling, layout work, or concrete Vietnamese admin reference patterns.
 
 Current code, `package.json`, and `docs/00` win over older doc examples.
 

@@ -1,4 +1,6 @@
-# Example Pages Proposal
+# Example Page Catalog
+
+> Optional product-planning reference. Do not load this file for ordinary feature implementation.
 
 Tài liệu này đề xuất các trang example nên có cho template admin generic hướng thị trường Việt Nam. Mỗi trang đại diện cho một nhu cầu quản trị phổ biến và một kiểu giao diện/luồng thao tác khác nhau.
 
