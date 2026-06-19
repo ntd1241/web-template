@@ -13,7 +13,7 @@ Doc routing:
 - `docs/workflows/implement-ui.md` + `src/builders/README.md` — UI workflow and builder registry. Read when a page/surface may be generated, then open only the matching builder guide.
 - `docs/01-coding-convention.md` — targeted sections for naming, feature structure, TypeScript, forms, routing, or imports.
 - `docs/02-design-system.md` — targeted sections for dense Vietnamese admin UX, tables, forms, dialogs, copy, and interaction behavior.
-- `docs/03-permission-system-design.md` — only for auth, RBAC, permissions, route guards, menu filtering, or admin role screens.
+- `docs/permissions/overview.md` — only for auth, RBAC, permissions, route guards, menu filtering, or admin role screens; then read one focused permission guide.
 
 Current code, `package.json`, and `docs/00` win over older doc examples.
 
