@@ -55,6 +55,7 @@ Vitest + Husky. New domain work goes in `src/features/<domain>/` per `docs/00` Â
 
 ## UI Implementation Rules
 
+- Before implementing any page, feature screen, repeated UI surface, or generated scaffold candidate, always use the project skill `use-builder` at `.codex/skills/use-builder`. Read `src/builders/README.md` first; the registry decides whether a builder exists and which command/spec workflow to use.
 - Preserve Metronic component behavior unless the task explicitly asks to replace it.
 - Favor dense, desktop-admin layouts over marketing-style pages.
 - Build actual working screens, not landing pages, when asked for an app/template feature.

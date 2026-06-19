@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use Builder"
+  short_description: "Check scaffold builders first"
+  default_prompt: "Use $use-builder before implementing a new page or repeatable UI surface in this project."
