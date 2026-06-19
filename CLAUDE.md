@@ -31,6 +31,9 @@ Order matters. `docs/00` describes the actual stack/foundation; `AGENTS.md` cove
   + lookup table + review checklist). Per-component detail lives in `docs/components/*.md`
   (`button`, `forms`, `display`, `data-grid`).
 - `docs/07-lib-utilities.md` — usage of `src/lib/*` helpers (validation factory, format, date, search, errors).
+- `docs/08-scaffold-builders.md` — **model-first codegen builders** (table builder now): how agents
+  USE a builder (`npm run gen:table`, scaffold-and-own rules) and how to CREATE a new one. New data
+  tables are scaffolded via the builder, not hand-written `ColumnDef[]`. Skill: `scaffold-table`.
 - `docs/superpowers/plans/*.md` — active implementation plans; check for one before reviewing a change.
 
 **The actual code always wins when a doc disagrees with it.** The convention doc in particular

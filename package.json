@@ -12,6 +12,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
+    "gen:table": "tsx tools/builders/cli/gen-table.ts",
     "prepare": "husky"
   },
   "lint-staged": {
