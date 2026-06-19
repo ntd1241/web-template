@@ -25,6 +25,8 @@ docs/
   02-design-system.md               # shared UX principles and design tokens only
   06-component-usage-guide.md       # component documentation router
   07-lib-utilities.md               # utility documentation router
+  workflows/
+    implement-ui.md                 # end-to-end UI delivery workflow
   builders/
     table.md                        # using the table builder
     form-dialog.md                  # using the form/dialog builder
@@ -41,21 +43,21 @@ docs/
     admin-ui.md
   reference/
     example-page-catalog.md
-  superpowers/
+  engineering/
     plans/                           # historical implementation plans
     specs/                           # approved designs
 ```
 
-`docs/04-specific-design-system.md` will be deleted because its relevant styling has already been
-integrated into the active system. `docs/reference/05-example-pages-proposal.md` will be renamed to
-`docs/reference/example-page-catalog.md` and kept as optional product-planning reference.
+The obsolete external design-system case study will be deleted because its relevant styling has
+already been integrated into the active system. The example-page proposal will become
+`docs/reference/example-page-catalog.md` and remain optional product-planning reference.
 
 ## Content Ownership
 
 ### Documentation Router
 
 `docs/README.md` maps common tasks to the smallest required reading set. It explicitly marks
-`reference/` and `superpowers/` as opt-in material.
+`reference/` and `engineering/` as opt-in material.
 
 ### Architecture And Conventions
 
@@ -73,9 +75,12 @@ belong only in `docs/components/*`. `docs/06-component-usage-guide.md` remains a
 ### Builders
 
 `src/builders/README.md` remains the canonical builder registry. Builder usage moves from the combined
-`docs/08-scaffold-builders.md` into one guide per builder. Builder implementation rules move to
-`docs/builders/authoring.md`. The combined `docs/08-scaffold-builders.md` is removed after all inbound
-links are updated.
+legacy guide into one guide per builder. Builder implementation rules move to
+`docs/builders/authoring.md`. The combined guide is removed after all inbound links are updated.
+
+`docs/workflows/implement-ui.md` owns the end-to-end UI delivery sequence. The `use-builder` skill
+remains a small activation gate and routes agents to this workflow plus the matching builder guide;
+the project does not add a second UI implementation skill.
 
 ### Permissions
 
