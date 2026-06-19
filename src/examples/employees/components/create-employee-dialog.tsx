@@ -83,7 +83,7 @@ export function CreateEmployeeDialog({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="mb-0 shrink-0 space-y-1.5 px-6 py-5 text-start">
+        <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <span className="flex size-8 items-center justify-center rounded-lg bg-admin-primary-bg text-admin-primary-dark">
               <UserPlus className="size-4" />
