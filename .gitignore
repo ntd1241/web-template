@@ -22,3 +22,6 @@ docs/.vitepress/.temp
 *.css.map
 # Codex delegation worktrees
 .worktrees/
+
+# Graphify
+graphify-out/
