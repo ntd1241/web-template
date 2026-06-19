@@ -1,11 +1,8 @@
 /**
- * Scaffolded by table-builder from `src/examples/material/table/material.table.fixture.ts`.
- * You own this file now — edit it freely (add buttons, badges, inline cell logic).
- * To refresh after the builder changes: re-run the builder to a scratch path and
- * reconcile your edits. The builder does NOT merge back into this file.
- *
- * OWNED: the `group` badge column is generated as-is; the `qr` / `identity` /
- * `tags` / `actions` cell stubs have been filled in place.
+ * Scaffolded by table-builder from `src/examples/material/table/material.table.fixture.ts`. Run `npm run gen:table` — do NOT hand-write this file.
+ * You own this file now — fill the `cell: () => null` stubs and wire it up. To change columns or
+ * badge config, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
+ * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */
 import { useMemo } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';

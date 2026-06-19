@@ -33,9 +33,10 @@ Order matters. `docs/00` describes the actual stack/foundation; `AGENTS.md` cove
 - `docs/07-lib-utilities.md` — usage of `src/lib/*` helpers (validation factory, format, date, search, errors).
 - `docs/08-scaffold-builders.md` — **model-first codegen builders** (table builder now): how agents
   USE a builder (`npm run gen:table`, scaffold-and-own rules) and how to CREATE a new one. New data
-  tables are scaffolded via the builder, not hand-written `ColumnDef[]`. The builder index lives in
-  `src/builders/README.md` (registry); skill `use-builder` is the generic "check the registry, prefer
-  a builder" gate (one skill for all builders — no per-builder skills).
+  tables are scaffolded via the builder, not hand-written `ColumnDef[]` — and you **MUST actually run
+  `npm run gen:table`**, not hand-write a generated-looking file (a test enforces banner + badge
+  config match the spec). The builder index lives in `src/builders/README.md` (registry); skill
+  `use-builder` is the generic "check the registry, prefer a builder" gate (one skill for all builders).
 - `docs/superpowers/plans/*.md` — active implementation plans; check for one before reviewing a change.
 
 **The actual code always wins when a doc disagrees with it.** The convention doc in particular

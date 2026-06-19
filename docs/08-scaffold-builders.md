@@ -34,6 +34,12 @@ a living-generated/owned file split.
 Use it whenever you build a paginated/data table (the `DataGrid` + `useReactTable` pattern in
 `docs/06`). Do **not** hand-write `ColumnDef[]` arrays anymore.
 
+> **You MUST actually run `npm run gen:table`.** Do not hand-write — or paraphrase from an existing
+> example — a file that merely *looks* generated. A repo test
+> (`src/builders/table/generated-consistency.test.ts`) re-derives the banner + badge config from each
+> file's spec and **fails** on hand-written/drifted files. The banner and the generated badge config
+> are builder-owned: never hand-edit them — change the spec and re-gen.
+
 ### Steps
 
 1. **Model** — ensure the row type exists (`model/<entity>.ts`). Enum-ish fields (status, group)

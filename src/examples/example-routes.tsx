@@ -33,6 +33,11 @@ if (import.meta.env.DEV) {
       default: m.MaterialsManagementPage,
     })),
   );
+  const SuppliersPage = lazy(() =>
+    import('./suppliers/pages/suppliers-page').then((m) => ({
+      default: m.SuppliersPage,
+    })),
+  );
   const MaterialPublicDetailPage = lazy(() =>
     import('./material/public-detail/pages/material-public-detail-page').then(
       (m) => ({
@@ -65,6 +70,14 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <MaterialsManagementPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.SUPPLIERS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <SuppliersPage />
             </Suspense>
           }
         />

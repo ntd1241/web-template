@@ -23,10 +23,10 @@ import { COLUMN_KIND_REGISTRY } from './field-kinds';
 function banner(specPath?: string): string {
   const source = specPath ? ` from \`${specPath}\`` : '';
   return `/**
- * Scaffolded by table-builder${source}.
- * You own this file now — edit it freely (add buttons, badges, inline cell logic).
- * To refresh after the builder changes: re-run the builder to a scratch path and
- * reconcile your edits. The builder does NOT merge back into this file.
+ * Scaffolded by table-builder${source}. Run \`npm run gen:table\` — do NOT hand-write this file.
+ * You own this file now — fill the \`cell: () => null\` stubs and wire it up. To change columns or
+ * badge config, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
+ * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */`;
 }
 

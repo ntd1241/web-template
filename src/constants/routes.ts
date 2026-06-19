@@ -10,6 +10,7 @@ export const ROUTES = {
     EMPLOYEE_DETAIL: '/example/employees/:id',
     MATERIALS: '/example/materials',
     MATERIAL_PUBLIC_DETAIL: '/example/materials/public/:id',
+    SUPPLIERS: '/example/suppliers',
     ROLE_PERMISSIONS: '/example/role-permissions',
     OPERATIONS_DASHBOARD: '/example/operations-dashboard',
   },

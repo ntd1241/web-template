@@ -27,6 +27,7 @@ một skill riêng cho từng builder.
 ## Không làm
 
 - Không viết tay những gì builder lo được (vd `ColumnDef[]` cho grid mới) — kiểm registry trước.
+- **PHẢI chạy `npm run gen:table` thật** — KHÔNG gõ tay (hay nhái từ example khác) một file `*.generated.tsx` cho "trông giống" output builder. Có test (`generated-consistency.test.ts`) regen banner + badge config từ spec và **fail** nếu file gõ tay/drift. Banner + badge config là builder-owned: đổi thì sửa spec rồi re-gen, không sửa tay.
 - Không regen đè file đã điền logic (mất công sửa). Regen → scratch + reconcile.
 - Không tạo skill riêng cho từng builder — registry + `docs/08` là đủ.
 - Không vá per-page cái thuộc về default component/token (xem `docs/06 §0.1`).
