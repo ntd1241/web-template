@@ -1,9 +1,8 @@
 # `src/builders` — component scaffold builders (dev-only)
 
-Build-time **codegen** that turns a small, zod-validated spec into the **UI skeleton** of a feature
-(table columns now; form/dialog + page shell next), so coding agents write a spec instead of
-repetitive TSX. Full guide: [`docs/08-scaffold-builders.md`](../../docs/08-scaffold-builders.md).
-Plan: [`docs/superpowers/plans/2026-06-19-component-scaffold-builders.md`](../../docs/superpowers/plans/2026-06-19-component-scaffold-builders.md).
+Build-time **codegen** that turns a small, zod-validated spec into the **UI skeleton** of a feature, so
+coding agents write a spec instead of repetitive TSX. Start from the registry below, then read only the
+matching guide. Historical plan: [`docs/engineering/plans/2026-06-19-component-scaffold-builders.md`](../../docs/engineering/plans/2026-06-19-component-scaffold-builders.md).
 
 **Dev-only.** Like `src/examples/*`, nothing here ships unless the app imports it (it doesn't). The
 **pure generators** live under `src/builders/*` so they are type-checked by `tsc` and unit-tested by
@@ -13,12 +12,12 @@ vitest with zero config. File-writing CLIs (which use `node:fs` + `prettier`) li
 
 Before hand-writing a table/form/list-page surface, check this table. If a builder fits, **use it**
 (scaffold-and-own) instead of writing the components by hand. If none fits, hand-build per `docs/06`
-— and consider whether a new builder is warranted (`docs/08` Part 2).
+and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 
-| Builder | Scaffolds | Spec type | Command | Use when |
-|---|---|---|---|---|
-| `table` | `use<Entity>Columns()` hook (DataGrid columns) | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table |
-| `form` | `<Entity>FormDialog` (RHF + zodResolver, responsive 12-col grid) | `FormSpec` (`@/builders/form`) | `npm run gen:form -- <spec> <out>` | building a create/edit dialog form |
+| Builder | Scaffolds | Spec type | Command | Use when | Guide |
+|---|---|---|---|---|---|
+| `table` | `use<Entity>Columns()` hook (DataGrid columns) | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table | [`docs/builders/table.md`](../../docs/builders/table.md) |
+| `form` | `<Entity>FormDialog` (RHF + zodResolver, responsive 12-col grid) | `FormSpec` (`@/builders/form`) | `npm run gen:form -- <spec> <out>` | building a create/edit dialog form | [`docs/builders/form-dialog.md`](../../docs/builders/form-dialog.md) |
 
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_
@@ -36,5 +35,4 @@ arrives with the Phase 3 orchestrator; this table is the agent-facing index unti
 
 ## How to add a builder
 
-See `docs/08-scaffold-builders.md` Part 2 (layout, generator rules, the three required co-located
-tests), then add a row to the registry above.
+See [`docs/builders/authoring.md`](../../docs/builders/authoring.md), then add a row to the registry above.

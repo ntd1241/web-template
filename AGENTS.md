@@ -10,7 +10,7 @@ Doc routing:
 
 - `docs/00-stack-and-architecture.md` — stack, versions, app foundation. Consult when architecture or setup is unclear.
 - `docs/06-component-usage-guide.md` — UI primitive/component usage. Read relevant component sections before UI implementation.
-- `src/builders/README.md` + `docs/08-scaffold-builders.md` — scaffold builder registry and workflows. Read when a page/surface may be generated.
+- `docs/workflows/implement-ui.md` + `src/builders/README.md` — UI workflow and builder registry. Read when a page/surface may be generated, then open only the matching builder guide.
 - `docs/01-coding-convention.md` — targeted sections for naming, feature structure, TypeScript, forms, routing, or imports.
 - `docs/02-design-system.md` — targeted sections for dense Vietnamese admin UX, tables, forms, dialogs, copy, and interaction behavior.
 - `docs/03-permission-system-design.md` — only for auth, RBAC, permissions, route guards, menu filtering, or admin role screens.

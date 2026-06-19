@@ -16,18 +16,18 @@ một skill riêng cho từng builder.
 
 1. **Đọc registry** đầu file [`src/builders/README.md`](../../../src/builders/README.md) — bảng liệt
    kê builder hiện có: *scaffolds gì · spec type · command · dùng khi nào*.
-2. **Khớp?** Nếu bề mặt sắp làm trùng một dòng registry (vd "bảng" → builder `table`):
-   - Làm theo quy trình của builder đó trong [`docs/08-scaffold-builders.md`](../../../docs/08-scaffold-builders.md) Part 1
+2. Đọc [`docs/workflows/implement-ui.md`](../../../docs/workflows/implement-ui.md). **Khớp?** Nếu bề mặt sắp làm trùng một dòng registry (vd "bảng" → builder `table`):
+   - Làm theo guide được link trực tiếp ở dòng registry
      (viết spec → chạy `npm run gen:*` → điền cell/field stub → set `size` nếu cần → wire → verify).
    - **Scaffold-and-own**: gen 1 lần rồi SỞ HỮU file; **không** regen đè file đã sửa (đổi cột/size →
      sửa spec, regen ra **scratch path**, reconcile tay).
 3. **Không khớp?** Tự dựng theo `docs/06` (compose `src/components/ui`, không HTML thô). Nếu bề mặt
-   này lặp lại nhiều nơi → cân nhắc **tạo builder mới** theo `docs/08` Part 2 (rồi thêm dòng registry).
+   này lặp lại nhiều nơi → cân nhắc **tạo builder mới** theo [`docs/builders/authoring.md`](../../../docs/builders/authoring.md) rồi thêm dòng registry.
 
 ## Không làm
 
 - Không viết tay những gì builder lo được (vd `ColumnDef[]` cho grid mới) — kiểm registry trước.
 - **PHẢI chạy `npm run gen:table` thật** — KHÔNG gõ tay (hay nhái từ example khác) một file `*.generated.tsx` cho "trông giống" output builder. Có test (`generated-consistency.test.ts`) regen banner + badge config từ spec và **fail** nếu file gõ tay/drift. Banner + badge config là builder-owned: đổi thì sửa spec rồi re-gen, không sửa tay.
 - Không regen đè file đã điền logic (mất công sửa). Regen → scratch + reconcile.
-- Không tạo skill riêng cho từng builder — registry + `docs/08` là đủ.
+- Không tạo skill riêng cho từng builder — registry + guide được link là đủ.
 - Không vá per-page cái thuộc về default component/token (xem `docs/06 §0.1`).
