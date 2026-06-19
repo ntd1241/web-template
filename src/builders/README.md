@@ -1,23 +1,39 @@
 # `src/builders` — component scaffold builders (dev-only)
 
 Build-time **codegen** that turns a small, zod-validated spec into the **UI skeleton** of a feature
-(table columns, form/dialog fields, page shell), so coding agents write a spec instead of repetitive
-TSX. See the plan: `docs/superpowers/plans/2026-06-19-component-scaffold-builders.md`.
+(table columns now; form/dialog + page shell next), so coding agents write a spec instead of
+repetitive TSX. Full guide: [`docs/08-scaffold-builders.md`](../../docs/08-scaffold-builders.md).
+Plan: [`docs/superpowers/plans/2026-06-19-component-scaffold-builders.md`](../../docs/superpowers/plans/2026-06-19-component-scaffold-builders.md).
 
 **Dev-only.** Like `src/examples/*`, nothing here ships unless the app imports it (it doesn't). The
 **pure generators** live under `src/builders/*` so they are type-checked by `tsc` and unit-tested by
 vitest with zero config. File-writing CLIs (which use `node:fs` + `prettier`) live under `tools/`.
 
-## Core rules (from the plan)
+## Builder registry (start here — pick the right builder)
 
-- **Model-first.** A table's columns and a form's fields are two *projections* of the same entity
-  zod schema. Specs reference the model; builders project it. No duplicated enums.
-- **Generated vs owned split.** Builders emit `*.generated.tsx` (overwrite any time, UI + stubs).
-  The owned `*.tsx` container imports it and fills logic. Regen never touches owned files.
-- **Builders never emit raw HTML.** Every field-kind maps to an existing `src/components/ui`
-  primitive (table side: `data-grid-columns` column-factory).
+Before hand-writing a table/form/list-page surface, check this table. If a builder fits, **use it**
+(scaffold-and-own) instead of writing the components by hand. If none fits, hand-build per `docs/06`
+— and consider whether a new builder is warranted (`docs/08` Part 2).
 
-## What exists
+| Builder | Scaffolds | Spec type | Command | Use when |
+|---|---|---|---|---|
+| `table` | `use<Entity>Columns()` hook (DataGrid columns) | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table |
 
-- `table/` — the **table builder**: spec → a `use<Entity>Columns()` hook built on the existing
-  `@/components/ui/data-grid-columns` column-factory.
+_(Future builders — form/dialog, page — add a row here. A programmatic `tools/builders/registry.ts`
+arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_
+
+## Core rules
+
+- **Model-first.** A table's columns and a form's fields are *projections* of the same entity type.
+  Specs reference the model; builders project it. No duplicated enums; validation from one zod schema.
+- **Scaffold-and-own.** A builder is a one-shot scaffolder (like `shadcn add`): it generates a file
+  **once**, then you **own** it — edit freely, fill the inline `cell: () => null` stubs in place. The
+  builder **never** auto-overrides or merges back. To refresh: re-gen to a **scratch path** and
+  reconcile by hand. Keep the spec next to the output.
+- **Builders never emit raw HTML.** Every kind maps to an existing `src/components/ui` primitive
+  (table side: the `data-grid-columns` column-factory).
+
+## How to add a builder
+
+See `docs/08-scaffold-builders.md` Part 2 (layout, generator rules, the three required co-located
+tests), then add a row to the registry above.
