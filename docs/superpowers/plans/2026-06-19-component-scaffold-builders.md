@@ -126,17 +126,20 @@ vitest with zero config; the file-writing CLI lives under `tools/`.
 
 ---
 
-## Phase 2 — Form / Dialog builder
+## Phase 2 — Form / Dialog builder ✅ Done 2026-06-19
 
-- [ ] `tools/builders/form-builder.ts` — input: field-spec list (projection of the model);
-  output: `*.fields.generated.tsx` (RHF fields composed from `src/components/ui` per field-kind) +
-  validation wired from the **model zod schema** + a `*.dialog.tsx` owned container (header/footer,
-  scrollable body — mirror `create-employee-dialog.tsx`, submit stub).
-- [ ] Field-kinds resolve through the Phase-0 input palette + the shared registry.
-- [ ] `npm run gen:form <spec.json>` + snapshot test.
+- [x] `src/builders/form/` — `form-spec.ts` (zod, discriminated union over `kind`), `field-kinds.ts`
+  (binding style + default literal + width-span map), `form-builder.ts` `buildFormModule(spec)` →
+  `<Entity>FormDialog` (RHF + `zodResolver` from the schema, derived `defaultValues`, submit stub).
+- [x] **Advanced layout** per request: multiple inputs per row, width presets
+  `normal`/`large`/`full` → `md:col-span-6/8/12`, responsive (mobile stacks `grid-cols-1`).
+- [x] Kinds: `text`(inputType)/`number`/`textarea`/`select`/`combobox`/`multiselect`/`switch`, each
+  with correct RHF binding; option consts hoisted; imports tree-shaken. (`date` + `NumericInput`
+  deferred.)
+- [x] CLI `npm run gen:form -- <spec> <out>`; golden fixture + golden test + render-proof +
+  `generated-consistency.test.ts` (banner + options enforcement). Registry + `docs/08` Part 1b updated.
 
-**Verify:** build clean; snapshot green; reproduces the create-employee dialog field set from a small
-spec.
+**Verify:** ✅ build exit 0; 99 tests green (golden byte-match, dialog mounts with all kinds).
 
 ---
 

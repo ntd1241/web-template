@@ -89,6 +89,44 @@ Common per-column opts: `headerClassName`, `cellClassName`, `size`, `visibility`
 
 ---
 
+## Part 1b — Using the form/dialog builder
+
+Scaffolds a `<Entity>FormDialog` (react-hook-form + `zodResolver` + `src/components/ui` inputs) whose
+fields sit on a **responsive 12-col grid**. Same imperative rule: **run `npm run gen:form`**, don't
+hand-write; a test (`src/builders/form/generated-consistency.test.ts`) enforces banner + option consts.
+
+### Steps
+
+1. **Schema** — have a zod create/edit schema + its inferred values type (model-first; validation is
+   reused, not re-declared).
+2. **Spec** — `<domain>/form/<entity>.form.fixture.ts`, `export default` a `FormSpec`
+   (`import type { FormSpec } from '@/builders/form'`): `entity`, `schemaImport`, `schemaName`,
+   `valuesType`, `title`, optional `description`, and `fields[]`.
+3. **Generate** — `npm run gen:form -- <spec.ts> <out.tsx>`.
+4. **Own it** — fill the `handleSubmit` stub (API call) and adjust `defaultValues` if a derived
+   default is wrong. Wire `open`/`onOpenChange` from the page.
+5. **Verify** — `npm run test:run` green; browser-check the dialog at desktop + mobile widths.
+
+### Field kinds & layout
+
+| kind | input | binding | options? |
+|---|---|---|---|
+| `text` (`inputType?`) | `Input` | `{...field}` | — |
+| `number` | `Input type=number` | `{...field}` | — |
+| `textarea` (`rows?`) | `Textarea` | `{...field}` | — |
+| `select` | `Select` | `value`/`onValueChange` | ✅ |
+| `combobox` | `Combobox` | `value`/`onChange` | ✅ |
+| `multiselect` | `MultiSelect` | `value`/`onChange` | ✅ |
+| `switch` | `Switch` | `checked`/`onCheckedChange` | — |
+
+- **Width presets** (`width`): `normal` → `md:col-span-6` (half row → 2 per row), `large` →
+  `md:col-span-8`, `full` → `md:col-span-12`. Mobile stacks (`grid-cols-1`).
+- `options` (select/combobox/multiselect) are hoisted to a `const <name>Options` (builder-owned).
+- `required: true` adds the red `*`. `date` and formatted-number (`NumericInput`) kinds are **deferred**
+  — note: `number` uses a plain `Input`; if the schema needs real numbers, use `z.coerce.number()`.
+
+---
+
 ## Part 2 — Creating a new builder
 
 Follow the table builder as the template. Keep generators **pure** (string + zod, synchronous) so

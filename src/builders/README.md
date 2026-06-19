@@ -18,8 +18,9 @@ Before hand-writing a table/form/list-page surface, check this table. If a build
 | Builder | Scaffolds | Spec type | Command | Use when |
 |---|---|---|---|---|
 | `table` | `use<Entity>Columns()` hook (DataGrid columns) | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table |
+| `form` | `<Entity>FormDialog` (RHF + zodResolver, responsive 12-col grid) | `FormSpec` (`@/builders/form`) | `npm run gen:form -- <spec> <out>` | building a create/edit dialog form |
 
-_(Future builders — form/dialog, page — add a row here. A programmatic `tools/builders/registry.ts`
+_(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_
 
 ## Core rules
