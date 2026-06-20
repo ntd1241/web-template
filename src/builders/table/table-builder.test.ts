@@ -114,6 +114,96 @@ describe('buildColumnsModule', () => {
     );
   });
 
+  it('emits editable select columns with params, static options, and memo deps', () => {
+    const out = buildColumnsModule({
+      entity: 'Employee',
+      modelImport: '../model/employee',
+      columns: [
+        {
+          kind: 'editableSelect',
+          id: 'statusSelect',
+          header: 'Đổi trạng thái',
+          field: 'status',
+          placeholder: 'Chọn trạng thái',
+          options: [
+            { value: 'active', label: 'Đang hoạt động' },
+            { value: 'locked', label: 'Đã khóa' },
+          ],
+        },
+      ],
+    });
+
+    expect(out).toContain('const statusSelectOptions = [');
+    expect(out).toContain('export interface UseEmployeeColumnsParams {');
+    expect(out).toContain(
+      'onStatusSelectEdit: (row: Employee, value: string) => void;',
+    );
+    expect(out).toContain(
+      'export function useEmployeeColumns(params: UseEmployeeColumnsParams): ColumnDef<Employee>[] {',
+    );
+    expect(out).toContain('col.editableSelect({');
+    expect(out).toContain('options: statusSelectOptions,');
+    expect(out).toContain('onEdit: params.onStatusSelectEdit,');
+    expect(out).toContain('placeholder: \'Chọn trạng thái\',');
+    expect(out).toContain('}, [params.onStatusSelectEdit]);');
+  });
+
+  it('emits prop-fed editable select options as hook params and deps', () => {
+    const out = buildColumnsModule({
+      entity: 'Employee',
+      modelImport: '../model/employee',
+      columns: [
+        {
+          kind: 'editableSelect',
+          id: 'statusSelect',
+          header: 'Đổi trạng thái',
+          field: 'status',
+          optionsFrom: 'prop',
+        },
+      ],
+    });
+
+    expect(out).not.toContain('const statusSelectOptions = [');
+    expect(out).toContain(
+      'statusSelectOptions: { value: string; label: string }[];',
+    );
+    expect(out).toContain('options: params.statusSelectOptions,');
+    expect(out).toContain(
+      '}, [params.onStatusSelectEdit, params.statusSelectOptions]);',
+    );
+  });
+
+  it('keeps hooks without editable columns parameter-less for backward compatibility', () => {
+    const out = buildColumnsModule({
+      entity: 'Product',
+      modelImport: '../model/product',
+      columns: [{ kind: 'text', id: 'name', header: 'Tên', field: 'name' }],
+    });
+
+    expect(out).toContain(
+      'export function useProductColumns(): ColumnDef<Product>[] {',
+    );
+    expect(out).toContain('}, []);');
+    expect(out).not.toContain('Params');
+  });
+
+  it('requires static editable select options', () => {
+    expect(() =>
+      buildColumnsModule({
+        entity: 'Employee',
+        modelImport: '../model/employee',
+        columns: [
+          {
+            kind: 'editableSelect',
+            id: 'statusSelect',
+            header: 'Đổi trạng thái',
+            field: 'status',
+          },
+        ],
+      }),
+    ).toThrow('Cột editableSelect dùng options tĩnh');
+  });
+
   it('rejects an invalid spec', () => {
     expect(() =>
       buildColumnsModule({

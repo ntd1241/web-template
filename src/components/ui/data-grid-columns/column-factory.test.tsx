@@ -5,7 +5,8 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { DataGrid } from '@/components/ui/data-grid';
 import { createColumnHelpers } from './column-factory';
 
@@ -16,6 +17,7 @@ interface TestRow {
   price: number;
   ratio: number;
   createdAt: string;
+  status: 'active' | 'locked';
 }
 
 const row: TestRow = {
@@ -25,6 +27,7 @@ const row: TestRow = {
   price: 2500000,
   ratio: 0.125,
   createdAt: '2026-06-17T08:30:00+07:00',
+  status: 'active',
 };
 
 function TestGrid({
@@ -121,5 +124,30 @@ describe('createColumnHelpers', () => {
 
     expect(screen.getByText('Nguyen Van A')).toBeInTheDocument();
     expect(container.querySelector('[data-slot="tooltip"]')).toBeNull();
+  });
+
+  it('renders editable select cells and commits on change', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    const columns = [
+      col.editableSelect({
+        id: 'status',
+        header: 'Trang thai',
+        get: (item) => item.status,
+        options: [
+          { value: 'active', label: 'Dang hoat dong' },
+          { value: 'locked', label: 'Da khoa' },
+        ],
+        onEdit,
+        placeholder: 'Chon trang thai',
+      }),
+    ];
+
+    render(<TestGrid columns={columns} />);
+
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: 'Da khoa' }));
+
+    expect(onEdit).toHaveBeenCalledWith(row, 'locked');
   });
 });

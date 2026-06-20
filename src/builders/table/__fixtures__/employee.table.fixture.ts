@@ -58,6 +58,17 @@ const spec: TableSpec = {
       },
     },
     {
+      kind: 'editableSelect',
+      id: 'statusSelect',
+      header: 'Đổi trạng thái',
+      field: 'status',
+      placeholder: 'Chọn trạng thái',
+      options: [
+        { value: 'active', label: 'Đang hoạt động' },
+        { value: 'locked', label: 'Đã khóa' },
+      ],
+    },
+    {
       kind: 'actions',
       header: 'Thao tác',
       headerClassName: 'w-[120px]',

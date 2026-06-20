@@ -11,6 +11,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { RelativeTime } from '@/components/ui/relative-time';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -70,6 +77,13 @@ interface BadgeColumnOptions<
   TStatus extends string,
 > extends AccessorColumnOptions<TRow, TStatus | string | null | undefined> {
   config: StatusBadgeConfig<TStatus>;
+}
+
+interface EditableSelectColumnOptions<TRow extends object>
+  extends AccessorColumnOptions<TRow, string | null | undefined> {
+  options: { value: string; label: string }[];
+  onEdit: (row: TRow, value: string) => void;
+  placeholder?: string;
 }
 
 interface ActionsColumnOptions<TRow extends object> extends Omit<
@@ -220,6 +234,32 @@ export function createColumnHelpers<TRow extends object>() {
       return createAccessorColumn({
         ...options,
         cell: (value) => <StatusBadge status={value} config={options.config} />,
+      });
+    },
+
+    editableSelect(options: EditableSelectColumnOptions<TRow>): ColumnDef<TRow> {
+      return createAccessorColumn({
+        ...options,
+        cellClassName: cn('min-w-[160px]', options.cellClassName),
+        cell: (value, context) => (
+          <Select
+            value={value ?? ''}
+            onValueChange={(next) =>
+              options.onEdit(context.row.original, next)
+            }
+          >
+            <SelectTrigger size="sm">
+              <SelectValue placeholder={options.placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ),
       });
     },
 

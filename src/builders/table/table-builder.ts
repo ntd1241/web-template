@@ -39,6 +39,14 @@ function objectKey(key: string): string {
   return /^[a-zA-Z_$][\w$]*$/.test(key) ? key : quote(key);
 }
 
+function pascalCase(value: string): string {
+  return value
+    .replace(/(^|[^a-zA-Z0-9]+)([a-zA-Z0-9])/g, (_, __, char: string) =>
+      char.toUpperCase(),
+    )
+    .replace(/[^a-zA-Z0-9]/g, '');
+}
+
 function accessor(field: string): string {
   return `(row) => row.${field}`;
 }
@@ -55,6 +63,10 @@ function indent(block: string, spaces: number): string {
 /** Emit a `{ key: value, ... }` argument object from prebuilt property lines. */
 function emitObject(propLines: string[]): string {
   return `{\n${propLines.map((line) => `  ${line}`).join('\n')}\n}`;
+}
+
+function optionArrayType(): string {
+  return '{ value: string; label: string }[]';
 }
 
 /** Common meta props shared by most column kinds, in a stable order. */
@@ -138,6 +150,14 @@ function emitColumnCall(col: ColumnSpec): string {
   if (col.kind === 'badge') {
     lines.push(`config: ${col.id}BadgeConfig,`);
   }
+  if (col.kind === 'editableSelect') {
+    const optionsName = `${col.id}Options`;
+    lines.push(
+      `options: ${col.optionsFrom === 'prop' ? `params.${optionsName}` : optionsName},`,
+    );
+    lines.push(`onEdit: params.on${pascalCase(col.id)}Edit,`);
+    if (col.placeholder) lines.push(`placeholder: ${quote(col.placeholder)},`);
+  }
 
   lines.push(...commonMetaLines(col));
   return `col.${method}(${emitObject(lines)})`;
@@ -164,6 +184,59 @@ function emitBadgeConfigs(columns: ColumnSpec[]): string {
   return blocks.join('\n\n');
 }
 
+/** Emit standalone `const <id>Options` declarations for static editable selects. */
+function emitEditableSelectOptions(columns: ColumnSpec[]): string {
+  const blocks = columns
+    .filter(
+      (col): col is Extract<ColumnSpec, { kind: 'editableSelect' }> =>
+        col.kind === 'editableSelect' && col.optionsFrom !== 'prop',
+    )
+    .map((col) => {
+      const rows = (col.options ?? []).map(
+        (opt) => `  { value: ${quote(opt.value)}, label: ${quote(opt.label)} },`,
+      );
+      return `const ${col.id}Options = [\n${rows.join('\n')}\n];`;
+    });
+  return blocks.join('\n\n');
+}
+
+function editableSelectColumns(
+  columns: ColumnSpec[],
+): Extract<ColumnSpec, { kind: 'editableSelect' }>[] {
+  return columns.filter(
+    (col): col is Extract<ColumnSpec, { kind: 'editableSelect' }> =>
+      col.kind === 'editableSelect',
+  );
+}
+
+function emitHookParamsInterface(spec: TableSpec, hookName: string): string {
+  const editableColumns = editableSelectColumns(spec.columns);
+  if (editableColumns.length === 0) return '';
+
+  const interfaceName = `${pascalCase(hookName)}Params`;
+  const lines = editableColumns.flatMap((col) => {
+    const props = [
+      `on${pascalCase(col.id)}Edit: (row: ${spec.entity}, value: string) => void;`,
+    ];
+    if (col.optionsFrom === 'prop') {
+      props.push(`${col.id}Options: ${optionArrayType()};`);
+    }
+    return props;
+  });
+
+  return `export interface ${interfaceName} {\n${lines.map((line) => `  ${line}`).join('\n')}\n}`;
+}
+
+function emitMemoDeps(columns: ColumnSpec[]): string {
+  const deps = editableSelectColumns(columns).flatMap((col) => {
+    const values = [`params.on${pascalCase(col.id)}Edit`];
+    if (col.optionsFrom === 'prop') values.push(`params.${col.id}Options`);
+    return values;
+  });
+
+  return deps.length > 0 ? `[${deps.join(', ')}]` : '[]';
+}
+
 /** Build the import block, including only what the columns actually use. */
 function emitImports(spec: TableSpec): string {
   const hasBadge = spec.columns.some((col) => col.kind === 'badge');
@@ -182,16 +255,29 @@ function emitImports(spec: TableSpec): string {
 export function buildColumnsModule(input: TableSpec): string {
   const spec = tableSpecSchema.parse(input);
   const hookName = spec.hookName ?? `use${spec.entity}Columns`;
+  const hasEditableColumns = editableSelectColumns(spec.columns).length > 0;
+  const paramsInterface = emitHookParamsInterface(spec, hookName);
+  const paramsSignature = hasEditableColumns
+    ? `params: ${pascalCase(hookName)}Params`
+    : '';
+  const memoDeps = emitMemoDeps(spec.columns);
 
   const calls = spec.columns
     .map((col) => indent(`${emitColumnCall(col)},`, 6))
     .join('\n');
 
   const memoBody = `const col = createColumnHelpers<${spec.entity}>();\n\nreturn [\n${calls}\n];`;
-  const fn = `export function ${hookName}(): ColumnDef<${spec.entity}>[] {\n  return useMemo(() => {\n${indent(memoBody, 4)}\n  }, []);\n}`;
+  const fn = `export function ${hookName}(${paramsSignature}): ColumnDef<${spec.entity}>[] {\n  return useMemo(() => {\n${indent(memoBody, 4)}\n  }, ${memoDeps});\n}`;
 
   const badgeConfigs = emitBadgeConfigs(spec.columns);
-  const preamble = badgeConfigs ? `${badgeConfigs}\n\n` : '';
+  const editableSelectOptions = emitEditableSelectOptions(spec.columns);
+  const preambleParts = [
+    badgeConfigs,
+    editableSelectOptions,
+    paramsInterface,
+  ].filter(Boolean);
+  const preamble =
+    preambleParts.length > 0 ? `${preambleParts.join('\n\n')}\n\n` : '';
 
   return `${banner(spec.specPath)}\n${emitImports(spec)}\n\n${preamble}${fn}\n`;
 }

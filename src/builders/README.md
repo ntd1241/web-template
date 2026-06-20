@@ -16,7 +16,7 @@ and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 
 | Builder | Scaffolds                                                                                             | Spec type                        | Command                             | Use when                                                | Guide                                                                |
 | ------- | ----------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------- |
-| `table` | `use<Entity>Columns()` hook (DataGrid columns)                                                        | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table                       | [`docs/builders/table.md`](../../docs/builders/table.md)             |
+| `table` | `use<Entity>Columns()` hook (DataGrid columns, including commit-on-change `editableSelect` cells)      | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table                       | [`docs/builders/table.md`](../../docs/builders/table.md)             |
 | `form`  | `<Entity>Form`, `<Entity>FormDialog`, `use<Entity>Form()` (RHF + zodResolver, responsive 12-col grid) | `FormSpec` (`@/builders/form`)   | `npm run gen:form -- <spec> <out>`  | building reusable create/edit forms and dialog wrappers | [`docs/builders/form-dialog.md`](../../docs/builders/form-dialog.md) |
 
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`

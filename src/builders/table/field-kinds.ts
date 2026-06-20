@@ -31,6 +31,11 @@ export const COLUMN_KIND_REGISTRY: Record<ColumnKind, ColumnKindMeta> = {
   percent: { factoryMethod: 'percent', needsCellStub: false, isAccessor: true },
   date: { factoryMethod: 'date', needsCellStub: false, isAccessor: true },
   badge: { factoryMethod: 'badge', needsCellStub: false, isAccessor: true },
+  editableSelect: {
+    factoryMethod: 'editableSelect',
+    needsCellStub: false,
+    isAccessor: true,
+  },
   actions: { factoryMethod: 'actions', needsCellStub: true, isAccessor: false },
   custom: { factoryMethod: 'custom', needsCellStub: true, isAccessor: false },
 };

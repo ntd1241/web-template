@@ -4,7 +4,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DataGrid } from '@/components/ui/data-grid';
 import type { Employee } from './employee';
 import { useEmployeeColumns } from './employee.columns.generated';
@@ -38,7 +38,9 @@ const rows: Employee[] = [
 ];
 
 function DemoGrid() {
-  const columns = useEmployeeColumns();
+  const columns = useEmployeeColumns({
+    onStatusSelectEdit: vi.fn(),
+  });
   const table = useReactTable({
     data: rows,
     columns,
@@ -69,8 +71,11 @@ describe('table-builder golden — render proof', () => {
     expect(screen.getByText('a@example.com')).toBeInTheDocument();
     expect(screen.getByText('b@example.com')).toBeInTheDocument();
 
-    // Badge cells render the configured labels.
-    expect(screen.getByText('Đang hoạt động')).toBeInTheDocument();
-    expect(screen.getByText('Đã khóa')).toBeInTheDocument();
+    // Badge and editable select cells render the configured labels.
+    expect(screen.getAllByText('Đang hoạt động')).toHaveLength(2);
+    expect(screen.getAllByText('Đã khóa')).toHaveLength(2);
+
+    // Editable select cells render compact combobox controls.
+    expect(screen.getAllByRole('combobox')).toHaveLength(rows.length);
   });
 });

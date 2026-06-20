@@ -32,10 +32,63 @@ Use the table builder for paginated or data-table columns. The registry and comm
 | `percent` | yes | percentage formatting |
 | `date` | yes | date, datetime, or relative formatting |
 | `badge` | yes | generated `StatusBadge` config |
+| `editableSelect` | yes | compact Select cell, bound to the row value and committed on change |
 | `actions` | no | inline JSX stub |
 | `custom` | optional | inline JSX stub |
 
 Common options include `headerClassName`, `cellClassName`, `size`, `visibility`, and `enableSorting`.
+
+### `editableSelect`
+
+Use `editableSelect` for Phase 1 inline editing: one cell commits immediately when the user chooses a new
+value. The builder can serialize static option lists, but the write handler belongs to the page, so any
+table with at least one `editableSelect` column generates a params-bearing hook.
+
+```ts
+{
+  kind: 'editableSelect',
+  id: 'statusSelect',
+  header: 'Đổi trạng thái',
+  field: 'status',
+  placeholder: 'Chọn trạng thái',
+  options: [
+    { value: 'active', label: 'Đang hoạt động' },
+    { value: 'locked', label: 'Đã khóa' },
+  ],
+}
+```
+
+Generated shape:
+
+```tsx
+export interface UseEmployeeColumnsParams {
+  onStatusSelectEdit: (row: Employee, value: string) => void;
+}
+
+export function useEmployeeColumns(
+  params: UseEmployeeColumnsParams,
+): ColumnDef<Employee>[] {
+  // ...
+}
+```
+
+`optionsFrom` defaults to `'static'`, which requires `options` in the spec and emits
+`const <id>Options = [...]`. Set `optionsFrom: 'prop'` when the page must supply options at runtime; the
+hook params then also include `<id>Options: { value: string; label: string }[]`.
+
+Wire commits in the page through the existing mutation layer, for example:
+
+```tsx
+const updateStatus = useUpdateEmployeeStatusMutation();
+const columns = useEmployeeColumns({
+  onStatusSelectEdit: (row, status) => {
+    updateStatus.mutate({ id: row.id, status });
+  },
+});
+```
+
+Bulk action-bar editing is a separate upcoming surface for Phase 2; do not model it with
+`editableSelect`.
 
 ## Ownership
 

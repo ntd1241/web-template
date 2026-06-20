@@ -84,6 +84,19 @@ const badgeColumn = z.object({
   ...accessorBase,
 });
 
+const option = z.object({
+  value: z.string(),
+  label: z.string().min(1),
+});
+
+const editableSelectColumn = z.object({
+  kind: z.literal('editableSelect'),
+  options: z.array(option).optional(),
+  optionsFrom: z.enum(['static', 'prop']).optional(),
+  placeholder: z.string().optional(),
+  ...accessorBase,
+});
+
 const indexColumn = z.object({
   kind: z.literal('index'),
   id: columnId.optional(),
@@ -120,23 +133,41 @@ export const columnSpecSchema = z.discriminatedUnion('kind', [
   percentColumn,
   dateColumn,
   badgeColumn,
+  editableSelectColumn,
   indexColumn,
   selectColumn,
   actionsColumn,
   customColumn,
 ]);
 
-export const tableSpecSchema = z.object({
-  /** Row type name, e.g. `Employee`. */
-  entity: z.string().regex(IDENTIFIER, 'entity phải là tên kiểu hợp lệ'),
-  /** Import specifier for the row type, e.g. `../model/employee`. */
-  modelImport: z.string().min(1),
-  /** Hook name; defaults to `use<Entity>Columns`. */
-  hookName: z.string().regex(IDENTIFIER).optional(),
-  /** Spec path recorded in the provenance banner of the generated file. */
-  specPath: z.string().optional(),
-  columns: z.array(columnSpecSchema).min(1, 'cần ít nhất một cột'),
-});
+export const tableSpecSchema = z
+  .object({
+    /** Row type name, e.g. `Employee`. */
+    entity: z.string().regex(IDENTIFIER, 'entity phải là tên kiểu hợp lệ'),
+    /** Import specifier for the row type, e.g. `../model/employee`. */
+    modelImport: z.string().min(1),
+    /** Hook name; defaults to `use<Entity>Columns`. */
+    hookName: z.string().regex(IDENTIFIER).optional(),
+    /** Spec path recorded in the provenance banner of the generated file. */
+    specPath: z.string().optional(),
+    columns: z.array(columnSpecSchema).min(1, 'cần ít nhất một cột'),
+  })
+  .superRefine((spec, ctx) => {
+    spec.columns.forEach((column, index) => {
+      if (
+        column.kind === 'editableSelect' &&
+        column.optionsFrom !== 'prop' &&
+        (!column.options || column.options.length < 1)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Cột editableSelect dùng options tĩnh cần khai báo ít nhất một lựa chọn',
+          path: ['columns', index, 'options'],
+        });
+      }
+    });
+  });
 
 export type ColumnSpec = z.infer<typeof columnSpecSchema>;
 export type TableSpec = z.infer<typeof tableSpecSchema>;

@@ -21,7 +21,18 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
   locked: { label: 'Đã khóa', variant: 'outline' },
 };
 
-export function useEmployeeColumns(): ColumnDef<Employee>[] {
+const statusSelectOptions = [
+  { value: 'active', label: 'Đang hoạt động' },
+  { value: 'locked', label: 'Đã khóa' },
+];
+
+export interface UseEmployeeColumnsParams {
+  onStatusSelectEdit: (row: Employee, value: string) => void;
+}
+
+export function useEmployeeColumns(
+  params: UseEmployeeColumnsParams,
+): ColumnDef<Employee>[] {
   return useMemo(() => {
     const col = createColumnHelpers<Employee>();
 
@@ -66,6 +77,14 @@ export function useEmployeeColumns(): ColumnDef<Employee>[] {
         config: statusBadgeConfig,
         headerClassName: 'w-[140px]',
       }),
+      col.editableSelect({
+        id: 'statusSelect',
+        header: 'Đổi trạng thái',
+        get: (row) => row.status,
+        options: statusSelectOptions,
+        onEdit: params.onStatusSelectEdit,
+        placeholder: 'Chọn trạng thái',
+      }),
       col.actions({
         header: 'Thao tác',
         headerClassName: 'w-[120px]',
@@ -74,5 +93,5 @@ export function useEmployeeColumns(): ColumnDef<Employee>[] {
         cell: () => null,
       }),
     ];
-  }, []);
+  }, [params.onStatusSelectEdit]);
 }
