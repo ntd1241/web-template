@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   MultiSelect,
   type MultiSelectOption,
@@ -249,46 +250,46 @@ export function CreateEmployeeFields({
         )}
       />
 
-      <div className="space-y-4">
-        <FormLabel className="text-foreground">
-          Tùy chọn cấp tài khoản
-        </FormLabel>
+      <div className="space-y-5">
+        <Label className="block text-foreground">Tùy chọn cấp tài khoản</Label>
 
-        <FormField
-          control={form.control}
-          name="sendInvite"
-          render={({ field }) => (
-            <FormItem className="flex-row items-center gap-2.5">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel className="font-normal text-foreground">
-                Gửi email mời kích hoạt tài khoản
-              </FormLabel>
-            </FormItem>
-          )}
-        />
+        <div className="space-y-3">
+          <FormField
+            control={form.control}
+            name="sendInvite"
+            render={({ field }) => (
+              <FormItem className="flex-row items-center gap-2.5">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="font-normal text-foreground">
+                  Gửi email mời kích hoạt tài khoản
+                </FormLabel>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="canLoginNow"
-          render={({ field }) => (
-            <FormItem className="flex-row items-center gap-2.5">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel className="font-normal text-foreground">
-                Cho phép đăng nhập ngay sau khi tạo
-              </FormLabel>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="canLoginNow"
+            render={({ field }) => (
+              <FormItem className="flex-row items-center gap-2.5">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="font-normal text-foreground">
+                  Cho phép đăng nhập ngay sau khi tạo
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </div>
   );

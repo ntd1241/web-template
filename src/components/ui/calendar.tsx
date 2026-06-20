@@ -1,16 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
 
 function Calendar({
   captionLayout = 'dropdown',
   className,
   classNames,
+  components,
   endMonth,
+  formatters,
   showOutsideDays = true,
   startMonth,
   ...props
@@ -21,17 +23,24 @@ function Calendar({
     <DayPicker
       captionLayout={captionLayout}
       endMonth={endMonth ?? new Date(currentYear + 5, 11)}
+      formatters={{
+        ...formatters,
+        formatMonthDropdown: (month) =>
+          String(month.getMonth() + 1).padStart(2, '0'),
+      }}
       showOutsideDays={showOutsideDays}
       startMonth={startMonth ?? new Date(1970, 0)}
       className={cn('p-3', className)}
       classNames={{
         months: 'relative flex flex-col sm:flex-row gap-4',
         month: 'w-full',
-        month_caption: 'relative mx-10 mb-1 flex h-8 items-center justify-center z-20',
-        caption_label: 'text-sm font-medium',
+        month_caption:
+          'relative mx-10 mb-1 flex h-8 items-center justify-center z-20',
+        caption_label: 'sr-only',
         dropdowns: 'flex items-center justify-center gap-1.5',
+        dropdown_root: 'relative inline-flex items-center',
         dropdown:
-          'h-8 rounded-md border border-input bg-field px-2.5 text-sm font-medium shadow-xs shadow-black/5 outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30',
+          'h-8 w-16 cursor-pointer appearance-none rounded-md border border-transparent bg-transparent px-2.5 text-center text-sm font-semibold text-foreground outline-none transition-colors hover:bg-accent focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30',
         nav: 'absolute top-0 flex w-full justify-between z-10',
         button_previous: cn(
           buttonVariants({ variant: 'ghost' }),
@@ -50,12 +59,36 @@ function Calendar({
         range_middle: 'range-middle',
         today:
           '*:after:pointer-events-none *:after:absolute *:after:bottom-1 *:after:start-1/2 *:after:z-10 *:after:size-[3px] *:after:-translate-x-1/2 rtl:*:after:translate-x-1/2 *:after:rounded-full *:after:bg-primary [&[data-selected]:not(.range-middle)>*]:after:bg-background [&[data-disabled]>*]:after:bg-foreground/30 *:after:transition-colors',
-        outside: 'text-muted-foreground data-selected:bg-accent/50 data-selected:text-muted-foreground',
+        outside:
+          'text-muted-foreground data-selected:bg-accent/50 data-selected:text-muted-foreground',
         hidden: 'invisible',
         week_number: 'size-8 p-0 text-xs font-medium text-muted-foreground/80',
         ...classNames,
       }}
       components={{
+        ...components,
+        DropdownNav: ({ className, children, ...dropdownNavProps }) => {
+          const dropdowns = React.Children.toArray(children);
+
+          return (
+            <div className={className} {...dropdownNavProps}>
+              {dropdowns.map((child, index) => (
+                <React.Fragment key={index}>
+                  {child}
+                  {index === 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="text-xs text-muted-foreground/60"
+                      data-slot="calendar-caption-separator"
+                    >
+                      /
+                    </span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          );
+        },
         Chevron: (props) => {
           if (props.orientation === 'left') {
             return <ChevronLeft className="h-4 w-4 rtl:rotate-180" />;
