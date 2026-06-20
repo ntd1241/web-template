@@ -16,6 +16,12 @@ Một gate chung cho mọi builder hiện tại và tương lai.
 5. Nếu không có builder phù hợp, compose `src/components/ui` theo `docs/06-component-usage-guide.md`.
    Chỉ đọc `docs/builders/authoring.md` khi bề mặt thật sự lặp lại.
 
+## Đường nhanh
+
+- Với UI generated tiêu chuẩn, không đọc codebase-map, design/polish, reference, engineering hoặc component docs rộng.
+- Lấy code/tests của feature và guide builder khớp làm nguồn chính.
+- Browser preview chỉ dùng khi còn rủi ro layout, responsive, overlay, shared styling hoặc manual interaction.
+
 ## Không làm
 
 - Không viết tay output builder lo được hoặc giả provenance generated.

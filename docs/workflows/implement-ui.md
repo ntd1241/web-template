@@ -3,6 +3,12 @@
 Use this workflow for pages, dialogs, tables, filters, detail views, and other feature UI. It coordinates
 delivery; builder-specific syntax belongs in `docs/builders/*`.
 
+## Fast Path
+
+For ordinary builder-supported UI, read only this workflow, `src/builders/README.md`, the matching
+builder guide, and relevant feature code/tests. Do not load broad codebase maps, design/polish guidance,
+component docs, reference docs, engineering plans, or browser tools unless the task exposes that need.
+
 ## 1. Define Behavior
 
 - Turn the request into visible states and user actions.
@@ -53,6 +59,9 @@ files only to a scratch path, then reconcile manually.
 ## Do Not Load By Default
 
 - Global design guidance for ordinary builder output.
+- Broad codebase-map or design/polish skills.
+- Browser/live preview for standard generated UI covered by tests and build.
+- `docs/components/*` or `docs/06-component-usage-guide.md` unless no builder matches or a shared primitive changes.
 - Permission docs when the feature has no permission behavior.
 - `docs/reference/` product-planning material.
 - `docs/engineering/` historical specs and plans.

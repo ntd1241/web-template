@@ -17,6 +17,12 @@ This is the generic builder gate for all current and future scaffold builders.
 5. If no builder matches, compose `src/components/ui` per `docs/06-component-usage-guide.md`. Consider
    `docs/builders/authoring.md` only when the surface is genuinely repeatable.
 
+## Fast Path
+
+- For standard generated UI, do not load broad codebase-map, design/polish, reference, engineering, or component docs.
+- Use feature code/tests plus the matching builder guide as the source of truth.
+- Browser preview is opt-in for unresolved layout, responsive, overlay, shared styling, or manual interaction risk.
+
 ## Rules
 
 - Never hand-write output owned by a matching builder or fake generated provenance.
