@@ -8,6 +8,7 @@ const spec: EditorTableSpec = {
   valuesImport: '../form/order-items.schema',
   arrayName: 'items',
   tableMinWidthClass: 'min-w-[1880px]',
+  toolbar: { title: 'Hàng hóa trong đơn' },
   viewport: { mode: 'fixed', height: 'lg' },
   columns: [
     { kind: 'index', header: 'STT', widthClass: 'w-14' },

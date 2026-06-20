@@ -100,6 +100,21 @@ describe('buildEditorTableModule', () => {
     expect(lean).toContain('const errors = form.formState.errors.items');
   });
 
+  it('renders a self-contained toolbar (title + count + add) when requested', () => {
+    const withToolbar = buildEditorTableModule({
+      ...orderItemsSpec,
+      toolbar: { title: 'Hàng hóa trong đơn' },
+    });
+
+    expect(withToolbar).toContain('Hàng hóa trong đơn');
+    expect(withToolbar).toContain('{fields.length} dòng');
+    expect(withToolbar).toContain('onClick={handleAddRow}');
+    // default add label
+    expect(withToolbar).toContain('Thêm dòng');
+    // no toolbar by default → no header markup
+    expect(source).not.toContain('{fields.length} dòng');
+  });
+
   it('omits Controller/Input/errors when there is no editable column', () => {
     const displayOnly = buildEditorTableModule({
       ...orderItemsSpec,

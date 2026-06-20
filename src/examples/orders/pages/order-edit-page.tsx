@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Plus, Save, TriangleAlert } from 'lucide-react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { ArrowLeft, Save, TriangleAlert } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { formatCurrencyVND } from '@/lib/format';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,8 @@ import {
   Card,
   CardDescription,
   CardFooter,
-  CardHeader,
-  CardHeading,
   CardTable,
   CardTitle,
-  CardToolbar,
 } from '@/components/ui/card';
 import {
   useOrderItemsQuery,
@@ -24,8 +21,8 @@ import {
   orderItemsFormSchema,
   type OrderItemsFormValues,
 } from '../form/order-items.schema';
-import { OrderItemsEditorTable } from '../table/order-items-editor-table.generated';
 import type { OrderItem } from '../model/order';
+import { OrderItemsEditorTable } from '../table/order-items-editor-table.generated';
 
 const orderId = 'demo';
 const orderEditFormId = 'order-edit-form';
@@ -54,11 +51,6 @@ export function OrderEditPage() {
   });
   const itemsQuery = useOrderItemsQuery(orderId);
   const saveItemsMutation = useSaveOrderItemsMutation();
-  const { append } = useFieldArray({
-    control: form.control,
-    name: 'items',
-    keyName: 'fieldId',
-  });
   const watchedItems = form.watch('items') ?? [];
   const totalAmount = watchedItems.reduce(
     (sum, item) =>
@@ -73,10 +65,6 @@ export function OrderEditPage() {
       form.reset({ items: itemsQuery.data });
     }
   }, [form, itemsQuery.data]);
-
-  const handleAddRow = () => {
-    append(blankItem());
-  };
 
   const handleSubmit = (values: OrderItemsFormValues) => {
     saveItemsMutation.mutate({ orderId, items: values.items });
@@ -145,32 +133,13 @@ export function OrderEditPage() {
         onSubmit={form.handleSubmit(handleSubmit)}
       >
         <Card className="min-h-0 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
-            <CardHeading>
-              <CardTitle>Hàng hóa trong đơn</CardTitle>
-              <div className="text-sm text-muted-foreground">
-                {watchedItems.length} dòng
-              </div>
-            </CardHeading>
-            <CardToolbar>
-              <Button type="button" variant="primary" onClick={handleAddRow}>
-                <Plus />
-                Thêm dòng
-              </Button>
-            </CardToolbar>
-          </CardHeader>
-
           <CardTable className="min-h-0 flex-1 overflow-hidden">
             {itemsQuery.isLoading ? (
               <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
                 Đang tải hàng hóa...
               </div>
             ) : (
-              <OrderItemsEditorTable
-                key={watchedItems.length}
-                form={form}
-                createRow={blankItem}
-              />
+              <OrderItemsEditorTable form={form} createRow={blankItem} />
             )}
           </CardTable>
 

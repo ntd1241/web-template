@@ -324,6 +324,26 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
     ? `\n              const errors = form.formState.errors.${spec.arrayName}?.[index];`
     : '';
 
+  // Optional self-contained toolbar (title + row count + add button) driven by
+  // the component's own `fields` / `handleAddRow`, so a consumer never needs a
+  // second `useFieldArray` to add rows.
+  const toolbar = spec.toolbar;
+  const toolbarOpen = toolbar
+    ? `    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-5 py-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold text-foreground">${toolbar.title}</h2>
+          <div className="text-xs text-muted-foreground">{fields.length} dòng</div>
+        </div>
+        <Button type="button" variant="primary" size="sm" onClick={handleAddRow}>
+          <Plus />
+          ${toolbar.addLabel}
+        </Button>
+      </div>
+`
+    : '';
+  const toolbarClose = toolbar ? `    </div>\n` : '';
+
   const body = `interface ${componentName}Props {
   form: UseFormReturn<${spec.valuesType}>;
   ${createRowProp}: () => ${spec.entity};
@@ -345,7 +365,7 @@ export function ${componentName}({
   };
 ${actionHandlers}
   return (
-    <div className="${viewportClass(spec)}">
+${toolbarOpen}    <div className="${viewportClass(spec)}">
       <Table className="${spec.tableMinWidthClass}">
         <TableHeader>
           <TableRow>
@@ -380,7 +400,7 @@ ${indent(emitCells(spec), 18)}
         </TableBody>
       </Table>
     </div>
-  );
+${toolbarClose}  );
 }`;
 
   return `${banner(spec.specPath)}\n${emitImports(spec)}\n\n${body}\n`;

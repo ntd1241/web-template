@@ -69,6 +69,17 @@ export const editorTableSpecSchema = z.object({
   specPath: z.string().optional(),
   createRowProp: z.string().regex(IDENTIFIER).optional(),
   tableMinWidthClass: z.string().min(1).default('min-w-[1200px]'),
+  /**
+   * Optional self-contained header above the table (title + row count + an
+   * "add row" button) so the component owns the single `useFieldArray` — the
+   * page does not need its own array instance to add rows.
+   */
+  toolbar: z
+    .object({
+      title: z.string().min(1),
+      addLabel: z.string().min(1).default('Thêm dòng'),
+    })
+    .optional(),
   viewport: z
     .object({
       mode: z.enum(['fixed', 'remaining', 'natural']).default('fixed'),
