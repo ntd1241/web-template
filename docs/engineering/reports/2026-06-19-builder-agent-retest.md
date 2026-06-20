@@ -23,6 +23,33 @@ committing, and report skills/docs/commands used.
   - `docs/workflows/implement-ui.md`
 - Reverted the previous subagent material-dialog attempt before retesting.
 
+## Confidence
+
+Two runs, `reasoning_effort: low`. Both selected the fast path; still not a statistical guarantee.
+Real end-to-end token usage was unavailable (see line in Observed result), so all savings figures below
+are an **instruction-load proxy**, not measured spend. Treat the headline as directional until the
+scripted regression check under Follow-Up exists.
+
+### Run 2 — gate confirmation (2026-06-20, Codex worktree `codex/retest-edit`)
+
+Task: implement the edit-material dialog reusing the existing material form builder. The prompt did NOT
+tell the worker to skip any skill — it only asked for an end-of-run audit, so any skip is attributable to
+the AGENTS.md gate, not the prompt.
+
+- Skills activated: `using-superpowers`, `use-builder`, `verification-before-completion`.
+- `brainstorming`: **not activated** — worker cited the AGENTS.md builder fast-path gate + explicit requirements.
+- `test-driven-development`: **not activated** — same reason; extended the existing focused test instead.
+- Docs read: `AGENTS.md`, `docs/workflows/implement-ui.md`, `src/builders/README.md`,
+  `docs/builders/form-dialog.md`, plus feature code (model, mock, page, test, generated form/table fixtures).
+- Builders run: `gen:form` and `gen:table` to scratch paths (added a per-row "Sửa" action column).
+- Verification: Codex's own `npm run test:run` / `npm run build` failed with `spawn EPERM` (workspace-write
+  sandbox blocks esbuild from spawning a child — same class as the Flutter/Dart caveat). Re-run outside the
+  sandbox by the supervisor passed: focused test **4 passed**, `npm run build` green.
+
+Conclusion: the gate measurably removed the two heaviest process skills (`brainstorming` 2,650 +
+`test-driven-development` 2,465 ≈ 45% of known instruction load) on this run. One confirming data point,
+not yet a guarantee.
+
 ## Retest Result
 
 The worker selected the intended fast path.
@@ -70,9 +97,11 @@ Observed result:
 - `git diff --check` had no whitespace errors; only CRLF warnings.
 - Token usage was unavailable from subagent tooling.
 
-## Approximate Token Footprint
+## Approximate Instruction-Load Footprint (Proxy)
 
-Estimated with `ceil(chars / 4)` for known files.
+Estimated with `ceil(chars / 4)` for known instruction/doc files only. This **excludes** source reads,
+command output, and hidden system context — i.e. it omits the largest real costs. Use it to compare
+instruction load between runs, not as an end-to-end token figure.
 
 | Input | Approx tokens |
 | --- | ---: |
@@ -87,8 +116,13 @@ Estimated with `ceil(chars / 4)` for known files.
 | `brainstorming` | 2,650 |
 | **Known total** | **11,371** |
 
-Previous retest known instruction/docs estimate was about 31.7k tokens. The fast path reduced known
-instruction load by roughly 64%, before counting source code, command output, and hidden system context.
+Previous retest known instruction/docs estimate was about 31.7k tokens (baseline breakdown not captured
+here — not independently auditable; recapture per-file before citing the percentage again). On this proxy
+the fast path cut known instruction load by roughly 64%.
+
+The two biggest remaining items are global process skills, not project docs:
+`brainstorming` (2,650) + `test-driven-development` (2,465) = ~45% of the known total. Further savings on
+routine builder tasks come from gating these (see Follow-Up), not from trimming docs further.
 
 ## Implementation Produced By Worker
 
@@ -109,7 +143,10 @@ Behavior:
 - Shows success toast.
 - Keeps dialog open and preserves values on duplicate material code.
 
-## Hidden Issues To Check Later
+## Fixture Implementation Follow-Ups
+
+These concern the produced material-dialog fixture, not the retest methodology. Harden before reusing it
+as a reference example.
 
 - The implementation uses local page state only. Decide whether this example should instead use the
   project API/React Query mutation pattern.
@@ -123,18 +160,25 @@ Behavior:
   place.
 - `crypto.randomUUID()` is used directly in UI code. Confirm target browser/test support or centralize ID
   creation in mock/API code.
+
+## Methodology Caveats
+
+These limit how far the retest result generalizes.
+
 - A Vite dev server process was present during retest, but it existed before subagent completion and no
   browser preview was reported. Do not assume future workers will avoid starting dev servers unless the
   prompt/policy remains explicit.
-- `brainstorming` still loaded because of global superpowers rules. If quota remains high, consider a
-  higher-priority project instruction that simple builder-fast-path UI tasks do not need brainstorming
-  unless requirements are unclear.
+- `brainstorming` and `test-driven-development` loaded from global superpowers rules in run 1 and together
+  are ~45% of known instruction load. The project now gates them for ordinary builder fast-path tasks
+  (AGENTS.md builder fast path); run 2 (see Confidence) confirmed both were skipped on a fresh Codex worker.
 
 ## Follow-Up Options
 
 - Keep the subagent implementation as a test fixture and harden the issues above.
 - Replace local-state create behavior with API/React Query hooks if the example should model real CRUD.
-- Add a builder regression test that checks agents/docs only need workflow + registry + matching guide
-  for ordinary generated UI tasks.
-- Consider compressing or disabling globally broad process skills for this repo if they keep loading in
-  routine builder tasks.
+- **Open / required to upgrade conclusion past anecdotal:** add a builder regression check that a fresh
+  worker loads only workflow + registry + matching guide for ordinary generated UI tasks. This is an
+  agent-behavior probe (run a fixed prompt, assert reported skills/docs), not a unit test — script it as
+  a repeatable retest harness, not a `*.test.tsx`.
+- **Done this round:** gate `brainstorming` / `test-driven-development` for builder fast-path tasks via
+  AGENTS.md. Verify the next run honors it before claiming the ~45% overhead is recovered.
