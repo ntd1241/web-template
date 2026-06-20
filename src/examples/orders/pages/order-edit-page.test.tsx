@@ -1,0 +1,73 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import { OrderEditPage } from './order-edit-page';
+
+function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <OrderEditPage />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe('OrderEditPage', () => {
+  it('renders the loaded rows', async () => {
+    renderPage();
+
+    expect(await screen.findByDisplayValue('Gạo ST25')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Cà phê rang xay')).toBeInTheDocument();
+    expect(screen.getByText('4 dòng')).toBeInTheDocument();
+  });
+
+  it('appends a row from the add button', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    await user.click(screen.getByRole('button', { name: 'Thêm dòng' }));
+
+    expect(screen.getByText('5 dòng')).toBeInTheDocument();
+    expect(screen.getByLabelText('Tên hàng hóa dòng 5')).toBeInTheDocument();
+  });
+
+  it('removes a row from the row action', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    await user.click(screen.getByRole('button', { name: 'Xóa dòng 1' }));
+
+    expect(screen.queryByDisplayValue('Gạo ST25')).not.toBeInTheDocument();
+    expect(screen.getByText('3 dòng')).toBeInTheDocument();
+  });
+
+  it('updates the computed row total when quantity and unit price change', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    const quantityInput = screen.getByLabelText('Số lượng dòng 1');
+    const unitPriceInput = screen.getByLabelText('Đơn giá dòng 1');
+
+    await user.clear(quantityInput);
+    await user.type(quantityInput, '2');
+    await user.clear(unitPriceInput);
+    await user.type(unitPriceInput, '1234');
+
+    await waitFor(() => {
+      expect(screen.getByText('2.468 ₫')).toBeInTheDocument();
+    });
+  });
+});

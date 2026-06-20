@@ -30,6 +30,15 @@ export interface Order {
   status: OrderStatus;
 }
 
+export interface OrderItem {
+  id: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  unitPrice: number;
+  note: string;
+}
+
 export interface OrderListParams {
   page: number;
   pageSize: number;

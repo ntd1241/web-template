@@ -28,6 +28,11 @@ if (import.meta.env.DEV) {
       default: m.OrdersExamplePage,
     })),
   );
+  const OrderEditPage = lazy(() =>
+    import('./orders/pages/order-edit-page').then((m) => ({
+      default: m.OrderEditPage,
+    })),
+  );
   const RolePermissionsPage = lazy(() =>
     import('./role-permissions/pages/role-permissions-page').then((m) => ({
       default: m.RolePermissionsPage,
@@ -75,6 +80,14 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <OrdersExamplePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.ORDER_EDIT}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <OrderEditPage />
             </Suspense>
           }
         />

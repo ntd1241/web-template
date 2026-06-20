@@ -1,5 +1,6 @@
 import { ROUTES } from '@/constants/routes';
 import {
+  FilePen,
   PackageCheck,
   ShieldCheck,
   ShoppingCart,
@@ -49,6 +50,11 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
     items: [
       { label: 'Nhân viên', icon: Users, path: ROUTES.EXAMPLE.EMPLOYEES },
       { label: 'Đơn hàng', icon: ShoppingCart, path: ROUTES.EXAMPLE.ORDERS },
+      {
+        label: 'Sửa đơn hàng',
+        icon: FilePen,
+        path: ROUTES.EXAMPLE.ORDER_EDIT,
+      },
       {
         label: 'Vật tư',
         icon: PackageCheck,

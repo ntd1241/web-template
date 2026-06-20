@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { toastError } from '@/lib/errors';
-import type { OrderListParams, OrderStatus } from '../model/order';
+import type { OrderItem, OrderListParams, OrderStatus } from '../model/order';
 import { orderApi } from './order.api';
 
 export const orderKeys = createQueryKeys<OrderListParams>('orders');
@@ -17,6 +17,29 @@ export function useOrderListQuery(params: OrderListParams) {
     queryKey: orderKeys.list(params),
     queryFn: () => orderApi.getList(params),
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useOrderItemsQuery(orderId: string) {
+  return useQuery({
+    queryKey: orderKeys.detail(orderId),
+    queryFn: () => orderApi.getItems(orderId),
+  });
+}
+
+export function useSaveOrderItemsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, items }: { orderId: string; items: OrderItem[] }) =>
+      orderApi.saveItems(orderId, items),
+    onSuccess: (_data, { orderId }) => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+      toast.success('Đã lưu đơn hàng');
+    },
+    onError: (error) => {
+      toastError(error);
+    },
   });
 }
 
