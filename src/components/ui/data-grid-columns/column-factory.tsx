@@ -293,7 +293,7 @@ export function createColumnHelpers<TRow extends object>() {
         size,
         meta: createMeta({
           header,
-          headerClassName,
+          headerClassName: cn('text-right', headerClassName),
           cellClassName: cn('text-right tabular-nums', cellClassName),
         }),
       };

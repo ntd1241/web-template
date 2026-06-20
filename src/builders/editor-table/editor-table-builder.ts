@@ -160,7 +160,11 @@ function emitHeaderCell(
   if (isAction) {
     return `<TableHead className="sticky top-0 right-0 z-30 bg-muted ${widthClass(column, 'w-28')} text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]">${column.header}</TableHead>`;
   }
-  return `<TableHead className="sticky top-0 z-20 bg-muted ${widthClass(column, 'w-36')}">${column.header}</TableHead>`;
+  const alignRight =
+    column.kind === 'number' || column.kind === 'computedCurrency'
+      ? ' text-right'
+      : '';
+  return `<TableHead className="sticky top-0 z-20 bg-muted ${widthClass(column, 'w-36')}${alignRight}">${column.header}</TableHead>`;
 }
 
 function emitHeaders(spec: NormalizedEditorTableSpec): string {

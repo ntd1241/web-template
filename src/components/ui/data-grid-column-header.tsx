@@ -51,6 +51,10 @@ function DataGridColumnHeader<TData, TValue>({
 }: DataGridColumnHeaderProps<TData, TValue>) {
   const { isLoading, table, props, recordCount } = useDataGrid();
 
+  const isRightAligned = (
+    column.columnDef.meta?.headerClassName ?? ''
+  ).includes('text-right');
+
   const moveColumn = (direction: 'left' | 'right') => {
     const currentOrder = [...table.getState().columnOrder]; // Get current column order
     const currentIndex = currentOrder.indexOf(column.id); // Get current index of the column
@@ -101,7 +105,8 @@ function DataGridColumnHeader<TData, TValue>({
       <Button
         variant="ghost"
         className={cn(
-          'text-secondary-foreground rounded-md font-normal -ms-2 px-2 h-7 hover:bg-secondary data-[state=open]:bg-secondary hover:text-foreground data-[state=open]:text-foreground',
+          'text-secondary-foreground rounded-md font-normal px-2 h-7 hover:bg-secondary data-[state=open]:bg-secondary hover:text-foreground data-[state=open]:text-foreground',
+          isRightAligned ? '-me-2' : '-ms-2',
           className,
         )}
         disabled={isLoading || recordCount === 0}
@@ -149,7 +154,12 @@ function DataGridColumnHeader<TData, TValue>({
 
   const headerControls = () => {
     return (
-      <div className="flex items-center h-full gap-1.5 justify-between">
+      <div
+        className={cn(
+          'flex items-center h-full gap-1.5',
+          isRightAligned ? 'justify-end' : 'justify-between',
+        )}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>{headerButton()}</DropdownMenuTrigger>
           <DropdownMenuContent className="w-40" align="start">
@@ -314,7 +324,16 @@ function DataGridColumnHeader<TData, TValue>({
     column.getCanSort() ||
     (props.tableLayout?.columnsResizable && column.getCanResize())
   ) {
-    return <div className="flex items-center h-full">{headerButton()}</div>;
+    return (
+      <div
+        className={cn(
+          'flex items-center h-full',
+          isRightAligned && 'justify-end',
+        )}
+      >
+        {headerButton()}
+      </div>
+    );
   }
 
   return headerLabel();

@@ -49,7 +49,7 @@ export function LeanRowEditorTable({
             <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
               Tên
             </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-32">
+            <TableHead className="sticky top-0 z-20 bg-muted w-32 text-right">
               Số lượng
             </TableHead>
           </TableRow>

@@ -62,16 +62,16 @@ export function OrderItemsEditorTable({
             <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
               Tên hàng hóa
             </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-32">
+            <TableHead className="sticky top-0 z-20 bg-muted w-32 text-right">
               Số lượng
             </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-40">
+            <TableHead className="sticky top-0 z-20 bg-muted w-40 text-right">
               Đơn giá
             </TableHead>
             <TableHead className="sticky top-0 z-20 bg-muted w-40">
               Hạn dùng
             </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-40">
+            <TableHead className="sticky top-0 z-20 bg-muted w-40 text-right">
               Thành tiền
             </TableHead>
             <TableHead className="sticky top-0 right-0 z-30 bg-muted w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
