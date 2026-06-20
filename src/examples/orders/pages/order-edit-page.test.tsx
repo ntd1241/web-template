@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { orderApi } from '../api/order.api';
 import { OrderEditPage } from './order-edit-page';
 
 function renderPage() {
@@ -72,6 +73,26 @@ describe('OrderEditPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('2.468 ₫')).toBeInTheDocument();
+    });
+  });
+
+  it('saves valid edited line items', async () => {
+    const user = userEvent.setup();
+    const saveSpy = vi.spyOn(orderApi, 'saveItems');
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    await user.clear(screen.getByLabelText('Số lượng dòng 1'));
+    await user.type(screen.getByLabelText('Số lượng dòng 1'), '3');
+    await user.click(screen.getAllByRole('button', { name: 'Lưu' })[0]);
+
+    await waitFor(() => {
+      expect(saveSpy).toHaveBeenCalledWith(
+        'demo',
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'oi01', quantity: 3 }),
+        ]),
+      );
     });
   });
 });
