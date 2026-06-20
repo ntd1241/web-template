@@ -1,5 +1,5 @@
 /**
- * Scaffolded by editor-table-builder from `src/builders/editor-table/__fixtures__/order-item.editor-table.fixture.ts`. Run `tsx tools/builders/cli/gen-editor-table.ts` — do NOT hand-write this file.
+ * Scaffolded by editor-table-builder from `src/builders/editor-table/__fixtures__/order-item.editor-table.fixture.ts`. Run `npm run gen:editor-table` — do NOT hand-write this file.
  * You own this file now — fill computed cell stubs and wire it into the page/card layout. To change
  * columns or viewport behavior, edit the spec and re-gen to a scratch path, then reconcile your edits.
  */
@@ -53,14 +53,28 @@ export function OrderItemsEditorTable({
       <Table className="min-w-[1440px]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-14">STT</TableHead>
-            <TableHead className="w-36">Mã hàng</TableHead>
-            <TableHead className="min-w-56">Tên hàng hóa</TableHead>
-            <TableHead className="w-32">Số lượng</TableHead>
-            <TableHead className="w-40">Đơn giá</TableHead>
-            <TableHead className="w-40">Hạn dùng</TableHead>
-            <TableHead className="w-40">Thành tiền</TableHead>
-            <TableHead className="sticky right-0 z-20 w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted w-14">
+              STT
+            </TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted w-36">
+              Mã hàng
+            </TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
+              Tên hàng hóa
+            </TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted w-32">
+              Số lượng
+            </TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted w-40">
+              Đơn giá
+            </TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted w-40">
+              Hạn dùng
+            </TableHead>
+            <TableHead className="sticky top-0 z-20 bg-muted w-40">
+              Thành tiền
+            </TableHead>
+            <TableHead className="sticky top-0 right-0 z-30 bg-muted w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

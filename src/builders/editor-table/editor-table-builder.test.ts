@@ -47,8 +47,9 @@ describe('buildEditorTableModule', () => {
       'className="h-[clamp(480px,62dvh,760px)] overflow-auto"',
     );
     expect(source).toContain('<Table className="min-w-[1440px]">');
-    expect(source).toContain('sticky right-0 z-20');
-    expect(source).toContain('sticky right-0 z-10 bg-card');
+    expect(source).toContain('sticky top-0 z-20 bg-muted'); // column headers
+    expect(source).toContain('sticky top-0 right-0 z-30 bg-muted'); // action header
+    expect(source).toContain('sticky right-0 z-10 bg-card'); // action body cell
   });
 
   it('emits editable inputs and computed currency stubs', () => {
@@ -73,5 +74,49 @@ describe('buildEditorTableModule', () => {
         viewport: { mode: 'natural' },
       }),
     ).toContain('className="overflow-auto"');
+  });
+
+  it('omits unused imports/plumbing when no currency column and actions are off', () => {
+    // Regression guard for `noUnusedLocals`: a lean spec must not import or
+    // reference anything its cells do not use.
+    const lean = buildEditorTableModule({
+      ...orderItemsSpec,
+      actions: { enabled: false },
+      columns: [
+        { kind: 'index', header: 'STT' },
+        { kind: 'text', name: 'name', header: 'Tên' },
+        { kind: 'number', name: 'quantity', header: 'Số lượng' },
+      ],
+    });
+
+    expect(lean).not.toContain('formatCurrencyVND');
+    expect(lean).not.toContain('Copy');
+    expect(lean).not.toContain('Trash2');
+    expect(lean).not.toContain('insert(');
+    expect(lean).not.toContain('remove(');
+    expect(lean).toContain('const { fields, append } = useFieldArray(');
+    // editable columns still pull Controller + Input + the per-row errors.
+    expect(lean).toContain('Controller');
+    expect(lean).toContain('const errors = form.formState.errors.items');
+  });
+
+  it('omits Controller/Input/errors when there is no editable column', () => {
+    const displayOnly = buildEditorTableModule({
+      ...orderItemsSpec,
+      actions: { enabled: false },
+      columns: [
+        { kind: 'index', header: 'STT' },
+        {
+          kind: 'computedCurrency',
+          id: 'lineTotal',
+          header: 'Thành tiền',
+        },
+      ],
+    });
+
+    expect(displayOnly).not.toContain('Controller');
+    expect(displayOnly).not.toContain("from '@/components/ui/input'");
+    expect(displayOnly).not.toContain('const errors =');
+    expect(displayOnly).toContain('formatCurrencyVND'); // currency column present
   });
 });

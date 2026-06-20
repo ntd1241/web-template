@@ -8,7 +8,7 @@ import {
 function banner(specPath?: string): string {
   const source = specPath ? ` from \`${specPath}\`` : '';
   return `/**
- * Scaffolded by editor-table-builder${source}. Run \`tsx tools/builders/cli/gen-editor-table.ts\` — do NOT hand-write this file.
+ * Scaffolded by editor-table-builder${source}. Run \`npm run gen:editor-table\` — do NOT hand-write this file.
  * You own this file now — fill computed cell stubs and wire it into the page/card layout. To change
  * columns or viewport behavior, edit the spec and re-gen to a scratch path, then reconcile your edits.
  */`;
@@ -158,9 +158,9 @@ function emitHeaderCell(
   isAction = false,
 ): string {
   if (isAction) {
-    return `<TableHead className="sticky right-0 z-20 ${widthClass(column, 'w-28')} text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]">${column.header}</TableHead>`;
+    return `<TableHead className="sticky top-0 right-0 z-30 bg-muted ${widthClass(column, 'w-28')} text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]">${column.header}</TableHead>`;
   }
-  return `<TableHead className="${widthClass(column, 'w-36')}">${column.header}</TableHead>`;
+  return `<TableHead className="sticky top-0 z-20 bg-muted ${widthClass(column, 'w-36')}">${column.header}</TableHead>`;
 }
 
 function emitHeaders(spec: NormalizedEditorTableSpec): string {
@@ -252,18 +252,46 @@ function emitCells(spec: NormalizedEditorTableSpec): string {
   return cells.join('\n');
 }
 
+function hasEditableColumn(spec: NormalizedEditorTableSpec): boolean {
+  return spec.columns.some(
+    (column) =>
+      column.kind === 'text' ||
+      column.kind === 'number' ||
+      column.kind === 'date',
+  );
+}
+
+function hasComputedColumn(spec: NormalizedEditorTableSpec): boolean {
+  return spec.columns.some((column) => column.kind === 'computedCurrency');
+}
+
+/**
+ * Import only what the emitted cells actually use — `noUnusedLocals` makes any
+ * unused import a build error, so the icons, RHF `Controller`, `Input` and
+ * `formatCurrencyVND` are gated on the column kinds / actions present.
+ */
 function emitImports(spec: NormalizedEditorTableSpec): string {
-  return [
-    "import { Copy, Plus, Trash2 } from 'lucide-react';",
-    "import { Controller, useFieldArray } from 'react-hook-form';",
+  const editable = hasEditableColumn(spec);
+  const computed = hasComputedColumn(spec);
+  const icons = spec.actions.enabled ? 'Copy, Plus, Trash2' : 'Plus';
+  const rhfValues = editable ? 'Controller, useFieldArray' : 'useFieldArray';
+
+  const lines = [
+    `import { ${icons} } from 'lucide-react';`,
+    `import { ${rhfValues} } from 'react-hook-form';`,
     "import type { UseFormReturn } from 'react-hook-form';",
     "import { Button } from '@/components/ui/button';",
-    "import { Input } from '@/components/ui/input';",
+  ];
+  if (editable) lines.push("import { Input } from '@/components/ui/input';");
+  lines.push(
     "import {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from '@/components/ui/table';",
-    "import { formatCurrencyVND } from '@/lib/format';",
-    `import type { ${spec.entity} } from ${quote(spec.modelImport)};`,
+  );
+  if (computed) lines.push("import { formatCurrencyVND } from '@/lib/format';");
+  lines.push(`import type { ${spec.entity} } from ${quote(spec.modelImport)};`);
+  lines.push(
     `import type { ${spec.valuesType} } from ${quote(spec.valuesImport)};`,
-  ].join('\n');
+  );
+  return lines.join('\n');
 }
 
 export function buildEditorTableModule(input: EditorTableSpec): string {
@@ -274,6 +302,28 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const columnCount = spec.columns.length + (spec.actions.enabled ? 1 : 0);
   const rowPrelude = emitRowPrelude(spec);
 
+  // Gate row-action plumbing on `actions.enabled` and the per-row `errors`
+  // binding on having an editable column — `noUnusedLocals` rejects either if
+  // emitted but unused.
+  const fieldArrayBindings = spec.actions.enabled
+    ? 'fields, append, insert, remove'
+    : 'fields, append';
+  const actionHandlers = spec.actions.enabled
+    ? `
+  const handleAddRowBelow = (index: number) => {
+    insert(index + 1, ${createRowProp}());
+  };
+
+  const handleDuplicateRow = (index: number) => {
+    const currentRow = form.getValues(\`${spec.arrayName}.\${index}\`);
+    insert(index + 1, { ...currentRow, id: crypto.randomUUID() });
+  };
+`
+    : '';
+  const errorsLine = hasEditableColumn(spec)
+    ? `\n              const errors = form.formState.errors.${spec.arrayName}?.[index];`
+    : '';
+
   const body = `interface ${componentName}Props {
   form: UseFormReturn<${spec.valuesType}>;
   ${createRowProp}: () => ${spec.entity};
@@ -283,7 +333,7 @@ export function ${componentName}({
   form,
   ${createRowProp},
 }: ${componentName}Props) {
-  const { fields, append, insert, remove } = useFieldArray({
+  const { ${fieldArrayBindings} } = useFieldArray({
     control: form.control,
     name: '${spec.arrayName}',
     keyName: 'fieldId',
@@ -293,16 +343,7 @@ export function ${componentName}({
   const handleAddRow = () => {
     append(${createRowProp}());
   };
-
-  const handleAddRowBelow = (index: number) => {
-    insert(index + 1, ${createRowProp}());
-  };
-
-  const handleDuplicateRow = (index: number) => {
-    const currentRow = form.getValues(\`${spec.arrayName}.\${index}\`);
-    insert(index + 1, { ...currentRow, id: crypto.randomUUID() });
-  };
-
+${actionHandlers}
   return (
     <div className="${viewportClass(spec)}">
       <Table className="${spec.tableMinWidthClass}">
@@ -326,8 +367,7 @@ ${indent(emitHeaders(spec), 12)}
             </TableRow>
           ) : (
             fields.map((field, index) => {
-              const row = watchedRows[index] as ${spec.entity} | undefined;
-              const errors = form.formState.errors.${spec.arrayName}?.[index];
+              const row = watchedRows[index] as ${spec.entity} | undefined;${errorsLine}
 ${rowPrelude ? indent(rowPrelude, 14) : '              void row;'}
 
               return (

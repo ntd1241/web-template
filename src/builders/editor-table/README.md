@@ -16,7 +16,7 @@ forms above the table.
 3. Generate the component:
 
    ```bash
-   tsx tools/builders/cli/gen-editor-table.ts <spec.ts> <out.tsx>
+   npm run gen:editor-table -- <spec.ts> <out.tsx>
    ```
 
 4. Keep the provenance banner. Fill computed cell stubs, then wire the generated
