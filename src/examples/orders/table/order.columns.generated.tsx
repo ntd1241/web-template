@@ -50,6 +50,7 @@ export function useOrderColumns(
         header: 'Ngày tạo',
         get: (row) => row.createdAt,
         mode: 'date',
+        size: 120,
       }),
       col.editableSelect({
         id: 'status',

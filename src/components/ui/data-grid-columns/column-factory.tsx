@@ -79,8 +79,9 @@ interface BadgeColumnOptions<
   config: StatusBadgeConfig<TStatus>;
 }
 
-interface EditableSelectColumnOptions<TRow extends object>
-  extends AccessorColumnOptions<TRow, string | null | undefined> {
+interface EditableSelectColumnOptions<
+  TRow extends object,
+> extends AccessorColumnOptions<TRow, string | null | undefined> {
   options: { value: string; label: string }[];
   onEdit: (row: TRow, value: string) => void;
   placeholder?: string;
@@ -188,6 +189,7 @@ export function createColumnHelpers<TRow extends object>() {
     number(options: NumberColumnOptions<TRow>): ColumnDef<TRow> {
       return createAccessorColumn({
         ...options,
+        headerClassName: cn('text-right', options.headerClassName),
         cellClassName: cn('text-right tabular-nums', options.cellClassName),
         cell: (value) => formatNumber(value, options.options),
       });
@@ -198,6 +200,7 @@ export function createColumnHelpers<TRow extends object>() {
     ): ColumnDef<TRow> {
       return createAccessorColumn({
         ...options,
+        headerClassName: cn('text-right', options.headerClassName),
         cellClassName: cn('text-right tabular-nums', options.cellClassName),
         cell: (value) => formatCurrencyVND(value),
       });
@@ -206,6 +209,7 @@ export function createColumnHelpers<TRow extends object>() {
     percent(options: PercentColumnOptions<TRow>): ColumnDef<TRow> {
       return createAccessorColumn({
         ...options,
+        headerClassName: cn('text-right', options.headerClassName),
         cellClassName: cn('text-right tabular-nums', options.cellClassName),
         cell: (value) => formatPercent(value, options.fractionDigits),
       });
@@ -237,16 +241,16 @@ export function createColumnHelpers<TRow extends object>() {
       });
     },
 
-    editableSelect(options: EditableSelectColumnOptions<TRow>): ColumnDef<TRow> {
+    editableSelect(
+      options: EditableSelectColumnOptions<TRow>,
+    ): ColumnDef<TRow> {
       return createAccessorColumn({
         ...options,
         cellClassName: cn('min-w-[160px]', options.cellClassName),
         cell: (value, context) => (
           <Select
             value={value ?? ''}
-            onValueChange={(next) =>
-              options.onEdit(context.row.original, next)
-            }
+            onValueChange={(next) => options.onEdit(context.row.original, next)}
           >
             <SelectTrigger size="sm">
               <SelectValue placeholder={options.placeholder} />

@@ -22,6 +22,7 @@ const spec: TableSpec = {
       header: 'Ngày tạo',
       field: 'createdAt',
       mode: 'date',
+      size: 120,
     },
     {
       kind: 'editableSelect',
