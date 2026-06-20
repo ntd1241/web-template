@@ -37,3 +37,20 @@ export function useSetEmployeeStatusMutation() {
     },
   });
 }
+
+/** Cập nhật trạng thái cho nhiều nhân viên trong một lần — chỉ một toast. */
+export function useSetEmployeesStatusMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: EmployeeStatus }) =>
+      Promise.all(ids.map((id) => employeeApi.setStatus(id, status))),
+    onSuccess: (_data, { ids }) => {
+      queryClient.invalidateQueries({ queryKey: employeeKeys.lists() });
+      toast.success(`Đã cập nhật ${ids.length} nhân viên`);
+    },
+    onError: (error) => {
+      toastError(error);
+    },
+  });
+}

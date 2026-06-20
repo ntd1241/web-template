@@ -29,7 +29,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useSetEmployeeStatusMutation } from '../api/employee.queries';
+import {
+  useSetEmployeesStatusMutation,
+  useSetEmployeeStatusMutation,
+} from '../api/employee.queries';
 import { CreateEmployeeDialog } from '../components/create-employee-dialog';
 import { EmployeesToolbar } from '../components/employees-toolbar';
 import { useEmployeeColumns } from '../hooks/use-employee-columns';
@@ -112,14 +115,19 @@ export function EmployeesExamplePage() {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const { mutate: setStatusBulk } = useSetEmployeesStatusMutation();
+
   const handleBulkStatus = useCallback(() => {
-    table
+    const ids = table
       .getFilteredSelectedRowModel()
-      .rows.forEach((row) =>
-        setStatus({ id: row.original.id, status: bulkStatus }),
-      );
-    table.resetRowSelection();
-  }, [table, setStatus, bulkStatus]);
+      .rows.map((row) => row.original.id);
+    if (ids.length === 0) return;
+
+    setStatusBulk(
+      { ids, status: bulkStatus },
+      { onSuccess: () => table.resetRowSelection() },
+    );
+  }, [table, setStatusBulk, bulkStatus]);
 
   if (isError) {
     return (
