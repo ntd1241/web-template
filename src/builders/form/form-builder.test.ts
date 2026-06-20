@@ -8,15 +8,17 @@ describe('buildFormModule', () => {
   it('emits the banner and the dialog component', () => {
     expect(source).toContain('Scaffolded by form-builder');
     expect(source).toContain('You own this file now');
+    expect(source).toContain('export function SupplierForm({');
     expect(source).toContain('export function SupplierFormDialog({');
+    expect(source).toContain('interface SupplierFormProps {');
     expect(source).toContain('interface SupplierFormDialogProps {');
   });
 
-  it('wires react-hook-form + zodResolver from the schema', () => {
-    expect(source).toContain(
-      'const form = useForm<CreateSupplierFormValues>({',
-    );
+  it('wires parent-owned react-hook-form + zodResolver from the schema', () => {
+    expect(source).toContain('export function useSupplierForm(');
     expect(source).toContain('resolver: zodResolver(createSupplierFormSchema)');
+    expect(source).toContain('defaultValues: supplierDefaultValues');
+    expect(source).toContain('form: UseFormReturn<CreateSupplierFormValues>;');
     expect(source).toContain("} from './supplier-form.schema';");
   });
 
@@ -50,16 +52,28 @@ describe('buildFormModule', () => {
   it('hoists option consts (multiselect typed)', () => {
     expect(source).toContain('const groupOptions = [');
     expect(source).toContain('const tagsOptions: MultiSelectOption[] = [');
+    expect(source).not.toContain('const regionOptions = [');
+    expect(source).toContain('regionOptions: ComboboxOption[];');
     expect(source).toContain("searchableText: 'Ưu tiên'");
   });
 
   it('derives defaultValues per kind', () => {
     expect(source).toContain(
-      'const defaultValues: CreateSupplierFormValues = {',
+      'export const supplierDefaultValues: CreateSupplierFormValues = {',
     );
     expect(source).toContain('debt: 0,');
     expect(source).toContain('tags: [],');
     expect(source).toContain('active: false,');
+  });
+
+  it('emits the edit mapper scaffold', () => {
+    expect(source).toContain('type SupplierFormSource = unknown;');
+    expect(source).toContain(
+      'export function mapSupplierToFormValues(entity: SupplierFormSource): CreateSupplierFormValues',
+    );
+    expect(source).toContain(
+      '// TODO(scaffold): map entity → form values for edit mode.',
+    );
   });
 
   it('marks required fields and tree-shakes imports', () => {

@@ -14,17 +14,17 @@ Before hand-writing a table/form/list-page surface, check this table. If a build
 (scaffold-and-own) instead of writing the components by hand. If none fits, hand-build per `docs/06`
 and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 
-| Builder | Scaffolds | Spec type | Command | Use when | Guide |
-|---|---|---|---|---|---|
-| `table` | `use<Entity>Columns()` hook (DataGrid columns) | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table | [`docs/builders/table.md`](../../docs/builders/table.md) |
-| `form` | `<Entity>FormDialog` (RHF + zodResolver, responsive 12-col grid) | `FormSpec` (`@/builders/form`) | `npm run gen:form -- <spec> <out>` | building a create/edit dialog form | [`docs/builders/form-dialog.md`](../../docs/builders/form-dialog.md) |
+| Builder | Scaffolds                                                                                             | Spec type                        | Command                             | Use when                                                | Guide                                                                |
+| ------- | ----------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------- |
+| `table` | `use<Entity>Columns()` hook (DataGrid columns)                                                        | `TableSpec` (`@/builders/table`) | `npm run gen:table -- <spec> <out>` | building any paginated/data table                       | [`docs/builders/table.md`](../../docs/builders/table.md)             |
+| `form`  | `<Entity>Form`, `<Entity>FormDialog`, `use<Entity>Form()` (RHF + zodResolver, responsive 12-col grid) | `FormSpec` (`@/builders/form`)   | `npm run gen:form -- <spec> <out>`  | building reusable create/edit forms and dialog wrappers | [`docs/builders/form-dialog.md`](../../docs/builders/form-dialog.md) |
 
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_
 
 ## Core rules
 
-- **Model-first.** A table's columns and a form's fields are *projections* of the same entity type.
+- **Model-first.** A table's columns and a form's fields are _projections_ of the same entity type.
   Specs reference the model; builders project it. No duplicated enums; validation from one zod schema.
 - **Scaffold-and-own.** A builder is a one-shot scaffolder (like `shadcn add`): it generates a file
   **once**, then you **own** it — edit freely, fill the inline `cell: () => null` stubs in place. The

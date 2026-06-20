@@ -6,16 +6,16 @@ import supplierSpec from './__fixtures__/supplier.form.fixture';
 import { buildFormModule } from './form-builder';
 
 /**
- * End-to-end golden: the committed `supplier-form-dialog.generated.tsx` must be
+ * End-to-end golden: the committed `supplier-form.generated.tsx` must be
  * byte-reproducible from its spec via `buildFormModule` + prettier. Regenerate:
  *   npm run gen:form -- src/builders/form/__fixtures__/supplier.form.fixture.ts \
- *     src/builders/form/__fixtures__/supplier-form-dialog.generated.tsx
+ *     src/builders/form/__fixtures__/supplier-form.generated.tsx
  */
 describe('form-builder golden fixture', () => {
-  it('reproduces the committed supplier-form-dialog.generated.tsx', async () => {
+  it('reproduces the committed supplier-form.generated.tsx', async () => {
     const goldenPath = resolve(
       process.cwd(),
-      'src/builders/form/__fixtures__/supplier-form-dialog.generated.tsx',
+      'src/builders/form/__fixtures__/supplier-form.generated.tsx',
     );
     const golden = readFileSync(goldenPath, 'utf8').replace(/\r\n/g, '\n');
 

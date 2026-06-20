@@ -3,7 +3,7 @@ import type { FormSpec } from '../form-spec';
 /**
  * Golden fixture spec for the form builder. Exercises every field kind + all
  * width presets (normal/large/full). `npm run gen:form` turns this into the
- * committed `supplier-form-dialog.generated.tsx`; the builder test asserts the
+ * committed `supplier-form.generated.tsx`; the builder test asserts the
  * output still matches, so any builder drift fails CI.
  *
  * Named `.fixture.ts` (not `.spec.ts`) so vitest does not collect it as a test.
@@ -59,11 +59,7 @@ const spec: FormSpec = {
       label: 'Khu vực',
       width: 'normal',
       placeholder: 'Chọn khu vực',
-      options: [
-        { value: 'mien-bac', label: 'Miền Bắc' },
-        { value: 'mien-trung', label: 'Miền Trung' },
-        { value: 'mien-nam', label: 'Miền Nam' },
-      ],
+      optionsFrom: 'prop',
     },
     {
       kind: 'multiselect',

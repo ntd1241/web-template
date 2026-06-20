@@ -1,8 +1,5 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`buildFormModule > matches the snapshot 1`] = `
-"/**
- * Scaffolded by form-builder from \`src/builders/form/__fixtures__/supplier.form.fixture.ts\`. Run \`npm run gen:form\` — do NOT hand-write this file.
+/**
+ * Scaffolded by form-builder from `src/builders/form/__fixtures__/supplier.form.fixture.ts`. Run `npm run gen:form` — do NOT hand-write this file.
  * You own this file now — wire submit + edit reset behavior in the parent. To change fields,
  * widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
  * hand-edit this banner or the generated options consts — that's how review detects a bypassed builder.
@@ -11,6 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
+import type { ComboboxOption } from '@/components/ui/combobox';
 import {
   Dialog,
   DialogContent,
@@ -27,9 +26,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { MultiSelect } from '@/components/ui/multi-select';
+import type { MultiSelectOption } from '@/components/ui/multi-select';
 import {
   Select,
   SelectContent,
@@ -37,11 +36,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Combobox } from '@/components/ui/combobox';
-import type { ComboboxOption } from '@/components/ui/combobox';
-import { MultiSelect } from '@/components/ui/multi-select';
-import type { MultiSelectOption } from '@/components/ui/multi-select';
+import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import {
   createSupplierFormSchema,
   type CreateSupplierFormValues,
@@ -83,7 +80,9 @@ export function useSupplierForm(
   });
 }
 
-export function mapSupplierToFormValues(entity: SupplierFormSource): CreateSupplierFormValues {
+export function mapSupplierToFormValues(
+  entity: SupplierFormSource,
+): CreateSupplierFormValues {
   // TODO(scaffold): map entity → form values for edit mode.
   void entity;
   return supplierDefaultValues;
@@ -111,12 +110,14 @@ export function SupplierForm({
             name="code"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-            <FormLabel>Mã NCC<span className="text-destructive"> *</span></FormLabel>
-            <FormControl>
-            <Input placeholder="vd: NCC-001" {...field} />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>
+                  Mã NCC<span className="text-destructive"> *</span>
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder="vd: NCC-001" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -125,12 +126,14 @@ export function SupplierForm({
             name="name"
             render={({ field }) => (
               <FormItem className="md:col-span-8">
-            <FormLabel>Tên nhà cung cấp<span className="text-destructive"> *</span></FormLabel>
-            <FormControl>
-            <Input {...field} />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>
+                  Tên nhà cung cấp<span className="text-destructive"> *</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -139,12 +142,12 @@ export function SupplierForm({
             name="contact"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-            <FormLabel>Người liên hệ</FormLabel>
-            <FormControl>
-            <Input {...field} />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>Người liên hệ</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -153,12 +156,12 @@ export function SupplierForm({
             name="phone"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-            <FormLabel>Số điện thoại</FormLabel>
-            <FormControl>
-            <Input type="tel" {...field} />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>Số điện thoại</FormLabel>
+                <FormControl>
+                  <Input type="tel" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -167,12 +170,12 @@ export function SupplierForm({
             name="debt"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-            <FormLabel>Công nợ đầu kỳ</FormLabel>
-            <FormControl>
-            <Input type="number" {...field} />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>Công nợ đầu kỳ</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -181,23 +184,25 @@ export function SupplierForm({
             name="group"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-            <FormLabel>Nhóm<span className="text-destructive"> *</span></FormLabel>
-            <Select value={field.value} onValueChange={field.onChange}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn nhóm" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {groupOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>
+                  Nhóm<span className="text-destructive"> *</span>
+                </FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn nhóm" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {groupOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -206,12 +211,17 @@ export function SupplierForm({
             name="region"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-            <FormLabel>Khu vực</FormLabel>
-            <FormControl>
-            <Combobox value={field.value} onChange={field.onChange} options={regionOptions} placeholder="Chọn khu vực" />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>Khu vực</FormLabel>
+                <FormControl>
+                  <Combobox
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={regionOptions}
+                    placeholder="Chọn khu vực"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -220,12 +230,19 @@ export function SupplierForm({
             name="tags"
             render={({ field }) => (
               <FormItem className="md:col-span-12">
-            <FormLabel>Thẻ</FormLabel>
-            <FormControl>
-            <MultiSelect value={field.value} onChange={field.onChange} options={tagsOptions} placeholder="Chọn thẻ" searchPlaceholder="Tìm thẻ..." emptyMessage="Không có thẻ phù hợp" />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>Thẻ</FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={tagsOptions}
+                    placeholder="Chọn thẻ"
+                    searchPlaceholder="Tìm thẻ..."
+                    emptyMessage="Không có thẻ phù hợp"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -234,12 +251,12 @@ export function SupplierForm({
             name="note"
             render={({ field }) => (
               <FormItem className="md:col-span-12">
-            <FormLabel>Ghi chú</FormLabel>
-            <FormControl>
-            <Textarea rows={3} {...field} />
-          </FormControl>
-            <FormMessage />
-          </FormItem>
+                <FormLabel>Ghi chú</FormLabel>
+                <FormControl>
+                  <Textarea rows={3} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
@@ -248,11 +265,16 @@ export function SupplierForm({
             name="active"
             render={({ field }) => (
               <FormItem className="md:col-span-12 flex-row items-center gap-2.5">
-            <FormControl>
-            <Switch checked={field.value} onCheckedChange={field.onChange} />
-          </FormControl>
-            <FormLabel className="font-normal text-foreground">Kích hoạt ngay</FormLabel>
-          </FormItem>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="font-normal text-foreground">
+                  Kích hoạt ngay
+                </FormLabel>
+              </FormItem>
             )}
           />
         </div>
@@ -283,7 +305,9 @@ export function SupplierFormDialog({
       <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle>{title ?? 'Thêm nhà cung cấp'}</DialogTitle>
-            <DialogDescription>Khai báo thông tin nhà cung cấp mới.</DialogDescription>
+          <DialogDescription>
+            Khai báo thông tin nhà cung cấp mới.
+          </DialogDescription>
         </DialogHeader>
 
         <Separator />
@@ -292,7 +316,8 @@ export function SupplierFormDialog({
           <SupplierForm
             form={form}
             onSubmit={onSubmit}
-            id="supplier-form" regionOptions={regionOptions}
+            id="supplier-form"
+            regionOptions={regionOptions}
           />
         </div>
 
@@ -314,5 +339,3 @@ export function SupplierFormDialog({
     </Dialog>
   );
 }
-"
-`;

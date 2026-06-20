@@ -1,5 +1,5 @@
 /**
- * CLI: scaffold a `*-form-dialog.generated.tsx` from a form spec.
+ * CLI: scaffold a `*-form.generated.tsx` from a form spec.
  *
  *   npm run gen:form -- <spec.ts> <out.tsx>
  *

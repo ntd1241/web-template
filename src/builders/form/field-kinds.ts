@@ -20,22 +20,31 @@ export interface FormKindMeta {
   defaultLiteral: string;
   /** Whether the kind renders an `options` array (hoisted to a const). */
   hasOptions: boolean;
+  /** Type used when an options-backed field receives options from component props. */
+  optionType?: string;
 }
 
 export const FORM_KIND_REGISTRY: Record<FormFieldKind, FormKindMeta> = {
   text: { binding: 'spread', defaultLiteral: "''", hasOptions: false },
   number: { binding: 'spread', defaultLiteral: '0', hasOptions: false },
   textarea: { binding: 'spread', defaultLiteral: "''", hasOptions: false },
-  select: { binding: 'select', defaultLiteral: "''", hasOptions: true },
+  select: {
+    binding: 'select',
+    defaultLiteral: "''",
+    hasOptions: true,
+    optionType: '{ value: string; label: string }',
+  },
   combobox: {
     binding: 'valueOnChange',
     defaultLiteral: "''",
     hasOptions: true,
+    optionType: 'ComboboxOption',
   },
   multiselect: {
     binding: 'valueOnChange',
     defaultLiteral: '[]',
     hasOptions: true,
+    optionType: 'MultiSelectOption',
   },
   switch: { binding: 'checked', defaultLiteral: 'false', hasOptions: false },
 };
