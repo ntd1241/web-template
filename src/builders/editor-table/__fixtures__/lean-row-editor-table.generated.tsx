@@ -8,8 +8,8 @@ import { Controller, useFieldArray } from 'react-hook-form';
 import type { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -39,8 +39,8 @@ export function LeanRowEditorTable({
   };
 
   return (
-    <div className="overflow-auto">
-      <Table className="min-w-[640px]">
+    <ScrollArea>
+      <table className="min-w-[640px] w-full caption-bottom text-foreground text-sm">
         <TableHeader>
           <TableRow>
             <TableHead className="sticky top-0 z-20 bg-muted w-14">
@@ -137,7 +137,8 @@ export function LeanRowEditorTable({
             })
           )}
         </TableBody>
-      </Table>
-    </div>
+      </table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

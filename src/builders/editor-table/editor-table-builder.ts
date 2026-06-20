@@ -38,12 +38,12 @@ function widthClass(column: { widthClass?: string }, fallback: string): string {
   return column.widthClass ?? fallback;
 }
 
-function viewportClass(spec: NormalizedEditorTableSpec): string {
+function scrollAreaClass(spec: NormalizedEditorTableSpec): string {
   const custom = spec.viewport.className;
   if (custom) return custom;
 
-  if (spec.viewport.mode === 'remaining') return 'min-h-0 flex-1 overflow-auto';
-  if (spec.viewport.mode === 'natural') return 'overflow-auto';
+  if (spec.viewport.mode === 'remaining') return 'min-h-0 flex-1';
+  if (spec.viewport.mode === 'natural') return '';
 
   const height = spec.viewport.height ?? 'lg';
   const fixedHeights: Record<typeof height, string> = {
@@ -51,7 +51,7 @@ function viewportClass(spec: NormalizedEditorTableSpec): string {
     md: 'h-[clamp(400px,52dvh,600px)]',
     lg: 'h-[clamp(480px,62dvh,760px)]',
   };
-  return `${fixedHeights[height]} overflow-auto`;
+  return fixedHeights[height];
 }
 
 function fieldError(column: Extract<EditorTableColumnSpec, { name: string }>) {
@@ -284,7 +284,10 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
   ];
   if (editable) lines.push("import { Input } from '@/components/ui/input';");
   lines.push(
-    "import {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from '@/components/ui/table';",
+    "import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';",
+  );
+  lines.push(
+    "import {\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from '@/components/ui/table';",
   );
   if (computed) lines.push("import { formatCurrencyVND } from '@/lib/format';");
   lines.push(`import type { ${spec.entity} } from ${quote(spec.modelImport)};`);
@@ -301,6 +304,10 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const createRowProp = spec.createRowProp ?? 'createRow';
   const columnCount = spec.columns.length + (spec.actions.enabled ? 1 : 0);
   const rowPrelude = emitRowPrelude(spec);
+  const scrollClass = scrollAreaClass(spec);
+  const scrollAreaOpen = scrollClass
+    ? `<ScrollArea className="${scrollClass}">`
+    : '<ScrollArea>';
 
   // Gate row-action plumbing on `actions.enabled` and the per-row `errors`
   // binding on having an editable column — `noUnusedLocals` rejects either if
@@ -365,8 +372,8 @@ export function ${componentName}({
   };
 ${actionHandlers}
   return (
-${toolbarOpen}    <div className="${viewportClass(spec)}">
-      <Table className="${spec.tableMinWidthClass}">
+${toolbarOpen}    ${scrollAreaOpen}
+      <table className="${spec.tableMinWidthClass} w-full caption-bottom text-foreground text-sm">
         <TableHeader>
           <TableRow>
 ${indent(emitHeaders(spec), 12)}
@@ -398,8 +405,9 @@ ${indent(emitCells(spec), 18)}
             })
           )}
         </TableBody>
-      </Table>
-    </div>
+      </table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
 ${toolbarClose}  );
 }`;
 

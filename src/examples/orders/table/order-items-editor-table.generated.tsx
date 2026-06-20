@@ -9,8 +9,8 @@ import type { UseFormReturn } from 'react-hook-form';
 import { formatCurrencyVND } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -70,8 +70,8 @@ export function OrderItemsEditorTable({
           Thêm dòng
         </Button>
       </div>
-      <div className="h-[clamp(480px,62dvh,760px)] overflow-auto">
-        <Table className="min-w-[1880px]">
+      <ScrollArea className="h-[clamp(480px,62dvh,760px)]">
+        <table className="min-w-[1880px] w-full caption-bottom text-foreground text-sm">
           <TableHeader>
             <TableRow>
               <TableHead className="sticky top-0 z-20 bg-muted w-14">
@@ -406,7 +406,6 @@ export function OrderItemsEditorTable({
                       )}
                     </TableCell>
                     <TableCell className="px-4 py-2 text-right tabular-nums">
-                      {/* TODO(scaffold): calculate lineTotal from row. */}
                       {formatCurrencyVND(lineTotal)}
                     </TableCell>
                     <TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
@@ -452,8 +451,9 @@ export function OrderItemsEditorTable({
               })
             )}
           </TableBody>
-        </Table>
-      </div>
+        </table>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
   );
 }

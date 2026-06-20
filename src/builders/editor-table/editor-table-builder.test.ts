@@ -44,9 +44,12 @@ describe('buildEditorTableModule', () => {
 
   it('emits fixed viewport, horizontal min width, sticky headers and pinned actions', () => {
     expect(source).toContain(
-      'className="h-[clamp(480px,62dvh,760px)] overflow-auto"',
+      '<ScrollArea className="h-[clamp(480px,62dvh,760px)]">',
     );
-    expect(source).toContain('<Table className="min-w-[1440px]">');
+    expect(source).toContain(
+      '<table className="min-w-[1440px] w-full caption-bottom text-foreground text-sm">',
+    );
+    expect(source).toContain('<ScrollBar orientation="horizontal" />');
     expect(source).toContain('sticky top-0 z-20 bg-muted'); // column headers
     expect(source).toContain('sticky top-0 right-0 z-30 bg-muted'); // action header
     expect(source).toContain('sticky right-0 z-10 bg-card'); // action body cell
@@ -66,14 +69,14 @@ describe('buildEditorTableModule', () => {
         ...orderItemsSpec,
         viewport: { mode: 'remaining' },
       }),
-    ).toContain('className="min-h-0 flex-1 overflow-auto"');
+    ).toContain('<ScrollArea className="min-h-0 flex-1">');
 
     expect(
       buildEditorTableModule({
         ...orderItemsSpec,
         viewport: { mode: 'natural' },
       }),
-    ).toContain('className="overflow-auto"');
+    ).toContain('<ScrollBar orientation="horizontal" />');
   });
 
   it('omits unused imports/plumbing when no currency column and actions are off', () => {

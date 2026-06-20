@@ -9,8 +9,8 @@ import type { UseFormReturn } from 'react-hook-form';
 import { formatCurrencyVND } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -49,8 +49,8 @@ export function OrderItemsEditorTable({
   };
 
   return (
-    <div className="h-[clamp(480px,62dvh,760px)] overflow-auto">
-      <Table className="min-w-[1440px]">
+    <ScrollArea className="h-[clamp(480px,62dvh,760px)]">
+      <table className="min-w-[1440px] w-full caption-bottom text-foreground text-sm">
         <TableHeader>
           <TableRow>
             <TableHead className="sticky top-0 z-20 bg-muted w-14">
@@ -273,7 +273,8 @@ export function OrderItemsEditorTable({
             })
           )}
         </TableBody>
-      </Table>
-    </div>
+      </table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
