@@ -87,8 +87,10 @@ const columns = useEmployeeColumns({
 });
 ```
 
-Bulk action-bar editing is a separate upcoming surface for Phase 2; do not model it with
-`editableSelect`.
+For bulk edits over selected rows, compose the `DataGridActionBar` primitive
+(`@/components/ui/data-grid-action-bar`) inside `<DataGrid>`: it reads the table from context, floats
+while rows are selected, and hosts page-owned bulk controls (e.g. a status `Select` + Áp dụng). See
+`src/examples/employees/pages/employees-page.tsx`. Do not model bulk editing with `editableSelect`.
 
 ## Ownership
 

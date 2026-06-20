@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  getCoreRowModel,
+  useReactTable,
+  type RowSelectionState,
+} from '@tanstack/react-table';
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,20 +17,35 @@ import {
   CardToolbar,
 } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridActionBar } from '@/components/ui/data-grid-action-bar';
 import { usePersistedColumnVisibility } from '@/components/ui/data-grid-columns';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useSetEmployeeStatusMutation } from '../api/employee.queries';
 import { CreateEmployeeDialog } from '../components/create-employee-dialog';
 import { EmployeesToolbar } from '../components/employees-toolbar';
 import { useEmployeeColumns } from '../hooks/use-employee-columns';
 import { useEmployeeList } from '../hooks/use-employee-list';
-import type { Employee, EmployeeRole } from '../model/employee';
+import {
+  EMPLOYEE_STATUS_LABELS,
+  type Employee,
+  type EmployeeRole,
+  type EmployeeStatus,
+} from '../model/employee';
 
 export function EmployeesExamplePage() {
   const [roleFilter, setRoleFilter] = useState<EmployeeRole[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkStatus, setBulkStatus] = useState<EmployeeStatus>('active');
   const {
     keyword,
     onKeywordChange,
@@ -83,13 +102,24 @@ export function EmployeesExamplePage() {
     data: filteredEmployees,
     columns,
     getRowId: (row) => row.id,
-    state: { pagination, columnVisibility },
+    state: { pagination, columnVisibility, rowSelection },
     onPaginationChange,
     onColumnVisibilityChange,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
     manualPagination: true,
     pageCount: Math.max(1, Math.ceil(filteredTotal / pagination.pageSize)),
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const handleBulkStatus = useCallback(() => {
+    table
+      .getFilteredSelectedRowModel()
+      .rows.forEach((row) =>
+        setStatus({ id: row.original.id, status: bulkStatus }),
+      );
+    table.resetRowSelection();
+  }, [table, setStatus, bulkStatus]);
 
   if (isError) {
     return (
@@ -150,6 +180,30 @@ export function EmployeesExamplePage() {
             <DataGridPagination />
           </CardFooter>
         </Card>
+
+        {canManage ? (
+          <DataGridActionBar>
+            <Select
+              value={bulkStatus}
+              onValueChange={(value) => setBulkStatus(value as EmployeeStatus)}
+            >
+              <SelectTrigger size="sm" className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">
+                  {EMPLOYEE_STATUS_LABELS.active}
+                </SelectItem>
+                <SelectItem value="locked">
+                  {EMPLOYEE_STATUS_LABELS.locked}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="primary" size="sm" onClick={handleBulkStatus}>
+              Áp dụng
+            </Button>
+          </DataGridActionBar>
+        ) : null}
       </DataGrid>
 
       <CreateEmployeeDialog

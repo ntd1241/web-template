@@ -48,6 +48,7 @@ export function useEmployeeColumns({
     const col = createColumnHelpers<Employee>();
 
     return [
+      col.select(),
       col.custom({
         id: 'name',
         header: 'Nhân viên',
