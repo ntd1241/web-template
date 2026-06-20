@@ -1,4 +1,8 @@
 import {
+  EDITOR_TABLE_FIELD_CONTROL,
+  FIELD_ALIGNMENT_CLASS,
+} from '../shared/field-control-registry';
+import {
   editorTableSpecSchema,
   type EditorTableColumnSpec,
   type EditorTableSpec,
@@ -83,6 +87,12 @@ function numberAttrs(
     : '';
 }
 
+function inputVariant(
+  column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
+) {
+  return EDITOR_TABLE_FIELD_CONTROL[column.kind].inputVariant;
+}
+
 function editableCell(
   spec: NormalizedEditorTableSpec,
   column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
@@ -96,10 +106,10 @@ function editableCell(
       <Input
         aria-label={\`${ariaLabel(column)} dòng \${index + 1}\`}
         aria-invalid={!!${fieldError(column)}}
-        className="text-right tabular-nums"${numberAttrs(column)}
+        className="${FIELD_ALIGNMENT_CLASS.right}"${numberAttrs(column)}
         type="number"
         value={inputField.value}
-        variant="sm"
+        variant="${inputVariant(column)}"
         onBlur={inputField.onBlur}
         onChange={(event) =>
           inputField.onChange(
@@ -131,7 +141,7 @@ function editableCell(
         {...inputField}
         aria-label={\`${ariaLabel(column)} dòng \${index + 1}\`}
         aria-invalid={!!${fieldError(column)}}${typeAttr}
-        variant="sm"
+        variant="${inputVariant(column)}"
       />
     )}
   />

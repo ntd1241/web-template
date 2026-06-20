@@ -1,3 +1,4 @@
+import { FORM_FIELD_CONTROL } from '../shared/field-control-registry';
 import type { FormFieldKind } from './form-spec';
 
 /**
@@ -25,28 +26,20 @@ export interface FormKindMeta {
 }
 
 export const FORM_KIND_REGISTRY: Record<FormFieldKind, FormKindMeta> = {
-  text: { binding: 'spread', defaultLiteral: "''", hasOptions: false },
-  number: { binding: 'spread', defaultLiteral: '0', hasOptions: false },
-  textarea: { binding: 'spread', defaultLiteral: "''", hasOptions: false },
+  text: FORM_FIELD_CONTROL.text,
+  number: FORM_FIELD_CONTROL.number,
+  date: FORM_FIELD_CONTROL.date,
+  textarea: FORM_FIELD_CONTROL.textarea,
   select: {
-    binding: 'select',
-    defaultLiteral: "''",
-    hasOptions: true,
-    optionType: '{ value: string; label: string }',
+    ...FORM_FIELD_CONTROL.select,
   },
   combobox: {
-    binding: 'valueOnChange',
-    defaultLiteral: "''",
-    hasOptions: true,
-    optionType: 'ComboboxOption',
+    ...FORM_FIELD_CONTROL.combobox,
   },
   multiselect: {
-    binding: 'valueOnChange',
-    defaultLiteral: '[]',
-    hasOptions: true,
-    optionType: 'MultiSelectOption',
+    ...FORM_FIELD_CONTROL.multiselect,
   },
-  switch: { binding: 'checked', defaultLiteral: 'false', hasOptions: false },
+  switch: FORM_FIELD_CONTROL.switch,
 };
 
 /** Width preset → desktop column span on the 12-col grid (mobile stacks). */

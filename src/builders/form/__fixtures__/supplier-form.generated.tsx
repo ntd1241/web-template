@@ -114,7 +114,7 @@ export function SupplierForm({
                   Mã NCC<span className="text-destructive"> *</span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="vd: NCC-001" {...field} />
+                  <Input placeholder="vd: NCC-001" variant="md" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -130,7 +130,7 @@ export function SupplierForm({
                   Tên nhà cung cấp<span className="text-destructive"> *</span>
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input variant="md" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,7 +144,7 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
                 <FormLabel>Người liên hệ</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input variant="md" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -158,7 +158,7 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
                 <FormLabel>Số điện thoại</FormLabel>
                 <FormControl>
-                  <Input type="tel" {...field} />
+                  <Input type="tel" variant="md" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,7 +172,7 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
                 <FormLabel>Công nợ đầu kỳ</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" variant="md" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

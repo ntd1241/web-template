@@ -50,6 +50,7 @@ Static select-like options are emitted as module constants only when `optionsFro
 | ------------- | --------------------- | ------------------------------------------------------------ |
 | `text`        | `Input`               | `{...field}`                                                 |
 | `number`      | `Input type="number"` | `{...field}`; prefer `z.coerce.number()` for numeric schemas |
+| `date`        | `DatePickerInput`     | `value`, `onChange`, and `onBlur`                            |
 | `textarea`    | `Textarea`            | `{...field}`                                                 |
 | `select`      | `Select`              | `value` and `onValueChange`                                  |
 | `combobox`    | `Combobox`            | `value` and `onChange`                                       |

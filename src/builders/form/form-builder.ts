@@ -1,3 +1,4 @@
+import { BUILDER_INPUT_VARIANTS } from '../shared/field-control-registry';
 import { FORM_KIND_REGISTRY, FORM_WIDTH_SPAN } from './field-kinds';
 import { formSpecSchema, type FormFieldSpec, type FormSpec } from './form-spec';
 
@@ -116,10 +117,12 @@ function controlJsx(field: FormFieldSpec): string {
         field.inputType && field.inputType !== 'text'
           ? ` type="${field.inputType}"`
           : '';
-      return `<FormControl>\n  <Input${type}${ph} {...field} />\n</FormControl>`;
+      return `<FormControl>\n  <Input${type}${ph} variant="${BUILDER_INPUT_VARIANTS.form}" {...field} />\n</FormControl>`;
     }
     case 'number':
-      return `<FormControl>\n  <Input type="number"${ph} {...field} />\n</FormControl>`;
+      return `<FormControl>\n  <Input type="number"${ph} variant="${BUILDER_INPUT_VARIANTS.form}" {...field} />\n</FormControl>`;
+    case 'date':
+      return `<FormControl>\n  <DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ${field.label.toLowerCase()}" variant="${BUILDER_INPUT_VARIANTS.form}" />\n</FormControl>`;
     case 'textarea':
       return `<FormControl>\n  <Textarea rows={${field.rows ?? 3}}${ph} {...field} />\n</FormControl>`;
     case 'select':
@@ -198,6 +201,10 @@ function emitImports(spec: FormSpec): string {
 
   if (kinds.has('text') || kinds.has('number'))
     lines.push("import { Input } from '@/components/ui/input';");
+  if (kinds.has('date'))
+    lines.push(
+      "import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';",
+    );
   if (kinds.has('textarea'))
     lines.push("import { Textarea } from '@/components/ui/textarea';");
   if (kinds.has('select'))

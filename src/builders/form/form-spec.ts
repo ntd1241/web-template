@@ -38,6 +38,8 @@ const textField = z.object({
 
 const numberField = z.object({ kind: z.literal('number'), ...base });
 
+const dateField = z.object({ kind: z.literal('date'), ...base });
+
 const textareaField = z.object({
   kind: z.literal('textarea'),
   rows: z.number().int().positive().optional(),
@@ -73,6 +75,7 @@ const switchField = z.object({ kind: z.literal('switch'), ...base });
 export const formFieldSchema = z.discriminatedUnion('kind', [
   textField,
   numberField,
+  dateField,
   textareaField,
   selectField,
   comboboxField,

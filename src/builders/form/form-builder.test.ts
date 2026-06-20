@@ -32,8 +32,10 @@ describe('buildFormModule', () => {
   });
 
   it('binds each kind correctly', () => {
-    expect(source).toContain('<Input placeholder="vd: NCC-001" {...field} />'); // text spread
-    expect(source).toContain('<Input type="number" {...field} />'); // number
+    expect(source).toContain(
+      '<Input placeholder="vd: NCC-001" variant="md" {...field} />',
+    ); // text spread
+    expect(source).toContain('<Input type="number" variant="md" {...field} />'); // number
     expect(source).toContain('<Textarea rows={3} {...field} />'); // textarea
     expect(source).toContain(
       'value={field.value} onValueChange={field.onChange}',
@@ -47,6 +49,32 @@ describe('buildFormModule', () => {
     expect(source).toContain(
       '<Switch checked={field.value} onCheckedChange={field.onChange} />',
     ); // switch
+  });
+
+  it('renders date fields through the shared date picker input', () => {
+    const dateSource = buildFormModule({
+      entity: 'Employee',
+      schemaImport: './employee-form.schema',
+      schemaName: 'employeeFormSchema',
+      valuesType: 'EmployeeFormValues',
+      title: 'Tạo nhân viên',
+      fields: [
+        {
+          kind: 'date',
+          name: 'startDate',
+          label: 'Ngày vào làm',
+          required: true,
+        },
+      ],
+    });
+
+    expect(dateSource).toContain(
+      "import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';",
+    );
+    expect(dateSource).toContain('startDate: undefined,');
+    expect(dateSource).toContain(
+      '<DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ngày vào làm" variant="md" />',
+    );
   });
 
   it('hoists option consts (multiselect typed)', () => {
