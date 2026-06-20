@@ -32,10 +32,16 @@ export interface Order {
 
 export interface OrderItem {
   id: string;
+  sku: string;
   name: string;
   unit: string;
+  warehouse: string;
+  lotNumber: string;
+  expiryDate: string;
   quantity: number;
   unitPrice: number;
+  taxRate: number;
+  discount: number;
   note: string;
 }
 

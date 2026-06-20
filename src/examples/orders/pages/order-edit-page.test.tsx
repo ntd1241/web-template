@@ -28,7 +28,11 @@ describe('OrderEditPage', () => {
 
     expect(await screen.findByDisplayValue('Gạo ST25')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Cà phê rang xay')).toBeInTheDocument();
-    expect(screen.getByText('4 dòng')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('ST25-10KG')).toBeInTheDocument();
+    expect(screen.getByText('12 dòng')).toBeInTheDocument();
+    expect(screen.getByTestId('order-edit-page')).toHaveClass(
+      'overflow-y-auto',
+    );
   });
 
   it('appends a row from the add button', async () => {
@@ -38,8 +42,8 @@ describe('OrderEditPage', () => {
     await screen.findByDisplayValue('Gạo ST25');
     await user.click(screen.getByRole('button', { name: 'Thêm dòng' }));
 
-    expect(screen.getByText('5 dòng')).toBeInTheDocument();
-    expect(screen.getByLabelText('Tên hàng hóa dòng 5')).toBeInTheDocument();
+    expect(screen.getByText('13 dòng')).toBeInTheDocument();
+    expect(screen.getByLabelText('Tên hàng hóa dòng 13')).toBeInTheDocument();
   });
 
   it('removes a row from the row action', async () => {
@@ -50,7 +54,7 @@ describe('OrderEditPage', () => {
     await user.click(screen.getByRole('button', { name: 'Xóa dòng 1' }));
 
     expect(screen.queryByDisplayValue('Gạo ST25')).not.toBeInTheDocument();
-    expect(screen.getByText('3 dòng')).toBeInTheDocument();
+    expect(screen.getByText('11 dòng')).toBeInTheDocument();
   });
 
   it('updates the computed row total when quantity and unit price change', async () => {
