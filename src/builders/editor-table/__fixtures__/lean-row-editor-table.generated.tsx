@@ -63,7 +63,6 @@ export function LeanRowEditorTable({
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
                     onClick={handleAddRow}
                   >
                     <Plus />

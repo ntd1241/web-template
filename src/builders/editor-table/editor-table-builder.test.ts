@@ -14,6 +14,7 @@ const orderItemsSpec: EditorTableSpec = {
   columns: [
     { kind: 'index', header: 'STT', widthClass: 'w-14' },
     { kind: 'text', name: 'sku', header: 'Mã hàng', widthClass: 'w-36' },
+    { kind: 'date', name: 'expiryDate', header: 'Hạn dùng' },
     { kind: 'number', name: 'quantity', header: 'Số lượng', min: 0 },
     {
       kind: 'computedCurrency',
@@ -57,8 +58,14 @@ describe('buildEditorTableModule', () => {
 
   it('emits editable inputs and computed currency stubs', () => {
     expect(source).toContain('name={`items.${index}.sku`}');
+    expect(source).toContain('name={`items.${index}.expiryDate`}');
     expect(source).toContain('name={`items.${index}.quantity`}');
     expect(source).toContain('type="number"');
+    expect(source).toContain(
+      "import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';",
+    );
+    expect(source).toContain('valueMode="iso-date"');
+    expect(source).not.toContain('type="date"');
     expect(source).toContain('const lineTotal = 0;');
     expect(source).toContain('formatCurrencyVND(lineTotal)');
   });
@@ -112,6 +119,12 @@ describe('buildEditorTableModule', () => {
     expect(withToolbar).toContain('Hàng hóa trong đơn');
     expect(withToolbar).toContain('{fields.length} dòng');
     expect(withToolbar).toContain('onClick={handleAddRow}');
+    expect(withToolbar).toContain(
+      '<Button type="button" variant="primary" onClick={handleAddRow}>',
+    );
+    expect(withToolbar).not.toContain(
+      '<Button type="button" variant="primary" size="sm" onClick={handleAddRow}>',
+    );
     // default add label
     expect(withToolbar).toContain('Thêm dòng');
     // no toolbar by default → no header markup

@@ -4,12 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Save, TriangleAlert } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { formatCurrencyVND } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardDescription,
-  CardFooter,
   CardTable,
   CardTitle,
 } from '@/components/ui/card';
@@ -51,14 +49,6 @@ export function OrderEditPage() {
   });
   const itemsQuery = useOrderItemsQuery(orderId);
   const saveItemsMutation = useSaveOrderItemsMutation();
-  const watchedItems = form.watch('items') ?? [];
-  const totalAmount = watchedItems.reduce(
-    (sum, item) =>
-      sum +
-      item.quantity * item.unitPrice * (1 + item.taxRate / 100) -
-      item.discount,
-    0,
-  );
 
   useEffect(() => {
     if (itemsQuery.data) {
@@ -142,22 +132,6 @@ export function OrderEditPage() {
               <OrderItemsEditorTable form={form} createRow={blankItem} />
             )}
           </CardTable>
-
-          <CardFooter className="justify-between gap-4">
-            <div className="font-medium tabular-nums">
-              Tổng cộng: {formatCurrencyVND(totalAmount)}
-            </div>
-            <Button
-              form={orderEditFormId}
-              type="submit"
-              variant="primary"
-              loading={saveItemsMutation.isPending}
-              loadingText="Đang lưu"
-            >
-              <Save />
-              Lưu
-            </Button>
-          </CardFooter>
         </Card>
       </form>
     </div>

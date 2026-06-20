@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, ComponentProps, FocusEvent } from 'react';
 import type { VariantProps } from 'class-variance-authority';
 import { format, isValid, parse } from 'date-fns';
@@ -14,10 +14,22 @@ import {
 } from '@/components/ui/popover';
 
 const DATE_INPUT_FORMAT = 'dd/MM/yyyy';
+const ISO_DATE_FORMAT = 'yyyy-MM-dd';
 
 function formatDateInput(date: Date | null | undefined): string {
   if (!date || !isValid(date)) return '';
   return format(date, DATE_INPUT_FORMAT);
+}
+
+function parseIsoDate(value: string | null | undefined): Date | undefined {
+  if (!value) return undefined;
+
+  const parsedDate = parse(value, ISO_DATE_FORMAT, new Date());
+  if (!isValid(parsedDate) || format(parsedDate, ISO_DATE_FORMAT) !== value) {
+    return undefined;
+  }
+
+  return parsedDate;
 }
 
 function parseDateInput(value: string): Date | undefined {
@@ -42,8 +54,9 @@ export interface DatePickerInputProps
       'onBlur' | 'onChange' | 'type' | 'value'
     >,
     VariantProps<typeof inputVariants> {
-  value?: Date | null;
-  onChange?: (value: Date | undefined) => void;
+  value?: Date | string | null;
+  valueMode?: 'date' | 'iso-date';
+  onChange?: (value: Date | string | undefined) => void;
   onBlur?: (event?: FocusEvent<HTMLInputElement>) => void;
   calendarLabel?: string;
 }
@@ -51,6 +64,7 @@ export interface DatePickerInputProps
 export function DatePickerInput({
   className,
   value,
+  valueMode = 'date',
   onChange,
   onBlur,
   variant,
@@ -59,18 +73,34 @@ export function DatePickerInput({
   ...props
 }: DatePickerInputProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dateText, setDateText] = useState(() => formatDateInput(value));
-  const selectedDate =
-    value instanceof Date && isValid(value) ? value : undefined;
+  const selectedDate = useMemo(
+    () =>
+      valueMode === 'iso-date'
+        ? parseIsoDate(typeof value === 'string' ? value : undefined)
+        : value instanceof Date && isValid(value)
+          ? value
+          : undefined,
+    [value, valueMode],
+  );
+  const [dateText, setDateText] = useState(() => formatDateInput(selectedDate));
 
   useEffect(() => {
-    setDateText(formatDateInput(value));
-  }, [value]);
+    setDateText(formatDateInput(selectedDate));
+  }, [selectedDate]);
+
+  const emitChange = (date: Date | undefined) => {
+    if (valueMode === 'iso-date') {
+      onChange?.(date ? format(date, ISO_DATE_FORMAT) : undefined);
+      return;
+    }
+
+    onChange?.(date);
+  };
 
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
     setDateText(nextValue);
-    onChange?.(parseDateInput(nextValue));
+    emitChange(parseDateInput(nextValue));
   };
 
   const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
@@ -85,7 +115,7 @@ export function DatePickerInput({
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
 
-    onChange?.(date);
+    emitChange(date);
     setDateText(formatDateInput(date));
     setIsOpen(false);
   };

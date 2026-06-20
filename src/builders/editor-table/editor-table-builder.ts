@@ -129,7 +129,33 @@ function editableCell(
 </TableCell>`;
   }
 
-  const type = column.kind === 'date' ? 'date' : (column.inputType ?? 'text');
+  if (column.kind === 'date') {
+    return `<TableCell className="px-2 py-2">
+  <Controller
+    control={form.control}
+    name={\`${fieldName(spec, column.name)}\`}
+    render={({ field: inputField }) => (
+      <DatePickerInput
+        aria-label={\`${ariaLabel(column)} dòng \${index + 1}\`}
+        aria-invalid={!!${fieldError(column)}}
+        calendarLabel={\`Chọn ${ariaLabel(column).toLowerCase()} dòng \${index + 1}\`}
+        value={inputField.value}
+        valueMode="iso-date"
+        variant="${inputVariant(column)}"
+        onBlur={inputField.onBlur}
+        onChange={inputField.onChange}
+      />
+    )}
+  />
+  {${fieldError(column)} && (
+    <div className="mt-1 text-xs text-destructive">
+      {${fieldError(column)}?.message}
+    </div>
+  )}
+</TableCell>`;
+  }
+
+  const type = column.inputType ?? 'text';
   const typeAttr = type === 'text' ? '' : `\n        type="${type}"`;
 
   return `<TableCell className="px-2 py-2">
@@ -279,6 +305,16 @@ function hasComputedColumn(spec: NormalizedEditorTableSpec): boolean {
   return spec.columns.some((column) => column.kind === 'computedCurrency');
 }
 
+function hasInputColumn(spec: NormalizedEditorTableSpec): boolean {
+  return spec.columns.some(
+    (column) => column.kind === 'text' || column.kind === 'number',
+  );
+}
+
+function hasDateColumn(spec: NormalizedEditorTableSpec): boolean {
+  return spec.columns.some((column) => column.kind === 'date');
+}
+
 /**
  * Import only what the emitted cells actually use — `noUnusedLocals` makes any
  * unused import a build error, so the icons, RHF `Controller`, `Input` and
@@ -287,6 +323,8 @@ function hasComputedColumn(spec: NormalizedEditorTableSpec): boolean {
 function emitImports(spec: NormalizedEditorTableSpec): string {
   const editable = hasEditableColumn(spec);
   const computed = hasComputedColumn(spec);
+  const input = hasInputColumn(spec);
+  const date = hasDateColumn(spec);
   const icons = spec.actions.enabled ? 'Copy, Plus, Trash2' : 'Plus';
   const rhfValues = editable ? 'Controller, useFieldArray' : 'useFieldArray';
 
@@ -296,7 +334,11 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
     "import type { UseFormReturn } from 'react-hook-form';",
     "import { Button } from '@/components/ui/button';",
   ];
-  if (editable) lines.push("import { Input } from '@/components/ui/input';");
+  if (input) lines.push("import { Input } from '@/components/ui/input';");
+  if (date)
+    lines.push(
+      "import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';",
+    );
   lines.push(
     "import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';",
   );
@@ -356,7 +398,7 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
           <h2 className="text-sm font-semibold text-foreground">${toolbar.title}</h2>
           <div className="text-xs text-muted-foreground">{fields.length} dòng</div>
         </div>
-        <Button type="button" variant="primary" size="sm" onClick={handleAddRow}>
+        <Button type="button" variant="primary" onClick={handleAddRow}>
           <Plus />
           ${toolbar.addLabel}
         </Button>
@@ -399,7 +441,7 @@ ${indent(emitHeaders(spec), 12)}
               <TableCell colSpan={${columnCount}} className="h-28 text-center">
                 <div className="flex flex-col items-center gap-3">
                   <span className="text-muted-foreground">Chưa có dữ liệu</span>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddRow}>
+                  <Button type="button" variant="outline" onClick={handleAddRow}>
                     <Plus />
                     Thêm dòng
                   </Button>

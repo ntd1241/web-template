@@ -34,6 +34,7 @@ describe('OrderEditPage', () => {
     expect(screen.getByTestId('order-edit-page')).toHaveClass(
       'overflow-y-auto',
     );
+    expect(screen.getAllByRole('button', { name: 'Lưu' })).toHaveLength(1);
   });
 
   it('appends a row from the add button', async () => {
@@ -84,7 +85,7 @@ describe('OrderEditPage', () => {
     await screen.findByDisplayValue('Gạo ST25');
     await user.clear(screen.getByLabelText('Số lượng dòng 1'));
     await user.type(screen.getByLabelText('Số lượng dòng 1'), '3');
-    await user.click(screen.getAllByRole('button', { name: 'Lưu' })[0]);
+    await user.click(screen.getByRole('button', { name: 'Lưu' }));
 
     await waitFor(() => {
       expect(saveSpy).toHaveBeenCalledWith(

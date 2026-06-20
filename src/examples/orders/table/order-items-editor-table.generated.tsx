@@ -9,6 +9,7 @@ import type { UseFormReturn } from 'react-hook-form';
 import { formatCurrencyVND } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   TableBody,
@@ -60,12 +61,7 @@ export function OrderItemsEditorTable({
             {fields.length} dòng
           </div>
         </div>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={handleAddRow}
-        >
+        <Button type="button" variant="primary" onClick={handleAddRow}>
           <Plus />
           Thêm dòng
         </Button>
@@ -127,7 +123,6 @@ export function OrderItemsEditorTable({
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
                       onClick={handleAddRow}
                     >
                       <Plus />
@@ -251,12 +246,15 @@ export function OrderItemsEditorTable({
                         control={form.control}
                         name={`items.${index}.expiryDate`}
                         render={({ field: inputField }) => (
-                          <Input
-                            {...inputField}
+                          <DatePickerInput
                             aria-label={`Hạn dùng dòng ${index + 1}`}
                             aria-invalid={!!errors?.expiryDate}
-                            type="date"
+                            calendarLabel={`Chọn hạn dùng dòng ${index + 1}`}
+                            value={inputField.value}
+                            valueMode="iso-date"
                             variant="sm"
+                            onBlur={inputField.onBlur}
+                            onChange={inputField.onChange}
                           />
                         )}
                       />
