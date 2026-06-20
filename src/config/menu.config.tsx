@@ -2,6 +2,7 @@ import { ROUTES } from '@/constants/routes';
 import {
   PackageCheck,
   ShieldCheck,
+  ShoppingCart,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -47,6 +48,7 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
     title: 'Quản trị',
     items: [
       { label: 'Nhân viên', icon: Users, path: ROUTES.EXAMPLE.EMPLOYEES },
+      { label: 'Đơn hàng', icon: ShoppingCart, path: ROUTES.EXAMPLE.ORDERS },
       {
         label: 'Vật tư',
         icon: PackageCheck,

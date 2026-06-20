@@ -23,6 +23,11 @@ if (import.meta.env.DEV) {
       default: m.EmployeesExamplePage,
     })),
   );
+  const OrdersExamplePage = lazy(() =>
+    import('./orders/pages/orders-page').then((m) => ({
+      default: m.OrdersExamplePage,
+    })),
+  );
   const RolePermissionsPage = lazy(() =>
     import('./role-permissions/pages/role-permissions-page').then((m) => ({
       default: m.RolePermissionsPage,
@@ -62,6 +67,14 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <EmployeesExamplePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.ORDERS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <OrdersExamplePage />
             </Suspense>
           }
         />

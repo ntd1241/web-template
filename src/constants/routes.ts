@@ -8,6 +8,7 @@ export const ROUTES = {
   EXAMPLE: {
     EMPLOYEES: '/example/employees',
     EMPLOYEE_DETAIL: '/example/employees/:id',
+    ORDERS: '/example/orders',
     MATERIALS: '/example/materials',
     MATERIAL_PUBLIC_DETAIL: '/example/materials/public/:id',
     SUPPLIERS: '/example/suppliers',
