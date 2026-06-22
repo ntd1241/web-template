@@ -5,7 +5,7 @@ export function FeedbackTab() {
   return (
     <TabPlaceholder
       title="Phản ánh"
-      description="Khung phản ánh sẽ được bổ sung ở bước sau."
+      description="Gửi phản ánh khi bình bị mất niêm phong, tụt áp, hư hỏng hoặc không còn đúng vị trí."
       icon={MessageSquareWarning}
     />
   );

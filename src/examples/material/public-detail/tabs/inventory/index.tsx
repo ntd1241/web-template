@@ -5,7 +5,7 @@ export function InventoryTab() {
   return (
     <TabPlaceholder
       title="Lịch sử kiểm kê"
-      description="Khung lịch sử kiểm kê sẽ được bổ sung ở bước sau."
+      description="Kiểm kê ngày 15/06/2026: đúng vị trí, tem kiểm định còn hạn, áp suất đạt yêu cầu."
       icon={ClipboardCheck}
     />
   );

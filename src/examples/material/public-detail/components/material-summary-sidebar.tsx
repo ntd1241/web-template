@@ -30,7 +30,7 @@ export function MaterialSummarySidebar() {
                 >
                   <Icon className="size-4" />
                 </span>
-                <span className="flex min-w-0 flex-col">
+                <span className="flex min-w-0 flex-1 flex-col">
                   <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-admin-neutral-500">
                     {fact.label}
                   </span>
@@ -38,6 +38,13 @@ export function MaterialSummarySidebar() {
                     {fact.value}
                   </span>
                 </span>
+                {'imageSrc' in fact && (
+                  <img
+                    src={fact.imageSrc}
+                    alt="Mã QR vật tư"
+                    className="size-16 shrink-0 rounded-lg border border-admin-primary-foam bg-white object-contain p-1"
+                  />
+                )}
               </div>
             );
           })}
@@ -56,10 +63,10 @@ export function MaterialSummarySidebar() {
             </span>
             <div className="flex flex-col">
               <span className="text-[11px] font-medium uppercase text-admin-blue-dark">
-                Đang vận hành
+                Sẵn sàng sử dụng
               </span>
               <span className="text-sm font-medium text-admin-neutral-800">
-                Sẵn sàng bàn giao và kiểm kê
+                Áp suất ổn định, niêm phong còn nguyên
               </span>
             </div>
           </div>
@@ -80,7 +87,7 @@ export function MaterialSummarySidebar() {
               {materialPublicInfo.lastInventoryDate}
             </span>
             <span className="text-sm font-medium text-admin-neutral-800">
-              Kiểm kê định kỳ quý II
+              Kiểm tra an toàn PCCC định kỳ
             </span>
           </div>
         </div>
@@ -97,7 +104,7 @@ export function MaterialSummarySidebar() {
           </span>
           <div className="flex flex-col">
             <span className="text-[11px] font-medium uppercase text-admin-violet-primary">
-              Theo dõi định kỳ
+              Nạp sạc định kỳ
             </span>
             <span className="text-sm font-medium text-admin-neutral-800">
               Lần bảo trì tiếp theo: {materialPublicInfo.nextMaintenanceDate}

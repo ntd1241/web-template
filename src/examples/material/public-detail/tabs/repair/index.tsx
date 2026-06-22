@@ -5,7 +5,7 @@ export function RepairTab() {
   return (
     <TabPlaceholder
       title="Lịch sử sửa chữa"
-      description="Khung lịch sử sửa chữa sẽ được bổ sung ở bước sau."
+      description="Chưa phát sinh sửa chữa. Lần nạp sạc gần nhất ngày 15/12/2025."
       icon={Wrench}
     />
   );
