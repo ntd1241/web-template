@@ -31,11 +31,11 @@ forms above the table.
   - `md`: `clamp(400px, 52dvh, 600px)`
   - `lg`: `clamp(480px, 62dvh, 760px)`
 - `remaining`: best for pages where the table is the primary content and should
-  fill the remaining viewport.
+  fill the remaining viewport while keeping a usable minimum editing height.
 - `natural`: lets the page scroll naturally. Use only for short tables or
   read-mostly detail sections.
 
-For the current order edit pilot, prefer `fixed/lg`.
+For the current order edit pilot, prefer `remaining`.
 
 ## Supported Columns
 
@@ -51,6 +51,13 @@ The builder emits default row actions: duplicate, insert below, and delete. The
 action column is pinned to the right so it remains visible during horizontal
 scroll.
 
+## Multi Edit
+
+Set `multiEdit.enabled` and mark safe editable columns with `bulkEdit: true` to
+emit row selection plus a floating bulk action bar. When `headerInputs` is true,
+bulk-enabled headers also show compact inputs under the label; both action bar
+and header inputs apply only to selected rows.
+
 ## Example Spec
 
 ```ts
@@ -64,7 +71,8 @@ const spec: EditorTableSpec = {
   valuesImport: '../form/order-items.schema',
   arrayName: 'items',
   tableMinWidthClass: 'min-w-[1760px]',
-  viewport: { mode: 'fixed', height: 'lg' },
+  viewport: { mode: 'remaining' },
+  multiEdit: { enabled: true, headerInputs: true },
   columns: [
     { kind: 'index', header: 'STT', widthClass: 'w-14' },
     { kind: 'text', name: 'sku', header: 'Mã hàng', widthClass: 'w-36' },
@@ -87,6 +95,14 @@ const spec: EditorTableSpec = {
       header: 'Đơn giá',
       min: 0,
       widthClass: 'w-40',
+    },
+    {
+      kind: 'number',
+      name: 'taxRate',
+      header: 'VAT %',
+      min: 0,
+      widthClass: 'w-28',
+      bulkEdit: true,
     },
     {
       kind: 'computedCurrency',

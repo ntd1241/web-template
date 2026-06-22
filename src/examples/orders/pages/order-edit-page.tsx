@@ -82,9 +82,9 @@ export function OrderEditPage() {
   return (
     <div
       data-testid="order-edit-page"
-      className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-6"
+      className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-6"
     >
-      <div className="flex shrink-0 flex-col gap-3 border-b border-border pb-4 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex shrink-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">
             <Button variant="outline" mode="icon" size="sm" asChild>
@@ -119,10 +119,10 @@ export function OrderEditPage() {
 
       <form
         id={orderEditFormId}
-        className="min-h-0 flex-1"
+        className="flex min-h-0 flex-1 flex-col"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
-        <Card className="min-h-0 overflow-hidden">
+        <Card className="min-h-0 flex-1 overflow-hidden">
           <CardTable className="min-h-0 flex-1 overflow-hidden">
             {itemsQuery.isLoading ? (
               <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">

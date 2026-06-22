@@ -9,7 +9,8 @@ const spec: EditorTableSpec = {
   arrayName: 'items',
   tableMinWidthClass: 'min-w-[1880px]',
   toolbar: { title: 'Hàng hóa trong đơn' },
-  viewport: { mode: 'fixed', height: 'lg' },
+  viewport: { mode: 'remaining' },
+  multiEdit: { enabled: true, headerInputs: true },
   columns: [
     { kind: 'index', header: 'STT', widthClass: 'w-14' },
     { kind: 'text', name: 'sku', header: 'Mã hàng', widthClass: 'w-36' },
@@ -20,13 +21,20 @@ const spec: EditorTableSpec = {
       widthClass: 'min-w-56',
     },
     { kind: 'text', name: 'unit', header: 'ĐVT', widthClass: 'w-28' },
-    { kind: 'text', name: 'warehouse', header: 'Kho', widthClass: 'w-36' },
+    {
+      kind: 'text',
+      name: 'warehouse',
+      header: 'Kho',
+      widthClass: 'w-36',
+      bulkEdit: true,
+    },
     { kind: 'text', name: 'lotNumber', header: 'Số lô', widthClass: 'w-40' },
     {
       kind: 'date',
       name: 'expiryDate',
       header: 'Hạn dùng',
       widthClass: 'w-40',
+      bulkEdit: true,
     },
     {
       kind: 'number',
@@ -48,6 +56,7 @@ const spec: EditorTableSpec = {
       header: 'VAT %',
       min: 0,
       widthClass: 'w-28',
+      bulkEdit: true,
     },
     {
       kind: 'number',
@@ -55,8 +64,15 @@ const spec: EditorTableSpec = {
       header: 'Chiết khấu',
       min: 0,
       widthClass: 'w-36',
+      bulkEdit: true,
     },
-    { kind: 'text', name: 'note', header: 'Ghi chú', widthClass: 'min-w-48' },
+    {
+      kind: 'text',
+      name: 'note',
+      header: 'Ghi chú',
+      widthClass: 'min-w-48',
+      bulkEdit: true,
+    },
     {
       kind: 'computedCurrency',
       id: 'lineTotal',

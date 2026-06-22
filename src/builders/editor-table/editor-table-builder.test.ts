@@ -76,7 +76,19 @@ describe('buildEditorTableModule', () => {
         ...orderItemsSpec,
         viewport: { mode: 'remaining' },
       }),
-    ).toContain('<ScrollArea className="min-h-0 flex-1">');
+    ).toContain('<ScrollArea className="h-full min-h-[360px] min-h-0">');
+
+    const withToolbar = buildEditorTableModule({
+      ...orderItemsSpec,
+      toolbar: { title: 'Hàng hóa trong đơn' },
+      viewport: { mode: 'remaining' },
+    });
+    expect(withToolbar).toContain(
+      '<div className="flex h-full min-h-0 min-w-0 flex-col">',
+    );
+    expect(withToolbar).toContain(
+      '<ScrollArea className="min-h-[360px] min-h-0 flex-1">',
+    );
 
     expect(
       buildEditorTableModule({
@@ -129,6 +141,48 @@ describe('buildEditorTableModule', () => {
     expect(withToolbar).toContain('Thêm dòng');
     // no toolbar by default → no header markup
     expect(source).not.toContain('{fields.length} dòng');
+  });
+
+  it('emits multi-edit selection, action bar, and optional header inputs', () => {
+    const multiEdit = buildEditorTableModule({
+      ...orderItemsSpec,
+      multiEdit: { enabled: true, headerInputs: true },
+      columns: [
+        { kind: 'index', header: 'STT' },
+        { kind: 'text', name: 'warehouse', header: 'Kho', bulkEdit: true },
+        { kind: 'number', name: 'taxRate', header: 'VAT %', bulkEdit: true },
+        {
+          kind: 'date',
+          name: 'expiryDate',
+          header: 'Hạn dùng',
+          bulkEdit: true,
+        },
+        { kind: 'text', name: 'sku', header: 'Mã hàng' },
+      ],
+    });
+
+    expect(multiEdit).toContain("import { useMemo, useState } from 'react';");
+    expect(multiEdit).toContain(
+      "import { Checkbox } from '@/components/ui/checkbox';",
+    );
+    expect(multiEdit).toContain('role="toolbar"');
+    expect(multiEdit).toContain('Đã chọn {selectedIndexes.length} dòng');
+    expect(multiEdit).toContain('handleBulkApply');
+    expect(multiEdit).toContain('handleHeaderBulkChange');
+    expect(multiEdit).toContain('selectedRowIds.includes(field.fieldId)');
+    expect(multiEdit).toContain(
+      "const [bulkField, setBulkField] = useState<BulkFieldName>('warehouse');",
+    );
+    expect(multiEdit).toContain(
+      "{ name: 'warehouse', label: 'Kho', kind: 'text' }",
+    );
+    expect(multiEdit).toContain(
+      "{ name: 'taxRate', label: 'VAT %', kind: 'number' }",
+    );
+    expect(multiEdit).toContain(
+      "{ name: 'expiryDate', label: 'Hạn dùng', kind: 'date' }",
+    );
+    expect(multiEdit).not.toContain("{ name: 'sku', label: 'Mã hàng'");
   });
 
   it('omits Controller/Input/errors when there is no editable column', () => {

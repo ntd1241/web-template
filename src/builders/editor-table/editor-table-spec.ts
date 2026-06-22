@@ -28,6 +28,7 @@ const indexColumn = z.object({
 const textColumn = z.object({
   kind: z.literal('text'),
   inputType: z.enum(['text', 'email', 'tel', 'url']).optional(),
+  bulkEdit: z.boolean().default(false),
   ...fieldColumnBase,
 });
 
@@ -36,11 +37,13 @@ const numberColumn = z.object({
   min: z.number().optional(),
   max: z.number().optional(),
   step: z.number().optional(),
+  bulkEdit: z.boolean().default(false),
   ...fieldColumnBase,
 });
 
 const dateColumn = z.object({
   kind: z.literal('date'),
+  bulkEdit: z.boolean().default(false),
   ...fieldColumnBase,
 });
 
@@ -87,6 +90,13 @@ export const editorTableSpecSchema = z.object({
       className: z.string().optional(),
     })
     .default({ mode: 'fixed', height: 'lg' }),
+  multiEdit: z
+    .object({
+      enabled: z.boolean().default(false),
+      actionBar: z.boolean().default(true),
+      headerInputs: z.boolean().default(false),
+    })
+    .default({ enabled: false, actionBar: true, headerInputs: false }),
   actions: z
     .object({
       enabled: z.boolean().default(true),
