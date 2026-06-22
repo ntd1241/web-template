@@ -73,23 +73,6 @@ export const materialPublicInfo = {
   lastInventoryDate: '15/06/2026',
 } as const;
 
-/**
- * Ảnh mock không liên quan – thay bằng URL ảnh thật khi có.
- * Hiện dùng placeholder SVG (data-URI) để render được offline trong demo.
- */
-function mockImage(label: string, color: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${color}"/>
-      <stop offset="1" stop-color="#1f2937"/>
-    </linearGradient></defs>
-    <rect width="1200" height="900" fill="url(#g)"/>
-    <text x="50%" y="50%" fill="#ffffff" font-family="sans-serif" font-size="64"
-      font-weight="700" text-anchor="middle" dominant-baseline="middle">${label}</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
 export interface MaterialGalleryImage {
   id: string;
   label: string;
@@ -99,26 +82,14 @@ export interface MaterialGalleryImage {
 export const materialGalleryItems: MaterialGalleryImage[] = [
   {
     id: 'overview',
-    label: 'Toàn cảnh',
-    url: mockImage('Toàn cảnh', '#dc2626'),
+    label: 'Bình chữa cháy bột và CO₂',
+    url: 'https://pcccgiaphu.com/upload/images/phan-biet-binh-chua-chay-1.jpg',
   },
   {
-    id: 'inspection',
-    label: 'Tem kiểm định',
-    url: mockImage('Tem kiểm định', '#2563eb'),
+    id: 'co2-extinguisher',
+    label: 'Bình chữa cháy CO₂ MT5 5kg',
+    url: 'https://mesenco.com/wp-content/uploads/2024/03/BINH-CHUA-CHAY-KHI-CO2-MT5-5KG-2.jpg',
   },
-  { id: 'gauge', label: 'Đồng hồ áp', url: mockImage('Đồng hồ áp', '#059669') },
-  {
-    id: 'safety-pin',
-    label: 'Chốt an toàn',
-    url: mockImage('Chốt an toàn', '#d97706'),
-  },
-  {
-    id: 'location',
-    label: 'Vị trí đặt',
-    url: mockImage('Vị trí đặt', '#7c3aed'),
-  },
-  { id: 'qr', label: 'Mã QR', url: mockImage('Mã QR', '#0891b2') },
 ];
 
 export const materialFacts = [
