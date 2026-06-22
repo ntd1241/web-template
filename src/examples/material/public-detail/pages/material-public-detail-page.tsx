@@ -29,10 +29,11 @@ export function MaterialPublicDetailPage() {
           >
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
               <div className="flex min-w-0 flex-col gap-6">
-                <MaterialGalleryCard />
-
                 <TabsContent value="general" className="mt-0">
-                  <CommonTab />
+                  <div className="flex min-w-0 flex-col gap-6">
+                    <MaterialGalleryCard />
+                    <CommonTab />
+                  </div>
                 </TabsContent>
                 <TabsContent value="handover" className="mt-0">
                   <HandoverTab />
