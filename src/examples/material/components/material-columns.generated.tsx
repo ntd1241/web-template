@@ -7,24 +7,26 @@
 import { useMemo } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ExternalLink, Package, QrCode } from 'lucide-react';
+import { ExternalLink, Package, Pencil, QrCode, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  createColumnHelpers,
-  type StatusBadgeConfig,
-} from '@/components/ui/data-grid-columns';
+import { createColumnHelpers } from '@/components/ui/data-grid-columns';
 import type { Material } from '../model/material';
 
-const groupBadgeConfig: StatusBadgeConfig<string> = {
-  'kiem-ke': { label: 'Thiết bị kiểm kê', variant: 'primary' },
-  'van-phong': { label: 'Văn phòng', variant: 'secondary' },
-  'an-toan': { label: 'An toàn lao động', variant: 'warning' },
-  'cong-cu': { label: 'Công cụ - dụng cụ', variant: 'info' },
-};
+export interface UseMaterialColumnsParams {
+  modelNameById: Map<string, string>;
+  groupNameByModelId: Map<string, string>;
+  onEdit: (row: Material) => void;
+  onDelete: (row: Material) => void;
+}
 
-export function useMaterialColumns(): ColumnDef<Material>[] {
+export function useMaterialColumns({
+  modelNameById,
+  groupNameByModelId,
+  onEdit,
+  onDelete,
+}: UseMaterialColumnsParams): ColumnDef<Material>[] {
   return useMemo(() => {
     const col = createColumnHelpers<Material>();
 
@@ -75,13 +77,27 @@ export function useMaterialColumns(): ColumnDef<Material>[] {
           </div>
         ),
       }),
-      col.badge({
+      col.custom({
+        id: 'model',
+        header: 'Mẫu',
+        headerClassName: 'w-[200px]',
+        size: 200,
+        cell: (row) => (
+          <span className="text-foreground">
+            {modelNameById.get(row.modelId) ?? '—'}
+          </span>
+        ),
+      }),
+      col.custom({
         id: 'group',
         header: 'Nhóm',
-        get: (row) => row.group,
-        config: groupBadgeConfig,
         headerClassName: 'w-[180px]',
         size: 180,
+        cell: (row) => (
+          <span className="text-foreground">
+            {groupNameByModelId.get(row.modelId) ?? '—'}
+          </span>
+        ),
       }),
       col.custom({
         id: 'tags',
@@ -104,20 +120,38 @@ export function useMaterialColumns(): ColumnDef<Material>[] {
         cellClassName: 'text-right',
         size: 120,
         cell: (row) => (
-          <Button asChild variant="outline" size="sm">
-            <Link
-              to={buildPath(ROUTES.EXAMPLE.MATERIAL_PUBLIC_DETAIL, {
-                id: row.id,
-              })}
-              target="_blank"
-              rel="noreferrer"
+          <div className="flex items-center justify-end gap-1">
+            <Button asChild variant="ghost" size="icon" aria-label="Mở public">
+              <Link
+                to={buildPath(ROUTES.EXAMPLE.MATERIAL_PUBLIC_DETAIL, {
+                  id: row.id,
+                })}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ExternalLink className="size-4" />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sửa thiết bị"
+              onClick={() => onEdit(row)}
             >
-              <ExternalLink className="size-3.5" />
-              Public
-            </Link>
-          </Button>
+              <Pencil className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Xóa thiết bị"
+              className="text-muted-foreground"
+              onClick={() => onDelete(row)}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
         ),
       }),
     ];
-  }, []);
+  }, [groupNameByModelId, modelNameById, onDelete, onEdit]);
 }

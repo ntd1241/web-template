@@ -7,9 +7,9 @@ import type { TableSpec } from '@/builders/table';
  *   npm run gen:table -- src/examples/material/table/material.table.fixture.ts \
  *     src/examples/material/components/material-columns.generated.tsx
  *
- * The generated hook is then OWNED: the `qr` / `identity` / `tags` / `actions`
- * cell stubs are filled in place. The clean accessor column (`group` badge) is
- * fully generated. Re-running the builder overwrites — point it at a scratch path
+ * The generated hook is then OWNED: the `qr` / `identity` / `model` / `group` /
+ * `tags` / `actions` cell stubs are filled in place. Re-running the builder
+ * overwrites — point it at a scratch path
  * when refreshing a file you've customized.
  */
 const spec: TableSpec = {
@@ -33,18 +33,19 @@ const spec: TableSpec = {
       size: 340,
     },
     {
-      kind: 'badge',
+      kind: 'custom',
+      id: 'model',
+      header: 'Mẫu',
+      field: 'modelId',
+      headerClassName: 'w-[200px]',
+      size: 200,
+    },
+    {
+      kind: 'custom',
       id: 'group',
       header: 'Nhóm',
-      field: 'group',
       headerClassName: 'w-[180px]',
       size: 180,
-      config: {
-        'kiem-ke': { label: 'Thiết bị kiểm kê', variant: 'primary' },
-        'van-phong': { label: 'Văn phòng', variant: 'secondary' },
-        'an-toan': { label: 'An toàn lao động', variant: 'warning' },
-        'cong-cu': { label: 'Công cụ - dụng cụ', variant: 'info' },
-      },
     },
     {
       kind: 'custom',
