@@ -8,6 +8,8 @@ export const MATERIALS_MOCK: Material[] = [
     code: 'TB-QR-000601',
     imageUrl: '',
     group: 'kiem-ke',
+    modelId: 'model-qr-scanner',
+    specValues: [],
     tags: ['QR', 'Kho trung tâm', 'Đang dùng'],
   },
   {
@@ -16,6 +18,8 @@ export const MATERIALS_MOCK: Material[] = [
     code: 'VP-IN-000218',
     imageUrl: '',
     group: 'van-phong',
+    modelId: 'model-printer',
+    specValues: [],
     tags: ['Tem nhãn', 'Tầng 2'],
   },
   {
@@ -24,6 +28,8 @@ export const MATERIALS_MOCK: Material[] = [
     code: 'AT-BH-000045',
     imageUrl: '',
     group: 'an-toan',
+    modelId: 'model-helmet',
+    specValues: [{ specDefinitionId: 'spec-color', value: 'mau-vang' }],
     tags: ['Bảo hộ', 'Cấp phát'],
   },
   {
@@ -32,6 +38,8 @@ export const MATERIALS_MOCK: Material[] = [
     code: 'CC-KH-000732',
     imageUrl: '',
     group: 'cong-cu',
+    modelId: 'model-drill',
+    specValues: [],
     tags: ['Điện cầm tay', 'Bảo trì'],
   },
   {
@@ -40,6 +48,8 @@ export const MATERIALS_MOCK: Material[] = [
     code: 'TB-CA-000118',
     imageUrl: '',
     group: 'kiem-ke',
+    modelId: 'model-scale',
+    specValues: [],
     tags: ['Cân', 'Kho B'],
   },
   {
@@ -48,6 +58,34 @@ export const MATERIALS_MOCK: Material[] = [
     code: 'AT-PCCC-000077',
     imageUrl: '',
     group: 'an-toan',
+    modelId: 'model-co2',
+    specValues: [{ specDefinitionId: 'spec-mfg-date', value: '2026-01-15' }],
     tags: ['PCCC', 'Định kỳ'],
+  },
+  {
+    id: 'f7b6c5a7-6666-4f70-8b8c-7a1d9c0f2b06',
+    name: 'iPhone 17 Pro - NV Kinh doanh',
+    code: 'DD-IP-000301',
+    imageUrl: '',
+    group: 'van-phong',
+    modelId: 'model-iphone17pro',
+    specValues: [
+      { specDefinitionId: 'spec-color', value: 'mau-xanh' },
+      { specDefinitionId: 'spec-storage', value: 'dl-256' },
+    ],
+    tags: ['Cấp phát', 'Kinh doanh'],
+  },
+  {
+    id: 'a8c7d6b8-7777-4081-9c9d-8b2e0d1a3c07',
+    name: 'iPhone 17 Pro - Trưởng phòng IT',
+    code: 'DD-IP-000302',
+    imageUrl: '',
+    group: 'van-phong',
+    modelId: 'model-iphone17pro',
+    specValues: [
+      { specDefinitionId: 'spec-color', value: 'mau-den' },
+      { specDefinitionId: 'spec-storage', value: 'dl-512' },
+    ],
+    tags: ['Cấp phát', 'IT'],
   },
 ];

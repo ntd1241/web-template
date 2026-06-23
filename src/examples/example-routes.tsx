@@ -48,6 +48,21 @@ if (import.meta.env.DEV) {
       default: m.SuppliersPage,
     })),
   );
+  const SpecDefinitionsPage = lazy(() =>
+    import('./material/specs/pages/spec-definitions-page').then((m) => ({
+      default: m.SpecDefinitionsPage,
+    })),
+  );
+  const MaterialGroupsPage = lazy(() =>
+    import('./material/groups/pages/material-groups-page').then((m) => ({
+      default: m.MaterialGroupsPage,
+    })),
+  );
+  const MaterialModelsPage = lazy(() =>
+    import('./material/models/pages/material-models-page').then((m) => ({
+      default: m.MaterialModelsPage,
+    })),
+  );
   const MaterialPublicDetailPage = lazy(() =>
     import('./material/public-detail/pages/material-public-detail-page').then(
       (m) => ({
@@ -96,6 +111,30 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <MaterialsManagementPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_SPECS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <SpecDefinitionsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_GROUPS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialGroupsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_MODELS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelsPage />
             </Suspense>
           }
         />
