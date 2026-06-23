@@ -1,129 +1,90 @@
 import { useMemo, useState } from 'react';
 import {
-  Building2,
   CalendarDays,
-  CheckCircle2,
-  Clock3,
-  Filter,
+  CircleCheck,
+  CircleX,
+  ClipboardPenLine,
+  ListChecks,
   UserRound,
-  Wrench,
-  XCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { materialRepairHistoryItems } from '../../data/material-repair-history.mock';
+import { materialSafetyInspectionItems } from '../../data/material-safety-inspection.mock';
 import type {
-  MaterialRepairHistoryItem,
-  MaterialRepairStatus,
-} from '../../model/material-repair-history';
+  MaterialSafetyInspectionItem,
+  MaterialSafetyInspectionResult,
+} from '../../model/material-safety-inspection';
 
-const statusConfig: Record<
-  MaterialRepairStatus,
+const resultConfig: Record<
+  MaterialSafetyInspectionResult,
   {
     icon: LucideIcon;
-    badgeVariant: 'success' | 'warning' | 'destructive';
+    badgeVariant: 'success' | 'destructive';
     iconClassName: string;
     ringClassName: string;
   }
 > = {
-  completed_success: {
-    icon: CheckCircle2,
+  passed: {
+    icon: CircleCheck,
     badgeVariant: 'success',
     iconClassName: 'bg-green-50 text-green-700',
     ringClassName: 'border-green-200',
   },
-  in_progress: {
-    icon: Clock3,
-    badgeVariant: 'warning',
-    iconClassName: 'bg-amber-50 text-amber-700',
-    ringClassName: 'border-amber-200',
-  },
-  completed_failed: {
-    icon: XCircle,
+  failed: {
+    icon: CircleX,
     badgeVariant: 'destructive',
     iconClassName: 'bg-red-50 text-red-700',
     ringClassName: 'border-red-200',
   },
 };
 
+function formatDate(value: string) {
+  return value.split('-').reverse().join('/');
+}
+
+function compareInspectionItems(
+  firstItem: MaterialSafetyInspectionItem,
+  secondItem: MaterialSafetyInspectionItem,
+) {
+  return secondItem.inspectedAt.localeCompare(firstItem.inspectedAt);
+}
+
 function isWithinRange(
-  item: MaterialRepairHistoryItem,
+  item: MaterialSafetyInspectionItem,
   fromDate: string,
   toDate: string,
 ) {
-  if (fromDate && item.reportedAt < fromDate) {
+  if (fromDate && item.inspectedAt < fromDate) {
     return false;
   }
 
-  if (toDate && item.reportedAt > toDate) {
+  if (toDate && item.inspectedAt > toDate) {
     return false;
   }
 
   return true;
 }
 
-function formatDate(value?: string) {
-  if (!value) {
-    return 'Chưa hoàn tất';
-  }
-
-  return value.split('-').reverse().join('/');
-}
-
-function formatRepairEndDate(item: MaterialRepairHistoryItem) {
-  if (item.finishedAt) {
-    return formatDate(item.finishedAt);
-  }
-
-  if (item.expectedFinishedAt) {
-    return `${formatDate(item.expectedFinishedAt)} (Dự kiến)`;
-  }
-
-  return '--/--/----';
-}
-
-function compareRepairHistoryItems(
-  firstItem: MaterialRepairHistoryItem,
-  secondItem: MaterialRepairHistoryItem,
-) {
-  if (
-    firstItem.status === 'in_progress' &&
-    secondItem.status !== 'in_progress'
-  ) {
-    return -1;
-  }
-
-  if (
-    firstItem.status !== 'in_progress' &&
-    secondItem.status === 'in_progress'
-  ) {
-    return 1;
-  }
-
-  return secondItem.reportedAt.localeCompare(firstItem.reportedAt);
-}
-
-function RepairHistoryCard({ item }: { item: MaterialRepairHistoryItem }) {
-  const config = statusConfig[item.status];
-  const StatusIcon = config.icon;
+function SafetyInspectionCard({
+  item,
+}: {
+  item: MaterialSafetyInspectionItem;
+}) {
+  const config = resultConfig[item.result];
+  const ResultIcon = config.icon;
 
   return (
     <article
-      aria-label={item.title}
+      aria-label={`Kiểm tra an toàn ngày ${formatDate(item.inspectedAt)}`}
       className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs sm:grid-cols-[auto_minmax(0,1fr)] sm:p-4"
     >
       <div className="flex sm:flex-col sm:items-center">
         <span
           className={`flex size-10 shrink-0 items-center justify-center rounded-xl border ${config.iconClassName} ${config.ringClassName}`}
         >
-          <StatusIcon className="size-4.5" />
+          <ResultIcon className="size-4.5" />
         </span>
       </div>
 
@@ -132,7 +93,7 @@ function RepairHistoryCard({ item }: { item: MaterialRepairHistoryItem }) {
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="text-[15px] font-semibold text-admin-neutral-900">
-                {item.title}
+                Kiểm tra an toàn định kỳ
               </h4>
               <Badge
                 variant={config.badgeVariant}
@@ -140,72 +101,62 @@ function RepairHistoryCard({ item }: { item: MaterialRepairHistoryItem }) {
                 size="sm"
                 className="shrink-0"
               >
-                {item.statusLabel}
+                {item.resultLabel}
               </Badge>
             </div>
             <p className="text-[13px] leading-5 text-admin-neutral-600">
-              {item.issue}
+              {item.comment}
             </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground sm:justify-end">
             <CalendarDays className="size-3.5" />
-            <span>
-              {formatDate(item.reportedAt)} - {formatRepairEndDate(item)}
-            </span>
+            <span>{formatDate(item.inspectedAt)}</span>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge
-                variant="secondary"
-                appearance="outline"
-                size="sm"
-                className="gap-1.5 font-medium"
-                tabIndex={0}
-              >
-                <UserRound className="size-3.5" />
-                {item.technician}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent variant="light">Người phụ trách</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge
-                variant="secondary"
-                appearance="outline"
-                size="sm"
-                className="gap-1.5 font-medium"
-                tabIndex={0}
-              >
-                <Building2 className="size-3.5" />
-                {item.vendor}
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent variant="light">
-              Đơn vị nhận sửa chữa
-            </TooltipContent>
-          </Tooltip>
+          <Badge
+            variant="secondary"
+            appearance="outline"
+            size="sm"
+            className="gap-1.5 font-medium"
+          >
+            <UserRound className="size-3.5" />
+            {item.inspector}
+          </Badge>
+          <Badge
+            variant="secondary"
+            appearance="outline"
+            size="sm"
+            className="gap-1.5 font-medium"
+          >
+            <ListChecks className="size-3.5" />
+            {item.passedCriteria}/{item.totalCriteria} chỉ tiêu
+          </Badge>
         </div>
       </div>
     </article>
   );
 }
 
-export function RepairTab() {
+export function SafetyTab({
+  isAuthenticated = false,
+  onCreateInspection,
+}: {
+  isAuthenticated?: boolean;
+  onCreateInspection?: () => void;
+}) {
   const [draftFromDate, setDraftFromDate] = useState('');
   const [draftToDate, setDraftToDate] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const filteredItems = useMemo(
+  const inspectionItems = useMemo(
     () =>
-      materialRepairHistoryItems
+      materialSafetyInspectionItems
         .filter((item) => isWithinRange(item, fromDate, toDate))
-        .sort(compareRepairHistoryItems),
+        .sort(compareInspectionItems),
     [fromDate, toDate],
   );
 
@@ -214,14 +165,14 @@ export function RepairTab() {
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-admin-blue-bg text-admin-blue-primary">
-            <Wrench className="size-4.5" />
+            <ClipboardPenLine className="size-4.5" />
           </span>
           <div className="min-w-0 space-y-1">
             <h3 className="text-base font-semibold leading-none tracking-tight text-admin-neutral-900">
-              Lịch sử sửa chữa
+              Quản lý an toàn
             </h3>
             <p className="text-[13px] text-muted-foreground">
-              Số lượng: {filteredItems.length}
+              Số lượng: {inspectionItems.length}
             </p>
           </div>
         </div>
@@ -264,20 +215,30 @@ export function RepairTab() {
               setToDate(draftToDate);
             }}
           >
-            <Filter className="size-3.5" />
             Lọc
           </Button>
+          {isAuthenticated ? (
+            <Button
+              type="button"
+              size="sm"
+              className="self-end"
+              onClick={onCreateInspection}
+            >
+              <ClipboardPenLine className="size-3.5" />
+              Phiếu kiểm tra mới
+            </Button>
+          ) : null}
         </div>
       </div>
 
       <div className="space-y-3">
-        {filteredItems.length > 0 ? (
-          filteredItems.map((item) => (
-            <RepairHistoryCard key={item.id} item={item} />
+        {inspectionItems.length > 0 ? (
+          inspectionItems.map((item) => (
+            <SafetyInspectionCard key={item.id} item={item} />
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Không có lịch sử sửa chữa trong khoảng thời gian đã chọn.
+            Không có lịch sử kiểm tra trong khoảng thời gian đã chọn.
           </div>
         )}
       </div>

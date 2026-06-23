@@ -4,6 +4,7 @@ import {
   CalendarClock,
   ClipboardCheck,
   ClipboardList,
+  ClipboardPenLine,
   Factory,
   Hammer,
   HardHat,
@@ -23,6 +24,7 @@ export type MaterialPublicTabValue =
   | 'general'
   | 'handover'
   | 'inventory'
+  | 'safety'
   | 'repair'
   | 'feedback';
 
@@ -47,6 +49,11 @@ export const materialPublicTabs: MaterialPublicTab[] = [
     value: 'inventory',
     label: 'Lịch sử kiểm kê',
     icon: ClipboardCheck,
+  },
+  {
+    value: 'safety',
+    label: 'Quản lý an toàn',
+    icon: ClipboardPenLine,
   },
   {
     value: 'repair',
