@@ -79,16 +79,23 @@ export function MaterialModelWizard({
 
       <Separator />
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="max-w-6xl px-6 py-5">
-          <div className={cn(step !== 0 && 'hidden')}>
-            <MaterialModelForm
-              form={form}
-              onSubmit={() => {}}
-              groupIdOptions={groupOptions}
-            />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex h-full min-h-0 flex-col">
+          <div
+            className={cn(
+              'min-h-0 flex-1 overflow-y-auto  px-6 py-5',
+              step !== 0 && 'hidden',
+            )}
+          >
+            <div className="max-w-6xl">
+              <MaterialModelForm
+                form={form}
+                onSubmit={() => {}}
+                groupIdOptions={groupOptions}
+              />
+            </div>
           </div>
-          <div className={cn(step !== 1 && 'hidden')}>
+          <div className={cn('min-h-0 flex-1', step !== 1 && 'hidden')}>
             <ModelSpecEditor form={form} definitions={definitions} />
           </div>
         </div>

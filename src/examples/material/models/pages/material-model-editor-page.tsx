@@ -137,9 +137,6 @@ export function MaterialModelEditorPage() {
               {editing ? 'Sửa mẫu vật tư' : 'Thêm mẫu vật tư'}
             </h1>
           </div>
-          <div className="text-sm text-muted-foreground">
-            Mẫu gom nhiều thiết bị cùng loại để thống kê
-          </div>
         </div>
       </div>
 
