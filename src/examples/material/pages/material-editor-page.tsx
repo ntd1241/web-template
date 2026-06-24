@@ -54,13 +54,11 @@ export function MaterialEditorPage() {
   );
   const modelIdOptions = useMemo(
     () =>
-      materialModels
-        .filter((model) => model.isActive || model.id === editing?.modelId)
-        .map((model) => ({
-          value: model.id,
-          label: `${model.name} · ${groupNameById.get(model.groupId) ?? '—'}`,
-        })),
-    [editing?.modelId, groupNameById, materialModels],
+      materialModels.map((model) => ({
+        value: model.id,
+        label: `${model.name} · ${groupNameById.get(model.groupId) ?? '—'}`,
+      })),
+    [groupNameById, materialModels],
   );
   const selectedModel = watchedModelId
     ? modelById.get(watchedModelId)

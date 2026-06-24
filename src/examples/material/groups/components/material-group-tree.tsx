@@ -90,7 +90,6 @@ function MaterialGroupTreeItem({
             className={cn(
               'truncate',
               isSelected ? 'font-medium text-foreground' : 'text-foreground',
-              !node.isActive && 'text-muted-foreground line-through',
             )}
           >
             {node.name}

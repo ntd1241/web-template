@@ -37,7 +37,8 @@ function optionIdsForSpec(
   definition: SpecDefinition | undefined,
   spec: MaterialModelSpec,
 ): string[] | undefined {
-  if (definition?.dataType === 'dynamic_list') {
+  if (definition?.dataType !== 'list') return undefined;
+  if (definition.allowDynamicValues) {
     return spec.dynamicOptions?.map((option) => option.id);
   }
   return spec.allowedOptionIds;
@@ -65,7 +66,7 @@ export function resolveEffectiveSpecs(
 
       switch (spec.deviceMode) {
         case 'fixed':
-          value = spec.modelValue;
+          value = spec.modelValue ?? definition?.defaultValue;
           source = 'model';
           isReadOnly = true;
           break;
@@ -74,7 +75,7 @@ export function resolveEffectiveSpecs(
             value = override;
             source = 'device';
           } else {
-            value = spec.modelValue;
+            value = spec.modelValue ?? definition?.defaultValue;
             source = 'default';
           }
           break;
@@ -82,12 +83,12 @@ export function resolveEffectiveSpecs(
         default:
           value = definition
             ? constrainSelectValue(
-                definition.dataType,
-                override,
+                definition,
+                override ?? spec.modelValue ?? definition.defaultValue,
                 optionIdsForSpec(definition, spec),
               )
             : override;
-          source = 'device';
+          source = override !== undefined ? 'device' : 'default';
           break;
       }
 
@@ -97,7 +98,7 @@ export function resolveEffectiveSpecs(
         deviceMode: spec.deviceMode,
         value,
         options:
-          definition?.dataType === 'dynamic_list'
+          definition?.dataType === 'list' && definition.allowDynamicValues
             ? spec.dynamicOptions
             : definition?.options,
         isReadOnly,

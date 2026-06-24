@@ -6,7 +6,7 @@ import type { TableSpec } from '@/builders/table';
  *   npm run gen:table -- src/examples/material/specs/table/spec-definition.table.fixture.ts \
  *     src/examples/material/specs/components/spec-definition-columns.generated.tsx
  *
- * OWNED: điền các cell stub (`identity`, `unit`, `optionsCount`, `status`, `actions`).
+ * OWNED: điền các cell stub (`identity`, `dataType`, `defaultValue`, `actions`).
  */
 const spec: TableSpec = {
   entity: 'SpecDefinition',
@@ -27,37 +27,22 @@ const spec: TableSpec = {
       id: 'dataType',
       header: 'Kiểu dữ liệu',
       field: 'dataType',
-      headerClassName: 'w-[150px]',
-      size: 150,
+      headerClassName: 'w-[170px]',
+      size: 170,
       config: {
         text: { label: 'Văn bản', variant: 'secondary' },
         number: { label: 'Số + đơn vị', variant: 'info' },
-        single_select: { label: 'Chọn 1', variant: 'primary' },
-        multi_select: { label: 'Chọn nhiều', variant: 'primary' },
+        list: { label: 'Danh sách', variant: 'primary' },
         boolean: { label: 'Có / Không', variant: 'warning' },
         date: { label: 'Ngày tháng', variant: 'secondary' },
       },
     },
     {
       kind: 'custom',
-      id: 'unit',
-      header: 'Đơn vị',
-      headerClassName: 'w-[110px]',
-      size: 110,
-    },
-    {
-      kind: 'custom',
-      id: 'optionsCount',
-      header: 'Lựa chọn',
-      headerClassName: 'w-[120px]',
-      size: 120,
-    },
-    {
-      kind: 'custom',
-      id: 'status',
-      header: 'Trạng thái',
-      headerClassName: 'w-[130px]',
-      size: 130,
+      id: 'defaultValue',
+      header: 'Giá trị mặc định',
+      headerClassName: 'min-w-[220px]',
+      size: 260,
     },
     {
       kind: 'actions',

@@ -47,7 +47,6 @@ const spec: FormSpec = {
       width: 'full',
       rows: 2,
     },
-    { kind: 'switch', name: 'isActive', label: 'Đang sử dụng', width: 'full' },
   ],
 };
 

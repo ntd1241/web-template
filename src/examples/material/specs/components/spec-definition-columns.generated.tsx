@@ -13,7 +13,13 @@ import {
   createColumnHelpers,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
-import type { SpecDefinition } from '../../model/spec-definition';
+import { TruncatedContainer } from '@/components/ui/truncated-container';
+import {
+  formatSpecValue,
+  isEmptySpecValue,
+  isNumberSpecValue,
+} from '../../lib/spec-value';
+import type { SpecDefinition, SpecOption } from '../../model/spec-definition';
 
 export interface UseSpecDefinitionColumnsParams {
   onEdit: (row: SpecDefinition) => void;
@@ -23,9 +29,7 @@ export interface UseSpecDefinitionColumnsParams {
 const dataTypeBadgeConfig: StatusBadgeConfig<string> = {
   text: { label: 'Văn bản', variant: 'secondary' },
   number: { label: 'Số + đơn vị', variant: 'info' },
-  single_select: { label: 'Chọn 1', variant: 'primary' },
-  multi_select: { label: 'Chọn nhiều', variant: 'primary' },
-  dynamic_list: { label: 'Theo mẫu', variant: 'warning' },
+  list: { label: 'Danh sách', variant: 'primary' },
   boolean: { label: 'Có / Không', variant: 'warning' },
   date: { label: 'Ngày tháng', variant: 'secondary' },
 };
@@ -46,8 +50,8 @@ export function useSpecDefinitionColumns({
       col.custom({
         id: 'identity',
         header: 'Thông số',
-        headerClassName: 'min-w-[240px]',
-        size: 300,
+        headerClassName: 'min-w-[260px]',
+        size: 320,
         cell: (row) => (
           <div className="flex min-w-0 flex-col">
             <span className="truncate font-medium text-foreground">
@@ -57,51 +61,38 @@ export function useSpecDefinitionColumns({
           </div>
         ),
       }),
-      col.badge({
+      col.custom({
         id: 'dataType',
         header: 'Kiểu dữ liệu',
-        get: (row) => row.dataType,
-        config: dataTypeBadgeConfig,
-        headerClassName: 'w-[150px]',
-        size: 150,
+        headerClassName: 'w-[170px]',
+        size: 170,
+        cell: (row) => {
+          const config = dataTypeBadgeConfig[row.dataType];
+          return (
+            <div className="flex flex-col items-start gap-1">
+              <Badge variant={config.variant} appearance="light">
+                {config.label}
+              </Badge>
+              {row.dataType === 'list' && (
+                <span className="text-xs text-muted-foreground">
+                  {[
+                    row.allowMultiple ? 'Chọn nhiều' : 'Chọn 1',
+                    row.allowDynamicValues ? 'Động' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              )}
+            </div>
+          );
+        },
       }),
       col.custom({
-        id: 'unit',
-        header: 'Đơn vị',
-        headerClassName: 'w-[110px]',
-        size: 110,
-        cell: (row) =>
-          row.unit ? (
-            <span className="text-foreground">{row.unit}</span>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          ),
-      }),
-      col.custom({
-        id: 'optionsCount',
-        header: 'Lựa chọn',
-        headerClassName: 'w-[120px]',
-        size: 120,
-        cell: (row) =>
-          row.options?.length ? (
-            <span className="text-foreground">{row.options.length} mục</span>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          ),
-      }),
-      col.custom({
-        id: 'status',
-        header: 'Trạng thái',
-        headerClassName: 'w-[130px]',
-        size: 130,
-        cell: (row) => (
-          <Badge
-            variant={row.isActive ? 'success' : 'secondary'}
-            appearance="light"
-          >
-            {row.isActive ? 'Đang dùng' : 'Ngừng dùng'}
-          </Badge>
-        ),
+        id: 'defaultValue',
+        header: 'Giá trị mặc định',
+        headerClassName: 'min-w-[220px]',
+        size: 260,
+        cell: (row) => <DefaultValueCell row={row} />,
       }),
       col.actions({
         header: 'Thao tác',
@@ -132,4 +123,95 @@ export function useSpecDefinitionColumns({
       }),
     ];
   }, [onEdit, onDelete]);
+}
+
+function DefaultValueCell({ row }: { row: SpecDefinition }) {
+  if (row.dataType === 'list') {
+    return (
+      <ListDefaultBadges
+        valueIds={listDisplayOptionIds(row)}
+        options={row.options ?? []}
+      />
+    );
+  }
+
+  if (row.dataType === 'number') {
+    if (isNumberSpecValue(row.defaultValue)) {
+      return (
+        <span className="text-foreground">
+          {formatSpecValue(row, row.defaultValue)}
+        </span>
+      );
+    }
+    return (
+      <span className="text-muted-foreground">
+        {row.unit ? `— ${row.unit}` : '—'}
+      </span>
+    );
+  }
+
+  if (isEmptySpecValue(row.defaultValue)) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  return (
+    <span className="text-foreground">
+      {formatSpecValue(row, row.defaultValue)}
+    </span>
+  );
+}
+
+function ListDefaultBadges({
+  valueIds,
+  options,
+}: {
+  valueIds: string[];
+  options: SpecOption[];
+}) {
+  if (valueIds.length === 0) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  const optionById = new Map(options.map((option) => [option.id, option]));
+
+  return (
+    <TruncatedContainer
+      items={valueIds}
+      gap={4}
+      className="min-w-0 max-w-full"
+      renderTruncator={(hiddenChildren, hiddenItems) => (
+        <Badge variant="secondary" appearance="light">
+          +{hiddenItems?.length ?? hiddenChildren.length}
+        </Badge>
+      )}
+    >
+      {valueIds.map((id) => {
+        const option = optionById.get(id);
+        return (
+          <Badge key={id} variant="secondary" appearance="light">
+            {option?.colorHex && (
+              <span
+                className="size-2.5 rounded-full border border-border"
+                style={{ backgroundColor: option.colorHex }}
+              />
+            )}
+            <span className="max-w-28 truncate">{option?.label ?? id}</span>
+          </Badge>
+        );
+      })}
+    </TruncatedContainer>
+  );
+}
+
+function listDisplayOptionIds(row: SpecDefinition): string[] {
+  if (row.allowDynamicValues) {
+    return (row.options ?? []).map((option) => option.id);
+  }
+  return listValueIds(row.defaultValue);
+}
+
+function listValueIds(value: SpecDefinition['defaultValue']): string[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string' && value) return [value];
+  return [];
 }

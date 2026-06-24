@@ -36,7 +36,6 @@ import {
   type SpecDeviceMode,
 } from '../../model/material-model';
 import {
-  isSelectDataType,
   SPEC_DATA_TYPE_LABELS,
   type SpecDefinition,
   type SpecOption,
@@ -50,8 +49,8 @@ interface ModelSpecEditorProps {
 }
 
 function deviceModesFor(def: SpecDefinition): SpecDeviceMode[] {
-  if (def.dataType === 'dynamic_list') return ['select'];
-  return isSelectDataType(def.dataType)
+  if (def.dataType === 'list' && def.allowDynamicValues) return ['select'];
+  return def.dataType === 'list'
     ? ['fixed', 'input', 'select']
     : ['fixed', 'input'];
 }
@@ -60,6 +59,16 @@ let dynamicOptionSeq = 0;
 function nextDynamicOptionId(): string {
   dynamicOptionSeq += 1;
   return `dynamic-opt-${dynamicOptionSeq}`;
+}
+
+function cloneOptions(options: SpecOption[] | undefined): SpecOption[] {
+  return (options ?? []).map((option) => ({ ...option }));
+}
+
+function cloneSpecValue(value: SpecValue | undefined): SpecValue | undefined {
+  if (Array.isArray(value)) return [...value];
+  if (typeof value === 'object' && value !== null) return { ...value };
+  return value;
 }
 
 export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
@@ -74,18 +83,19 @@ export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
   );
 
   const usedIds = new Set(specs.map((s) => s.specDefinitionId));
-  const available = definitions.filter((d) => d.isActive && !usedIds.has(d.id));
+  const available = definitions.filter((d) => !usedIds.has(d.id));
 
   const handleAdd = (specDefinitionId: string) => {
     const def = defById.get(specDefinitionId);
     if (!def) return;
-    const isDynamicList = def.dataType === 'dynamic_list';
+    const isList = def.dataType === 'list';
+    const isDynamicList = isList && def.allowDynamicValues;
     append({
       specDefinitionId,
       deviceMode: isDynamicList ? 'select' : 'fixed',
-      modelValue: undefined,
-      allowedOptionIds: isSelectDataType(def.dataType) ? [] : undefined,
-      dynamicOptions: isDynamicList ? [] : undefined,
+      modelValue: isDynamicList ? undefined : cloneSpecValue(def.defaultValue),
+      allowedOptionIds: isList && !isDynamicList ? [] : undefined,
+      dynamicOptions: isDynamicList ? cloneOptions(def.options) : undefined,
       isRequired: false,
     });
   };
@@ -199,15 +209,23 @@ function ModelSpecTableRow({
     const mode = value as SpecDeviceMode;
     form.setValue(`${base}.deviceMode`, mode, { shouldDirty: true });
     // Reset giá trị không còn phù hợp với chế độ mới.
-    form.setValue(`${base}.modelValue`, undefined, { shouldDirty: true });
+    form.setValue(
+      `${base}.modelValue`,
+      mode === 'select' ? undefined : cloneSpecValue(def.defaultValue),
+      { shouldDirty: true },
+    );
     form.setValue(
       `${base}.allowedOptionIds`,
-      mode === 'select' && isSelectDataType(def.dataType) ? [] : undefined,
+      mode === 'select' && def.dataType === 'list' && !def.allowDynamicValues
+        ? []
+        : undefined,
       { shouldDirty: true },
     );
     form.setValue(
       `${base}.dynamicOptions`,
-      mode === 'select' && def.dataType === 'dynamic_list' ? [] : undefined,
+      mode === 'select' && def.dataType === 'list' && def.allowDynamicValues
+        ? cloneOptions(def.options)
+        : undefined,
       { shouldDirty: true },
     );
   };
@@ -290,7 +308,7 @@ function ModelSpecTableRow({
           </div>
         </TableCell>
       </TableRow>
-      {def.dataType === 'dynamic_list' && (
+      {def.dataType === 'list' && def.allowDynamicValues && (
         <DynamicOptionsDialog
           def={def}
           open={dynamicDialogOpen}
@@ -336,7 +354,7 @@ function CompactValueEditor({
   }
 
   if (deviceMode === 'select') {
-    if (def.dataType === 'dynamic_list') {
+    if (def.dataType === 'list' && def.allowDynamicValues) {
       return (
         <Button
           type="button"
@@ -351,7 +369,7 @@ function CompactValueEditor({
       );
     }
 
-    if (def.dataType === 'single_select') {
+    if (def.dataType === 'list' && !def.allowMultiple) {
       return (
         <Select
           value={allowedOptionIds[0] ?? ''}
@@ -371,7 +389,7 @@ function CompactValueEditor({
       );
     }
 
-    if (def.dataType === 'multi_select') {
+    if (def.dataType === 'list' && def.allowMultiple) {
       return (
         <SpecMultiSelect
           value={allowedOptionIds}
@@ -453,13 +471,7 @@ function SpecMultiSelect({
 
 function summarizeOptions(options: SpecOption[], emptyLabel: string): string {
   if (options.length === 0) return emptyLabel;
-  const visible = options
-    .slice(0, 3)
-    .map((option) => option.label || option.value)
-    .join(', ');
-  return options.length > 3
-    ? `${options.length} lựa chọn: ${visible}...`
-    : visible;
+  return options.map((option) => option.label || option.value).join(', ');
 }
 
 function FixedValueEditor({
@@ -511,7 +523,18 @@ function FixedValueEditor({
           onChange={(e) => onChange(e.target.value)}
         />
       );
-    case 'single_select':
+    case 'list': {
+      if (def.allowMultiple) {
+        const selected = Array.isArray(value) ? value : [];
+        return (
+          <SpecMultiSelect
+            value={selected}
+            options={def.options ?? []}
+            placeholder="Chọn giá trị"
+            onChange={onChange}
+          />
+        );
+      }
       return (
         <Select
           value={typeof value === 'string' ? value : ''}
@@ -529,26 +552,7 @@ function FixedValueEditor({
           </SelectContent>
         </Select>
       );
-    case 'multi_select': {
-      const selected = Array.isArray(value) ? value : [];
-      return (
-        <SpecMultiSelect
-          value={selected}
-          options={def.options ?? []}
-          placeholder="Chọn giá trị"
-          onChange={onChange}
-        />
-      );
     }
-    case 'dynamic_list':
-      return (
-        <Input
-          variant="sm"
-          value={typeof value === 'string' ? value : ''}
-          placeholder="Chọn chế độ select để khai báo danh sách riêng"
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
     default:
       return (
         <Input
@@ -617,18 +621,18 @@ function DynamicOptionsEditor({
             >
               <Input
                 variant="sm"
-                placeholder="Nhãn (vd: Xanh Titan)"
-                value={option.label}
-                onChange={(event) =>
-                  updateOption(index, { label: event.target.value })
-                }
-              />
-              <Input
-                variant="sm"
                 placeholder="Mã"
                 value={option.value}
                 onChange={(event) =>
                   updateOption(index, { value: event.target.value })
+                }
+              />
+              <Input
+                variant="sm"
+                placeholder="Nhãn (vd: Xanh Titan)"
+                value={option.label}
+                onChange={(event) =>
+                  updateOption(index, { label: event.target.value })
                 }
               />
               <Input

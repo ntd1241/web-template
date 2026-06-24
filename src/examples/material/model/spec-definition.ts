@@ -2,21 +2,12 @@
  * Định nghĩa thông số kỹ thuật (danh mục tái dùng) — KHÔNG phải giá trị.
  * Mock-first, example-only.
  */
-export type SpecDataType =
-  | 'text'
-  | 'number'
-  | 'single_select'
-  | 'multi_select'
-  | 'dynamic_list'
-  | 'boolean'
-  | 'date';
+export type SpecDataType = 'text' | 'number' | 'list' | 'boolean' | 'date';
 
 export const SPEC_DATA_TYPE_LABELS: Record<SpecDataType, string> = {
   text: 'Văn bản',
   number: 'Số + đơn vị',
-  single_select: 'Chọn 1',
-  multi_select: 'Chọn nhiều',
-  dynamic_list: 'Danh sách theo mẫu',
+  list: 'Danh sách',
   boolean: 'Có / Không',
   date: 'Ngày tháng',
 };
@@ -36,19 +27,22 @@ export interface SpecDefinition {
   dataType: SpecDataType;
   /** Chỉ `number`: 'kg' | 'g' | 'inch' | 'mm'... */
   unit?: string;
-  /** Chỉ `single_select` | `multi_select`: master list. `dynamic_list` khai báo ở từng mẫu. */
+  /** Chỉ `list`: danh sách mặc định/master list. Có thể để trống. */
   options?: SpecOption[];
+  /** Chỉ `list`: true nếu thông số cho phép chọn nhiều giá trị. */
+  allowMultiple: boolean;
+  /** Chỉ `list`: true nếu từng mẫu được sửa danh sách giá trị riêng. */
+  allowDynamicValues: boolean;
+  /** Giá trị mặc định dùng khi mẫu vật tư chưa override. */
+  defaultValue?: SpecValue;
   description?: string;
-  isActive: boolean;
 }
 
 /**
  * Giá trị thông số — union, hình dạng phụ thuộc `SpecDefinition.dataType`:
  *  - text          -> string
  *  - number        -> NumberSpecValue
- *  - single_select -> string (optionId)
- *  - multi_select  -> string[] (optionId[])
- *  - dynamic_list  -> string (optionId thuộc MaterialModelSpec.dynamicOptions)
+ *  - list          -> string (optionId) | string[] (optionId[]) theo allowMultiple
  *  - boolean       -> boolean
  *  - date          -> string (ISO date)
  *
@@ -63,18 +57,10 @@ export interface NumberSpecValue {
 export type SpecValue = string | boolean | string[] | NumberSpecValue;
 
 /** Các kiểu dùng option list. */
-export type SelectSpecDataType = 'single_select' | 'multi_select';
+export type ListSpecDataType = 'list';
 
-export function isSelectDataType(
+export function isListDataType(
   dataType: SpecDataType,
-): dataType is SelectSpecDataType {
-  return dataType === 'single_select' || dataType === 'multi_select';
-}
-
-export type ChoiceSpecDataType = SelectSpecDataType | 'dynamic_list';
-
-export function isChoiceDataType(
-  dataType: SpecDataType,
-): dataType is ChoiceSpecDataType {
-  return isSelectDataType(dataType) || dataType === 'dynamic_list';
+): dataType is ListSpecDataType {
+  return dataType === 'list';
 }

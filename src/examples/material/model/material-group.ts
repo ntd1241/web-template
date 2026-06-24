@@ -11,5 +11,4 @@ export interface MaterialGroup {
   parentId: string | null;
   description?: string;
   sortOrder: number;
-  isActive: boolean;
 }

@@ -33,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { MaterialGroup } from '../../model/material-group';
 import {
@@ -47,7 +46,6 @@ export const materialGroupDefaultValues: MaterialGroupFormValues = {
   name: '',
   parentId: ROOT_PARENT_VALUE,
   description: '',
-  isActive: true,
 };
 
 type MaterialGroupFormSource = MaterialGroup;
@@ -70,7 +68,6 @@ export function mapMaterialGroupToFormValues(
     name: entity.name,
     parentId: entity.parentId ?? ROOT_PARENT_VALUE,
     description: entity.description ?? '',
-    isActive: entity.isActive,
   };
 }
 
@@ -160,24 +157,6 @@ export function MaterialGroupForm({
                   <Textarea rows={2} {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="isActive"
-            render={({ field }) => (
-              <FormItem className="md:col-span-12 flex-row items-center gap-2.5">
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="font-normal text-foreground">
-                  Đang sử dụng
-                </FormLabel>
               </FormItem>
             )}
           />

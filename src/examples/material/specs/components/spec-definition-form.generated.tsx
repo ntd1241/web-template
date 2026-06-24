@@ -9,6 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select/multi-select';
 import {
   Select,
   SelectContent,
@@ -34,11 +36,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  isSelectDataType,
-  type SpecDefinition,
+import type {
+  SpecDefinition,
+  SpecOption,
+  SpecValue,
 } from '../../model/spec-definition';
 import {
   specDefinitionFormSchema,
@@ -48,9 +50,7 @@ import {
 const dataTypeOptions = [
   { value: 'text', label: 'Văn bản' },
   { value: 'number', label: 'Số + đơn vị' },
-  { value: 'single_select', label: 'Chọn 1' },
-  { value: 'multi_select', label: 'Chọn nhiều' },
-  { value: 'dynamic_list', label: 'Danh sách theo mẫu' },
+  { value: 'list', label: 'Danh sách' },
   { value: 'boolean', label: 'Có / Không' },
   { value: 'date', label: 'Ngày tháng' },
 ];
@@ -61,8 +61,10 @@ export const specDefinitionDefaultValues: SpecDefinitionFormValues = {
   dataType: 'text',
   unit: '',
   description: '',
-  isActive: true,
+  allowMultiple: false,
+  allowDynamicValues: false,
   options: [],
+  defaultValue: undefined,
 };
 
 type SpecDefinitionFormSource = SpecDefinition;
@@ -92,7 +94,9 @@ export function mapSpecDefinitionToFormValues(
     dataType: entity.dataType,
     unit: entity.unit ?? '',
     description: entity.description ?? '',
-    isActive: entity.isActive,
+    allowMultiple: entity.allowMultiple,
+    allowDynamicValues: entity.allowDynamicValues,
+    defaultValue: cloneSpecValue(entity.defaultValue),
     options: (entity.options ?? []).map((opt) => ({
       id: opt.id,
       label: opt.label,
@@ -115,7 +119,7 @@ export function SpecDefinitionForm({
 }: SpecDefinitionFormProps) {
   const dataType = form.watch('dataType');
   const showUnit = dataType === 'number';
-  const showOptions = isSelectDataType(dataType);
+  const showOptions = dataType === 'list';
   const optionsField = useFieldArray({
     control: form.control,
     name: 'options',
@@ -151,6 +155,20 @@ export function SpecDefinitionForm({
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="vd: Màu sắc" variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12">
+                <FormLabel>Mô tả</FormLabel>
+                <FormControl>
+                  <Textarea rows={2} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -205,16 +223,59 @@ export function SpecDefinitionForm({
           )}
 
           {showOptions && (
+            <>
+              <FormField
+                control={form.control}
+                name="allowMultiple"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-6 flex-row items-center gap-2.5">
+                    <FormControl>
+                      <Checkbox
+                        size="sm"
+                        checked={field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal text-foreground">
+                      Cho chọn nhiều
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="allowDynamicValues"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-6 flex-row items-center gap-2.5">
+                    <FormControl>
+                      <Checkbox
+                        size="sm"
+                        checked={field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal text-foreground">
+                      Cho phép giá trị động
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          {showOptions && (
             <FormField
               control={form.control}
               name="options"
               render={() => (
                 <FormItem className="md:col-span-12">
                   <div className="flex items-center justify-between">
-                    <FormLabel>
-                      Danh sách lựa chọn
-                      <span className="text-destructive"> *</span>
-                    </FormLabel>
+                    <FormLabel>Danh sách lựa chọn</FormLabel>
                     <Button
                       type="button"
                       variant="outline"
@@ -242,25 +303,9 @@ export function SpecDefinitionForm({
                         <div key={row.id} className="flex items-start gap-2">
                           <FormField
                             control={form.control}
-                            name={`options.${index}.label`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormControl>
-                                  <Input
-                                    placeholder="Nhãn (vd: Xanh)"
-                                    variant="md"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
                             name={`options.${index}.value`}
                             render={({ field }) => (
-                              <FormItem className="flex-1">
+                              <FormItem className="flex-1/3">
                                 <FormControl>
                                   <Input
                                     placeholder="Mã (vd: xanh)"
@@ -272,6 +317,23 @@ export function SpecDefinitionForm({
                               </FormItem>
                             )}
                           />
+                          <FormField
+                            control={form.control}
+                            name={`options.${index}.label`}
+                            render={({ field }) => (
+                              <FormItem className="flex-2/3">
+                                <FormControl>
+                                  <Input
+                                    placeholder="Nhãn (vd: Xanh)"
+                                    variant="md"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
                           <FormField
                             control={form.control}
                             name={`options.${index}.colorHex`}
@@ -309,41 +371,165 @@ export function SpecDefinitionForm({
             />
           )}
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem className="md:col-span-12">
-                <FormLabel>Mô tả</FormLabel>
-                <FormControl>
-                  <Textarea rows={2} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="isActive"
-            render={({ field }) => (
-              <FormItem className="md:col-span-12 flex-row items-center gap-2.5">
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="font-normal text-foreground">
-                  Đang sử dụng
-                </FormLabel>
-              </FormItem>
-            )}
-          />
+          <SpecDefinitionDefaultValueField form={form} />
         </div>
       </form>
     </Form>
   );
+}
+
+function SpecDefinitionDefaultValueField({
+  form,
+}: {
+  form: UseFormReturn<SpecDefinitionFormValues>;
+}) {
+  const dataType = form.watch('dataType');
+  const unit = form.watch('unit');
+  const options = form.watch('options');
+  const allowMultiple = form.watch('allowMultiple');
+
+  return (
+    <FormField
+      control={form.control}
+      name="defaultValue"
+      render={({ field }) => (
+        <FormItem className="md:col-span-12">
+          <FormLabel>Giá trị mặc định</FormLabel>
+          <FormControl>
+            <DefaultValueControl
+              dataType={dataType}
+              unit={unit}
+              options={options}
+              allowMultiple={allowMultiple}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function DefaultValueControl({
+  dataType,
+  unit,
+  options,
+  allowMultiple,
+  value,
+  onChange,
+}: {
+  dataType: SpecDefinitionFormValues['dataType'];
+  unit: string;
+  options: SpecOption[];
+  allowMultiple: boolean;
+  value: SpecValue | undefined;
+  onChange: (value: SpecValue | undefined) => void;
+}) {
+  switch (dataType) {
+    case 'number': {
+      const amount =
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value) &&
+        typeof value.amount === 'number'
+          ? value.amount
+          : undefined;
+      return (
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            variant="md"
+            value={Number.isFinite(amount) ? String(amount) : ''}
+            onChange={(event) => {
+              const next = event.target.value;
+              onChange(
+                next
+                  ? { amount: Number(next), unit: unit.trim() || undefined }
+                  : undefined,
+              );
+            }}
+          />
+          {unit.trim() && (
+            <span className="text-sm text-muted-foreground">{unit}</span>
+          )}
+        </div>
+      );
+    }
+    case 'boolean':
+      return (
+        <label className="flex h-9 items-center gap-2 text-sm text-foreground">
+          <Checkbox
+            size="sm"
+            checked={value === true}
+            onCheckedChange={(checked) => onChange(checked === true)}
+          />
+          {value === true ? 'Có' : 'Không'}
+        </label>
+      );
+    case 'date':
+      return (
+        <Input
+          type="date"
+          variant="md"
+          value={typeof value === 'string' ? value : ''}
+          onChange={(event) => onChange(event.target.value || undefined)}
+        />
+      );
+    case 'list':
+      if (allowMultiple) {
+        return (
+          <MultiSelect
+            value={Array.isArray(value) ? value : []}
+            options={options.map((option) => ({
+              value: option.id,
+              label: option.label || option.value,
+              searchableText: `${option.label} ${option.value}`,
+            }))}
+            placeholder="Chọn giá trị mặc định"
+            searchPlaceholder="Tìm lựa chọn..."
+            emptyMessage="Chưa có lựa chọn"
+            maxChips={3}
+            onChange={onChange}
+          />
+        );
+      }
+      return (
+        <Select
+          value={typeof value === 'string' ? value : '__none__'}
+          onValueChange={(next) =>
+            onChange(next === '__none__' ? undefined : next)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn giá trị mặc định" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Không mặc định</SelectItem>
+            {options.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label || option.value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    default:
+      return (
+        <Input
+          variant="md"
+          value={typeof value === 'string' ? value : ''}
+          onChange={(event) => onChange(event.target.value || undefined)}
+        />
+      );
+  }
+}
+
+function cloneSpecValue(value: SpecValue | undefined): SpecValue | undefined {
+  if (Array.isArray(value)) return [...value];
+  if (typeof value === 'object' && value !== null) return { ...value };
+  return value;
 }
 
 interface SpecDefinitionFormDialogProps {

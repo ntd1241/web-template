@@ -49,13 +49,6 @@ const spec: TableSpec = {
       size: 110,
     },
     {
-      kind: 'custom',
-      id: 'status',
-      header: 'Trạng thái',
-      headerClassName: 'w-[130px]',
-      size: 130,
-    },
-    {
       kind: 'actions',
       header: 'Thao tác',
       headerClassName: 'w-[120px]',

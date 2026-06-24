@@ -50,14 +50,13 @@ describe('material-device helpers', () => {
     expect(specValues).toEqual([]);
   });
 
-  it('lọc dynamic_list theo dynamicOptions riêng của mẫu', () => {
+  it('lọc list động theo dynamicOptions riêng của mẫu', () => {
     const model = {
       id: 'model-dynamic-color',
       code: 'MDL-DYNAMIC',
       name: 'Điện thoại nhiều màu',
       groupId: 'grp-phone',
       imageUrls: [],
-      isActive: true,
       specs: [
         {
           specDefinitionId: 'spec-color',
@@ -79,8 +78,9 @@ describe('material-device helpers', () => {
         id: 'spec-color',
         code: 'TS-MAU',
         name: 'Màu sắc',
-        dataType: 'dynamic_list',
-        isActive: true,
+        dataType: 'list',
+        allowMultiple: false,
+        allowDynamicValues: true,
       },
     ] satisfies typeof SPEC_DEFINITIONS_MOCK;
 
@@ -101,7 +101,7 @@ describe('material-device helpers', () => {
     ).toEqual([]);
   });
 
-  it('báo thiếu thông số bắt buộc của thiết bị', () => {
+  it('không báo thiếu thông số bắt buộc nếu định nghĩa có giá trị mặc định', () => {
     const model = MATERIAL_MODELS_MOCK.find(
       (item) => item.id === 'model-iphone17pro',
     );
@@ -113,7 +113,7 @@ describe('material-device helpers', () => {
       SPEC_DEFINITIONS_MOCK,
     );
 
-    expect(missing).toEqual(['Dung lượng']);
+    expect(missing).toEqual([]);
   });
 
   it('map group model về group legacy để tương thích Material', () => {

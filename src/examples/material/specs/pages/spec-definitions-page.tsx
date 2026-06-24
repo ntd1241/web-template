@@ -24,9 +24,10 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ConfirmDeleteDialog } from '../../components/confirm-delete-dialog';
 import { SPEC_DEFINITIONS_MOCK } from '../../data/spec-definitions.mock';
-import {
-  isSelectDataType,
-  type SpecDefinition,
+import type {
+  SpecDefinition,
+  SpecOption,
+  SpecValue,
 } from '../../model/spec-definition';
 import { useSpecDefinitionColumns } from '../components/spec-definition-columns.generated';
 import {
@@ -78,7 +79,15 @@ export function SpecDefinitionsPage() {
   };
 
   const handleSubmit = (values: SpecDefinitionFormValues) => {
-    const isSelect = isSelectDataType(values.dataType);
+    const isList = values.dataType === 'list';
+    const options = isList
+      ? values.options.map((opt) => ({
+          id: opt.id,
+          label: opt.label.trim(),
+          value: opt.value.trim(),
+          colorHex: opt.colorHex,
+        }))
+      : undefined;
     const next: SpecDefinition = {
       id: editing?.id ?? `spec-new-${(createdSeq += 1)}`,
       code: values.code.trim(),
@@ -89,15 +98,10 @@ export function SpecDefinitionsPage() {
           ? values.unit.trim() || undefined
           : undefined,
       description: values.description.trim() || undefined,
-      isActive: values.isActive,
-      options: isSelect
-        ? values.options.map((opt) => ({
-            id: opt.id,
-            label: opt.label.trim(),
-            value: opt.value.trim(),
-            colorHex: opt.colorHex,
-          }))
-        : undefined,
+      allowMultiple: isList ? values.allowMultiple : false,
+      allowDynamicValues: isList ? values.allowDynamicValues : false,
+      defaultValue: normalizeDefaultValue(values, options),
+      options,
     };
 
     setSpecs((prev) =>
@@ -195,4 +199,48 @@ export function SpecDefinitionsPage() {
       />
     </div>
   );
+}
+
+function normalizeDefaultValue(
+  values: SpecDefinitionFormValues,
+  options: SpecOption[] | undefined,
+): SpecValue | undefined {
+  switch (values.dataType) {
+    case 'number': {
+      const value = values.defaultValue;
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value) &&
+        !Number.isNaN(value.amount)
+      ) {
+        return { amount: value.amount, unit: values.unit.trim() || undefined };
+      }
+      return undefined;
+    }
+    case 'boolean':
+      return typeof values.defaultValue === 'boolean'
+        ? values.defaultValue
+        : undefined;
+    case 'list': {
+      const allowedIds = new Set((options ?? []).map((option) => option.id));
+      if (values.allowMultiple) {
+        return Array.isArray(values.defaultValue)
+          ? values.defaultValue.filter((id) => allowedIds.has(id))
+          : undefined;
+      }
+      return typeof values.defaultValue === 'string' &&
+        allowedIds.has(values.defaultValue)
+        ? values.defaultValue
+        : undefined;
+    }
+    case 'date':
+    case 'text':
+      return typeof values.defaultValue === 'string' &&
+        values.defaultValue.trim()
+        ? values.defaultValue.trim()
+        : undefined;
+    default:
+      return undefined;
+  }
 }

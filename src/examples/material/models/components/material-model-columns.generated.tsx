@@ -7,7 +7,6 @@
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Package, Pencil, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createColumnHelpers } from '@/components/ui/data-grid-columns';
 import type { MaterialModel } from '../../model/material-model';
@@ -102,20 +101,6 @@ export function useMaterialModelColumns({
           <span className="text-foreground">
             {deviceCountByModel.get(row.id) ?? 0}
           </span>
-        ),
-      }),
-      col.custom({
-        id: 'status',
-        header: 'Trạng thái',
-        headerClassName: 'w-[130px]',
-        size: 130,
-        cell: (row) => (
-          <Badge
-            variant={row.isActive ? 'success' : 'secondary'}
-            appearance="light"
-          >
-            {row.isActive ? 'Đang dùng' : 'Ngừng dùng'}
-          </Badge>
         ),
       }),
       col.actions({

@@ -20,7 +20,7 @@ export interface MaterialModelSpec {
   modelValue?: SpecValue;
   /** `select`: tập con optionId của `SpecDefinition.options`. */
   allowedOptionIds?: string[];
-  /** `dynamic_list`: danh sách lựa chọn riêng của mẫu. */
+  /** `list` + allowDynamicValues: danh sách lựa chọn riêng của mẫu. */
   dynamicOptions?: SpecOption[];
   isRequired: boolean;
   sortOrder: number;
@@ -36,5 +36,4 @@ export interface MaterialModel {
   groupId: string;
   imageUrls: string[];
   specs: MaterialModelSpec[];
-  isActive: boolean;
 }

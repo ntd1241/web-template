@@ -33,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { MaterialModel } from '../../model/material-model';
 import {
@@ -47,7 +46,6 @@ export const materialModelDefaultValues: MaterialModelFormValues = {
   groupId: '',
   origin: '',
   description: '',
-  isActive: true,
   imageUrls: [],
   specs: [],
 };
@@ -73,7 +71,6 @@ export function mapMaterialModelToFormValues(
     groupId: entity.groupId,
     origin: entity.origin ?? '',
     description: entity.description ?? '',
-    isActive: entity.isActive,
     imageUrls: entity.imageUrls,
     specs: entity.specs
       .slice()
@@ -197,24 +194,6 @@ export function MaterialModelForm({
                   <Textarea rows={2} {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="isActive"
-            render={({ field }) => (
-              <FormItem className="md:col-span-12 flex-row items-center gap-2.5">
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="font-normal text-foreground">
-                  Đang sử dụng
-                </FormLabel>
               </FormItem>
             )}
           />

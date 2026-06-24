@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardDescription,
   CardHeader,
   CardHeading,
   CardTitle,
@@ -106,7 +105,6 @@ export function MaterialGroupsPage() {
                 name: values.name.trim(),
                 parentId,
                 description: values.description.trim() || undefined,
-                isActive: values.isActive,
               }
             : group,
         ),
@@ -122,7 +120,6 @@ export function MaterialGroupsPage() {
       parentId,
       description: values.description.trim() || undefined,
       sortOrder: Math.max(0, ...groups.map((group) => group.sortOrder)) + 1,
-      isActive: values.isActive,
     };
     setGroups((prev) => [...prev, newGroup]);
     setMode({ kind: 'edit', id: newGroup.id });

@@ -30,7 +30,6 @@ export const materialModelFormSchema = z.object({
   origin: z.string(),
   groupId: z.string().min(1, 'Chọn nhóm'),
   description: z.string(),
-  isActive: z.boolean(),
   imageUrls: z.array(z.string()),
   specs: z.array(modelSpecSchema),
 });

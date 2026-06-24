@@ -6,8 +6,8 @@ import type { FormSpec } from '@/builders/form';
  *   npm run gen:form -- src/examples/material/specs/form/spec-definition.form.fixture.ts \
  *     src/examples/material/specs/components/spec-definition-form.generated.tsx
  *
- * OWNED sau khi gen: thêm `unit` có điều kiện (chỉ kiểu number) và trình quản lý
- * `options` (field-array, chỉ kiểu *_select) — phần động vượt builder.
+ * OWNED sau khi gen: thêm `unit` có điều kiện (chỉ kiểu number), checkbox phụ
+ * cho kiểu `list`, giá trị mặc định theo dataType và trình quản lý `options`.
  */
 const spec: FormSpec = {
   entity: 'SpecDefinition',
@@ -44,8 +44,7 @@ const spec: FormSpec = {
       options: [
         { value: 'text', label: 'Văn bản' },
         { value: 'number', label: 'Số + đơn vị' },
-        { value: 'single_select', label: 'Chọn 1' },
-        { value: 'multi_select', label: 'Chọn nhiều' },
+        { value: 'list', label: 'Danh sách' },
         { value: 'boolean', label: 'Có / Không' },
         { value: 'date', label: 'Ngày tháng' },
       ],
@@ -57,7 +56,6 @@ const spec: FormSpec = {
       width: 'full',
       rows: 2,
     },
-    { kind: 'switch', name: 'isActive', label: 'Đang sử dụng', width: 'full' },
   ],
 };
 

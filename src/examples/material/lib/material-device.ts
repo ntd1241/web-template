@@ -15,7 +15,8 @@ function optionIdsForSpec(
   definition: SpecDefinition,
   modelSpec: MaterialModelSpec,
 ): string[] | undefined {
-  if (definition.dataType === 'dynamic_list') {
+  if (definition.dataType !== 'list') return undefined;
+  if (definition.allowDynamicValues) {
     return modelSpec.dynamicOptions?.map((option) => option.id);
   }
   return modelSpec.allowedOptionIds;
@@ -67,7 +68,7 @@ export function buildMaterialSpecValues(
       const value =
         modelSpec.deviceMode === 'select'
           ? constrainSelectValue(
-              definition.dataType,
+              definition,
               rawValue,
               optionIdsForSpec(definition, modelSpec),
             )
@@ -99,7 +100,10 @@ export function validateMaterialSpecValues(
   return model.specs.flatMap((modelSpec) => {
     if (!modelSpec.isRequired || modelSpec.deviceMode === 'fixed') return [];
     const definition = defById.get(modelSpec.specDefinitionId);
-    const value = valueById.get(modelSpec.specDefinitionId);
+    const value =
+      valueById.get(modelSpec.specDefinitionId) ??
+      modelSpec.modelValue ??
+      definition?.defaultValue;
     if (
       !definition ||
       isEmptySpecValue(value) ||

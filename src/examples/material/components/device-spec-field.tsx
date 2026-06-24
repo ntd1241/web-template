@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select/multi-select';
 import {
   Select,
   SelectContent,
@@ -110,7 +110,7 @@ export function DeviceSpecField({
 
         const modelSpec = modelSpecById.get(effectiveSpec.specDefinitionId);
         const allowedOptions =
-          definition.dataType === 'dynamic_list'
+          definition.dataType === 'list' && definition.allowDynamicValues
             ? (modelSpec?.dynamicOptions ?? [])
             : modelSpec?.allowedOptionIds
               ? (definition.options ?? []).filter((option) =>
@@ -222,8 +222,24 @@ function SpecValueEditor({
           onChange={(event) => onChange(event.target.value)}
         />
       );
-    case 'single_select':
-    case 'dynamic_list':
+    case 'list': {
+      if (definition.allowMultiple) {
+        return (
+          <MultiSelect
+            value={isMultiSelectValue(value) ? value : []}
+            options={allowedOptions.map((option) => ({
+              value: option.id,
+              label: option.label,
+              searchableText: `${option.label} ${option.value}`,
+            }))}
+            placeholder="Chọn giá trị"
+            searchPlaceholder="Tìm lựa chọn..."
+            emptyMessage="Không có lựa chọn"
+            maxChips={3}
+            onChange={onChange}
+          />
+        );
+      }
       return (
         <Select
           value={typeof value === 'string' ? value : ''}
@@ -240,30 +256,6 @@ function SpecValueEditor({
             ))}
           </SelectContent>
         </Select>
-      );
-    case 'multi_select': {
-      const selected = isMultiSelectValue(value) ? value : [];
-      return (
-        <div className="flex flex-wrap gap-3 rounded-admin-control border border-border px-3 py-2">
-          {allowedOptions.map((option) => (
-            <label
-              key={option.id}
-              className="flex cursor-pointer items-center gap-1.5 text-sm"
-            >
-              <Checkbox
-                checked={selected.includes(option.id)}
-                onCheckedChange={(checked) =>
-                  onChange(
-                    checked === true
-                      ? [...selected, option.id]
-                      : selected.filter((id) => id !== option.id),
-                  )
-                }
-              />
-              <OptionLabel option={option} />
-            </label>
-          ))}
-        </div>
       );
     }
     default:

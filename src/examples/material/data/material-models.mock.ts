@@ -10,7 +10,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Trung Quốc',
     groupId: 'grp-phone',
     imageUrls: [],
-    isActive: true,
     specs: [
       {
         specDefinitionId: 'spec-color',
@@ -95,7 +94,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Việt Nam',
     groupId: 'grp-an-toan',
     imageUrls: [],
-    isActive: true,
     specs: [
       {
         specDefinitionId: 'spec-color',
@@ -140,7 +138,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Việt Nam',
     groupId: 'grp-pccc',
     imageUrls: [],
-    isActive: true,
     specs: [
       {
         specDefinitionId: 'spec-weight',
@@ -164,7 +161,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Trung Quốc',
     groupId: 'grp-kiem-ke',
     imageUrls: [],
-    isActive: true,
     specs: [
       {
         specDefinitionId: 'spec-weight',
@@ -182,7 +178,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Trung Quốc',
     groupId: 'grp-van-phong',
     imageUrls: [],
-    isActive: true,
     specs: [],
   },
   {
@@ -192,7 +187,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Đức',
     groupId: 'grp-cong-cu',
     imageUrls: [],
-    isActive: true,
     specs: [
       {
         specDefinitionId: 'spec-material',
@@ -210,7 +204,6 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     origin: 'Việt Nam',
     groupId: 'grp-kiem-ke',
     imageUrls: [],
-    isActive: true,
     specs: [
       {
         specDefinitionId: 'spec-weight',

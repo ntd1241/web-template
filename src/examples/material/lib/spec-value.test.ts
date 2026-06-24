@@ -11,8 +11,9 @@ const colorDef: SpecDefinition = {
   id: 'spec-color',
   code: 'TS-MAU',
   name: 'Màu sắc',
-  dataType: 'single_select',
-  isActive: true,
+  dataType: 'list',
+  allowMultiple: false,
+  allowDynamicValues: false,
   options: [
     { id: 'mau-den', label: 'Đen', value: 'den' },
     { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
@@ -26,15 +27,17 @@ const weightDef: SpecDefinition = {
   name: 'Trọng lượng',
   dataType: 'number',
   unit: 'g',
-  isActive: true,
+  allowMultiple: false,
+  allowDynamicValues: false,
 };
 
 const portsDef: SpecDefinition = {
   id: 'spec-ports',
   code: 'TS-PORT',
   name: 'Cổng',
-  dataType: 'multi_select',
-  isActive: true,
+  dataType: 'list',
+  allowMultiple: true,
+  allowDynamicValues: false,
   options: [
     { id: 'port-usbc', label: 'USB-C', value: 'usb-c' },
     { id: 'port-hdmi', label: 'HDMI', value: 'hdmi' },
@@ -45,8 +48,9 @@ const dynamicColorDef: SpecDefinition = {
   id: 'spec-color-dynamic',
   code: 'TS-MAU-DYNAMIC',
   name: 'Màu sắc linh động',
-  dataType: 'dynamic_list',
-  isActive: true,
+  dataType: 'list',
+  allowMultiple: false,
+  allowDynamicValues: true,
 };
 
 const iphoneColorOptions = [
@@ -59,7 +63,7 @@ const iphoneColorOptions = [
 ];
 
 describe('formatSpecValue', () => {
-  it('hiển thị label option cho single_select', () => {
+  it('hiển thị label option cho list chọn 1', () => {
     expect(formatSpecValue(colorDef, 'mau-xanh')).toBe('Xanh');
   });
 
@@ -74,14 +78,14 @@ describe('formatSpecValue', () => {
     );
   });
 
-  it('nối nhiều label cho multi_select, "—" khi rỗng', () => {
+  it('nối nhiều label cho list chọn nhiều, "—" khi rỗng', () => {
     expect(formatSpecValue(portsDef, ['port-usbc', 'port-hdmi'])).toBe(
       'USB-C, HDMI',
     );
     expect(formatSpecValue(portsDef, [])).toBe('—');
   });
 
-  it('hiển thị label dynamic_list từ option riêng của mẫu', () => {
+  it('hiển thị label list động từ option riêng của mẫu', () => {
     expect(
       formatSpecValue(dynamicColorDef, 'iphone-blue-titan', iphoneColorOptions),
     ).toBe('Xanh Titan');
@@ -95,13 +99,13 @@ describe('isValidSpecValue', () => {
     expect(isValidSpecValue(weightDef, 'x' as never)).toBe(false);
   });
 
-  it('single_select cần string, multi_select cần mảng', () => {
+  it('list chọn 1 cần string, list chọn nhiều cần mảng', () => {
     expect(isValidSpecValue(colorDef, 'mau-den')).toBe(true);
     expect(isValidSpecValue(portsDef, ['port-usbc'])).toBe(true);
     expect(isValidSpecValue(portsDef, 'port-usbc' as never)).toBe(false);
   });
 
-  it('dynamic_list cần string', () => {
+  it('list động chọn 1 cần string', () => {
     expect(isValidSpecValue(dynamicColorDef, 'iphone-blue-titan')).toBe(true);
     expect(isValidSpecValue(dynamicColorDef, ['iphone-blue-titan'])).toBe(
       false,
@@ -121,42 +125,41 @@ describe('isEmptySpecValue', () => {
 });
 
 describe('constrainSelectValue', () => {
-  it('single_select: loại giá trị ngoài allowed', () => {
+  it('list chọn 1: loại giá trị ngoài allowed', () => {
     expect(
-      constrainSelectValue('single_select', 'mau-xanh', [
-        'mau-den',
-        'mau-xanh',
-      ]),
+      constrainSelectValue(colorDef, 'mau-xanh', ['mau-den', 'mau-xanh']),
     ).toBe('mau-xanh');
     expect(
-      constrainSelectValue('single_select', 'mau-do', ['mau-den', 'mau-xanh']),
+      constrainSelectValue(colorDef, 'mau-do', ['mau-den', 'mau-xanh']),
     ).toBeUndefined();
   });
 
-  it('multi_select: chỉ giữ id nằm trong allowed', () => {
+  it('list chọn nhiều: chỉ giữ id nằm trong allowed', () => {
     expect(
-      constrainSelectValue(
-        'multi_select',
-        ['port-usbc', 'port-hdmi'],
-        ['port-usbc'],
-      ),
+      constrainSelectValue(portsDef, ['port-usbc', 'port-hdmi'], ['port-usbc']),
     ).toEqual(['port-usbc']);
   });
 
-  it('dynamic_list: loại giá trị ngoài option riêng của mẫu', () => {
+  it('list động: loại giá trị ngoài option riêng của mẫu', () => {
     expect(
-      constrainSelectValue('dynamic_list', 'iphone-blue-titan', [
+      constrainSelectValue(dynamicColorDef, 'iphone-blue-titan', [
         'iphone-blue-titan',
       ]),
     ).toBe('iphone-blue-titan');
     expect(
-      constrainSelectValue('dynamic_list', 'samsung-violet', [
+      constrainSelectValue(dynamicColorDef, 'samsung-violet', [
         'iphone-blue-titan',
       ]),
     ).toBeUndefined();
   });
 
   it('kiểu không phải select: giữ nguyên', () => {
-    expect(constrainSelectValue('text', 'abc', undefined)).toBe('abc');
+    expect(
+      constrainSelectValue(
+        { ...weightDef, dataType: 'text' },
+        'abc',
+        undefined,
+      ),
+    ).toBe('abc');
   });
 });

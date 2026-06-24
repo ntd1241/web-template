@@ -3,7 +3,6 @@
  * Tập trung mọi type-guard ở đây — component KHÔNG đụng shape union trực tiếp.
  */
 import {
-  isChoiceDataType,
   type NumberSpecValue,
   type SpecDataType,
   type SpecDefinition,
@@ -38,10 +37,13 @@ export function isEmptySpecValue(value: SpecValue | undefined): boolean {
 }
 
 /** Giá trị rỗng mặc định cho 1 kiểu dữ liệu (cho form khởi tạo). */
-export function emptySpecValue(dataType: SpecDataType): SpecValue {
+export function emptySpecValue(
+  dataType: SpecDataType,
+  allowMultiple = false,
+): SpecValue {
   switch (dataType) {
-    case 'multi_select':
-      return [];
+    case 'list':
+      return allowMultiple ? [] : '';
     case 'boolean':
       return false;
     case 'number':
@@ -60,13 +62,13 @@ export function isValidSpecValue(
   switch (def.dataType) {
     case 'text':
     case 'date':
-    case 'single_select':
-    case 'dynamic_list':
       return typeof value === 'string';
     case 'boolean':
       return typeof value === 'boolean';
-    case 'multi_select':
-      return Array.isArray(value);
+    case 'list':
+      return def.allowMultiple
+        ? Array.isArray(value)
+        : typeof value === 'string';
     case 'number':
       return isNumberSpecValue(value) && !Number.isNaN(value.amount);
     default:
@@ -98,10 +100,10 @@ export function formatSpecValue(
       const unit = value.unit ?? def.unit;
       return unit ? `${value.amount} ${unit}` : String(value.amount);
     }
-    case 'single_select':
-    case 'dynamic_list':
-      return findOptionLabel(def, value as string, options);
-    case 'multi_select':
+    case 'list':
+      if (!def.allowMultiple) {
+        return findOptionLabel(def, value as string, options);
+      }
       return (value as string[])
         .map((id) => findOptionLabel(def, id, options))
         .join(', ');
@@ -112,18 +114,18 @@ export function formatSpecValue(
 }
 
 /**
- * Lọc value `select` về tập option cho phép của mẫu.
- * - single_select | dynamic_list: trả về optionId nếu nằm trong allowed, ngược lại undefined.
- * - multi_select: giữ lại các id nằm trong allowed.
+ * Lọc value `list` về tập option cho phép của mẫu.
+ * - chọn 1: trả về optionId nếu nằm trong allowed, ngược lại undefined.
+ * - chọn nhiều: giữ lại các id nằm trong allowed.
  */
 export function constrainSelectValue(
-  dataType: SpecDataType,
+  def: SpecDefinition,
   value: SpecValue | undefined,
   allowedOptionIds: string[] | undefined,
 ): SpecValue | undefined {
-  if (!isChoiceDataType(dataType) || !allowedOptionIds) return value;
+  if (def.dataType !== 'list' || !allowedOptionIds) return value;
   const allowed = new Set(allowedOptionIds);
-  if (dataType === 'single_select' || dataType === 'dynamic_list') {
+  if (!def.allowMultiple) {
     return typeof value === 'string' && allowed.has(value) ? value : undefined;
   }
   if (Array.isArray(value)) {

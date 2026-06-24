@@ -59,12 +59,10 @@ export function MaterialModelEditorPage() {
       return depth;
     };
 
-    return MATERIAL_GROUPS_MOCK.filter((group) => group.isActive).map(
-      (group) => ({
-        value: group.id,
-        label: `${'— '.repeat(depthOf(group.id))}${group.name}`,
-      }),
-    );
+    return MATERIAL_GROUPS_MOCK.map((group) => ({
+      value: group.id,
+      label: `${'— '.repeat(depthOf(group.id))}${group.name}`,
+    }));
   }, []);
 
   const handleSubmit = (values: MaterialModelFormValues) => {
@@ -76,7 +74,6 @@ export function MaterialModelEditorPage() {
       origin: values.origin.trim() || undefined,
       groupId: values.groupId,
       imageUrls: values.imageUrls,
-      isActive: values.isActive,
       specs: values.specs.map((spec, index) => ({
         specDefinitionId: spec.specDefinitionId,
         deviceMode: spec.deviceMode,

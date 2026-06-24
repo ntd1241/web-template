@@ -9,7 +9,6 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     parentId: null,
     description: 'Điện thoại, máy tính bảng',
     sortOrder: 1,
-    isActive: true,
   },
   {
     id: 'grp-phone',
@@ -17,7 +16,6 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     name: 'Điện thoại',
     parentId: 'grp-mobile',
     sortOrder: 1,
-    isActive: true,
   },
   {
     id: 'grp-kiem-ke',
@@ -25,7 +23,6 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     name: 'Thiết bị kiểm kê',
     parentId: null,
     sortOrder: 2,
-    isActive: true,
   },
   {
     id: 'grp-van-phong',
@@ -33,7 +30,6 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     name: 'Văn phòng',
     parentId: null,
     sortOrder: 3,
-    isActive: true,
   },
   {
     id: 'grp-an-toan',
@@ -41,7 +37,6 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     name: 'An toàn lao động',
     parentId: null,
     sortOrder: 4,
-    isActive: true,
   },
   {
     id: 'grp-pccc',
@@ -49,7 +44,6 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     name: 'Thiết bị PCCC',
     parentId: 'grp-an-toan',
     sortOrder: 1,
-    isActive: true,
   },
   {
     id: 'grp-cong-cu',
@@ -57,6 +51,5 @@ export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
     name: 'Công cụ - dụng cụ',
     parentId: null,
     sortOrder: 5,
-    isActive: true,
   },
 ];

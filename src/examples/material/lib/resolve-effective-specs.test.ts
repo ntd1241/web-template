@@ -9,8 +9,9 @@ const definitions: SpecDefinition[] = [
     id: 'spec-color',
     code: 'TS-MAU',
     name: 'Màu sắc',
-    dataType: 'single_select',
-    isActive: true,
+    dataType: 'list',
+    allowMultiple: false,
+    allowDynamicValues: false,
     options: [
       { id: 'mau-den', label: 'Đen', value: 'den' },
       { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
@@ -23,14 +24,16 @@ const definitions: SpecDefinition[] = [
     name: 'Trọng lượng',
     dataType: 'number',
     unit: 'g',
-    isActive: true,
+    allowMultiple: false,
+    allowDynamicValues: false,
   },
   {
     id: 'spec-date',
     code: 'TS-NGAY',
     name: 'Ngày sản xuất',
     dataType: 'date',
-    isActive: true,
+    allowMultiple: false,
+    allowDynamicValues: false,
   },
 ];
 
@@ -40,7 +43,6 @@ const model: MaterialModel = {
   name: 'Mẫu test',
   groupId: 'g1',
   imageUrls: [],
-  isActive: true,
   specs: [
     {
       specDefinitionId: 'spec-date',
@@ -135,14 +137,15 @@ describe('resolveEffectiveSpecs', () => {
     expect(invalid?.value).toBeUndefined();
   });
 
-  it('dynamic_list dùng dynamicOptions của mẫu để lọc giá trị thiết bị', () => {
+  it('list động dùng dynamicOptions của mẫu để lọc giá trị thiết bị', () => {
     const dynamicDefinitions: SpecDefinition[] = [
       {
         id: 'spec-color',
         code: 'TS-MAU',
         name: 'Màu sắc',
-        dataType: 'dynamic_list',
-        isActive: true,
+        dataType: 'list',
+        allowMultiple: false,
+        allowDynamicValues: true,
       },
     ];
     const dynamicModel: MaterialModel = {
@@ -151,7 +154,6 @@ describe('resolveEffectiveSpecs', () => {
       name: 'Mẫu dynamic',
       groupId: 'g1',
       imageUrls: [],
-      isActive: true,
       specs: [
         {
           specDefinitionId: 'spec-color',

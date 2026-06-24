@@ -8,7 +8,6 @@ export const materialGroupFormSchema = z.object({
   name: z.string().min(1, 'Bắt buộc'),
   parentId: z.string(),
   description: z.string(),
-  isActive: z.boolean(),
 });
 
 export type MaterialGroupFormValues = z.infer<typeof materialGroupFormSchema>;
