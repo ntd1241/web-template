@@ -15,7 +15,26 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
       {
         specDefinitionId: 'spec-color',
         deviceMode: 'select',
-        allowedOptionIds: ['mau-den', 'mau-xanh', 'mau-do'],
+        dynamicOptions: [
+          {
+            id: 'iphone-black-titan',
+            label: 'Titan đen',
+            value: 'titan-den',
+            colorHex: '#111827',
+          },
+          {
+            id: 'iphone-blue-titan',
+            label: 'Xanh Titan',
+            value: 'xanh-titan',
+            colorHex: '#1d4ed8',
+          },
+          {
+            id: 'iphone-natural-titan',
+            label: 'Titan tự nhiên',
+            value: 'titan-tu-nhien',
+            colorHex: '#a8a29e',
+          },
+        ],
         isRequired: true,
         sortOrder: 1,
       },
@@ -81,7 +100,21 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
       {
         specDefinitionId: 'spec-color',
         deviceMode: 'select',
-        allowedOptionIds: ['mau-vang', 'mau-trang', 'mau-do'],
+        dynamicOptions: [
+          {
+            id: 'helmet-yellow',
+            label: 'Vàng',
+            value: 'vang',
+            colorHex: '#f59e0b',
+          },
+          {
+            id: 'helmet-white',
+            label: 'Trắng',
+            value: 'trang',
+            colorHex: '#f8fafc',
+          },
+          { id: 'helmet-red', label: 'Đỏ', value: 'do', colorHex: '#dc2626' },
+        ],
         isRequired: true,
         sortOrder: 1,
       },

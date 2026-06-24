@@ -29,7 +29,7 @@ export const MATERIALS_MOCK: Material[] = [
     imageUrl: '',
     group: 'an-toan',
     modelId: 'model-helmet',
-    specValues: [{ specDefinitionId: 'spec-color', value: 'mau-vang' }],
+    specValues: [{ specDefinitionId: 'spec-color', value: 'helmet-yellow' }],
     tags: ['Bảo hộ', 'Cấp phát'],
   },
   {
@@ -70,7 +70,7 @@ export const MATERIALS_MOCK: Material[] = [
     group: 'van-phong',
     modelId: 'model-iphone17pro',
     specValues: [
-      { specDefinitionId: 'spec-color', value: 'mau-xanh' },
+      { specDefinitionId: 'spec-color', value: 'iphone-blue-titan' },
       { specDefinitionId: 'spec-storage', value: 'dl-256' },
     ],
     tags: ['Cấp phát', 'Kinh doanh'],
@@ -83,7 +83,7 @@ export const MATERIALS_MOCK: Material[] = [
     group: 'van-phong',
     modelId: 'model-iphone17pro',
     specValues: [
-      { specDefinitionId: 'spec-color', value: 'mau-den' },
+      { specDefinitionId: 'spec-color', value: 'iphone-black-titan' },
       { specDefinitionId: 'spec-storage', value: 'dl-512' },
     ],
     tags: ['Cấp phát', 'IT'],

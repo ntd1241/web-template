@@ -18,12 +18,16 @@ import {
   isMultiSelectValue,
   isNumberSpecValue,
 } from '../lib/spec-value';
+import type { MaterialFormValues } from '../material.schema';
 import {
   SPEC_DEVICE_MODE_LABELS,
   type MaterialModel,
 } from '../model/material-model';
-import type { SpecDefinition, SpecOption, SpecValue } from '../model/spec-definition';
-import type { MaterialFormValues } from '../material.schema';
+import type {
+  SpecDefinition,
+  SpecOption,
+  SpecValue,
+} from '../model/spec-definition';
 
 interface DeviceSpecFieldProps {
   form: UseFormReturn<MaterialFormValues>;
@@ -57,7 +61,11 @@ export function DeviceSpecField({
     );
   }
 
-  const effectiveSpecs = resolveEffectiveSpecs(model, { specValues }, definitions);
+  const effectiveSpecs = resolveEffectiveSpecs(
+    model,
+    { specValues },
+    definitions,
+  );
 
   if (effectiveSpecs.length === 0) {
     return (
@@ -69,9 +77,13 @@ export function DeviceSpecField({
 
   const handleChange = (specDefinitionId: string, value: SpecValue) => {
     const current = form.getValues('specValues');
-    const next = current.some((item) => item.specDefinitionId === specDefinitionId)
+    const next = current.some(
+      (item) => item.specDefinitionId === specDefinitionId,
+    )
       ? current.map((item) =>
-          item.specDefinitionId === specDefinitionId ? { ...item, value } : item,
+          item.specDefinitionId === specDefinitionId
+            ? { ...item, value }
+            : item,
         )
       : [...current, { specDefinitionId, value }];
 
@@ -97,11 +109,14 @@ export function DeviceSpecField({
         if (!definition) return null;
 
         const modelSpec = modelSpecById.get(effectiveSpec.specDefinitionId);
-        const allowedOptions = modelSpec?.allowedOptionIds
-          ? (definition.options ?? []).filter((option) =>
-              modelSpec.allowedOptionIds?.includes(option.id),
-            )
-          : (definition.options ?? []);
+        const allowedOptions =
+          definition.dataType === 'dynamic_list'
+            ? (modelSpec?.dynamicOptions ?? [])
+            : modelSpec?.allowedOptionIds
+              ? (definition.options ?? []).filter((option) =>
+                  modelSpec.allowedOptionIds?.includes(option.id),
+                )
+              : (definition.options ?? []);
 
         return (
           <div
@@ -130,7 +145,11 @@ export function DeviceSpecField({
             <div className="mt-3">
               {effectiveSpec.isReadOnly ? (
                 <div className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-2 text-sm text-foreground">
-                  {formatSpecValue(definition, effectiveSpec.value)}
+                  {formatSpecValue(
+                    definition,
+                    effectiveSpec.value,
+                    effectiveSpec.options,
+                  )}
                 </div>
               ) : (
                 <SpecValueEditor
@@ -171,7 +190,10 @@ function SpecValueEditor({
             variant="md"
             value={Number.isFinite(amount) ? String(amount) : ''}
             onChange={(event) =>
-              onChange({ amount: Number(event.target.value), unit: definition.unit })
+              onChange({
+                amount: Number(event.target.value),
+                unit: definition.unit,
+              })
             }
           />
           {definition.unit && (
@@ -201,6 +223,7 @@ function SpecValueEditor({
         />
       );
     case 'single_select':
+    case 'dynamic_list':
       return (
         <Select
           value={typeof value === 'string' ? value : ''}

@@ -7,6 +7,7 @@ export type SpecDataType =
   | 'number'
   | 'single_select'
   | 'multi_select'
+  | 'dynamic_list'
   | 'boolean'
   | 'date';
 
@@ -15,6 +16,7 @@ export const SPEC_DATA_TYPE_LABELS: Record<SpecDataType, string> = {
   number: 'Số + đơn vị',
   single_select: 'Chọn 1',
   multi_select: 'Chọn nhiều',
+  dynamic_list: 'Danh sách theo mẫu',
   boolean: 'Có / Không',
   date: 'Ngày tháng',
 };
@@ -34,7 +36,7 @@ export interface SpecDefinition {
   dataType: SpecDataType;
   /** Chỉ `number`: 'kg' | 'g' | 'inch' | 'mm'... */
   unit?: string;
-  /** Chỉ `single_select` | `multi_select`: master list. */
+  /** Chỉ `single_select` | `multi_select`: master list. `dynamic_list` khai báo ở từng mẫu. */
   options?: SpecOption[];
   description?: string;
   isActive: boolean;
@@ -46,6 +48,7 @@ export interface SpecDefinition {
  *  - number        -> NumberSpecValue
  *  - single_select -> string (optionId)
  *  - multi_select  -> string[] (optionId[])
+ *  - dynamic_list  -> string (optionId thuộc MaterialModelSpec.dynamicOptions)
  *  - boolean       -> boolean
  *  - date          -> string (ISO date)
  *
@@ -66,4 +69,12 @@ export function isSelectDataType(
   dataType: SpecDataType,
 ): dataType is SelectSpecDataType {
   return dataType === 'single_select' || dataType === 'multi_select';
+}
+
+export type ChoiceSpecDataType = SelectSpecDataType | 'dynamic_list';
+
+export function isChoiceDataType(
+  dataType: SpecDataType,
+): dataType is ChoiceSpecDataType {
+  return isSelectDataType(dataType) || dataType === 'dynamic_list';
 }

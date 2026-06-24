@@ -41,6 +41,23 @@ const portsDef: SpecDefinition = {
   ],
 };
 
+const dynamicColorDef: SpecDefinition = {
+  id: 'spec-color-dynamic',
+  code: 'TS-MAU-DYNAMIC',
+  name: 'Màu sắc linh động',
+  dataType: 'dynamic_list',
+  isActive: true,
+};
+
+const iphoneColorOptions = [
+  { id: 'iphone-blue-titan', label: 'Xanh Titan', value: 'xanh-titan' },
+  {
+    id: 'iphone-natural-titan',
+    label: 'Titan tự nhiên',
+    value: 'titan-tu-nhien',
+  },
+];
+
 describe('formatSpecValue', () => {
   it('hiển thị label option cho single_select', () => {
     expect(formatSpecValue(colorDef, 'mau-xanh')).toBe('Xanh');
@@ -63,6 +80,12 @@ describe('formatSpecValue', () => {
     );
     expect(formatSpecValue(portsDef, [])).toBe('—');
   });
+
+  it('hiển thị label dynamic_list từ option riêng của mẫu', () => {
+    expect(
+      formatSpecValue(dynamicColorDef, 'iphone-blue-titan', iphoneColorOptions),
+    ).toBe('Xanh Titan');
+  });
 });
 
 describe('isValidSpecValue', () => {
@@ -76,6 +99,13 @@ describe('isValidSpecValue', () => {
     expect(isValidSpecValue(colorDef, 'mau-den')).toBe(true);
     expect(isValidSpecValue(portsDef, ['port-usbc'])).toBe(true);
     expect(isValidSpecValue(portsDef, 'port-usbc' as never)).toBe(false);
+  });
+
+  it('dynamic_list cần string', () => {
+    expect(isValidSpecValue(dynamicColorDef, 'iphone-blue-titan')).toBe(true);
+    expect(isValidSpecValue(dynamicColorDef, ['iphone-blue-titan'])).toBe(
+      false,
+    );
   });
 });
 
@@ -111,6 +141,19 @@ describe('constrainSelectValue', () => {
         ['port-usbc'],
       ),
     ).toEqual(['port-usbc']);
+  });
+
+  it('dynamic_list: loại giá trị ngoài option riêng của mẫu', () => {
+    expect(
+      constrainSelectValue('dynamic_list', 'iphone-blue-titan', [
+        'iphone-blue-titan',
+      ]),
+    ).toBe('iphone-blue-titan');
+    expect(
+      constrainSelectValue('dynamic_list', 'samsung-violet', [
+        'iphone-blue-titan',
+      ]),
+    ).toBeUndefined();
   });
 
   it('kiểu không phải select: giữ nguyên', () => {

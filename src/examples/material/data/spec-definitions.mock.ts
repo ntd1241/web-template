@@ -6,16 +6,9 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     id: 'spec-color',
     code: 'TS-MAU',
     name: 'Màu sắc',
-    dataType: 'single_select',
+    dataType: 'dynamic_list',
     description: 'Màu sắc bên ngoài của thiết bị',
     isActive: true,
-    options: [
-      { id: 'mau-den', label: 'Đen', value: 'den', colorHex: '#1f2937' },
-      { id: 'mau-trang', label: 'Trắng', value: 'trang', colorHex: '#f8fafc' },
-      { id: 'mau-xanh', label: 'Xanh', value: 'xanh', colorHex: '#2563eb' },
-      { id: 'mau-do', label: 'Đỏ', value: 'do', colorHex: '#dc2626' },
-      { id: 'mau-vang', label: 'Vàng', value: 'vang', colorHex: '#f59e0b' },
-    ],
   },
   {
     id: 'spec-storage',

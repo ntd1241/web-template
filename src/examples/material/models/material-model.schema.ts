@@ -8,11 +8,19 @@ const specValueSchema = z.union([
   z.object({ amount: z.number(), unit: z.string().optional() }),
 ]);
 
+const specOptionSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1, 'Nhập nhãn'),
+  value: z.string().min(1, 'Nhập mã giá trị'),
+  colorHex: z.string().optional(),
+});
+
 const modelSpecSchema = z.object({
   specDefinitionId: z.string().min(1),
   deviceMode: z.enum(['fixed', 'input', 'select']),
   modelValue: specValueSchema.optional(),
   allowedOptionIds: z.array(z.string()).optional(),
+  dynamicOptions: z.array(specOptionSchema).optional(),
   isRequired: z.boolean(),
 });
 

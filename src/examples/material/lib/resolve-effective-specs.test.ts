@@ -134,4 +134,57 @@ describe('resolveEffectiveSpecs', () => {
     ).find((s) => s.specDefinitionId === 'spec-color');
     expect(invalid?.value).toBeUndefined();
   });
+
+  it('dynamic_list dùng dynamicOptions của mẫu để lọc giá trị thiết bị', () => {
+    const dynamicDefinitions: SpecDefinition[] = [
+      {
+        id: 'spec-color',
+        code: 'TS-MAU',
+        name: 'Màu sắc',
+        dataType: 'dynamic_list',
+        isActive: true,
+      },
+    ];
+    const dynamicModel: MaterialModel = {
+      id: 'm-dynamic',
+      code: 'M-DYN',
+      name: 'Mẫu dynamic',
+      groupId: 'g1',
+      imageUrls: [],
+      isActive: true,
+      specs: [
+        {
+          specDefinitionId: 'spec-color',
+          deviceMode: 'select',
+          dynamicOptions: [
+            {
+              id: 'iphone-blue-titan',
+              label: 'Xanh Titan',
+              value: 'xanh-titan',
+            },
+          ],
+          isRequired: true,
+          sortOrder: 1,
+        },
+      ],
+    };
+
+    const valid = resolveEffectiveSpecs(
+      dynamicModel,
+      makeMaterial([
+        { specDefinitionId: 'spec-color', value: 'iphone-blue-titan' },
+      ]),
+      dynamicDefinitions,
+    )[0];
+    expect(valid.value).toBe('iphone-blue-titan');
+
+    const invalid = resolveEffectiveSpecs(
+      dynamicModel,
+      makeMaterial([
+        { specDefinitionId: 'spec-color', value: 'samsung-violet' },
+      ]),
+      dynamicDefinitions,
+    )[0];
+    expect(invalid.value).toBeUndefined();
+  });
 });

@@ -11,4 +11,16 @@ describe('buildPath', () => {
   it('giữ nguyên path không có param', () => {
     expect(buildPath(ROUTES.EXAMPLE.EMPLOYEES, {})).toBe('/example/employees');
   });
+
+  it('thay thế param cho trang sửa vật tư', () => {
+    expect(buildPath(ROUTES.EXAMPLE.MATERIAL_EDIT, { id: 'mat-1' })).toBe(
+      '/example/materials/mat-1/edit',
+    );
+  });
+
+  it('thay thế param cho trang sửa mẫu vật tư', () => {
+    expect(
+      buildPath(ROUTES.EXAMPLE.MATERIAL_MODEL_EDIT, { id: 'model-1' }),
+    ).toBe('/example/materials/models/model-1/edit');
+  });
 });

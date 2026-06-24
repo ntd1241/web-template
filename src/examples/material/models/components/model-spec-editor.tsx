@@ -20,9 +20,11 @@ import {
   type SpecDeviceMode,
 } from '../../model/material-model';
 import {
+  isChoiceDataType,
   isSelectDataType,
   SPEC_DATA_TYPE_LABELS,
   type SpecDefinition,
+  type SpecOption,
   type SpecValue,
 } from '../../model/spec-definition';
 import type { MaterialModelFormValues } from '../material-model.schema';
@@ -33,9 +35,16 @@ interface ModelSpecEditorProps {
 }
 
 function deviceModesFor(def: SpecDefinition): SpecDeviceMode[] {
+  if (def.dataType === 'dynamic_list') return ['select'];
   return isSelectDataType(def.dataType)
     ? ['fixed', 'input', 'select']
     : ['fixed', 'input'];
+}
+
+let dynamicOptionSeq = 0;
+function nextDynamicOptionId(): string {
+  dynamicOptionSeq += 1;
+  return `dynamic-opt-${dynamicOptionSeq}`;
 }
 
 export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
@@ -55,11 +64,13 @@ export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
   const handleAdd = (specDefinitionId: string) => {
     const def = defById.get(specDefinitionId);
     if (!def) return;
+    const isDynamicList = def.dataType === 'dynamic_list';
     append({
       specDefinitionId,
-      deviceMode: 'fixed',
+      deviceMode: isDynamicList ? 'select' : 'fixed',
       modelValue: undefined,
       allowedOptionIds: isSelectDataType(def.dataType) ? [] : undefined,
+      dynamicOptions: isDynamicList ? [] : undefined,
       isRequired: false,
     });
   };
@@ -134,6 +145,7 @@ function ModelSpecRow({
   const isRequired = form.watch(`${base}.isRequired`);
   const modelValue = form.watch(`${base}.modelValue`);
   const allowedOptionIds = form.watch(`${base}.allowedOptionIds`) ?? [];
+  const dynamicOptions = form.watch(`${base}.dynamicOptions`) ?? [];
   const modes = deviceModesFor(def);
 
   const handleModeChange = (value: string) => {
@@ -143,7 +155,12 @@ function ModelSpecRow({
     form.setValue(`${base}.modelValue`, undefined, { shouldDirty: true });
     form.setValue(
       `${base}.allowedOptionIds`,
-      mode === 'select' ? [] : undefined,
+      mode === 'select' && isSelectDataType(def.dataType) ? [] : undefined,
+      { shouldDirty: true },
+    );
+    form.setValue(
+      `${base}.dynamicOptions`,
+      mode === 'select' && def.dataType === 'dynamic_list' ? [] : undefined,
       { shouldDirty: true },
     );
   };
@@ -201,15 +218,27 @@ function ModelSpecRow({
               Giá trị do thiết bị nhập khi tạo.
             </p>
           ) : deviceMode === 'select' ? (
-            <AllowedOptionsEditor
-              def={def}
-              value={allowedOptionIds}
-              onChange={(ids) =>
-                form.setValue(`${base}.allowedOptionIds`, ids, {
-                  shouldDirty: true,
-                })
-              }
-            />
+            def.dataType === 'dynamic_list' ? (
+              <DynamicOptionsEditor
+                value={dynamicOptions}
+                onChange={(options) =>
+                  form.setValue(`${base}.dynamicOptions`, options, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              />
+            ) : (
+              <AllowedOptionsEditor
+                def={def}
+                value={allowedOptionIds}
+                onChange={(ids) =>
+                  form.setValue(`${base}.allowedOptionIds`, ids, {
+                    shouldDirty: true,
+                  })
+                }
+              />
+            )
           ) : (
             <FixedValueEditor
               def={def}
@@ -267,6 +296,98 @@ function AllowedOptionsEditor({
           {opt.label}
         </label>
       ))}
+    </div>
+  );
+}
+
+function DynamicOptionsEditor({
+  value,
+  onChange,
+}: {
+  value: SpecOption[];
+  onChange: (options: SpecOption[]) => void;
+}) {
+  const addOption = () => {
+    const id = nextDynamicOptionId();
+    onChange([...value, { id, label: '', value: id }]);
+  };
+
+  const updateOption = (
+    index: number,
+    patch: Partial<Pick<SpecOption, 'label' | 'value' | 'colorHex'>>,
+  ) => {
+    onChange(
+      value.map((option, optionIndex) =>
+        optionIndex === index
+          ? {
+              ...option,
+              ...patch,
+              value:
+                patch.value ??
+                (patch.label !== undefined
+                  ? patch.label.trim().toLowerCase().replace(/\s+/g, '-')
+                  : option.value),
+            }
+          : option,
+      ),
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-2 rounded-admin-control border border-border p-3">
+      {value.length === 0 ? (
+        <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-3 text-center text-sm text-muted-foreground">
+          Chưa có lựa chọn riêng cho mẫu.
+        </p>
+      ) : (
+        value.map((option, index) => (
+          <div key={option.id} className="flex items-start gap-2">
+            <Input
+              variant="md"
+              placeholder="Nhãn (vd: Xanh Titan)"
+              value={option.label}
+              onChange={(event) =>
+                updateOption(index, { label: event.target.value })
+              }
+            />
+            <Input
+              variant="md"
+              placeholder="Mã"
+              value={option.value}
+              onChange={(event) =>
+                updateOption(index, { value: event.target.value })
+              }
+            />
+            <Input
+              type="color"
+              aria-label="Màu hiển thị"
+              className="h-9 w-12 shrink-0 p-1"
+              value={option.colorHex ?? '#ffffff'}
+              onChange={(event) =>
+                updateOption(index, { colorHex: event.target.value })
+              }
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Xóa lựa chọn"
+              className="shrink-0 text-muted-foreground"
+              onClick={() =>
+                onChange(
+                  value.filter((_, optionIndex) => optionIndex !== index),
+                )
+              }
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ))
+      )}
+      <Button type="button" variant="outline" size="sm" onClick={addOption}>
+        <Plus className="size-3.5" />
+        Thêm lựa chọn của mẫu
+      </Button>
     </div>
   );
 }
@@ -363,6 +484,15 @@ function FixedValueEditor({
         </div>
       );
     }
+    case 'dynamic_list':
+      return (
+        <Input
+          variant="md"
+          value={typeof value === 'string' ? value : ''}
+          placeholder="Chọn chế độ select để khai báo danh sách riêng"
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
     default:
       return (
         <Input

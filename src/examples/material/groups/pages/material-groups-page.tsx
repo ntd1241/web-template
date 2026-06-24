@@ -190,14 +190,9 @@ export function MaterialGroupsPage() {
           </div>
         ) : (
           <>
-            <CardHeader className="flex-col items-stretch gap-1 p-5">
+            <CardHeader>
               <CardHeading>
                 <CardTitle>{panelTitle}</CardTitle>
-                <CardDescription>
-                  {mode.kind === 'create'
-                    ? 'Khai báo nhóm vật tư mới'
-                    : 'Chỉnh sửa thông tin nhóm'}
-                </CardDescription>
               </CardHeading>
               {mode.kind === 'edit' && (
                 <CardToolbar>
@@ -207,13 +202,13 @@ export function MaterialGroupsPage() {
                     className="text-admin-red-primary"
                     onClick={handleRequestDelete}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 />
                     Xóa nhóm
                   </Button>
                 </CardToolbar>
               )}
             </CardHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
               <MaterialGroupForm
                 form={form}
                 onSubmit={handleSubmit}

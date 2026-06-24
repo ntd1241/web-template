@@ -1,11 +1,25 @@
-import type { Material, MaterialGroupKey, MaterialSpecValue } from '../model/material';
-import type { MaterialModel } from '../model/material-model';
+import type {
+  Material,
+  MaterialGroupKey,
+  MaterialSpecValue,
+} from '../model/material';
+import type { MaterialModel, MaterialModelSpec } from '../model/material-model';
 import type { SpecDefinition } from '../model/spec-definition';
 import {
   constrainSelectValue,
   isEmptySpecValue,
   isValidSpecValue,
 } from './spec-value';
+
+function optionIdsForSpec(
+  definition: SpecDefinition,
+  modelSpec: MaterialModelSpec,
+): string[] | undefined {
+  if (definition.dataType === 'dynamic_list') {
+    return modelSpec.dynamicOptions?.map((option) => option.id);
+  }
+  return modelSpec.allowedOptionIds;
+}
 
 export function legacyGroupFromModelGroupId(groupId: string): MaterialGroupKey {
   if (groupId === 'grp-kiem-ke') return 'kiem-ke';
@@ -33,9 +47,14 @@ export function buildMaterialSpecValues(
   specValues: MaterialSpecValue[],
   definitions: SpecDefinition[],
 ): MaterialSpecValue[] {
-  const defById = new Map(definitions.map((definition) => [definition.id, definition]));
+  const defById = new Map(
+    definitions.map((definition) => [definition.id, definition]),
+  );
   const valueById = new Map(
-    specValues.map((specValue) => [specValue.specDefinitionId, specValue.value]),
+    specValues.map((specValue) => [
+      specValue.specDefinitionId,
+      specValue.value,
+    ]),
   );
 
   return model.specs
@@ -50,7 +69,7 @@ export function buildMaterialSpecValues(
           ? constrainSelectValue(
               definition.dataType,
               rawValue,
-              modelSpec.allowedOptionIds,
+              optionIdsForSpec(definition, modelSpec),
             )
           : rawValue;
 
@@ -67,7 +86,9 @@ export function validateMaterialSpecValues(
   specValues: MaterialSpecValue[],
   definitions: SpecDefinition[],
 ): string[] {
-  const defById = new Map(definitions.map((definition) => [definition.id, definition]));
+  const defById = new Map(
+    definitions.map((definition) => [definition.id, definition]),
+  );
   const valueById = new Map(
     buildMaterialSpecValues(model, specValues, definitions).map((specValue) => [
       specValue.specDefinitionId,
@@ -79,7 +100,11 @@ export function validateMaterialSpecValues(
     if (!modelSpec.isRequired || modelSpec.deviceMode === 'fixed') return [];
     const definition = defById.get(modelSpec.specDefinitionId);
     const value = valueById.get(modelSpec.specDefinitionId);
-    if (!definition || isEmptySpecValue(value) || !isValidSpecValue(definition, value)) {
+    if (
+      !definition ||
+      isEmptySpecValue(value) ||
+      !isValidSpecValue(definition, value)
+    ) {
       return [definition?.name ?? modelSpec.specDefinitionId];
     }
     return [];

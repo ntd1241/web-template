@@ -25,6 +25,7 @@ const dataTypeBadgeConfig: StatusBadgeConfig<string> = {
   number: { label: 'Số + đơn vị', variant: 'info' },
   single_select: { label: 'Chọn 1', variant: 'primary' },
   multi_select: { label: 'Chọn nhiều', variant: 'primary' },
+  dynamic_list: { label: 'Theo mẫu', variant: 'warning' },
   boolean: { label: 'Có / Không', variant: 'warning' },
   date: { label: 'Ngày tháng', variant: 'secondary' },
 };

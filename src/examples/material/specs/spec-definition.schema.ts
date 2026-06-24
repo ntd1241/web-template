@@ -17,6 +17,7 @@ export const specDefinitionFormSchema = z
       'number',
       'single_select',
       'multi_select',
+      'dynamic_list',
       'boolean',
       'date',
     ]),

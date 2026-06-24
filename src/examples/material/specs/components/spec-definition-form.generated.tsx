@@ -50,6 +50,7 @@ const dataTypeOptions = [
   { value: 'number', label: 'Số + đơn vị' },
   { value: 'single_select', label: 'Chọn 1' },
   { value: 'multi_select', label: 'Chọn nhiều' },
+  { value: 'dynamic_list', label: 'Danh sách theo mẫu' },
   { value: 'boolean', label: 'Có / Không' },
   { value: 'date', label: 'Ngày tháng' },
 ];

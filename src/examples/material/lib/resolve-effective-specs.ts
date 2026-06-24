@@ -8,8 +8,16 @@
  *  - select: value = device override, ràng buộc trong allowedOptionIds
  */
 import type { Material } from '../model/material';
-import type { MaterialModel, SpecDeviceMode } from '../model/material-model';
-import type { SpecDefinition, SpecValue } from '../model/spec-definition';
+import type {
+  MaterialModel,
+  MaterialModelSpec,
+  SpecDeviceMode,
+} from '../model/material-model';
+import type {
+  SpecDefinition,
+  SpecOption,
+  SpecValue,
+} from '../model/spec-definition';
 import { constrainSelectValue } from './spec-value';
 
 export type EffectiveSpecSource = 'model' | 'device' | 'default';
@@ -19,9 +27,20 @@ export interface EffectiveSpec {
   definition: SpecDefinition | undefined;
   deviceMode: SpecDeviceMode;
   value: SpecValue | undefined;
+  options?: SpecOption[];
   isReadOnly: boolean;
   isRequired: boolean;
   source: EffectiveSpecSource;
+}
+
+function optionIdsForSpec(
+  definition: SpecDefinition | undefined,
+  spec: MaterialModelSpec,
+): string[] | undefined {
+  if (definition?.dataType === 'dynamic_list') {
+    return spec.dynamicOptions?.map((option) => option.id);
+  }
+  return spec.allowedOptionIds;
 }
 
 export function resolveEffectiveSpecs(
@@ -65,7 +84,7 @@ export function resolveEffectiveSpecs(
             ? constrainSelectValue(
                 definition.dataType,
                 override,
-                spec.allowedOptionIds,
+                optionIdsForSpec(definition, spec),
               )
             : override;
           source = 'device';
@@ -77,6 +96,10 @@ export function resolveEffectiveSpecs(
         definition,
         deviceMode: spec.deviceMode,
         value,
+        options:
+          definition?.dataType === 'dynamic_list'
+            ? spec.dynamicOptions
+            : definition?.options,
         isReadOnly,
         isRequired: spec.isRequired,
         source,

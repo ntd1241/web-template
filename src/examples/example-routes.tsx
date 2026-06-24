@@ -43,6 +43,11 @@ if (import.meta.env.DEV) {
       default: m.MaterialsManagementPage,
     })),
   );
+  const MaterialEditorPage = lazy(() =>
+    import('./material/pages/material-editor-page').then((m) => ({
+      default: m.MaterialEditorPage,
+    })),
+  );
   const SuppliersPage = lazy(() =>
     import('./suppliers/pages/suppliers-page').then((m) => ({
       default: m.SuppliersPage,
@@ -61,6 +66,11 @@ if (import.meta.env.DEV) {
   const MaterialModelsPage = lazy(() =>
     import('./material/models/pages/material-models-page').then((m) => ({
       default: m.MaterialModelsPage,
+    })),
+  );
+  const MaterialModelEditorPage = lazy(() =>
+    import('./material/models/pages/material-model-editor-page').then((m) => ({
+      default: m.MaterialModelEditorPage,
     })),
   );
   const MaterialPublicDetailPage = lazy(() =>
@@ -115,6 +125,22 @@ if (import.meta.env.DEV) {
           }
         />
         <Route
+          path={ROUTES.EXAMPLE.MATERIAL_CREATE}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_EDIT}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
           path={ROUTES.EXAMPLE.MATERIAL_SPECS}
           element={
             <Suspense fallback={<ScreenLoader />}>
@@ -135,6 +161,22 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <MaterialModelsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_MODEL_CREATE}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_MODEL_EDIT}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelEditorPage />
             </Suspense>
           }
         />

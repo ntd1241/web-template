@@ -83,6 +83,7 @@ export function mapMaterialModelToFormValues(
         deviceMode: spec.deviceMode,
         modelValue: spec.modelValue,
         allowedOptionIds: spec.allowedOptionIds,
+        dynamicOptions: spec.dynamicOptions,
         isRequired: spec.isRequired,
       })),
   };

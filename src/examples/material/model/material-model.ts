@@ -2,7 +2,7 @@
  * Mẫu vật tư ("iPhone 17 Pro") — template gom nhiều thiết bị thật cùng loại.
  * Mock-first, example-only.
  */
-import type { SpecValue } from './spec-definition';
+import type { SpecOption, SpecValue } from './spec-definition';
 
 /** Chế độ ứng xử của thông số ở thiết bị thật. */
 export type SpecDeviceMode = 'fixed' | 'input' | 'select';
@@ -20,6 +20,8 @@ export interface MaterialModelSpec {
   modelValue?: SpecValue;
   /** `select`: tập con optionId của `SpecDefinition.options`. */
   allowedOptionIds?: string[];
+  /** `dynamic_list`: danh sách lựa chọn riêng của mẫu. */
+  dynamicOptions?: SpecOption[];
   isRequired: boolean;
   sortOrder: number;
 }
