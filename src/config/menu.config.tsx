@@ -77,6 +77,7 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Mẫu vật tư',
         icon: Boxes,
         path: ROUTES.EXAMPLE.MATERIAL_MODELS,
+        wireframePath: '/example/material/models/wireframe',
       },
     ],
   },

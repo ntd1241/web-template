@@ -88,6 +88,11 @@ if (import.meta.env.DEV) {
       default: m.RolePermissionsWireframe,
     })),
   );
+  const MaterialModelSpecWireframe = lazy(() =>
+    import('./material/models/wireframe').then((m) => ({
+      default: m.MaterialModelSpecWireframe,
+    })),
+  );
 
   exampleRoutes = (
     <>
@@ -201,6 +206,14 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <RolePermissionsWireframe />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/example/material/models/wireframe"
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelSpecWireframe />
             </Suspense>
           }
         />
