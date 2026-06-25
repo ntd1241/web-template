@@ -4,7 +4,7 @@ import type { SpecValue } from './model/spec-definition';
 const specValueSchema = z.custom<SpecValue>();
 
 const materialSpecValueSchema = z.object({
-  specDefinitionId: z.string().min(1),
+  materialModelSpecId: z.string().min(1),
   value: specValueSchema,
 });
 

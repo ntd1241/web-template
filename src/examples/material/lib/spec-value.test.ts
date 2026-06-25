@@ -14,6 +14,7 @@ const colorDef: SpecDefinition = {
   dataType: 'list',
   allowMultiple: false,
   allowDynamicValues: false,
+  allowModelOverride: true,
   options: [
     { id: 'mau-den', label: 'Đen', value: 'den' },
     { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
@@ -29,6 +30,7 @@ const weightDef: SpecDefinition = {
   unit: 'g',
   allowMultiple: false,
   allowDynamicValues: false,
+  allowModelOverride: true,
 };
 
 const portsDef: SpecDefinition = {
@@ -38,6 +40,7 @@ const portsDef: SpecDefinition = {
   dataType: 'list',
   allowMultiple: true,
   allowDynamicValues: false,
+  allowModelOverride: true,
   options: [
     { id: 'port-usbc', label: 'USB-C', value: 'usb-c' },
     { id: 'port-hdmi', label: 'HDMI', value: 'hdmi' },
@@ -51,6 +54,7 @@ const dynamicColorDef: SpecDefinition = {
   dataType: 'list',
   allowMultiple: false,
   allowDynamicValues: true,
+  allowModelOverride: true,
 };
 
 const iphoneColorOptions = [

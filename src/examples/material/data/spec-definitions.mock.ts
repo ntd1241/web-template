@@ -10,6 +10,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     description: 'Màu sắc bên ngoài của thiết bị',
     allowMultiple: false,
     allowDynamicValues: true,
+    allowModelOverride: true,
     options: [
       { id: 'color-black', label: 'Đen', value: 'den', colorHex: '#111827' },
       {
@@ -28,6 +29,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     dataType: 'list',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
     defaultValue: 'dl-256',
     options: [
       { id: 'dl-128', label: '128 GB', value: '128' },
@@ -44,6 +46,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     unit: 'g',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
   },
   {
     id: 'spec-screen',
@@ -53,6 +56,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     unit: 'inch',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
   },
   {
     id: 'spec-waterproof',
@@ -61,6 +65,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     dataType: 'boolean',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
     defaultValue: false,
   },
   {
@@ -70,6 +75,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     dataType: 'date',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: false,
     defaultValue: '2026-01-01',
   },
   {
@@ -79,6 +85,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     dataType: 'text',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
     defaultValue: 'Nhựa + kim loại',
   },
   {
@@ -88,6 +95,7 @@ export const SPEC_DEFINITIONS_MOCK: SpecDefinition[] = [
     dataType: 'list',
     allowMultiple: true,
     allowDynamicValues: false,
+    allowModelOverride: true,
     defaultValue: ['port-usbc', 'port-hdmi', 'port-jack35', 'port-lightning'],
     options: [
       { id: 'port-usbc', label: 'USB-C', value: 'usb-c' },

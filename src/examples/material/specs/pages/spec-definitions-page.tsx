@@ -100,6 +100,7 @@ export function SpecDefinitionsPage() {
       description: values.description.trim() || undefined,
       allowMultiple: isList ? values.allowMultiple : false,
       allowDynamicValues: isList ? values.allowDynamicValues : false,
+      allowModelOverride: values.allowModelOverride,
       defaultValue: normalizeDefaultValue(values, options),
       options,
     };

@@ -29,7 +29,7 @@ export const MATERIALS_MOCK: Material[] = [
     imageUrl: '',
     group: 'an-toan',
     modelId: 'model-helmet',
-    specValues: [{ specDefinitionId: 'spec-color', value: 'helmet-yellow' }],
+    specValues: [{ materialModelSpecId: 'spec-color', value: 'helmet-yellow' }],
     tags: ['Bảo hộ', 'Cấp phát'],
   },
   {
@@ -59,7 +59,7 @@ export const MATERIALS_MOCK: Material[] = [
     imageUrl: '',
     group: 'an-toan',
     modelId: 'model-co2',
-    specValues: [{ specDefinitionId: 'spec-mfg-date', value: '2026-01-15' }],
+    specValues: [{ materialModelSpecId: 'spec-mfg-date', value: '2026-01-15' }],
     tags: ['PCCC', 'Định kỳ'],
   },
   {
@@ -70,8 +70,8 @@ export const MATERIALS_MOCK: Material[] = [
     group: 'van-phong',
     modelId: 'model-iphone17pro',
     specValues: [
-      { specDefinitionId: 'spec-color', value: 'iphone-blue-titan' },
-      { specDefinitionId: 'spec-storage', value: 'dl-256' },
+      { materialModelSpecId: 'spec-color', value: 'iphone-blue-titan' },
+      { materialModelSpecId: 'spec-storage', value: 'dl-256' },
     ],
     tags: ['Cấp phát', 'Kinh doanh'],
   },
@@ -83,8 +83,8 @@ export const MATERIALS_MOCK: Material[] = [
     group: 'van-phong',
     modelId: 'model-iphone17pro',
     specValues: [
-      { specDefinitionId: 'spec-color', value: 'iphone-black-titan' },
-      { specDefinitionId: 'spec-storage', value: 'dl-512' },
+      { materialModelSpecId: 'spec-color', value: 'iphone-black-titan' },
+      { materialModelSpecId: 'spec-storage', value: 'dl-512' },
     ],
     tags: ['Cấp phát', 'IT'],
   },

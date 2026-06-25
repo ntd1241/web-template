@@ -23,6 +23,7 @@ export const specDefinitionFormSchema = z.object({
   description: z.string(),
   allowMultiple: z.boolean(),
   allowDynamicValues: z.boolean(),
+  allowModelOverride: z.boolean(),
   options: z.array(specOptionSchema),
   defaultValue: specValueSchema.optional(),
 });

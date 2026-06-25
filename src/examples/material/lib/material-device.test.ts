@@ -8,7 +8,7 @@ import {
 } from './material-device';
 
 describe('material-device helpers', () => {
-  it('chỉ lưu override cho input/select và loại fixed', () => {
+  it('chỉ lưu override cho thông số editable và loại locked', () => {
     const model = MATERIAL_MODELS_MOCK.find(
       (item) => item.id === 'model-iphone17pro',
     );
@@ -17,22 +17,25 @@ describe('material-device helpers', () => {
     const specValues = buildMaterialSpecValues(
       model!,
       [
-        { specDefinitionId: 'spec-color', value: 'iphone-blue-titan' },
-        { specDefinitionId: 'spec-storage', value: 'dl-512' },
-        { specDefinitionId: 'spec-weight', value: { amount: 200, unit: 'g' } },
-        { specDefinitionId: 'spec-mfg-date', value: '2026-06-23' },
+        { materialModelSpecId: 'spec-color', value: 'iphone-blue-titan' },
+        { materialModelSpecId: 'spec-storage', value: 'dl-512' },
+        {
+          materialModelSpecId: 'spec-weight',
+          value: { amount: 200, unit: 'g' },
+        },
+        { materialModelSpecId: 'spec-mfg-date', value: '2026-06-23' },
       ],
       SPEC_DEFINITIONS_MOCK,
     );
 
     expect(specValues).toEqual([
-      { specDefinitionId: 'spec-color', value: 'iphone-blue-titan' },
-      { specDefinitionId: 'spec-storage', value: 'dl-512' },
-      { specDefinitionId: 'spec-mfg-date', value: '2026-06-23' },
+      { materialModelSpecId: 'spec-color', value: 'iphone-blue-titan' },
+      { materialModelSpecId: 'spec-storage', value: 'dl-512' },
+      { materialModelSpecId: 'spec-mfg-date', value: '2026-06-23' },
     ]);
   });
 
-  it('lọc lựa chọn ngoài allowedOptionIds của mẫu', () => {
+  it('lọc lựa chọn ngoài allowedOptions của mẫu', () => {
     const model = MATERIAL_MODELS_MOCK.find(
       (item) => item.id === 'model-iphone17pro',
     );
@@ -41,8 +44,8 @@ describe('material-device helpers', () => {
     const specValues = buildMaterialSpecValues(
       model!,
       [
-        { specDefinitionId: 'spec-color', value: 'helmet-yellow' },
-        { specDefinitionId: 'spec-storage', value: 'dl-1tb' },
+        { materialModelSpecId: 'spec-color', value: 'helmet-yellow' },
+        { materialModelSpecId: 'spec-storage', value: 'dl-1tb' },
       ],
       SPEC_DEFINITIONS_MOCK,
     );
@@ -50,7 +53,7 @@ describe('material-device helpers', () => {
     expect(specValues).toEqual([]);
   });
 
-  it('lọc list động theo dynamicOptions riêng của mẫu', () => {
+  it('lọc danh sách riêng của mẫu theo allowedOptions', () => {
     const model = {
       id: 'model-dynamic-color',
       code: 'MDL-DYNAMIC',
@@ -59,9 +62,11 @@ describe('material-device helpers', () => {
       imageUrls: [],
       specs: [
         {
+          id: 'spec-color',
+          source: 'catalog',
           specDefinitionId: 'spec-color',
-          deviceMode: 'select',
-          dynamicOptions: [
+          materialValueMode: 'editable',
+          allowedOptions: [
             {
               id: 'iphone-blue-titan',
               label: 'Xanh Titan',
@@ -81,21 +86,24 @@ describe('material-device helpers', () => {
         dataType: 'list',
         allowMultiple: false,
         allowDynamicValues: true,
+        allowModelOverride: true,
       },
     ] satisfies typeof SPEC_DEFINITIONS_MOCK;
 
     expect(
       buildMaterialSpecValues(
         model,
-        [{ specDefinitionId: 'spec-color', value: 'iphone-blue-titan' }],
+        [{ materialModelSpecId: 'spec-color', value: 'iphone-blue-titan' }],
         definitions,
       ),
-    ).toEqual([{ specDefinitionId: 'spec-color', value: 'iphone-blue-titan' }]);
+    ).toEqual([
+      { materialModelSpecId: 'spec-color', value: 'iphone-blue-titan' },
+    ]);
 
     expect(
       buildMaterialSpecValues(
         model,
-        [{ specDefinitionId: 'spec-color', value: 'samsung-violet' }],
+        [{ materialModelSpecId: 'spec-color', value: 'samsung-violet' }],
         definitions,
       ),
     ).toEqual([]);
@@ -109,7 +117,7 @@ describe('material-device helpers', () => {
     expect(model).toBeDefined();
     const missing = validateMaterialSpecValues(
       model!,
-      [{ specDefinitionId: 'spec-color', value: 'iphone-black-titan' }],
+      [{ materialModelSpecId: 'spec-color', value: 'iphone-black-titan' }],
       SPEC_DEFINITIONS_MOCK,
     );
 

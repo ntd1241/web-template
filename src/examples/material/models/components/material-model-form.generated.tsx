@@ -76,11 +76,13 @@ export function mapMaterialModelToFormValues(
       .slice()
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((spec) => ({
+        id: spec.id,
+        source: spec.source,
         specDefinitionId: spec.specDefinitionId,
-        deviceMode: spec.deviceMode,
-        modelValue: spec.modelValue,
-        allowedOptionIds: spec.allowedOptionIds,
-        dynamicOptions: spec.dynamicOptions,
+        customDefinition: spec.customDefinition,
+        materialValueMode: spec.materialValueMode,
+        defaultValue: spec.defaultValue,
+        allowedOptions: spec.allowedOptions,
         isRequired: spec.isRequired,
       })),
   };

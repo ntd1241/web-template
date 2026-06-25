@@ -32,33 +32,37 @@ import {
 } from '@/components/ui/table';
 import { isNumberSpecValue } from '../../lib/spec-value';
 import {
-  SPEC_DEVICE_MODE_LABELS,
-  type SpecDeviceMode,
+  MATERIAL_MODEL_SPEC_SOURCE_LABELS,
+  type CustomSpecDefinition,
 } from '../../model/material-model';
 import {
   SPEC_DATA_TYPE_LABELS,
+  type SpecDataType,
   type SpecDefinition,
   type SpecOption,
   type SpecValue,
 } from '../../model/spec-definition';
-import type { MaterialModelFormValues } from '../material-model.schema';
+import type {
+  MaterialModelFormValues,
+  ModelSpecFormValue,
+} from '../material-model.schema';
 
 interface ModelSpecEditorProps {
   form: UseFormReturn<MaterialModelFormValues>;
   definitions: SpecDefinition[];
 }
 
-function deviceModesFor(def: SpecDefinition): SpecDeviceMode[] {
-  if (def.dataType === 'list' && def.allowDynamicValues) return ['select'];
-  return def.dataType === 'list'
-    ? ['fixed', 'input', 'select']
-    : ['fixed', 'input'];
-}
-
 let dynamicOptionSeq = 0;
+let customSpecSeq = 0;
+
 function nextDynamicOptionId(): string {
   dynamicOptionSeq += 1;
   return `dynamic-opt-${dynamicOptionSeq}`;
+}
+
+function nextCustomSpecId(): string {
+  customSpecSeq += 1;
+  return `custom-spec-${customSpecSeq}`;
 }
 
 function cloneOptions(options: SpecOption[] | undefined): SpecOption[] {
@@ -69,6 +73,57 @@ function cloneSpecValue(value: SpecValue | undefined): SpecValue | undefined {
   if (Array.isArray(value)) return [...value];
   if (typeof value === 'object' && value !== null) return { ...value };
   return value;
+}
+
+function definitionForSpec(
+  spec: ModelSpecFormValue,
+  defById: Map<string, SpecDefinition>,
+): SpecDefinition | undefined {
+  if (spec.source === 'custom' && spec.customDefinition) {
+    return {
+      id: spec.id,
+      ...spec.customDefinition,
+      allowModelOverride: true,
+    };
+  }
+  return spec.specDefinitionId ? defById.get(spec.specDefinitionId) : undefined;
+}
+
+function optionsForSpec(
+  spec: ModelSpecFormValue,
+  def: SpecDefinition,
+): SpecOption[] {
+  return spec.allowedOptions ?? def.options ?? [];
+}
+
+function canOverrideSpec(spec: ModelSpecFormValue, def: SpecDefinition) {
+  return spec.source === 'custom' || def.allowModelOverride;
+}
+
+function makeCatalogSpec(def: SpecDefinition): ModelSpecFormValue {
+  return {
+    id: def.id,
+    source: 'catalog',
+    specDefinitionId: def.id,
+    materialValueMode: 'locked',
+    defaultValue: cloneSpecValue(def.defaultValue),
+    allowedOptions:
+      def.dataType === 'list' && def.allowDynamicValues
+        ? cloneOptions(def.options)
+        : undefined,
+    isRequired: false,
+  };
+}
+
+function makeCustomDefinition(): CustomSpecDefinition {
+  return {
+    code: 'TS-RIENG',
+    name: 'Thông số riêng',
+    dataType: 'text',
+    allowMultiple: false,
+    allowDynamicValues: true,
+    defaultValue: '',
+  };
 }
 
 export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
@@ -82,33 +137,40 @@ export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
     [definitions],
   );
 
-  const usedIds = new Set(specs.map((s) => s.specDefinitionId));
-  const available = definitions.filter((d) => !usedIds.has(d.id));
+  const usedCatalogIds = new Set(
+    specs
+      .filter((spec) => spec.source === 'catalog')
+      .map((spec) => spec.specDefinitionId),
+  );
+  const available = definitions.filter((d) => !usedCatalogIds.has(d.id));
 
-  const handleAdd = (specDefinitionId: string) => {
+  const handleAddCatalog = (specDefinitionId: string) => {
     const def = defById.get(specDefinitionId);
-    if (!def) return;
-    const isList = def.dataType === 'list';
-    const isDynamicList = isList && def.allowDynamicValues;
+    if (def) append(makeCatalogSpec(def));
+  };
+
+  const handleAddCustom = () => {
+    const id = nextCustomSpecId();
     append({
-      specDefinitionId,
-      deviceMode: isDynamicList ? 'select' : 'fixed',
-      modelValue: isDynamicList ? undefined : cloneSpecValue(def.defaultValue),
-      allowedOptionIds: isList && !isDynamicList ? [] : undefined,
-      dynamicOptions: isDynamicList ? cloneOptions(def.options) : undefined,
+      id,
+      source: 'custom',
+      customDefinition: makeCustomDefinition(),
+      materialValueMode: 'locked',
+      defaultValue: '',
       isRequired: false,
     });
   };
 
   return (
     <div className="flex h-full min-h-0 w-full flex-1 flex-col [&_[data-slot=table-wrapper]]:h-full [&_[data-slot=table-wrapper]]:min-h-0">
-      <Table className="min-w-[1040px]">
+      <Table className="min-w-[1080px]">
         <TableHeader className="sticky top-0 z-20 bg-muted">
           <TableRow>
-            <TableHead className="w-72">Thông số ({fields.length})</TableHead>
-            <TableHead className="w-36">Kiểu</TableHead>
-            <TableHead className="w-48">Chế độ thiết bị</TableHead>
-            <TableHead>Giá trị / danh sách</TableHead>
+            <TableHead className="w-80">Thông số ({fields.length})</TableHead>
+            <TableHead>Giá trị mặc định / danh sách</TableHead>
+            <TableHead className="w-36 text-center">
+              Vật tư nhập riêng
+            </TableHead>
             <TableHead className="w-28 text-center">Bắt buộc</TableHead>
             <TableHead className="sticky right-0 z-30 w-24 bg-muted text-center">
               Thao tác
@@ -120,26 +182,32 @@ export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
             <TableRow>
               <TableCell
                 className="px-4 py-6 text-center text-sm text-muted-foreground"
-                colSpan={6}
+                colSpan={5}
               >
                 Chưa gán thông số nào.
               </TableCell>
             </TableRow>
           )}
           {fields.map((field, index) => {
-            const def = defById.get(specs[index]?.specDefinitionId);
+            const spec = specs[index];
+            const def = definitionForSpec(spec, defById);
             if (!def) return null;
             return (
               <ModelSpecTableRow
                 key={field.id}
                 form={form}
                 index={index}
+                spec={spec}
                 def={def}
                 onRemove={() => remove(index)}
               />
             );
           })}
-          <AddSpecTableRow available={available} onAdd={handleAdd} />
+          <AddSpecTableRow
+            available={available}
+            onAddCatalog={handleAddCatalog}
+            onAddCustom={handleAddCustom}
+          />
         </TableBody>
       </Table>
     </div>
@@ -148,38 +216,51 @@ export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
 
 function AddSpecTableRow({
   available,
-  onAdd,
+  onAddCatalog,
+  onAddCustom,
 }: {
   available: SpecDefinition[];
-  onAdd: (specDefinitionId: string) => void;
+  onAddCatalog: (specDefinitionId: string) => void;
+  onAddCustom: () => void;
 }) {
   return (
     <TableRow className="bg-admin-surface-alt/40 hover:bg-admin-surface-alt/60">
-      <TableCell className="px-4 py-3" colSpan={6}>
-        <Select value="" onValueChange={onAdd}>
-          <SelectTrigger
+      <TableCell className="px-4 py-3" colSpan={5}>
+        <div className="flex flex-wrap gap-2">
+          <Select value="" onValueChange={onAddCatalog}>
+            <SelectTrigger
+              size="sm"
+              className="w-full justify-start border-dashed bg-background text-muted-foreground md:w-72"
+            >
+              <span className="flex items-center gap-1.5 text-sm">
+                <Plus className="size-3.5" />
+                Thêm từ danh mục
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              {available.length === 0 ? (
+                <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                  Đã thêm hết thông số
+                </div>
+              ) : (
+                available.map((def) => (
+                  <SelectItem key={def.id} value={def.id}>
+                    {def.name}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
             size="sm"
-            className="w-full justify-start border-dashed bg-background text-muted-foreground md:w-72"
+            onClick={onAddCustom}
           >
-            <span className="flex items-center gap-1.5 text-sm">
-              <Plus className="size-3.5" />
-              Thêm thông số
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            {available.length === 0 ? (
-              <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                Đã thêm hết thông số
-              </div>
-            ) : (
-              available.map((def) => (
-                <SelectItem key={def.id} value={def.id}>
-                  {def.name}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+            <Plus className="size-3.5" />
+            Thêm thông số riêng
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -188,100 +269,91 @@ function AddSpecTableRow({
 function ModelSpecTableRow({
   form,
   index,
+  spec,
   def,
   onRemove,
 }: {
   form: UseFormReturn<MaterialModelFormValues>;
   index: number;
+  spec: ModelSpecFormValue;
   def: SpecDefinition;
   onRemove: () => void;
 }) {
-  const [dynamicDialogOpen, setDynamicDialogOpen] = useState(false);
+  const [optionsDialogOpen, setOptionsDialogOpen] = useState(false);
   const base = `specs.${index}` as const;
-  const deviceMode = form.watch(`${base}.deviceMode`);
   const isRequired = form.watch(`${base}.isRequired`);
-  const modelValue = form.watch(`${base}.modelValue`);
-  const allowedOptionIds = form.watch(`${base}.allowedOptionIds`) ?? [];
-  const dynamicOptions = form.watch(`${base}.dynamicOptions`) ?? [];
-  const modes = deviceModesFor(def);
+  const materialValueMode = form.watch(`${base}.materialValueMode`);
+  const defaultValue = form.watch(`${base}.defaultValue`);
+  const allowedOptions = optionsForSpec(spec, def);
+  const canOverride = canOverrideSpec(spec, def);
+  const isCustom = spec.source === 'custom';
 
-  const handleModeChange = (value: string) => {
-    const mode = value as SpecDeviceMode;
-    form.setValue(`${base}.deviceMode`, mode, { shouldDirty: true });
-    // Reset giá trị không còn phù hợp với chế độ mới.
-    form.setValue(
-      `${base}.modelValue`,
-      mode === 'select' ? undefined : cloneSpecValue(def.defaultValue),
-      { shouldDirty: true },
-    );
-    form.setValue(
-      `${base}.allowedOptionIds`,
-      mode === 'select' && def.dataType === 'list' && !def.allowDynamicValues
-        ? []
-        : undefined,
-      { shouldDirty: true },
-    );
-    form.setValue(
-      `${base}.dynamicOptions`,
-      mode === 'select' && def.dataType === 'list' && def.allowDynamicValues
-        ? cloneOptions(def.options)
-        : undefined,
-      { shouldDirty: true },
-    );
+  const handleDataTypeChange = (dataType: SpecDataType) => {
+    form.setValue(`${base}.customDefinition.dataType`, dataType, {
+      shouldDirty: true,
+    });
+    form.setValue(`${base}.defaultValue`, dataType === 'boolean' ? false : '', {
+      shouldDirty: true,
+    });
+    form.setValue(`${base}.allowedOptions`, undefined, { shouldDirty: true });
   };
 
   return (
     <>
       <TableRow>
-        <TableCell className="px-4 py-3">
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="truncate font-medium text-foreground">
-              {def.name}
-            </span>
-            <span className="truncate text-[11px] leading-4 text-muted-foreground">
-              {def.code}
-              {def.unit ? ` · ${def.unit}` : ''}
-            </span>
-          </div>
+        <TableCell className="px-4 py-3 align-top">
+          {isCustom ? (
+            <CustomDefinitionEditor
+              form={form}
+              base={base}
+              def={def}
+              onDataTypeChange={handleDataTypeChange}
+            />
+          ) : (
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="truncate font-medium text-foreground">
+                {def.name}
+              </span>
+              <span className="truncate text-[11px] leading-4 text-muted-foreground">
+                {def.code}
+                {def.unit ? ` · ${def.unit}` : ''}
+                {` · ${SPEC_DATA_TYPE_LABELS[def.dataType]}`}
+              </span>
+              <Badge variant="secondary" appearance="light" className="w-fit">
+                {MATERIAL_MODEL_SPEC_SOURCE_LABELS[spec.source]}
+              </Badge>
+            </div>
+          )}
         </TableCell>
-        <TableCell className="px-4 py-3">
-          <Badge variant="secondary" appearance="light">
-            {SPEC_DATA_TYPE_LABELS[def.dataType]}
-          </Badge>
-        </TableCell>
-        <TableCell className="px-4 py-3">
-          <Select value={deviceMode} onValueChange={handleModeChange}>
-            <SelectTrigger size="sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {modes.map((mode) => (
-                <SelectItem key={mode} value={mode}>
-                  {SPEC_DEVICE_MODE_LABELS[mode]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </TableCell>
-        <TableCell className="px-4 py-3">
-          <CompactValueEditor
+        <TableCell className="px-4 py-3 align-top">
+          <ModelDefaultValueEditor
             def={def}
-            deviceMode={deviceMode}
-            modelValue={modelValue}
-            allowedOptionIds={allowedOptionIds}
-            dynamicOptions={dynamicOptions}
-            onAllowedOptionIdsChange={(ids) =>
-              form.setValue(`${base}.allowedOptionIds`, ids, {
+            value={defaultValue}
+            options={allowedOptions}
+            disabled={!canOverride}
+            onChange={(val) =>
+              form.setValue(`${base}.defaultValue`, val, {
                 shouldDirty: true,
               })
             }
-            onModelValueChange={(val) =>
-              form.setValue(`${base}.modelValue`, val, { shouldDirty: true })
-            }
-            onOpenDynamicDialog={() => setDynamicDialogOpen(true)}
+            onOpenOptionsDialog={() => setOptionsDialogOpen(true)}
           />
         </TableCell>
-        <TableCell className="px-4 py-3 text-center">
+        <TableCell className="px-4 py-3 text-center align-top">
+          <Checkbox
+            size="sm"
+            checked={materialValueMode === 'editable'}
+            aria-label={`Vật tư nhập riêng ${def.name}`}
+            onCheckedChange={(checked) =>
+              form.setValue(
+                `${base}.materialValueMode`,
+                checked === true ? 'editable' : 'locked',
+                { shouldDirty: true },
+              )
+            }
+          />
+        </TableCell>
+        <TableCell className="px-4 py-3 text-center align-top">
           <Checkbox
             size="sm"
             checked={isRequired}
@@ -293,7 +365,7 @@ function ModelSpecTableRow({
             }
           />
         </TableCell>
-        <TableCell className="sticky right-0 bg-card px-3 py-3">
+        <TableCell className="sticky right-0 bg-card px-3 py-3 align-top">
           <div className="flex items-center justify-center gap-1">
             <Button
               type="button"
@@ -308,14 +380,14 @@ function ModelSpecTableRow({
           </div>
         </TableCell>
       </TableRow>
-      {def.dataType === 'list' && def.allowDynamicValues && (
-        <DynamicOptionsDialog
+      {def.dataType === 'list' && canOverride && (
+        <OptionsDialog
           def={def}
-          open={dynamicDialogOpen}
-          value={dynamicOptions}
-          onOpenChange={setDynamicDialogOpen}
+          open={optionsDialogOpen}
+          value={allowedOptions}
+          onOpenChange={setOptionsDialogOpen}
           onChange={(options) =>
-            form.setValue(`${base}.dynamicOptions`, options, {
+            form.setValue(`${base}.allowedOptions`, options, {
               shouldDirty: true,
               shouldValidate: true,
             })
@@ -326,91 +398,120 @@ function ModelSpecTableRow({
   );
 }
 
-function CompactValueEditor({
+function CustomDefinitionEditor({
+  form,
+  base,
   def,
-  deviceMode,
-  modelValue,
-  allowedOptionIds,
-  dynamicOptions,
-  onModelValueChange,
-  onAllowedOptionIdsChange,
-  onOpenDynamicDialog,
+  onDataTypeChange,
 }: {
+  form: UseFormReturn<MaterialModelFormValues>;
+  base: `specs.${number}`;
   def: SpecDefinition;
-  deviceMode: SpecDeviceMode;
-  modelValue: SpecValue | undefined;
-  allowedOptionIds: string[];
-  dynamicOptions: SpecOption[];
-  onModelValueChange: (value: SpecValue) => void;
-  onAllowedOptionIdsChange: (ids: string[]) => void;
-  onOpenDynamicDialog: () => void;
+  onDataTypeChange: (dataType: SpecDataType) => void;
 }) {
-  if (deviceMode === 'input') {
-    return (
-      <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-2 text-sm text-muted-foreground">
-        Thiết bị tự nhập khi tạo.
-      </p>
-    );
-  }
-
-  if (deviceMode === 'select') {
-    if (def.dataType === 'list' && def.allowDynamicValues) {
-      return (
-        <Button
-          type="button"
-          variant="outline"
-          className="h-7 w-full min-w-0 justify-start px-2.5 text-left text-xs font-normal"
-          onClick={onOpenDynamicDialog}
-        >
-          <span className="min-w-0 truncate">
-            {summarizeOptions(dynamicOptions, 'Chưa có lựa chọn riêng cho mẫu')}
-          </span>
-        </Button>
-      );
-    }
-
-    if (def.dataType === 'list' && !def.allowMultiple) {
-      return (
-        <Select
-          value={allowedOptionIds[0] ?? ''}
-          onValueChange={(id) => onAllowedOptionIdsChange(id ? [id] : [])}
-        >
+  return (
+    <div className="grid gap-2">
+      <div className="grid grid-cols-[1fr_6.5rem] gap-2">
+        <Input
+          variant="sm"
+          value={def.name}
+          onChange={(event) =>
+            form.setValue(`${base}.customDefinition.name`, event.target.value, {
+              shouldDirty: true,
+            })
+          }
+        />
+        <Input
+          variant="sm"
+          value={def.code}
+          onChange={(event) =>
+            form.setValue(`${base}.customDefinition.code`, event.target.value, {
+              shouldDirty: true,
+            })
+          }
+        />
+      </div>
+      <div className="grid grid-cols-[1fr_6.5rem] gap-2">
+        <Select value={def.dataType} onValueChange={onDataTypeChange}>
           <SelectTrigger size="sm">
-            <SelectValue placeholder="Chọn lựa chọn cho phép" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(def.options ?? []).map((opt) => (
-              <SelectItem key={opt.id} value={opt.id}>
-                {opt.label}
+            {Object.entries(SPEC_DATA_TYPE_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-      );
-    }
-
-    if (def.dataType === 'list' && def.allowMultiple) {
-      return (
-        <SpecMultiSelect
-          value={allowedOptionIds}
-          options={def.options ?? []}
-          placeholder="Chọn lựa chọn cho phép"
-          onChange={onAllowedOptionIdsChange}
+        <Input
+          variant="sm"
+          placeholder="Đơn vị"
+          disabled={def.dataType !== 'number'}
+          value={def.unit ?? ''}
+          onChange={(event) =>
+            form.setValue(`${base}.customDefinition.unit`, event.target.value, {
+              shouldDirty: true,
+            })
+          }
         />
-      );
-    }
-  }
-
-  return (
-    <FixedValueEditor
-      def={def}
-      value={modelValue}
-      onChange={onModelValueChange}
-    />
+      </div>
+      <Badge variant="secondary" appearance="light" className="w-fit">
+        {MATERIAL_MODEL_SPEC_SOURCE_LABELS.custom}
+      </Badge>
+    </div>
   );
 }
 
-function DynamicOptionsDialog({
+function ModelDefaultValueEditor({
+  def,
+  value,
+  options,
+  disabled,
+  onChange,
+  onOpenOptionsDialog,
+}: {
+  def: SpecDefinition;
+  value: SpecValue | undefined;
+  options: SpecOption[];
+  disabled: boolean;
+  onChange: (value: SpecValue) => void;
+  onOpenOptionsDialog: () => void;
+}) {
+  if (disabled) {
+    return (
+      <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-2 text-sm text-muted-foreground">
+        Theo mặc định từ danh mục.
+      </p>
+    );
+  }
+
+  if (def.dataType === 'list') {
+    return (
+      <div className="grid gap-2">
+        <FixedValueEditor
+          def={{ ...def, options }}
+          value={value}
+          onChange={onChange}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="h-7 w-full min-w-0 justify-start px-2.5 text-left text-xs font-normal"
+          onClick={onOpenOptionsDialog}
+        >
+          <span className="min-w-0 truncate">
+            {summarizeOptions(options, 'Chưa có lựa chọn cho mẫu')}
+          </span>
+        </Button>
+      </div>
+    );
+  }
+
+  return <FixedValueEditor def={def} value={value} onChange={onChange} />;
+}
+
+function OptionsDialog({
   def,
   open,
   value,
@@ -429,11 +530,11 @@ function DynamicOptionsDialog({
         <DialogHeader className="shrink-0 px-5 py-4">
           <DialogTitle>{def.name}</DialogTitle>
           <DialogDescription>
-            Khai báo danh sách lựa chọn riêng cho mẫu vật tư.
+            Khai báo danh sách lựa chọn dùng riêng cho mẫu vật tư.
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="min-h-0 overflow-y-auto px-5 pb-5">
-          <DynamicOptionsEditor value={value} onChange={onChange} />
+          <OptionsEditor value={value} onChange={onChange} />
         </DialogBody>
       </DialogContent>
     </Dialog>
@@ -525,12 +626,11 @@ function FixedValueEditor({
       );
     case 'list': {
       if (def.allowMultiple) {
-        const selected = Array.isArray(value) ? value : [];
         return (
           <SpecMultiSelect
-            value={selected}
+            value={Array.isArray(value) ? value : []}
             options={def.options ?? []}
-            placeholder="Chọn giá trị"
+            placeholder="Chọn giá trị mặc định"
             onChange={onChange}
           />
         );
@@ -541,7 +641,7 @@ function FixedValueEditor({
           onValueChange={onChange}
         >
           <SelectTrigger size="sm">
-            <SelectValue placeholder="Chọn giá trị" />
+            <SelectValue placeholder="Chọn giá trị mặc định" />
           </SelectTrigger>
           <SelectContent>
             {(def.options ?? []).map((opt) => (
@@ -564,7 +664,7 @@ function FixedValueEditor({
   }
 }
 
-function DynamicOptionsEditor({
+function OptionsEditor({
   value,
   onChange,
 }: {
@@ -601,7 +701,7 @@ function DynamicOptionsEditor({
     <div className="flex flex-col gap-2 rounded-admin-control border border-border bg-background p-3">
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-medium text-muted-foreground">
-          Lựa chọn riêng của mẫu
+          Lựa chọn của mẫu
         </p>
         <Button type="button" variant="outline" size="sm" onClick={addOption}>
           <Plus className="size-3.5" />
@@ -610,7 +710,7 @@ function DynamicOptionsEditor({
       </div>
       {value.length === 0 ? (
         <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-3 text-center text-sm text-muted-foreground">
-          Chưa có lựa chọn riêng cho mẫu.
+          Chưa có lựa chọn cho mẫu.
         </p>
       ) : (
         <div className="flex flex-col gap-2">

@@ -12,6 +12,7 @@ const definitions: SpecDefinition[] = [
     dataType: 'list',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
     options: [
       { id: 'mau-den', label: 'Đen', value: 'den' },
       { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
@@ -26,6 +27,7 @@ const definitions: SpecDefinition[] = [
     unit: 'g',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: true,
   },
   {
     id: 'spec-date',
@@ -34,6 +36,7 @@ const definitions: SpecDefinition[] = [
     dataType: 'date',
     allowMultiple: false,
     allowDynamicValues: false,
+    allowModelOverride: false,
   },
 ];
 
@@ -45,23 +48,32 @@ const model: MaterialModel = {
   imageUrls: [],
   specs: [
     {
+      id: 'spec-date',
+      source: 'catalog',
       specDefinitionId: 'spec-date',
-      deviceMode: 'input',
-      modelValue: '2026-01-01',
+      materialValueMode: 'editable',
+      defaultValue: '2026-01-01',
       isRequired: false,
       sortOrder: 3,
     },
     {
+      id: 'spec-weight',
+      source: 'catalog',
       specDefinitionId: 'spec-weight',
-      deviceMode: 'fixed',
-      modelValue: { amount: 187, unit: 'g' },
+      materialValueMode: 'locked',
+      defaultValue: { amount: 187, unit: 'g' },
       isRequired: true,
       sortOrder: 1,
     },
     {
+      id: 'spec-color',
+      source: 'catalog',
       specDefinitionId: 'spec-color',
-      deviceMode: 'select',
-      allowedOptionIds: ['mau-den', 'mau-xanh'],
+      materialValueMode: 'editable',
+      allowedOptions: [
+        { id: 'mau-den', label: 'Đen', value: 'den' },
+        { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
+      ],
       isRequired: true,
       sortOrder: 2,
     },
@@ -84,14 +96,14 @@ function makeMaterial(specValues: Material['specValues']): Material {
 describe('resolveEffectiveSpecs', () => {
   it('sắp xếp theo sortOrder', () => {
     const result = resolveEffectiveSpecs(model, makeMaterial([]), definitions);
-    expect(result.map((s) => s.specDefinitionId)).toEqual([
+    expect(result.map((s) => s.materialModelSpecId)).toEqual([
       'spec-weight',
       'spec-color',
       'spec-date',
     ]);
   });
 
-  it('fixed kế thừa modelValue và read-only', () => {
+  it('locked kế thừa defaultValue của mẫu và read-only', () => {
     const weight = resolveEffectiveSpecs(
       model,
       makeMaterial([]),
@@ -102,91 +114,80 @@ describe('resolveEffectiveSpecs', () => {
     expect(weight.source).toBe('model');
   });
 
-  it('input lấy override nếu có, ngược lại dùng default của mẫu', () => {
+  it('editable lấy override nếu có, ngược lại dùng default của mẫu', () => {
     const noOverride = resolveEffectiveSpecs(
       model,
       makeMaterial([]),
       definitions,
-    ).find((s) => s.specDefinitionId === 'spec-date');
+    ).find((s) => s.materialModelSpecId === 'spec-date');
     expect(noOverride?.value).toBe('2026-01-01');
     expect(noOverride?.source).toBe('default');
 
     const withOverride = resolveEffectiveSpecs(
       model,
-      makeMaterial([{ specDefinitionId: 'spec-date', value: '2026-06-20' }]),
+      makeMaterial([{ materialModelSpecId: 'spec-date', value: '2026-06-20' }]),
       definitions,
-    ).find((s) => s.specDefinitionId === 'spec-date');
+    ).find((s) => s.materialModelSpecId === 'spec-date');
     expect(withOverride?.value).toBe('2026-06-20');
     expect(withOverride?.source).toBe('device');
   });
 
-  it('select giữ giá trị trong allowed, loại giá trị ngoài allowed', () => {
+  it('lọc giá trị list ngoài allowedOptions của mẫu', () => {
     const valid = resolveEffectiveSpecs(
       model,
-      makeMaterial([{ specDefinitionId: 'spec-color', value: 'mau-xanh' }]),
+      makeMaterial([{ materialModelSpecId: 'spec-color', value: 'mau-xanh' }]),
       definitions,
-    ).find((s) => s.specDefinitionId === 'spec-color');
+    ).find((s) => s.materialModelSpecId === 'spec-color');
     expect(valid?.value).toBe('mau-xanh');
     expect(valid?.isReadOnly).toBe(false);
 
     const invalid = resolveEffectiveSpecs(
       model,
-      makeMaterial([{ specDefinitionId: 'spec-color', value: 'mau-do' }]),
+      makeMaterial([{ materialModelSpecId: 'spec-color', value: 'mau-do' }]),
       definitions,
-    ).find((s) => s.specDefinitionId === 'spec-color');
+    ).find((s) => s.materialModelSpecId === 'spec-color');
     expect(invalid?.value).toBeUndefined();
   });
 
-  it('list động dùng dynamicOptions của mẫu để lọc giá trị thiết bị', () => {
-    const dynamicDefinitions: SpecDefinition[] = [
-      {
-        id: 'spec-color',
-        code: 'TS-MAU',
-        name: 'Màu sắc',
-        dataType: 'list',
-        allowMultiple: false,
-        allowDynamicValues: true,
-      },
-    ];
-    const dynamicModel: MaterialModel = {
-      id: 'm-dynamic',
-      code: 'M-DYN',
-      name: 'Mẫu dynamic',
+  it('resolve thông số riêng của mẫu không nằm trong danh mục', () => {
+    const customModel: MaterialModel = {
+      id: 'm-custom',
+      code: 'M-CUSTOM',
+      name: 'Mẫu riêng',
       groupId: 'g1',
       imageUrls: [],
       specs: [
         {
-          specDefinitionId: 'spec-color',
-          deviceMode: 'select',
-          dynamicOptions: [
-            {
-              id: 'iphone-blue-titan',
-              label: 'Xanh Titan',
-              value: 'xanh-titan',
-            },
-          ],
+          id: 'custom-pressure',
+          source: 'custom',
+          customDefinition: {
+            code: 'TS-APSUAT',
+            name: 'Áp suất',
+            dataType: 'number',
+            unit: 'bar',
+            allowMultiple: false,
+            allowDynamicValues: false,
+            defaultValue: { amount: 6, unit: 'bar' },
+          },
+          materialValueMode: 'editable',
           isRequired: true,
           sortOrder: 1,
         },
       ],
     };
 
-    const valid = resolveEffectiveSpecs(
-      dynamicModel,
+    const result = resolveEffectiveSpecs(
+      customModel,
       makeMaterial([
-        { specDefinitionId: 'spec-color', value: 'iphone-blue-titan' },
+        {
+          materialModelSpecId: 'custom-pressure',
+          value: { amount: 8, unit: 'bar' },
+        },
       ]),
-      dynamicDefinitions,
+      definitions,
     )[0];
-    expect(valid.value).toBe('iphone-blue-titan');
 
-    const invalid = resolveEffectiveSpecs(
-      dynamicModel,
-      makeMaterial([
-        { specDefinitionId: 'spec-color', value: 'samsung-violet' },
-      ]),
-      dynamicDefinitions,
-    )[0];
-    expect(invalid.value).toBeUndefined();
+    expect(result.definition?.name).toBe('Áp suất');
+    expect(result.value).toEqual({ amount: 8, unit: 'bar' });
   });
 });

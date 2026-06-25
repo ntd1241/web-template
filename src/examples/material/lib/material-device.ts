@@ -11,15 +11,30 @@ import {
   isValidSpecValue,
 } from './spec-value';
 
+function definitionForSpec(
+  defById: Map<string, SpecDefinition>,
+  modelSpec: MaterialModelSpec,
+): SpecDefinition | undefined {
+  if (modelSpec.source === 'custom' && modelSpec.customDefinition) {
+    return {
+      id: modelSpec.id,
+      ...modelSpec.customDefinition,
+      allowModelOverride: true,
+    };
+  }
+  return modelSpec.specDefinitionId
+    ? defById.get(modelSpec.specDefinitionId)
+    : undefined;
+}
+
 function optionIdsForSpec(
   definition: SpecDefinition,
   modelSpec: MaterialModelSpec,
 ): string[] | undefined {
   if (definition.dataType !== 'list') return undefined;
-  if (definition.allowDynamicValues) {
-    return modelSpec.dynamicOptions?.map((option) => option.id);
-  }
-  return modelSpec.allowedOptionIds;
+  return (modelSpec.allowedOptions ?? definition.options)?.map(
+    (option) => option.id,
+  );
 }
 
 export function legacyGroupFromModelGroupId(groupId: string): MaterialGroupKey {
@@ -53,32 +68,29 @@ export function buildMaterialSpecValues(
   );
   const valueById = new Map(
     specValues.map((specValue) => [
-      specValue.specDefinitionId,
+      specValue.materialModelSpecId,
       specValue.value,
     ]),
   );
 
   return model.specs
-    .filter((modelSpec) => modelSpec.deviceMode !== 'fixed')
+    .filter((modelSpec) => modelSpec.materialValueMode === 'editable')
     .flatMap((modelSpec) => {
-      const definition = defById.get(modelSpec.specDefinitionId);
+      const definition = definitionForSpec(defById, modelSpec);
       if (!definition) return [];
 
-      const rawValue = valueById.get(modelSpec.specDefinitionId);
-      const value =
-        modelSpec.deviceMode === 'select'
-          ? constrainSelectValue(
-              definition,
-              rawValue,
-              optionIdsForSpec(definition, modelSpec),
-            )
-          : rawValue;
+      const rawValue = valueById.get(modelSpec.id);
+      const value = constrainSelectValue(
+        definition,
+        rawValue,
+        optionIdsForSpec(definition, modelSpec),
+      );
 
       if (isEmptySpecValue(value) || !isValidSpecValue(definition, value)) {
         return [];
       }
 
-      return [{ specDefinitionId: modelSpec.specDefinitionId, value }];
+      return [{ materialModelSpecId: modelSpec.id, value }];
     });
 }
 
@@ -92,24 +104,26 @@ export function validateMaterialSpecValues(
   );
   const valueById = new Map(
     buildMaterialSpecValues(model, specValues, definitions).map((specValue) => [
-      specValue.specDefinitionId,
+      specValue.materialModelSpecId,
       specValue.value,
     ]),
   );
 
   return model.specs.flatMap((modelSpec) => {
-    if (!modelSpec.isRequired || modelSpec.deviceMode === 'fixed') return [];
-    const definition = defById.get(modelSpec.specDefinitionId);
+    if (!modelSpec.isRequired || modelSpec.materialValueMode === 'locked') {
+      return [];
+    }
+    const definition = definitionForSpec(defById, modelSpec);
     const value =
-      valueById.get(modelSpec.specDefinitionId) ??
-      modelSpec.modelValue ??
+      valueById.get(modelSpec.id) ??
+      modelSpec.defaultValue ??
       definition?.defaultValue;
     if (
       !definition ||
       isEmptySpecValue(value) ||
       !isValidSpecValue(definition, value)
     ) {
-      return [definition?.name ?? modelSpec.specDefinitionId];
+      return [definition?.name ?? modelSpec.id];
     }
     return [];
   });

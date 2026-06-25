@@ -2,26 +2,49 @@
  * Mẫu vật tư ("iPhone 17 Pro") — template gom nhiều thiết bị thật cùng loại.
  * Mock-first, example-only.
  */
-import type { SpecOption, SpecValue } from './spec-definition';
+import type { SpecDataType, SpecOption, SpecValue } from './spec-definition';
 
-/** Chế độ ứng xử của thông số ở thiết bị thật. */
-export type SpecDeviceMode = 'fixed' | 'input' | 'select';
+export type MaterialModelSpecSource = 'catalog' | 'custom';
 
-export const SPEC_DEVICE_MODE_LABELS: Record<SpecDeviceMode, string> = {
-  fixed: 'Cứng (kế thừa)',
-  input: 'Tự nhập',
-  select: 'Chọn từ danh sách',
+/** Cách giá trị thông số ứng xử khi tạo/sửa vật tư thật từ mẫu. */
+export type MaterialValueMode = 'locked' | 'editable';
+
+export const MATERIAL_VALUE_MODE_LABELS: Record<MaterialValueMode, string> = {
+  locked: 'Khóa theo mẫu',
+  editable: 'Vật tư nhập riêng',
+};
+
+export interface CustomSpecDefinition {
+  code: string;
+  name: string;
+  dataType: SpecDataType;
+  unit?: string;
+  options?: SpecOption[];
+  allowMultiple: boolean;
+  allowDynamicValues: boolean;
+  defaultValue?: SpecValue;
+  description?: string;
+}
+
+export const MATERIAL_MODEL_SPEC_SOURCE_LABELS: Record<
+  MaterialModelSpecSource,
+  string
+> = {
+  catalog: 'Từ danh mục',
+  custom: 'Riêng của mẫu',
 };
 
 export interface MaterialModelSpec {
-  specDefinitionId: string;
-  deviceMode: SpecDeviceMode;
-  /** `fixed`: giá trị kế thừa | `input`: giá trị mặc định (optional). */
-  modelValue?: SpecValue;
-  /** `select`: tập con optionId của `SpecDefinition.options`. */
-  allowedOptionIds?: string[];
-  /** `list` + allowDynamicValues: danh sách lựa chọn riêng của mẫu. */
-  dynamicOptions?: SpecOption[];
+  /** ID thông số trong phạm vi mẫu; catalog specs thường dùng chính specDefinitionId. */
+  id: string;
+  source: MaterialModelSpecSource;
+  specDefinitionId?: string;
+  customDefinition?: CustomSpecDefinition;
+  materialValueMode: MaterialValueMode;
+  /** Giá trị khóa theo mẫu hoặc giá trị mặc định khi vật tư được nhập riêng. */
+  defaultValue?: SpecValue;
+  /** Danh sách lựa chọn hiệu lực của mẫu; undefined nghĩa là dùng danh mục gốc. */
+  allowedOptions?: SpecOption[];
   isRequired: boolean;
   sortOrder: number;
 }

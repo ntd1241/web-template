@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -19,10 +18,7 @@ import {
   isNumberSpecValue,
 } from '../lib/spec-value';
 import type { MaterialFormValues } from '../material.schema';
-import {
-  SPEC_DEVICE_MODE_LABELS,
-  type MaterialModel,
-} from '../model/material-model';
+import type { MaterialModel } from '../model/material-model';
 import type {
   SpecDefinition,
   SpecOption,
@@ -41,17 +37,6 @@ export function DeviceSpecField({
   definitions,
 }: DeviceSpecFieldProps) {
   const specValues = form.watch('specValues');
-
-  const modelSpecById = useMemo(
-    () =>
-      new Map(
-        (model?.specs ?? []).map((modelSpec) => [
-          modelSpec.specDefinitionId,
-          modelSpec,
-        ]),
-      ),
-    [model],
-  );
 
   if (!model) {
     return (
@@ -75,17 +60,17 @@ export function DeviceSpecField({
     );
   }
 
-  const handleChange = (specDefinitionId: string, value: SpecValue) => {
+  const handleChange = (materialModelSpecId: string, value: SpecValue) => {
     const current = form.getValues('specValues');
     const next = current.some(
-      (item) => item.specDefinitionId === specDefinitionId,
+      (item) => item.materialModelSpecId === materialModelSpecId,
     )
       ? current.map((item) =>
-          item.specDefinitionId === specDefinitionId
+          item.materialModelSpecId === materialModelSpecId
             ? { ...item, value }
             : item,
         )
-      : [...current, { specDefinitionId, value }];
+      : [...current, { materialModelSpecId, value }];
 
     form.setValue('specValues', next, {
       shouldDirty: true,
@@ -108,19 +93,11 @@ export function DeviceSpecField({
         const definition = effectiveSpec.definition;
         if (!definition) return null;
 
-        const modelSpec = modelSpecById.get(effectiveSpec.specDefinitionId);
-        const allowedOptions =
-          definition.dataType === 'list' && definition.allowDynamicValues
-            ? (modelSpec?.dynamicOptions ?? [])
-            : modelSpec?.allowedOptionIds
-              ? (definition.options ?? []).filter((option) =>
-                  modelSpec.allowedOptionIds?.includes(option.id),
-                )
-              : (definition.options ?? []);
+        const allowedOptions = effectiveSpec.options ?? [];
 
         return (
           <div
-            key={effectiveSpec.specDefinitionId}
+            key={effectiveSpec.materialModelSpecId}
             className="rounded-admin-control border border-border p-3"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -131,9 +108,11 @@ export function DeviceSpecField({
                     <span className="text-destructive"> *</span>
                   )}
                 </span>
-                <Badge variant="secondary" appearance="light">
-                  {SPEC_DEVICE_MODE_LABELS[effectiveSpec.deviceMode]}
-                </Badge>
+                {effectiveSpec.isReadOnly && (
+                  <Badge variant="secondary" appearance="light">
+                    Khóa theo mẫu
+                  </Badge>
+                )}
               </div>
               {effectiveSpec.isReadOnly && (
                 <span className="text-xs text-muted-foreground">
@@ -157,7 +136,7 @@ export function DeviceSpecField({
                   value={effectiveSpec.value}
                   allowedOptions={allowedOptions}
                   onChange={(value) =>
-                    handleChange(effectiveSpec.specDefinitionId, value)
+                    handleChange(effectiveSpec.materialModelSpecId, value)
                   }
                 />
               )}

@@ -63,6 +63,7 @@ export const specDefinitionDefaultValues: SpecDefinitionFormValues = {
   description: '',
   allowMultiple: false,
   allowDynamicValues: false,
+  allowModelOverride: true,
   options: [],
   defaultValue: undefined,
 };
@@ -96,6 +97,7 @@ export function mapSpecDefinitionToFormValues(
     description: entity.description ?? '',
     allowMultiple: entity.allowMultiple,
     allowDynamicValues: entity.allowDynamicValues,
+    allowModelOverride: entity.allowModelOverride,
     defaultValue: cloneSpecValue(entity.defaultValue),
     options: (entity.options ?? []).map((opt) => ({
       id: opt.id,
@@ -221,6 +223,27 @@ export function SpecDefinitionForm({
               )}
             />
           )}
+
+          <FormField
+            control={form.control}
+            name="allowModelOverride"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12 flex-row items-center gap-2.5">
+                <FormControl>
+                  <Checkbox
+                    size="sm"
+                    checked={field.value}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
+                  />
+                </FormControl>
+                <FormLabel className="font-normal text-foreground">
+                  Cho mẫu vật tư sửa giá trị mặc định / danh sách
+                </FormLabel>
+              </FormItem>
+            )}
+          />
 
           {showOptions && (
             <>

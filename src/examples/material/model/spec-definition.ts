@@ -33,6 +33,8 @@ export interface SpecDefinition {
   allowMultiple: boolean;
   /** Chỉ `list`: true nếu từng mẫu được sửa danh sách giá trị riêng. */
   allowDynamicValues: boolean;
+  /** True nếu mẫu vật tư được override giá trị/danh sách mặc định từ danh mục. */
+  allowModelOverride: boolean;
   /** Giá trị mặc định dùng khi mẫu vật tư chưa override. */
   defaultValue?: SpecValue;
   description?: string;

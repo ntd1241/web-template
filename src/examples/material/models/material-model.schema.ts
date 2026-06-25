@@ -15,12 +15,26 @@ const specOptionSchema = z.object({
   colorHex: z.string().optional(),
 });
 
+const customSpecDefinitionSchema = z.object({
+  code: z.string().min(1, 'Nhập mã thông số'),
+  name: z.string().min(1, 'Nhập tên thông số'),
+  dataType: z.enum(['text', 'number', 'list', 'boolean', 'date']),
+  unit: z.string().optional(),
+  options: z.array(specOptionSchema).optional(),
+  allowMultiple: z.boolean(),
+  allowDynamicValues: z.boolean(),
+  defaultValue: specValueSchema.optional(),
+  description: z.string().optional(),
+});
+
 const modelSpecSchema = z.object({
-  specDefinitionId: z.string().min(1),
-  deviceMode: z.enum(['fixed', 'input', 'select']),
-  modelValue: specValueSchema.optional(),
-  allowedOptionIds: z.array(z.string()).optional(),
-  dynamicOptions: z.array(specOptionSchema).optional(),
+  id: z.string().min(1),
+  source: z.enum(['catalog', 'custom']),
+  specDefinitionId: z.string().optional(),
+  customDefinition: customSpecDefinitionSchema.optional(),
+  materialValueMode: z.enum(['locked', 'editable']),
+  defaultValue: specValueSchema.optional(),
+  allowedOptions: z.array(specOptionSchema).optional(),
   isRequired: z.boolean(),
 });
 

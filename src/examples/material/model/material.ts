@@ -11,9 +11,9 @@ import type { SpecValue } from './spec-definition';
  */
 export type MaterialGroupKey = 'kiem-ke' | 'van-phong' | 'an-toan' | 'cong-cu';
 
-/** Override giá trị thông số ở thiết bị (chỉ cho deviceMode 'input' | 'select'). */
+/** Override giá trị thông số ở vật tư thật khi MaterialModelSpec cho nhập riêng. */
 export interface MaterialSpecValue {
-  specDefinitionId: string;
+  materialModelSpecId: string;
   value: SpecValue;
 }
 
@@ -25,7 +25,7 @@ export interface Material {
   group: MaterialGroupKey;
   /** FK -> MaterialModel. */
   modelId: string;
-  /** Chỉ chứa override cho thông số deviceMode 'input' | 'select'. */
+  /** Chỉ chứa override cho thông số có materialValueMode = 'editable'. */
   specValues: MaterialSpecValue[];
   tags: string[];
 }
