@@ -20,6 +20,13 @@ export interface SpecOption {
   colorHex?: string;
 }
 
+export type ListSelectionMode = 'single' | 'multi';
+
+export const LIST_SELECTION_MODE_LABELS: Record<ListSelectionMode, string> = {
+  single: 'Chọn 1',
+  multi: 'Chọn nhiều',
+};
+
 export interface SpecDefinition {
   id: string;
   code: string;
@@ -27,14 +34,14 @@ export interface SpecDefinition {
   dataType: SpecDataType;
   /** Chỉ `number`: 'kg' | 'g' | 'inch' | 'mm'... */
   unit?: string;
-  /** Chỉ `list`: danh sách mặc định/master list. Có thể để trống. */
-  options?: SpecOption[];
-  /** Chỉ `list`: true nếu thông số cho phép chọn nhiều giá trị. */
-  allowMultiple: boolean;
-  /** Chỉ `list`: true nếu từng mẫu được sửa danh sách giá trị riêng. */
-  allowDynamicValues: boolean;
-  /** True nếu mẫu vật tư được override giá trị/danh sách mặc định từ danh mục. */
-  allowModelOverride: boolean;
+  /** Chỉ `list`: nguồn giá trị mặc định. */
+  defaultValueSetId?: string;
+  /** Chỉ `list`: chế độ chọn mặc định. */
+  defaultSelectionMode?: ListSelectionMode;
+  /** Gate: mẫu vật tư được đổi single/multi không. Resolver phải enforce. */
+  allowModelSelectionOverride: boolean;
+  /** Gate: mẫu vật tư được đổi value set / chọn subset không. Resolver phải enforce. */
+  allowModelValueSetOverride: boolean;
   /** Giá trị mặc định dùng khi mẫu vật tư chưa override. */
   defaultValue?: SpecValue;
   description?: string;
@@ -44,7 +51,7 @@ export interface SpecDefinition {
  * Giá trị thông số — union, hình dạng phụ thuộc `SpecDefinition.dataType`:
  *  - text          -> string
  *  - number        -> NumberSpecValue
- *  - list          -> string (optionId) | string[] (optionId[]) theo allowMultiple
+ *  - list          -> string (optionId) | string[] (optionId[]) theo selectionMode
  *  - boolean       -> boolean
  *  - date          -> string (ISO date)
  *

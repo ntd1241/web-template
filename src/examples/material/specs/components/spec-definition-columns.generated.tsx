@@ -13,15 +13,15 @@ import {
   createColumnHelpers,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
-import { TruncatedContainer } from '@/components/ui/truncated-container';
+import { formatSpecValue, isEmptySpecValue, isNumberSpecValue } from '../../lib/spec-value';
 import {
-  formatSpecValue,
-  isEmptySpecValue,
-  isNumberSpecValue,
-} from '../../lib/spec-value';
-import type { SpecDefinition, SpecOption } from '../../model/spec-definition';
+  LIST_SELECTION_MODE_LABELS,
+  type SpecDefinition,
+} from '../../model/spec-definition';
+import type { SpecValueSet } from '../../model/spec-value-set';
 
 export interface UseSpecDefinitionColumnsParams {
+  valueSets: SpecValueSet[];
   onEdit: (row: SpecDefinition) => void;
   onDelete: (row: SpecDefinition) => void;
 }
@@ -35,11 +35,13 @@ const dataTypeBadgeConfig: StatusBadgeConfig<string> = {
 };
 
 export function useSpecDefinitionColumns({
+  valueSets,
   onEdit,
   onDelete,
 }: UseSpecDefinitionColumnsParams): ColumnDef<SpecDefinition>[] {
   return useMemo(() => {
     const col = createColumnHelpers<SpecDefinition>();
+    const valueSetById = new Map(valueSets.map((set) => [set.id, set]));
 
     return [
       col.index({
@@ -63,11 +65,14 @@ export function useSpecDefinitionColumns({
       }),
       col.custom({
         id: 'dataType',
-        header: 'Kiểu dữ liệu',
-        headerClassName: 'w-[170px]',
-        size: 170,
+        header: 'Kiểu / nguồn',
+        headerClassName: 'w-[240px]',
+        size: 240,
         cell: (row) => {
           const config = dataTypeBadgeConfig[row.dataType];
+          const valueSet = row.defaultValueSetId
+            ? valueSetById.get(row.defaultValueSetId)
+            : undefined;
           return (
             <div className="flex flex-col items-start gap-1">
               <Badge variant={config.variant} appearance="light">
@@ -76,8 +81,10 @@ export function useSpecDefinitionColumns({
               {row.dataType === 'list' && (
                 <span className="text-xs text-muted-foreground">
                   {[
-                    row.allowMultiple ? 'Chọn nhiều' : 'Chọn 1',
-                    row.allowDynamicValues ? 'Động' : null,
+                    row.defaultSelectionMode
+                      ? LIST_SELECTION_MODE_LABELS[row.defaultSelectionMode]
+                      : null,
+                    valueSet?.name,
                   ]
                     .filter(Boolean)
                     .join(' · ')}
@@ -92,7 +99,16 @@ export function useSpecDefinitionColumns({
         header: 'Giá trị mặc định',
         headerClassName: 'min-w-[220px]',
         size: 260,
-        cell: (row) => <DefaultValueCell row={row} />,
+        cell: (row) => (
+          <DefaultValueCell
+            row={row}
+            options={
+              row.defaultValueSetId
+                ? valueSetById.get(row.defaultValueSetId)?.options
+                : undefined
+            }
+          />
+        ),
       }),
       col.actions({
         header: 'Thao tác',
@@ -122,16 +138,29 @@ export function useSpecDefinitionColumns({
         ),
       }),
     ];
-  }, [onEdit, onDelete]);
+  }, [onEdit, onDelete, valueSets]);
 }
 
-function DefaultValueCell({ row }: { row: SpecDefinition }) {
+function DefaultValueCell({
+  row,
+  options,
+}: {
+  row: SpecDefinition;
+  options: SpecValueSet['options'] | undefined;
+}) {
   if (row.dataType === 'list') {
+    const optionCount = options?.length ?? 0;
+    if (isEmptySpecValue(row.defaultValue)) {
+      return (
+        <span className="text-muted-foreground">
+          {optionCount > 0 ? `${optionCount} lựa chọn` : '—'}
+        </span>
+      );
+    }
     return (
-      <ListDefaultBadges
-        valueIds={listDisplayOptionIds(row)}
-        options={row.options ?? []}
-      />
+      <span className="text-foreground">
+        {formatSpecValue(row, row.defaultValue, options, row.defaultSelectionMode)}
+      </span>
     );
   }
 
@@ -159,59 +188,4 @@ function DefaultValueCell({ row }: { row: SpecDefinition }) {
       {formatSpecValue(row, row.defaultValue)}
     </span>
   );
-}
-
-function ListDefaultBadges({
-  valueIds,
-  options,
-}: {
-  valueIds: string[];
-  options: SpecOption[];
-}) {
-  if (valueIds.length === 0) {
-    return <span className="text-muted-foreground">—</span>;
-  }
-
-  const optionById = new Map(options.map((option) => [option.id, option]));
-
-  return (
-    <TruncatedContainer
-      items={valueIds}
-      gap={4}
-      className="min-w-0 max-w-full"
-      renderTruncator={(hiddenChildren, hiddenItems) => (
-        <Badge variant="secondary" appearance="light">
-          +{hiddenItems?.length ?? hiddenChildren.length}
-        </Badge>
-      )}
-    >
-      {valueIds.map((id) => {
-        const option = optionById.get(id);
-        return (
-          <Badge key={id} variant="secondary" appearance="light">
-            {option?.colorHex && (
-              <span
-                className="size-2.5 rounded-full border border-border"
-                style={{ backgroundColor: option.colorHex }}
-              />
-            )}
-            <span className="max-w-28 truncate">{option?.label ?? id}</span>
-          </Badge>
-        );
-      })}
-    </TruncatedContainer>
-  );
-}
-
-function listDisplayOptionIds(row: SpecDefinition): string[] {
-  if (row.allowDynamicValues) {
-    return (row.options ?? []).map((option) => option.id);
-  }
-  return listValueIds(row.defaultValue);
-}
-
-function listValueIds(value: SpecDefinition['defaultValue']): string[] {
-  if (Array.isArray(value)) return value;
-  if (typeof value === 'string' && value) return [value];
-  return [];
 }

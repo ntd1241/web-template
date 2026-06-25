@@ -12,47 +12,28 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     imageUrls: [],
     specs: [
       {
-        id: 'spec-color',
+        id: 'iphone-color',
         source: 'catalog',
         specDefinitionId: 'spec-color',
+        optionSource: {
+          mode: 'subset',
+          optionIds: ['color-black', 'color-blue', 'color-natural-titan'],
+        },
         materialValueMode: 'editable',
-        allowedOptions: [
-          {
-            id: 'iphone-black-titan',
-            label: 'Titan đen',
-            value: 'titan-den',
-            colorHex: '#111827',
-          },
-          {
-            id: 'iphone-blue-titan',
-            label: 'Xanh Titan',
-            value: 'xanh-titan',
-            colorHex: '#1d4ed8',
-          },
-          {
-            id: 'iphone-natural-titan',
-            label: 'Titan tự nhiên',
-            value: 'titan-tu-nhien',
-            colorHex: '#a8a29e',
-          },
-        ],
         isRequired: true,
         sortOrder: 1,
       },
       {
-        id: 'spec-storage',
+        id: 'iphone-storage',
         source: 'catalog',
         specDefinitionId: 'spec-storage',
+        optionSource: { mode: 'subset', optionIds: ['dl-256', 'dl-512'] },
         materialValueMode: 'editable',
-        allowedOptions: [
-          { id: 'dl-256', label: '256 GB', value: '256' },
-          { id: 'dl-512', label: '512 GB', value: '512' },
-        ],
         isRequired: true,
         sortOrder: 2,
       },
       {
-        id: 'spec-weight',
+        id: 'iphone-weight',
         source: 'catalog',
         specDefinitionId: 'spec-weight',
         materialValueMode: 'locked',
@@ -61,7 +42,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
         sortOrder: 3,
       },
       {
-        id: 'spec-screen',
+        id: 'iphone-screen',
         source: 'catalog',
         specDefinitionId: 'spec-screen',
         materialValueMode: 'locked',
@@ -70,7 +51,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
         sortOrder: 4,
       },
       {
-        id: 'spec-waterproof',
+        id: 'iphone-waterproof',
         source: 'catalog',
         specDefinitionId: 'spec-waterproof',
         materialValueMode: 'locked',
@@ -79,7 +60,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
         sortOrder: 5,
       },
       {
-        id: 'spec-material',
+        id: 'iphone-material',
         source: 'catalog',
         specDefinitionId: 'spec-material',
         materialValueMode: 'locked',
@@ -88,16 +69,16 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
         sortOrder: 6,
       },
       {
-        id: 'spec-ports',
+        id: 'iphone-ports',
         source: 'catalog',
         specDefinitionId: 'spec-ports',
         materialValueMode: 'locked',
-        defaultValue: ['usb-c'],
+        defaultValue: ['port-usbc'],
         isRequired: false,
         sortOrder: 7,
       },
       {
-        id: 'spec-mfg-date',
+        id: 'iphone-mfg-date',
         source: 'catalog',
         specDefinitionId: 'spec-mfg-date',
         materialValueMode: 'editable',
@@ -115,30 +96,21 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     imageUrls: [],
     specs: [
       {
-        id: 'spec-color',
+        id: 'helmet-shell-color',
         source: 'catalog',
         specDefinitionId: 'spec-color',
+        labelOverride: 'Màu vỏ',
+        partKey: 'shell',
+        optionSource: {
+          mode: 'subset',
+          optionIds: ['color-yellow', 'color-white', 'color-red'],
+        },
         materialValueMode: 'editable',
-        allowedOptions: [
-          {
-            id: 'helmet-yellow',
-            label: 'Vàng',
-            value: 'vang',
-            colorHex: '#f59e0b',
-          },
-          {
-            id: 'helmet-white',
-            label: 'Trắng',
-            value: 'trang',
-            colorHex: '#f8fafc',
-          },
-          { id: 'helmet-red', label: 'Đỏ', value: 'do', colorHex: '#dc2626' },
-        ],
         isRequired: true,
         sortOrder: 1,
       },
       {
-        id: 'spec-material',
+        id: 'helmet-material',
         source: 'catalog',
         specDefinitionId: 'spec-material',
         materialValueMode: 'locked',
@@ -147,12 +119,97 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
         sortOrder: 2,
       },
       {
-        id: 'spec-mfg-date',
+        id: 'helmet-mfg-date',
         source: 'catalog',
         specDefinitionId: 'spec-mfg-date',
         materialValueMode: 'editable',
         isRequired: false,
         sortOrder: 3,
+      },
+    ],
+  },
+  {
+    id: 'model-safety-glasses',
+    code: 'MAU-KINH-2MAU',
+    name: 'Kính bảo hộ hai phần',
+    origin: 'Việt Nam',
+    groupId: 'grp-an-toan',
+    imageUrls: [],
+    specs: [
+      {
+        id: 'glasses-glass-color',
+        source: 'catalog',
+        specDefinitionId: 'spec-color',
+        labelOverride: 'Màu kính',
+        partKey: 'glass',
+        optionSource: {
+          mode: 'subset',
+          optionIds: ['color-clear', 'color-smoke'],
+        },
+        materialValueMode: 'editable',
+        isRequired: true,
+        sortOrder: 1,
+      },
+      {
+        id: 'glasses-shell-color',
+        source: 'catalog',
+        specDefinitionId: 'spec-color',
+        labelOverride: 'Màu vỏ',
+        partKey: 'shell',
+        optionSource: {
+          mode: 'subset',
+          optionIds: ['color-black', 'color-white', 'color-blue'],
+        },
+        materialValueMode: 'editable',
+        isRequired: true,
+        sortOrder: 2,
+      },
+    ],
+  },
+  {
+    id: 'model-magnet-pair',
+    code: 'MAU-NAMCHAM-CAP',
+    name: 'Bộ nam châm hai màu',
+    origin: 'Việt Nam',
+    groupId: 'grp-cong-cu',
+    imageUrls: [],
+    specs: [
+      {
+        id: 'magnet-colors',
+        source: 'catalog',
+        specDefinitionId: 'spec-color',
+        selectionModeOverride: 'multi',
+        optionSource: {
+          mode: 'subset',
+          optionIds: ['color-blue', 'color-red', 'color-yellow'],
+        },
+        materialValueMode: 'editable',
+        defaultValue: ['color-blue', 'color-red'],
+        isRequired: true,
+        sortOrder: 1,
+      },
+    ],
+  },
+  {
+    id: 'model-powder-coated-shell',
+    code: 'MAU-VO-NHUOM',
+    name: 'Vỏ thiết bị sơn nhuộm',
+    origin: 'Việt Nam',
+    groupId: 'grp-cong-cu',
+    imageUrls: [],
+    specs: [
+      {
+        id: 'dyed-shell-color',
+        source: 'catalog',
+        specDefinitionId: 'spec-color',
+        labelOverride: 'Màu sơn',
+        partKey: 'shell',
+        valueSetIdOverride: 'vs-color-dye',
+        optionSource: { mode: 'inherit' },
+        materialValueMode: 'editable',
+        defaultValue: 'dye-graphite',
+        isRequired: true,
+        sortOrder: 1,
       },
     ],
   },
@@ -165,7 +222,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     imageUrls: [],
     specs: [
       {
-        id: 'spec-weight',
+        id: 'co2-weight',
         source: 'catalog',
         specDefinitionId: 'spec-weight',
         materialValueMode: 'locked',
@@ -174,7 +231,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
         sortOrder: 1,
       },
       {
-        id: 'spec-mfg-date',
+        id: 'co2-mfg-date',
         source: 'catalog',
         specDefinitionId: 'spec-mfg-date',
         materialValueMode: 'editable',
@@ -192,7 +249,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     imageUrls: [],
     specs: [
       {
-        id: 'spec-weight',
+        id: 'qr-weight',
         source: 'catalog',
         specDefinitionId: 'spec-weight',
         materialValueMode: 'locked',
@@ -220,7 +277,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     imageUrls: [],
     specs: [
       {
-        id: 'spec-material',
+        id: 'drill-material',
         source: 'catalog',
         specDefinitionId: 'spec-material',
         materialValueMode: 'locked',
@@ -239,7 +296,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     imageUrls: [],
     specs: [
       {
-        id: 'spec-weight',
+        id: 'scale-weight',
         source: 'catalog',
         specDefinitionId: 'spec-weight',
         materialValueMode: 'locked',

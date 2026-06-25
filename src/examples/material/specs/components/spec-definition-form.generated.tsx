@@ -5,8 +5,7 @@
  * hand-edit this banner or the generated options consts — that's how review detects a bypassed builder.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash2 } from 'lucide-react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -42,6 +41,7 @@ import type {
   SpecOption,
   SpecValue,
 } from '../../model/spec-definition';
+import type { SpecValueSet } from '../../model/spec-value-set';
 import {
   specDefinitionFormSchema,
   type SpecDefinitionFormValues,
@@ -53,7 +53,7 @@ const dataTypeOptions = [
   { value: 'list', label: 'Danh sách' },
   { value: 'boolean', label: 'Có / Không' },
   { value: 'date', label: 'Ngày tháng' },
-];
+] as const;
 
 export const specDefinitionDefaultValues: SpecDefinitionFormValues = {
   code: '',
@@ -61,20 +61,14 @@ export const specDefinitionDefaultValues: SpecDefinitionFormValues = {
   dataType: 'text',
   unit: '',
   description: '',
-  allowMultiple: false,
-  allowDynamicValues: false,
-  allowModelOverride: true,
-  options: [],
+  defaultValueSetId: '',
+  defaultSelectionMode: 'single',
+  allowModelSelectionOverride: false,
+  allowModelValueSetOverride: false,
   defaultValue: undefined,
 };
 
 type SpecDefinitionFormSource = SpecDefinition;
-
-let optionUid = 0;
-function nextOptionId(): string {
-  optionUid += 1;
-  return `opt-new-${optionUid}`;
-}
 
 export function useSpecDefinitionForm(
   options?: Omit<UseFormProps<SpecDefinitionFormValues>, 'resolver'>,
@@ -95,37 +89,34 @@ export function mapSpecDefinitionToFormValues(
     dataType: entity.dataType,
     unit: entity.unit ?? '',
     description: entity.description ?? '',
-    allowMultiple: entity.allowMultiple,
-    allowDynamicValues: entity.allowDynamicValues,
-    allowModelOverride: entity.allowModelOverride,
+    defaultValueSetId: entity.defaultValueSetId ?? '',
+    defaultSelectionMode: entity.defaultSelectionMode ?? 'single',
+    allowModelSelectionOverride: entity.allowModelSelectionOverride,
+    allowModelValueSetOverride: entity.allowModelValueSetOverride,
     defaultValue: cloneSpecValue(entity.defaultValue),
-    options: (entity.options ?? []).map((opt) => ({
-      id: opt.id,
-      label: opt.label,
-      value: opt.value,
-      colorHex: opt.colorHex,
-    })),
   };
 }
 
 interface SpecDefinitionFormProps {
   form: UseFormReturn<SpecDefinitionFormValues>;
   onSubmit: (values: SpecDefinitionFormValues) => void;
+  valueSets: SpecValueSet[];
   id?: string;
 }
 
 export function SpecDefinitionForm({
   form,
   onSubmit,
+  valueSets,
   id = 'specDefinition-form',
 }: SpecDefinitionFormProps) {
   const dataType = form.watch('dataType');
   const showUnit = dataType === 'number';
-  const showOptions = dataType === 'list';
-  const optionsField = useFieldArray({
-    control: form.control,
-    name: 'options',
-  });
+  const showListConfig = dataType === 'list';
+  const selectedValueSet = valueSets.find(
+    (set) => set.id === form.watch('defaultValueSetId'),
+  );
+  const selectedOptions = selectedValueSet?.options ?? [];
 
   return (
     <Form {...form}>
@@ -224,32 +215,58 @@ export function SpecDefinitionForm({
             />
           )}
 
-          <FormField
-            control={form.control}
-            name="allowModelOverride"
-            render={({ field }) => (
-              <FormItem className="md:col-span-12 flex-row items-center gap-2.5">
-                <FormControl>
-                  <Checkbox
-                    size="sm"
-                    checked={field.value}
-                    onCheckedChange={(checked) =>
-                      field.onChange(checked === true)
-                    }
-                  />
-                </FormControl>
-                <FormLabel className="font-normal text-foreground">
-                  Cho mẫu vật tư sửa giá trị mặc định / danh sách
-                </FormLabel>
-              </FormItem>
-            )}
-          />
-
-          {showOptions && (
+          {showListConfig && (
             <>
               <FormField
                 control={form.control}
-                name="allowMultiple"
+                name="defaultSelectionMode"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-6">
+                    <FormLabel>Chế độ chọn mặc định</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="single">Chọn 1</SelectItem>
+                        <SelectItem value="multi">Chọn nhiều</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="defaultValueSetId"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-6">
+                    <FormLabel>Value set mặc định</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn value set" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {valueSets.map((set) => (
+                          <SelectItem key={set.id} value={set.id}>
+                            {set.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="allowModelSelectionOverride"
                 render={({ field }) => (
                   <FormItem className="md:col-span-6 flex-row items-center gap-2.5">
                     <FormControl>
@@ -262,7 +279,7 @@ export function SpecDefinitionForm({
                       />
                     </FormControl>
                     <FormLabel className="font-normal text-foreground">
-                      Cho chọn nhiều
+                      Cho mẫu đổi chọn 1 / nhiều
                     </FormLabel>
                   </FormItem>
                 )}
@@ -270,7 +287,7 @@ export function SpecDefinitionForm({
 
               <FormField
                 control={form.control}
-                name="allowDynamicValues"
+                name="allowModelValueSetOverride"
                 render={({ field }) => (
                   <FormItem className="md:col-span-6 flex-row items-center gap-2.5">
                     <FormControl>
@@ -283,7 +300,7 @@ export function SpecDefinitionForm({
                       />
                     </FormControl>
                     <FormLabel className="font-normal text-foreground">
-                      Cho phép giá trị động
+                      Cho mẫu đổi value set / subset
                     </FormLabel>
                   </FormItem>
                 )}
@@ -291,110 +308,10 @@ export function SpecDefinitionForm({
             </>
           )}
 
-          {showOptions && (
-            <FormField
-              control={form.control}
-              name="options"
-              render={() => (
-                <FormItem className="md:col-span-12">
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Danh sách lựa chọn</FormLabel>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        optionsField.append({
-                          id: nextOptionId(),
-                          label: '',
-                          value: '',
-                          colorHex: undefined,
-                        })
-                      }
-                    >
-                      <Plus className="size-3.5" />
-                      Thêm lựa chọn
-                    </Button>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {optionsField.fields.length === 0 ? (
-                      <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-4 text-center text-sm text-muted-foreground">
-                        Chưa có lựa chọn nào
-                      </p>
-                    ) : (
-                      optionsField.fields.map((row, index) => (
-                        <div key={row.id} className="flex items-start gap-2">
-                          <FormField
-                            control={form.control}
-                            name={`options.${index}.value`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1/3">
-                                <FormControl>
-                                  <Input
-                                    placeholder="Mã (vd: xanh)"
-                                    variant="md"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`options.${index}.label`}
-                            render={({ field }) => (
-                              <FormItem className="flex-2/3">
-                                <FormControl>
-                                  <Input
-                                    placeholder="Nhãn (vd: Xanh)"
-                                    variant="md"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`options.${index}.colorHex`}
-                            render={({ field }) => (
-                              <FormItem className="w-12 shrink-0">
-                                <FormControl>
-                                  <Input
-                                    type="color"
-                                    aria-label="Màu hiển thị"
-                                    className="h-9 p-1"
-                                    value={field.value ?? '#ffffff'}
-                                    onChange={field.onChange}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="mt-0.5 shrink-0 text-muted-foreground"
-                            aria-label="Xóa lựa chọn"
-                            onClick={() => optionsField.remove(index)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          <SpecDefinitionDefaultValueField form={form} />
+          <SpecDefinitionDefaultValueField
+            form={form}
+            options={selectedOptions}
+          />
         </div>
       </form>
     </Form>
@@ -403,13 +320,14 @@ export function SpecDefinitionForm({
 
 function SpecDefinitionDefaultValueField({
   form,
+  options,
 }: {
   form: UseFormReturn<SpecDefinitionFormValues>;
+  options: SpecOption[];
 }) {
   const dataType = form.watch('dataType');
   const unit = form.watch('unit');
-  const options = form.watch('options');
-  const allowMultiple = form.watch('allowMultiple');
+  const selectionMode = form.watch('defaultSelectionMode');
 
   return (
     <FormField
@@ -423,7 +341,7 @@ function SpecDefinitionDefaultValueField({
               dataType={dataType}
               unit={unit}
               options={options}
-              allowMultiple={allowMultiple}
+              selectionMode={selectionMode}
               value={field.value}
               onChange={field.onChange}
             />
@@ -439,14 +357,14 @@ function DefaultValueControl({
   dataType,
   unit,
   options,
-  allowMultiple,
+  selectionMode,
   value,
   onChange,
 }: {
   dataType: SpecDefinitionFormValues['dataType'];
   unit: string;
   options: SpecOption[];
-  allowMultiple: boolean;
+  selectionMode: SpecDefinitionFormValues['defaultSelectionMode'];
   value: SpecValue | undefined;
   onChange: (value: SpecValue | undefined) => void;
 }) {
@@ -501,7 +419,7 @@ function DefaultValueControl({
         />
       );
     case 'list':
-      if (allowMultiple) {
+      if (selectionMode === 'multi') {
         return (
           <MultiSelect
             value={Array.isArray(value) ? value : []}
@@ -560,6 +478,7 @@ interface SpecDefinitionFormDialogProps {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<SpecDefinitionFormValues>;
   onSubmit: (values: SpecDefinitionFormValues) => void;
+  valueSets: SpecValueSet[];
   title?: string;
 }
 
@@ -568,6 +487,7 @@ export function SpecDefinitionFormDialog({
   onOpenChange,
   form,
   onSubmit,
+  valueSets,
   title,
 }: SpecDefinitionFormDialogProps) {
   return (
@@ -586,6 +506,7 @@ export function SpecDefinitionFormDialog({
           <SpecDefinitionForm
             form={form}
             onSubmit={onSubmit}
+            valueSets={valueSets}
             id="specDefinition-form"
           />
         </div>

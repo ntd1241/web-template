@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type { SpecDefinition } from '../../model/spec-definition';
+import type { SpecValueSet } from '../../model/spec-value-set';
 import type { MaterialModelFormValues } from '../material-model.schema';
 import { MaterialModelForm } from './material-model-form.generated';
 import { ModelSpecEditor } from './model-spec-editor';
@@ -12,6 +13,7 @@ import { ModelSpecEditor } from './model-spec-editor';
 interface MaterialModelWizardProps {
   form: UseFormReturn<MaterialModelFormValues>;
   definitions: SpecDefinition[];
+  valueSets: SpecValueSet[];
   groupOptions: { value: string; label: string }[];
   onSubmit: (values: MaterialModelFormValues) => void;
   onCancel: () => void;
@@ -23,6 +25,7 @@ const STEPS = ['Thông tin cơ bản', 'Thông số kỹ thuật'] as const;
 export function MaterialModelWizard({
   form,
   definitions,
+  valueSets,
   groupOptions,
   onSubmit,
   onCancel,
@@ -96,7 +99,11 @@ export function MaterialModelWizard({
             </div>
           </div>
           <div className={cn('min-h-0 flex-1', step !== 1 && 'hidden')}>
-            <ModelSpecEditor form={form} definitions={definitions} />
+            <ModelSpecEditor
+              form={form}
+              definitions={definitions}
+              valueSets={valueSets}
+            />
           </div>
         </div>
       </div>

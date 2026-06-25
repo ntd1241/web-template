@@ -2,7 +2,12 @@
  * Mẫu vật tư ("iPhone 17 Pro") — template gom nhiều thiết bị thật cùng loại.
  * Mock-first, example-only.
  */
-import type { SpecDataType, SpecOption, SpecValue } from './spec-definition';
+import type {
+  ListSelectionMode,
+  SpecDataType,
+  SpecOption,
+  SpecValue,
+} from './spec-definition';
 
 export type MaterialModelSpecSource = 'catalog' | 'custom';
 
@@ -20,8 +25,7 @@ export interface CustomSpecDefinition {
   dataType: SpecDataType;
   unit?: string;
   options?: SpecOption[];
-  allowMultiple: boolean;
-  allowDynamicValues: boolean;
+  defaultSelectionMode?: ListSelectionMode;
   defaultValue?: SpecValue;
   description?: string;
 }
@@ -40,14 +44,21 @@ export interface MaterialModelSpec {
   source: MaterialModelSpecSource;
   specDefinitionId?: string;
   customDefinition?: CustomSpecDefinition;
+  labelOverride?: string;
+  partKey?: string;
+  selectionModeOverride?: ListSelectionMode;
+  valueSetIdOverride?: string;
+  optionSource?: MaterialModelSpecOptionSource;
   materialValueMode: MaterialValueMode;
   /** Giá trị khóa theo mẫu hoặc giá trị mặc định khi vật tư được nhập riêng. */
   defaultValue?: SpecValue;
-  /** Danh sách lựa chọn hiệu lực của mẫu; undefined nghĩa là dùng danh mục gốc. */
-  allowedOptions?: SpecOption[];
   isRequired: boolean;
   sortOrder: number;
 }
+
+export type MaterialModelSpecOptionSource =
+  | { mode: 'inherit' }
+  | { mode: 'subset'; optionIds: string[] };
 
 export interface MaterialModel {
   id: string;

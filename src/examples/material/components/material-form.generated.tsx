@@ -38,6 +38,7 @@ import { materialFormSchema, type MaterialFormValues } from '../material.schema'
 import { DeviceSpecField } from './device-spec-field';
 import type { MaterialModel } from '../model/material-model';
 import type { SpecDefinition } from '../model/spec-definition';
+import type { SpecValueSet } from '../model/spec-value-set';
 
 export const materialDefaultValues: MaterialFormValues = {
   name: '',
@@ -76,6 +77,7 @@ interface MaterialFormProps {
   modelIdOptions: { value: string; label: string }[];
   selectedModel: MaterialModel | undefined;
   definitions: SpecDefinition[];
+  valueSets: SpecValueSet[];
   onModelChange?: () => void;
 }
 
@@ -86,6 +88,7 @@ export function MaterialForm({
   modelIdOptions,
   selectedModel,
   definitions,
+  valueSets,
   onModelChange,
 }: MaterialFormProps) {
   return (
@@ -170,6 +173,7 @@ export function MaterialForm({
               form={form}
               model={selectedModel}
               definitions={definitions}
+              valueSets={valueSets}
             />
           </div>
         </div>
@@ -187,6 +191,7 @@ interface MaterialFormDialogProps {
   modelIdOptions: { value: string; label: string }[];
   selectedModel: MaterialModel | undefined;
   definitions: SpecDefinition[];
+  valueSets: SpecValueSet[];
   onModelChange?: () => void;
 }
 
@@ -199,6 +204,7 @@ export function MaterialFormDialog({
   modelIdOptions,
   selectedModel,
   definitions,
+  valueSets,
   onModelChange,
 }: MaterialFormDialogProps) {
   return (
@@ -221,6 +227,7 @@ export function MaterialFormDialog({
             modelIdOptions={modelIdOptions}
             selectedModel={selectedModel}
             definitions={definitions}
+            valueSets={valueSets}
             onModelChange={onModelChange}
           />
         </div>

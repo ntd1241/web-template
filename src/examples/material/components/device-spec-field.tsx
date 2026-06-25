@@ -20,21 +20,25 @@ import {
 import type { MaterialFormValues } from '../material.schema';
 import type { MaterialModel } from '../model/material-model';
 import type {
+  ListSelectionMode,
   SpecDefinition,
   SpecOption,
   SpecValue,
 } from '../model/spec-definition';
+import type { SpecValueSet } from '../model/spec-value-set';
 
 interface DeviceSpecFieldProps {
   form: UseFormReturn<MaterialFormValues>;
   model: MaterialModel | undefined;
   definitions: SpecDefinition[];
+  valueSets: SpecValueSet[];
 }
 
 export function DeviceSpecField({
   form,
   model,
   definitions,
+  valueSets,
 }: DeviceSpecFieldProps) {
   const specValues = form.watch('specValues');
 
@@ -50,6 +54,7 @@ export function DeviceSpecField({
     model,
     { specValues },
     definitions,
+    valueSets,
   );
 
   if (effectiveSpecs.length === 0) {
@@ -128,6 +133,7 @@ export function DeviceSpecField({
                     definition,
                     effectiveSpec.value,
                     effectiveSpec.options,
+                    effectiveSpec.selectionMode,
                   )}
                 </div>
               ) : (
@@ -135,6 +141,7 @@ export function DeviceSpecField({
                   definition={definition}
                   value={effectiveSpec.value}
                   allowedOptions={allowedOptions}
+                  selectionMode={effectiveSpec.selectionMode}
                   onChange={(value) =>
                     handleChange(effectiveSpec.materialModelSpecId, value)
                   }
@@ -152,11 +159,13 @@ function SpecValueEditor({
   definition,
   value,
   allowedOptions,
+  selectionMode,
   onChange,
 }: {
   definition: SpecDefinition;
   value: SpecValue | undefined;
   allowedOptions: SpecOption[];
+  selectionMode: ListSelectionMode | undefined;
   onChange: (value: SpecValue) => void;
 }) {
   switch (definition.dataType) {
@@ -202,7 +211,7 @@ function SpecValueEditor({
         />
       );
     case 'list': {
-      if (definition.allowMultiple) {
+      if (selectionMode === 'multi') {
         return (
           <MultiSelect
             value={isMultiSelectValue(value) ? value : []}

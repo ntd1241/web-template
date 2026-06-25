@@ -21,20 +21,31 @@ const customSpecDefinitionSchema = z.object({
   dataType: z.enum(['text', 'number', 'list', 'boolean', 'date']),
   unit: z.string().optional(),
   options: z.array(specOptionSchema).optional(),
-  allowMultiple: z.boolean(),
-  allowDynamicValues: z.boolean(),
+  defaultSelectionMode: z.enum(['single', 'multi']).optional(),
   defaultValue: specValueSchema.optional(),
   description: z.string().optional(),
 });
+
+const optionSourceSchema = z.union([
+  z.object({ mode: z.literal('inherit') }),
+  z.object({
+    mode: z.literal('subset'),
+    optionIds: z.array(z.string()),
+  }),
+]);
 
 const modelSpecSchema = z.object({
   id: z.string().min(1),
   source: z.enum(['catalog', 'custom']),
   specDefinitionId: z.string().optional(),
   customDefinition: customSpecDefinitionSchema.optional(),
+  labelOverride: z.string().optional(),
+  partKey: z.string().optional(),
+  selectionModeOverride: z.enum(['single', 'multi']).optional(),
+  valueSetIdOverride: z.string().optional(),
+  optionSource: optionSourceSchema.optional(),
   materialValueMode: z.enum(['locked', 'editable']),
   defaultValue: specValueSchema.optional(),
-  allowedOptions: z.array(specOptionSchema).optional(),
   isRequired: z.boolean(),
 });
 
@@ -46,6 +57,50 @@ export const materialModelFormSchema = z.object({
   description: z.string(),
   imageUrls: z.array(z.string()),
   specs: z.array(modelSpecSchema),
+}).superRefine((values, ctx) => {
+  const counts = new Map<string, number>();
+  for (const spec of values.specs) {
+    if (spec.source === 'catalog' && spec.specDefinitionId) {
+      counts.set(spec.specDefinitionId, (counts.get(spec.specDefinitionId) ?? 0) + 1);
+    }
+  }
+
+  values.specs.forEach((spec, index) => {
+    if (
+      spec.source === 'catalog' &&
+      spec.specDefinitionId &&
+      (counts.get(spec.specDefinitionId) ?? 0) > 1 &&
+      !spec.partKey?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['specs', index, 'partKey'],
+        message: 'Nhập khóa bộ phận cho thông số bị lặp',
+      });
+    }
+  });
+
+  const duplicatePartKeys = new Set<string>();
+  const seenPartKeys = new Map<string, number>();
+  values.specs.forEach((spec) => {
+    if (!spec.specDefinitionId || !spec.partKey?.trim()) return;
+    const key = `${spec.specDefinitionId}:${spec.partKey.trim().toLowerCase()}`;
+    const count = seenPartKeys.get(key) ?? 0;
+    seenPartKeys.set(key, count + 1);
+    if (count > 0) duplicatePartKeys.add(key);
+  });
+
+  values.specs.forEach((spec, index) => {
+    if (!spec.specDefinitionId || !spec.partKey?.trim()) return;
+    const key = `${spec.specDefinitionId}:${spec.partKey.trim().toLowerCase()}`;
+    if (duplicatePartKeys.has(key)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['specs', index, 'partKey'],
+        message: 'Khóa bộ phận phải duy nhất trong cùng thông số',
+      });
+    }
+  });
 });
 
 export type MaterialModelFormValues = z.infer<typeof materialModelFormSchema>;

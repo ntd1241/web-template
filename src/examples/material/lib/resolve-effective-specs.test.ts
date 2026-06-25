@@ -2,7 +2,39 @@ import { describe, expect, it } from 'vitest';
 import type { Material } from '../model/material';
 import type { MaterialModel } from '../model/material-model';
 import type { SpecDefinition } from '../model/spec-definition';
-import { resolveEffectiveSpecs } from './resolve-effective-specs';
+import type { SpecValueSet } from '../model/spec-value-set';
+import {
+  resolveEffectiveOptions,
+  resolveEffectiveSpecs,
+} from './resolve-effective-specs';
+
+const valueSets: SpecValueSet[] = [
+  {
+    id: 'vs-basic',
+    code: 'VS-BASIC',
+    name: 'Bảng màu cơ bản',
+    kind: 'color',
+    isActive: true,
+    options: [
+      { id: 'black', label: 'Đen', value: 'black' },
+      { id: 'white', label: 'Trắng', value: 'white' },
+      { id: 'clear', label: 'Trong', value: 'clear' },
+      { id: 'smoke', label: 'Khói', value: 'smoke' },
+      { id: 'red', label: 'Đỏ', value: 'red' },
+    ],
+  },
+  {
+    id: 'vs-dye',
+    code: 'VS-DYE',
+    name: 'Bảng màu nhuộm',
+    kind: 'color',
+    isActive: true,
+    options: [
+      { id: 'dye-cobalt', label: 'Cobalt', value: 'cobalt' },
+      { id: 'dye-rose', label: 'Rose', value: 'rose' },
+    ],
+  },
+];
 
 const definitions: SpecDefinition[] = [
   {
@@ -10,14 +42,20 @@ const definitions: SpecDefinition[] = [
     code: 'TS-MAU',
     name: 'Màu sắc',
     dataType: 'list',
-    allowMultiple: false,
-    allowDynamicValues: false,
-    allowModelOverride: true,
-    options: [
-      { id: 'mau-den', label: 'Đen', value: 'den' },
-      { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
-      { id: 'mau-do', label: 'Đỏ', value: 'do' },
-    ],
+    defaultValueSetId: 'vs-basic',
+    defaultSelectionMode: 'single',
+    allowModelSelectionOverride: true,
+    allowModelValueSetOverride: true,
+  },
+  {
+    id: 'spec-color-fixed',
+    code: 'TS-MAU-FIXED',
+    name: 'Màu cố định',
+    dataType: 'list',
+    defaultValueSetId: 'vs-basic',
+    defaultSelectionMode: 'single',
+    allowModelSelectionOverride: false,
+    allowModelValueSetOverride: false,
   },
   {
     id: 'spec-weight',
@@ -25,60 +63,10 @@ const definitions: SpecDefinition[] = [
     name: 'Trọng lượng',
     dataType: 'number',
     unit: 'g',
-    allowMultiple: false,
-    allowDynamicValues: false,
-    allowModelOverride: true,
-  },
-  {
-    id: 'spec-date',
-    code: 'TS-NGAY',
-    name: 'Ngày sản xuất',
-    dataType: 'date',
-    allowMultiple: false,
-    allowDynamicValues: false,
-    allowModelOverride: false,
+    allowModelSelectionOverride: false,
+    allowModelValueSetOverride: false,
   },
 ];
-
-const model: MaterialModel = {
-  id: 'm1',
-  code: 'M1',
-  name: 'Mẫu test',
-  groupId: 'g1',
-  imageUrls: [],
-  specs: [
-    {
-      id: 'spec-date',
-      source: 'catalog',
-      specDefinitionId: 'spec-date',
-      materialValueMode: 'editable',
-      defaultValue: '2026-01-01',
-      isRequired: false,
-      sortOrder: 3,
-    },
-    {
-      id: 'spec-weight',
-      source: 'catalog',
-      specDefinitionId: 'spec-weight',
-      materialValueMode: 'locked',
-      defaultValue: { amount: 187, unit: 'g' },
-      isRequired: true,
-      sortOrder: 1,
-    },
-    {
-      id: 'spec-color',
-      source: 'catalog',
-      specDefinitionId: 'spec-color',
-      materialValueMode: 'editable',
-      allowedOptions: [
-        { id: 'mau-den', label: 'Đen', value: 'den' },
-        { id: 'mau-xanh', label: 'Xanh', value: 'xanh' },
-      ],
-      isRequired: true,
-      sortOrder: 2,
-    },
-  ],
-};
 
 function makeMaterial(specValues: Material['specValues']): Material {
   return {
@@ -94,81 +82,32 @@ function makeMaterial(specValues: Material['specValues']): Material {
 }
 
 describe('resolveEffectiveSpecs', () => {
-  it('sắp xếp theo sortOrder', () => {
-    const result = resolveEffectiveSpecs(model, makeMaterial([]), definitions);
-    expect(result.map((s) => s.materialModelSpecId)).toEqual([
-      'spec-weight',
-      'spec-color',
-      'spec-date',
-    ]);
-  });
-
-  it('locked kế thừa defaultValue của mẫu và read-only', () => {
-    const weight = resolveEffectiveSpecs(
-      model,
-      makeMaterial([]),
-      definitions,
-    )[0];
-    expect(weight.value).toEqual({ amount: 187, unit: 'g' });
-    expect(weight.isReadOnly).toBe(true);
-    expect(weight.source).toBe('model');
-  });
-
-  it('editable lấy override nếu có, ngược lại dùng default của mẫu', () => {
-    const noOverride = resolveEffectiveSpecs(
-      model,
-      makeMaterial([]),
-      definitions,
-    ).find((s) => s.materialModelSpecId === 'spec-date');
-    expect(noOverride?.value).toBe('2026-01-01');
-    expect(noOverride?.source).toBe('default');
-
-    const withOverride = resolveEffectiveSpecs(
-      model,
-      makeMaterial([{ materialModelSpecId: 'spec-date', value: '2026-06-20' }]),
-      definitions,
-    ).find((s) => s.materialModelSpecId === 'spec-date');
-    expect(withOverride?.value).toBe('2026-06-20');
-    expect(withOverride?.source).toBe('device');
-  });
-
-  it('lọc giá trị list ngoài allowedOptions của mẫu', () => {
-    const valid = resolveEffectiveSpecs(
-      model,
-      makeMaterial([{ materialModelSpecId: 'spec-color', value: 'mau-xanh' }]),
-      definitions,
-    ).find((s) => s.materialModelSpecId === 'spec-color');
-    expect(valid?.value).toBe('mau-xanh');
-    expect(valid?.isReadOnly).toBe(false);
-
-    const invalid = resolveEffectiveSpecs(
-      model,
-      makeMaterial([{ materialModelSpecId: 'spec-color', value: 'mau-do' }]),
-      definitions,
-    ).find((s) => s.materialModelSpecId === 'spec-color');
-    expect(invalid?.value).toBeUndefined();
-  });
-
-  it('resolve thông số riêng của mẫu không nằm trong danh mục', () => {
-    const customModel: MaterialModel = {
-      id: 'm-custom',
-      code: 'M-CUSTOM',
-      name: 'Mẫu riêng',
+  it('cho phép cùng specDefinitionId xuất hiện nhiều lần trên một model', () => {
+    const model: MaterialModel = {
+      id: 'm1',
+      code: 'M1',
+      name: 'Kính hai màu',
       groupId: 'g1',
       imageUrls: [],
       specs: [
         {
-          id: 'custom-pressure',
-          source: 'custom',
-          customDefinition: {
-            code: 'TS-APSUAT',
-            name: 'Áp suất',
-            dataType: 'number',
-            unit: 'bar',
-            allowMultiple: false,
-            allowDynamicValues: false,
-            defaultValue: { amount: 6, unit: 'bar' },
-          },
+          id: 'color-glass',
+          source: 'catalog',
+          specDefinitionId: 'spec-color',
+          labelOverride: 'Màu kính',
+          partKey: 'glass',
+          optionSource: { mode: 'subset', optionIds: ['clear', 'smoke'] },
+          materialValueMode: 'editable',
+          isRequired: true,
+          sortOrder: 2,
+        },
+        {
+          id: 'color-shell',
+          source: 'catalog',
+          specDefinitionId: 'spec-color',
+          labelOverride: 'Màu vỏ',
+          partKey: 'shell',
+          optionSource: { mode: 'subset', optionIds: ['black', 'white'] },
           materialValueMode: 'editable',
           isRequired: true,
           sortOrder: 1,
@@ -176,18 +115,161 @@ describe('resolveEffectiveSpecs', () => {
       ],
     };
 
-    const result = resolveEffectiveSpecs(
-      customModel,
-      makeMaterial([
+    const result = resolveEffectiveSpecs(model, makeMaterial([]), definitions, valueSets);
+
+    expect(result.map((spec) => spec.materialModelSpecId)).toEqual([
+      'color-shell',
+      'color-glass',
+    ]);
+    expect(result.map((spec) => spec.label)).toEqual(['Màu vỏ', 'Màu kính']);
+    expect(result.map((spec) => spec.options?.map((option) => option.id))).toEqual([
+      ['black', 'white'],
+      ['clear', 'smoke'],
+    ]);
+  });
+
+  it('enforce gate single -> multi: allowed áp dụng, disallowed bị bỏ qua', () => {
+    const allowedModel: MaterialModel = {
+      id: 'm-allowed',
+      code: 'M-ALLOWED',
+      name: 'Nam châm',
+      groupId: 'g1',
+      imageUrls: [],
+      specs: [
         {
-          materialModelSpecId: 'custom-pressure',
-          value: { amount: 8, unit: 'bar' },
+          id: 'allowed',
+          source: 'catalog',
+          specDefinitionId: 'spec-color',
+          selectionModeOverride: 'multi',
+          materialValueMode: 'editable',
+          isRequired: false,
+          sortOrder: 1,
         },
+        {
+          id: 'blocked',
+          source: 'catalog',
+          specDefinitionId: 'spec-color-fixed',
+          selectionModeOverride: 'multi',
+          materialValueMode: 'editable',
+          isRequired: false,
+          sortOrder: 2,
+        },
+      ],
+    };
+
+    const result = resolveEffectiveSpecs(
+      allowedModel,
+      makeMaterial([
+        { materialModelSpecId: 'allowed', value: ['black', 'red'] },
+        { materialModelSpecId: 'blocked', value: ['black', 'red'] },
       ]),
       definitions,
-    )[0];
+      valueSets,
+    );
 
-    expect(result.definition?.name).toBe('Áp suất');
-    expect(result.value).toEqual({ amount: 8, unit: 'bar' });
+    expect(result.find((spec) => spec.materialModelSpecId === 'allowed')?.selectionMode).toBe('multi');
+    expect(result.find((spec) => spec.materialModelSpecId === 'allowed')?.value).toEqual(['black', 'red']);
+    expect(result.find((spec) => spec.materialModelSpecId === 'blocked')?.selectionMode).toBe('single');
+    expect(result.find((spec) => spec.materialModelSpecId === 'blocked')?.value).toBeUndefined();
+  });
+
+  it('áp dụng inherit/subset trên value set mặc định và value set override', () => {
+    const definition = definitions[0];
+    const inheritSpec = {
+      id: 'inherit',
+      source: 'catalog' as const,
+      specDefinitionId: 'spec-color',
+      optionSource: { mode: 'inherit' as const },
+      materialValueMode: 'editable' as const,
+      isRequired: false,
+      sortOrder: 1,
+    };
+    const subsetSpec = {
+      ...inheritSpec,
+      id: 'subset',
+      optionSource: { mode: 'subset' as const, optionIds: ['black'] },
+    };
+    const overrideSubsetSpec = {
+      ...inheritSpec,
+      id: 'override-subset',
+      valueSetIdOverride: 'vs-dye',
+      optionSource: { mode: 'subset' as const, optionIds: ['dye-rose'] },
+    };
+
+    expect(
+      resolveEffectiveOptions(inheritSpec, definition, valueSets)?.map((option) => option.id),
+    ).toEqual(['black', 'white', 'clear', 'smoke', 'red']);
+    expect(
+      resolveEffectiveOptions(subsetSpec, definition, valueSets)?.map((option) => option.id),
+    ).toEqual(['black']);
+    expect(
+      resolveEffectiveOptions(overrideSubsetSpec, definition, valueSets)?.map((option) => option.id),
+    ).toEqual(['dye-rose']);
+  });
+
+  it('bỏ qua valueSetIdOverride và subset khi gate không cho phép', () => {
+    const definition = definitions[1];
+    const spec = {
+      id: 'blocked',
+      source: 'catalog' as const,
+      specDefinitionId: 'spec-color-fixed',
+      valueSetIdOverride: 'vs-dye',
+      optionSource: { mode: 'subset' as const, optionIds: ['dye-rose'] },
+      materialValueMode: 'editable' as const,
+      isRequired: false,
+      sortOrder: 1,
+    };
+
+    expect(resolveEffectiveOptions(spec, definition, valueSets)?.map((option) => option.id)).toEqual([
+      'black',
+      'white',
+      'clear',
+      'smoke',
+      'red',
+    ]);
+  });
+
+  it('lọc value thiết bị không hợp lệ cho single và multi', () => {
+    const model: MaterialModel = {
+      id: 'm-filter',
+      code: 'M-FILTER',
+      name: 'Filter',
+      groupId: 'g1',
+      imageUrls: [],
+      specs: [
+        {
+          id: 'single',
+          source: 'catalog',
+          specDefinitionId: 'spec-color',
+          optionSource: { mode: 'subset', optionIds: ['black'] },
+          materialValueMode: 'editable',
+          isRequired: false,
+          sortOrder: 1,
+        },
+        {
+          id: 'multi',
+          source: 'catalog',
+          specDefinitionId: 'spec-color',
+          selectionModeOverride: 'multi',
+          optionSource: { mode: 'subset', optionIds: ['black'] },
+          materialValueMode: 'editable',
+          isRequired: false,
+          sortOrder: 2,
+        },
+      ],
+    };
+
+    const result = resolveEffectiveSpecs(
+      model,
+      makeMaterial([
+        { materialModelSpecId: 'single', value: 'red' },
+        { materialModelSpecId: 'multi', value: ['black', 'red'] },
+      ]),
+      definitions,
+      valueSets,
+    );
+
+    expect(result.find((spec) => spec.materialModelSpecId === 'single')?.value).toBeUndefined();
+    expect(result.find((spec) => spec.materialModelSpecId === 'multi')?.value).toEqual(['black']);
   });
 });

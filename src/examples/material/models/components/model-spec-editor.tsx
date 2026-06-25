@@ -1,17 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Plus, Settings, Trash2 } from 'lucide-react';
 import { useFieldArray, type UseFormReturn } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select/multi-select';
 import {
@@ -21,27 +14,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { isNumberSpecValue } from '../../lib/spec-value';
-import {
-  MATERIAL_MODEL_SPEC_SOURCE_LABELS,
-  type CustomSpecDefinition,
-} from '../../model/material-model';
-import {
+  LIST_SELECTION_MODE_LABELS,
   SPEC_DATA_TYPE_LABELS,
+  type ListSelectionMode,
   type SpecDataType,
   type SpecDefinition,
   type SpecOption,
   type SpecValue,
 } from '../../model/spec-definition';
+import type { SpecValueSet } from '../../model/spec-value-set';
+import {
+  MATERIAL_MODEL_SPEC_SOURCE_LABELS,
+  type CustomSpecDefinition,
+} from '../../model/material-model';
+import {
+  resolveEffectiveLabel,
+  resolveEffectiveOptions,
+  resolveEffectiveSelectionMode,
+  resolveEffectiveValueSet,
+} from '../../lib/resolve-effective-specs';
+import { isNumberSpecValue } from '../../lib/spec-value';
 import type {
   MaterialModelFormValues,
   ModelSpecFormValue,
@@ -50,14 +52,16 @@ import type {
 interface ModelSpecEditorProps {
   form: UseFormReturn<MaterialModelFormValues>;
   definitions: SpecDefinition[];
+  valueSets: SpecValueSet[];
 }
 
-let dynamicOptionSeq = 0;
+let catalogSpecSeq = 0;
 let customSpecSeq = 0;
+let customOptionSeq = 0;
 
-function nextDynamicOptionId(): string {
-  dynamicOptionSeq += 1;
-  return `dynamic-opt-${dynamicOptionSeq}`;
+function nextCatalogSpecId(specDefinitionId: string): string {
+  catalogSpecSeq += 1;
+  return `${specDefinitionId}-${catalogSpecSeq}`;
 }
 
 function nextCustomSpecId(): string {
@@ -65,8 +69,9 @@ function nextCustomSpecId(): string {
   return `custom-spec-${customSpecSeq}`;
 }
 
-function cloneOptions(options: SpecOption[] | undefined): SpecOption[] {
-  return (options ?? []).map((option) => ({ ...option }));
+function nextCustomOptionId(): string {
+  customOptionSeq += 1;
+  return `custom-option-${customOptionSeq}`;
 }
 
 function cloneSpecValue(value: SpecValue | undefined): SpecValue | undefined {
@@ -82,35 +87,28 @@ function definitionForSpec(
   if (spec.source === 'custom' && spec.customDefinition) {
     return {
       id: spec.id,
-      ...spec.customDefinition,
-      allowModelOverride: true,
+      code: spec.customDefinition.code,
+      name: spec.customDefinition.name,
+      dataType: spec.customDefinition.dataType,
+      unit: spec.customDefinition.unit,
+      defaultSelectionMode: spec.customDefinition.defaultSelectionMode,
+      allowModelSelectionOverride: true,
+      allowModelValueSetOverride: true,
+      defaultValue: spec.customDefinition.defaultValue,
+      description: spec.customDefinition.description,
     };
   }
   return spec.specDefinitionId ? defById.get(spec.specDefinitionId) : undefined;
 }
 
-function optionsForSpec(
-  spec: ModelSpecFormValue,
-  def: SpecDefinition,
-): SpecOption[] {
-  return spec.allowedOptions ?? def.options ?? [];
-}
-
-function canOverrideSpec(spec: ModelSpecFormValue, def: SpecDefinition) {
-  return spec.source === 'custom' || def.allowModelOverride;
-}
-
 function makeCatalogSpec(def: SpecDefinition): ModelSpecFormValue {
   return {
-    id: def.id,
+    id: nextCatalogSpecId(def.id),
     source: 'catalog',
     specDefinitionId: def.id,
+    optionSource: def.dataType === 'list' ? { mode: 'inherit' } : undefined,
     materialValueMode: 'locked',
     defaultValue: cloneSpecValue(def.defaultValue),
-    allowedOptions:
-      def.dataType === 'list' && def.allowDynamicValues
-        ? cloneOptions(def.options)
-        : undefined,
     isRequired: false,
   };
 }
@@ -120,33 +118,33 @@ function makeCustomDefinition(): CustomSpecDefinition {
     code: 'TS-RIENG',
     name: 'Thông số riêng',
     dataType: 'text',
-    allowMultiple: false,
-    allowDynamicValues: true,
+    defaultSelectionMode: 'single',
     defaultValue: '',
   };
 }
 
-export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
+export function ModelSpecEditor({
+  form,
+  definitions,
+  valueSets,
+}: ModelSpecEditorProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'specs',
   });
   const specs = form.watch('specs');
+  const [openSpecId, setOpenSpecId] = useState<string | null>(null);
   const defById = useMemo(
-    () => new Map(definitions.map((d) => [d.id, d])),
+    () => new Map(definitions.map((definition) => [definition.id, definition])),
     [definitions],
   );
 
-  const usedCatalogIds = new Set(
-    specs
-      .filter((spec) => spec.source === 'catalog')
-      .map((spec) => spec.specDefinitionId),
-  );
-  const available = definitions.filter((d) => !usedCatalogIds.has(d.id));
-
   const handleAddCatalog = (specDefinitionId: string) => {
     const def = defById.get(specDefinitionId);
-    if (def) append(makeCatalogSpec(def));
+    if (!def) return;
+    const next = makeCatalogSpec(def);
+    append(next);
+    setOpenSpecId(next.id);
   };
 
   const handleAddCustom = () => {
@@ -159,191 +157,143 @@ export function ModelSpecEditor({ form, definitions }: ModelSpecEditorProps) {
       defaultValue: '',
       isRequired: false,
     });
+    setOpenSpecId(id);
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col [&_[data-slot=table-wrapper]]:h-full [&_[data-slot=table-wrapper]]:min-h-0">
-      <Table className="min-w-[1080px]">
-        <TableHeader className="sticky top-0 z-20 bg-muted">
-          <TableRow>
-            <TableHead className="w-80">Thông số ({fields.length})</TableHead>
-            <TableHead>Giá trị mặc định / danh sách</TableHead>
-            <TableHead className="w-36 text-center">
-              Vật tư nhập riêng
-            </TableHead>
-            <TableHead className="w-28 text-center">Bắt buộc</TableHead>
-            <TableHead className="sticky right-0 z-30 w-24 bg-muted text-center">
-              Thao tác
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {fields.length === 0 && (
-            <TableRow>
-              <TableCell
-                className="px-4 py-6 text-center text-sm text-muted-foreground"
-                colSpan={5}
-              >
-                Chưa gán thông số nào.
-              </TableCell>
-            </TableRow>
-          )}
-          {fields.map((field, index) => {
+    <div className="flex h-full min-h-0 flex-col gap-3 p-5">
+      <div className="grid shrink-0 grid-cols-1 gap-2 xl:grid-cols-[18rem_auto_auto]">
+        <Select value="" onValueChange={handleAddCatalog}>
+          <SelectTrigger
+            size="sm"
+            className="justify-start border-dashed bg-background text-muted-foreground"
+          >
+            <span className="flex items-center gap-1.5 text-sm">
+              <Plus className="size-3.5" />
+              Thêm từ danh mục
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {definitions.map((definition) => (
+              <SelectItem key={definition.id} value={definition.id}>
+                {definition.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="justify-start"
+          onClick={handleAddCustom}
+        >
+          <Plus className="size-3.5" />
+          Thêm thông số riêng
+        </Button>
+        <div className="text-xs text-muted-foreground xl:self-center xl:text-right">
+          Có thể thêm cùng một thông số nhiều lần; khi lặp, nhập partKey riêng.
+        </div>
+      </div>
+
+      <div className="grid shrink-0 grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_15rem] border-b border-border px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
+        <div>Thông số</div>
+        <div>Nguồn giá trị</div>
+        <div className="text-right">Cờ + cấu hình</div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-admin-control border border-border">
+        {fields.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            Chưa gán thông số nào.
+          </p>
+        ) : (
+          fields.map((field, index) => {
             const spec = specs[index];
             const def = definitionForSpec(spec, defById);
             if (!def) return null;
             return (
-              <ModelSpecTableRow
+              <ModelSpecListRow
                 key={field.id}
                 form={form}
                 index={index}
                 spec={spec}
                 def={def}
+                valueSets={valueSets}
+                open={openSpecId === spec.id}
+                onOpenChange={(open) => setOpenSpecId(open ? spec.id : null)}
                 onRemove={() => remove(index)}
               />
             );
-          })}
-          <AddSpecTableRow
-            available={available}
-            onAddCatalog={handleAddCatalog}
-            onAddCustom={handleAddCustom}
-          />
-        </TableBody>
-      </Table>
+          })
+        )}
+      </div>
     </div>
   );
 }
 
-function AddSpecTableRow({
-  available,
-  onAddCatalog,
-  onAddCustom,
-}: {
-  available: SpecDefinition[];
-  onAddCatalog: (specDefinitionId: string) => void;
-  onAddCustom: () => void;
-}) {
-  return (
-    <TableRow className="bg-admin-surface-alt/40 hover:bg-admin-surface-alt/60">
-      <TableCell className="px-4 py-3" colSpan={5}>
-        <div className="flex flex-wrap gap-2">
-          <Select value="" onValueChange={onAddCatalog}>
-            <SelectTrigger
-              size="sm"
-              className="w-full justify-start border-dashed bg-background text-muted-foreground md:w-72"
-            >
-              <span className="flex items-center gap-1.5 text-sm">
-                <Plus className="size-3.5" />
-                Thêm từ danh mục
-              </span>
-            </SelectTrigger>
-            <SelectContent>
-              {available.length === 0 ? (
-                <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                  Đã thêm hết thông số
-                </div>
-              ) : (
-                available.map((def) => (
-                  <SelectItem key={def.id} value={def.id}>
-                    {def.name}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onAddCustom}
-          >
-            <Plus className="size-3.5" />
-            Thêm thông số riêng
-          </Button>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-}
-
-function ModelSpecTableRow({
+function ModelSpecListRow({
   form,
   index,
   spec,
   def,
+  valueSets,
+  open,
+  onOpenChange,
   onRemove,
 }: {
   form: UseFormReturn<MaterialModelFormValues>;
   index: number;
   spec: ModelSpecFormValue;
   def: SpecDefinition;
+  valueSets: SpecValueSet[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onRemove: () => void;
 }) {
-  const [optionsDialogOpen, setOptionsDialogOpen] = useState(false);
   const base = `specs.${index}` as const;
   const isRequired = form.watch(`${base}.isRequired`);
   const materialValueMode = form.watch(`${base}.materialValueMode`);
-  const defaultValue = form.watch(`${base}.defaultValue`);
-  const allowedOptions = optionsForSpec(spec, def);
-  const canOverride = canOverrideSpec(spec, def);
-  const isCustom = spec.source === 'custom';
-
-  const handleDataTypeChange = (dataType: SpecDataType) => {
-    form.setValue(`${base}.customDefinition.dataType`, dataType, {
-      shouldDirty: true,
-    });
-    form.setValue(`${base}.defaultValue`, dataType === 'boolean' ? false : '', {
-      shouldDirty: true,
-    });
-    form.setValue(`${base}.allowedOptions`, undefined, { shouldDirty: true });
-  };
+  const label = resolveEffectiveLabel(spec, def);
+  const options = resolveEffectiveOptions(spec, def, valueSets) ?? [];
+  const selectionMode = resolveEffectiveSelectionMode(spec, def);
+  const valueSet = resolveEffectiveValueSet(spec, def, valueSets);
+  const sourceSummary =
+    def.dataType === 'list'
+      ? `${valueSet?.name ?? 'Chưa chọn value set'} · ${options.length} lựa chọn · ${
+          selectionMode ? LIST_SELECTION_MODE_LABELS[selectionMode] : '—'
+        }`
+      : `${SPEC_DATA_TYPE_LABELS[def.dataType]}${def.unit ? ` · ${def.unit}` : ''}`;
 
   return (
-    <>
-      <TableRow>
-        <TableCell className="px-4 py-3 align-top">
-          {isCustom ? (
-            <CustomDefinitionEditor
-              form={form}
-              base={base}
-              def={def}
-              onDataTypeChange={handleDataTypeChange}
-            />
-          ) : (
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="truncate font-medium text-foreground">
-                {def.name}
-              </span>
-              <span className="truncate text-[11px] leading-4 text-muted-foreground">
-                {def.code}
-                {def.unit ? ` · ${def.unit}` : ''}
-                {` · ${SPEC_DATA_TYPE_LABELS[def.dataType]}`}
-              </span>
-              <Badge variant="secondary" appearance="light" className="w-fit">
-                {MATERIAL_MODEL_SPEC_SOURCE_LABELS[spec.source]}
-              </Badge>
-            </div>
+    <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_15rem] items-center gap-3 border-b border-border px-3 py-2 last:border-b-0">
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-medium text-foreground">
+            {label}
+          </span>
+          <Badge variant="secondary" appearance="light">
+            {MATERIAL_MODEL_SPEC_SOURCE_LABELS[spec.source]}
+          </Badge>
+        </div>
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="truncate">{def.name}</span>
+          {spec.partKey && (
+            <Badge variant="secondary" appearance="light">
+              {spec.partKey}
+            </Badge>
           )}
-        </TableCell>
-        <TableCell className="px-4 py-3 align-top">
-          <ModelDefaultValueEditor
-            def={def}
-            value={defaultValue}
-            options={allowedOptions}
-            disabled={!canOverride}
-            onChange={(val) =>
-              form.setValue(`${base}.defaultValue`, val, {
-                shouldDirty: true,
-              })
-            }
-            onOpenOptionsDialog={() => setOptionsDialogOpen(true)}
-          />
-        </TableCell>
-        <TableCell className="px-4 py-3 text-center align-top">
+        </div>
+      </div>
+      <div className="min-w-0 truncate text-sm text-muted-foreground">
+        {sourceSummary}
+      </div>
+      <div className="flex items-center justify-end gap-2">
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Checkbox
             size="sm"
             checked={materialValueMode === 'editable'}
-            aria-label={`Vật tư nhập riêng ${def.name}`}
+            aria-label={`Vật tư nhập riêng ${label}`}
             onCheckedChange={(checked) =>
               form.setValue(
                 `${base}.materialValueMode`,
@@ -352,49 +302,318 @@ function ModelSpecTableRow({
               )
             }
           />
-        </TableCell>
-        <TableCell className="px-4 py-3 text-center align-top">
+          Vật tư nhập riêng
+        </label>
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Checkbox
             size="sm"
             checked={isRequired}
-            aria-label={`Bắt buộc ${def.name}`}
+            aria-label={`Bắt buộc ${label}`}
             onCheckedChange={(checked) =>
               form.setValue(`${base}.isRequired`, checked === true, {
                 shouldDirty: true,
+                shouldValidate: true,
               })
             }
           />
-        </TableCell>
-        <TableCell className="sticky right-0 bg-card px-3 py-3 align-top">
-          <div className="flex items-center justify-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Bỏ thông số"
-              className="text-muted-foreground"
-              onClick={onRemove}
-            >
-              <Trash2 className="size-4" />
-            </Button>
+          Bắt buộc
+        </label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Cấu hình ${label}`}
+          onClick={() => onOpenChange(true)}
+        >
+          <Settings className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Bỏ ${label}`}
+          className="text-muted-foreground"
+          onClick={onRemove}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
+      <ModelSpecSheet
+        form={form}
+        base={base}
+        spec={spec}
+        def={def}
+        valueSets={valueSets}
+        open={open}
+        onOpenChange={onOpenChange}
+      />
+    </div>
+  );
+}
+
+function ModelSpecSheet({
+  form,
+  base,
+  spec,
+  def,
+  valueSets,
+  open,
+  onOpenChange,
+}: {
+  form: UseFormReturn<MaterialModelFormValues>;
+  base: `specs.${number}`;
+  spec: ModelSpecFormValue;
+  def: SpecDefinition;
+  valueSets: SpecValueSet[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const label = resolveEffectiveLabel(spec, def);
+  const selectionMode = resolveEffectiveSelectionMode(spec, def);
+  const valueSet = resolveEffectiveValueSet(spec, def, valueSets);
+  const options = resolveEffectiveOptions(spec, def, valueSets) ?? [];
+  const defaultValue = form.watch(`${base}.defaultValue`);
+  const isCatalog = spec.source === 'catalog';
+  const canConfigureValueSet = isCatalog && def.allowModelValueSetOverride;
+  const subsetIds =
+    spec.optionSource?.mode === 'subset' ? spec.optionSource.optionIds : [];
+
+  const handleDataTypeChange = (dataType: SpecDataType) => {
+    form.setValue(`${base}.customDefinition.dataType`, dataType, {
+      shouldDirty: true,
+    });
+    form.setValue(`${base}.customDefinition.defaultSelectionMode`, 'single', {
+      shouldDirty: true,
+    });
+    form.setValue(`${base}.defaultValue`, dataType === 'boolean' ? false : '', {
+      shouldDirty: true,
+    });
+  };
+
+  const handleSelectionModeChange = (mode: ListSelectionMode) => {
+    form.setValue(`${base}.selectionModeOverride`, mode, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue(`${base}.defaultValue`, mode === 'multi' ? [] : '', {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleValueSetChange = (valueSetId: string) => {
+    form.setValue(
+      `${base}.valueSetIdOverride`,
+      valueSetId === '__default__' ? undefined : valueSetId,
+      { shouldDirty: true, shouldValidate: true },
+    );
+    form.setValue(`${base}.optionSource`, { mode: 'inherit' }, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue(`${base}.defaultValue`, selectionMode === 'multi' ? [] : '', {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleSubsetToggle = (optionId: string, checked: boolean) => {
+    const nextIds = checked
+      ? [...subsetIds, optionId]
+      : subsetIds.filter((id) => id !== optionId);
+    form.setValue(
+      `${base}.optionSource`,
+      nextIds.length === 0
+        ? { mode: 'inherit' }
+        : { mode: 'subset', optionIds: nextIds },
+      { shouldDirty: true, shouldValidate: true },
+    );
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full overflow-hidden p-0 sm:max-w-xl">
+        <SheetHeader className="shrink-0 border-b border-border px-5 py-4">
+          <SheetTitle>{label}</SheetTitle>
+          <SheetDescription>
+            Cấu hình thông số trong phạm vi mẫu vật tư.
+          </SheetDescription>
+        </SheetHeader>
+        <SheetBody className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <div className="grid gap-4">
+            {spec.source === 'custom' ? (
+              <CustomDefinitionEditor
+                form={form}
+                base={base}
+                def={def}
+                onDataTypeChange={handleDataTypeChange}
+              />
+            ) : (
+              <ReadOnlyDefinitionSummary def={def} />
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <FieldBlock label="Nhãn hiển thị">
+                <Input
+                  variant="sm"
+                  placeholder={def.name}
+                  value={spec.labelOverride ?? ''}
+                  onChange={(event) =>
+                    form.setValue(
+                      `${base}.labelOverride`,
+                      event.target.value || undefined,
+                      { shouldDirty: true },
+                    )
+                  }
+                />
+              </FieldBlock>
+              <FieldBlock label="partKey">
+                <Input
+                  variant="sm"
+                  placeholder="vd: glass"
+                  value={spec.partKey ?? ''}
+                  onChange={(event) =>
+                    form.setValue(
+                      `${base}.partKey`,
+                      event.target.value || undefined,
+                      { shouldDirty: true, shouldValidate: true },
+                    )
+                  }
+                />
+              </FieldBlock>
+            </div>
+
+            {def.dataType === 'list' && def.allowModelSelectionOverride && (
+              <FieldBlock label="Chế độ chọn">
+                <Select
+                  value={selectionMode ?? 'single'}
+                  onValueChange={handleSelectionModeChange}
+                >
+                  <SelectTrigger size="sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Chọn 1</SelectItem>
+                    <SelectItem value="multi">Chọn nhiều</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FieldBlock>
+            )}
+
+            {def.dataType === 'list' && canConfigureValueSet && (
+              <FieldBlock label="Nguồn giá trị">
+                <Select
+                  value={spec.valueSetIdOverride ?? '__default__'}
+                  onValueChange={handleValueSetChange}
+                >
+                  <SelectTrigger size="sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">
+                      Mặc định từ danh mục
+                    </SelectItem>
+                    {valueSets.map((set) => (
+                      <SelectItem key={set.id} value={set.id}>
+                        {set.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FieldBlock>
+            )}
+
+            {def.dataType === 'list' && canConfigureValueSet && valueSet && (
+              <FieldBlock label="Subset lựa chọn">
+                <div className="flex flex-wrap gap-2">
+                  {valueSet.options.map((option) => {
+                    const isChecked =
+                      spec.optionSource?.mode !== 'subset' ||
+                      subsetIds.includes(option.id);
+                    return (
+                      <Button
+                        key={option.id}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="inline-flex h-7 items-center gap-1.5 rounded-admin-control border border-border px-2 text-xs data-[checked=true]:border-primary data-[checked=true]:bg-primary/10 data-[checked=true]:text-primary"
+                        data-checked={isChecked}
+                        onClick={() =>
+                          handleSubsetToggle(option.id, !subsetIds.includes(option.id))
+                        }
+                      >
+                        {option.colorHex && (
+                          <span
+                            className="size-2.5 rounded-full border border-border"
+                            style={{ backgroundColor: option.colorHex }}
+                          />
+                        )}
+                        {option.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </FieldBlock>
+            )}
+
+            {spec.source === 'custom' && def.dataType === 'list' && (
+              <CustomOptionsEditor
+                value={spec.customDefinition?.options ?? []}
+                onChange={(nextOptions) =>
+                  form.setValue(`${base}.customDefinition.options`, nextOptions, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              />
+            )}
+
+            <FieldBlock label="Giá trị mặc định">
+              <FixedValueEditor
+                def={def}
+                value={defaultValue}
+                options={options}
+                selectionMode={selectionMode}
+                onChange={(value) =>
+                  form.setValue(`${base}.defaultValue`, value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              />
+            </FieldBlock>
           </div>
-        </TableCell>
-      </TableRow>
-      {def.dataType === 'list' && canOverride && (
-        <OptionsDialog
-          def={def}
-          open={optionsDialogOpen}
-          value={allowedOptions}
-          onOpenChange={setOptionsDialogOpen}
-          onChange={(options) =>
-            form.setValue(`${base}.allowedOptions`, options, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-        />
-      )}
-    </>
+        </SheetBody>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function FieldBlock({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ReadOnlyDefinitionSummary({ def }: { def: SpecDefinition }) {
+  return (
+    <div className="rounded-admin-control border border-border bg-admin-surface-alt px-3 py-2 text-sm">
+      <div className="font-medium text-foreground">{def.name}</div>
+      <div className="mt-1 text-xs text-muted-foreground">
+        {def.code} · {SPEC_DATA_TYPE_LABELS[def.dataType]}
+        {def.unit ? ` · ${def.unit}` : ''}
+      </div>
+    </div>
   );
 }
 
@@ -410,178 +629,75 @@ function CustomDefinitionEditor({
   onDataTypeChange: (dataType: SpecDataType) => void;
 }) {
   return (
-    <div className="grid gap-2">
-      <div className="grid grid-cols-[1fr_6.5rem] gap-2">
-        <Input
-          variant="sm"
-          value={def.name}
-          onChange={(event) =>
-            form.setValue(`${base}.customDefinition.name`, event.target.value, {
-              shouldDirty: true,
-            })
-          }
-        />
-        <Input
-          variant="sm"
-          value={def.code}
-          onChange={(event) =>
-            form.setValue(`${base}.customDefinition.code`, event.target.value, {
-              shouldDirty: true,
-            })
-          }
-        />
+    <div className="grid gap-3 rounded-admin-control border border-border p-3">
+      <div className="grid grid-cols-2 gap-3">
+        <FieldBlock label="Tên thông số">
+          <Input
+            variant="sm"
+            value={def.name}
+            onChange={(event) =>
+              form.setValue(`${base}.customDefinition.name`, event.target.value, {
+                shouldDirty: true,
+              })
+            }
+          />
+        </FieldBlock>
+        <FieldBlock label="Mã">
+          <Input
+            variant="sm"
+            value={def.code}
+            onChange={(event) =>
+              form.setValue(`${base}.customDefinition.code`, event.target.value, {
+                shouldDirty: true,
+              })
+            }
+          />
+        </FieldBlock>
       </div>
-      <div className="grid grid-cols-[1fr_6.5rem] gap-2">
-        <Select value={def.dataType} onValueChange={onDataTypeChange}>
-          <SelectTrigger size="sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(SPEC_DATA_TYPE_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          variant="sm"
-          placeholder="Đơn vị"
-          disabled={def.dataType !== 'number'}
-          value={def.unit ?? ''}
-          onChange={(event) =>
-            form.setValue(`${base}.customDefinition.unit`, event.target.value, {
-              shouldDirty: true,
-            })
-          }
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <FieldBlock label="Kiểu dữ liệu">
+          <Select value={def.dataType} onValueChange={onDataTypeChange}>
+            <SelectTrigger size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SPEC_DATA_TYPE_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FieldBlock>
+        <FieldBlock label="Đơn vị">
+          <Input
+            variant="sm"
+            placeholder="vd: kg"
+            disabled={def.dataType !== 'number'}
+            value={def.unit ?? ''}
+            onChange={(event) =>
+              form.setValue(`${base}.customDefinition.unit`, event.target.value, {
+                shouldDirty: true,
+              })
+            }
+          />
+        </FieldBlock>
       </div>
-      <Badge variant="secondary" appearance="light" className="w-fit">
-        {MATERIAL_MODEL_SPEC_SOURCE_LABELS.custom}
-      </Badge>
     </div>
   );
-}
-
-function ModelDefaultValueEditor({
-  def,
-  value,
-  options,
-  disabled,
-  onChange,
-  onOpenOptionsDialog,
-}: {
-  def: SpecDefinition;
-  value: SpecValue | undefined;
-  options: SpecOption[];
-  disabled: boolean;
-  onChange: (value: SpecValue) => void;
-  onOpenOptionsDialog: () => void;
-}) {
-  if (disabled) {
-    return (
-      <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-2 text-sm text-muted-foreground">
-        Theo mặc định từ danh mục.
-      </p>
-    );
-  }
-
-  if (def.dataType === 'list') {
-    return (
-      <div className="grid gap-2">
-        <FixedValueEditor
-          def={{ ...def, options }}
-          value={value}
-          onChange={onChange}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          className="h-7 w-full min-w-0 justify-start px-2.5 text-left text-xs font-normal"
-          onClick={onOpenOptionsDialog}
-        >
-          <span className="min-w-0 truncate">
-            {summarizeOptions(options, 'Chưa có lựa chọn cho mẫu')}
-          </span>
-        </Button>
-      </div>
-    );
-  }
-
-  return <FixedValueEditor def={def} value={value} onChange={onChange} />;
-}
-
-function OptionsDialog({
-  def,
-  open,
-  value,
-  onOpenChange,
-  onChange,
-}: {
-  def: SpecDefinition;
-  open: boolean;
-  value: SpecOption[];
-  onOpenChange: (open: boolean) => void;
-  onChange: (options: SpecOption[]) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85dvh] max-w-3xl gap-0 overflow-hidden p-0">
-        <DialogHeader className="shrink-0 px-5 py-4">
-          <DialogTitle>{def.name}</DialogTitle>
-          <DialogDescription>
-            Khai báo danh sách lựa chọn dùng riêng cho mẫu vật tư.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogBody className="min-h-0 overflow-y-auto px-5 pb-5">
-          <OptionsEditor value={value} onChange={onChange} />
-        </DialogBody>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SpecMultiSelect({
-  value,
-  options,
-  placeholder,
-  onChange,
-}: {
-  value: string[];
-  options: SpecOption[];
-  placeholder: string;
-  onChange: (ids: string[]) => void;
-}) {
-  return (
-    <MultiSelect
-      value={value}
-      options={options.map((option) => ({
-        value: option.id,
-        label: option.label,
-        searchableText: `${option.label} ${option.value}`,
-      }))}
-      placeholder={placeholder}
-      searchPlaceholder="Tìm lựa chọn..."
-      emptyMessage="Không có lựa chọn"
-      maxChips={2}
-      className="h-7 text-xs"
-      onChange={onChange}
-    />
-  );
-}
-
-function summarizeOptions(options: SpecOption[], emptyLabel: string): string {
-  if (options.length === 0) return emptyLabel;
-  return options.map((option) => option.label || option.value).join(', ');
 }
 
 function FixedValueEditor({
   def,
   value,
+  options,
+  selectionMode,
   onChange,
 }: {
   def: SpecDefinition;
   value: SpecValue | undefined;
+  options: SpecOption[];
+  selectionMode: ListSelectionMode | undefined;
   onChange: (value: SpecValue) => void;
 }) {
   switch (def.dataType) {
@@ -593,8 +709,8 @@ function FixedValueEditor({
             type="number"
             variant="sm"
             value={Number.isFinite(amount) ? String(amount) : ''}
-            onChange={(e) =>
-              onChange({ amount: Number(e.target.value), unit: def.unit })
+            onChange={(event) =>
+              onChange({ amount: Number(event.target.value), unit: def.unit })
             }
           />
           {def.unit && (
@@ -621,16 +737,24 @@ function FixedValueEditor({
           type="date"
           variant="sm"
           value={typeof value === 'string' ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(event) => onChange(event.target.value)}
         />
       );
-    case 'list': {
-      if (def.allowMultiple) {
+    case 'list':
+      if (selectionMode === 'multi') {
         return (
-          <SpecMultiSelect
+          <MultiSelect
             value={Array.isArray(value) ? value : []}
-            options={def.options ?? []}
+            options={options.map((option) => ({
+              value: option.id,
+              label: option.label,
+              searchableText: `${option.label} ${option.value}`,
+            }))}
             placeholder="Chọn giá trị mặc định"
+            searchPlaceholder="Tìm lựa chọn..."
+            emptyMessage="Không có lựa chọn"
+            maxChips={3}
+            className="h-8"
             onChange={onChange}
           />
         );
@@ -644,117 +768,86 @@ function FixedValueEditor({
             <SelectValue placeholder="Chọn giá trị mặc định" />
           </SelectTrigger>
           <SelectContent>
-            {(def.options ?? []).map((opt) => (
-              <SelectItem key={opt.id} value={opt.id}>
-                {opt.label}
+            {options.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       );
-    }
     default:
       return (
         <Input
           variant="sm"
           value={typeof value === 'string' ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(event) => onChange(event.target.value)}
         />
       );
   }
 }
 
-function OptionsEditor({
+function CustomOptionsEditor({
   value,
   onChange,
 }: {
   value: SpecOption[];
   onChange: (options: SpecOption[]) => void;
 }) {
-  const addOption = () => {
-    const id = nextDynamicOptionId();
+  const handleAdd = () => {
+    const id = nextCustomOptionId();
     onChange([...value, { id, label: '', value: id }]);
   };
 
-  const updateOption = (
+  const handleChange = (
     index: number,
     patch: Partial<Pick<SpecOption, 'label' | 'value' | 'colorHex'>>,
   ) => {
     onChange(
       value.map((option, optionIndex) =>
-        optionIndex === index
-          ? {
-              ...option,
-              ...patch,
-              value:
-                patch.value ??
-                (patch.label !== undefined
-                  ? patch.label.trim().toLowerCase().replace(/\s+/g, '-')
-                  : option.value),
-            }
-          : option,
+        optionIndex === index ? { ...option, ...patch } : option,
       ),
     );
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-admin-control border border-border bg-background p-3">
+    <div className="grid gap-2">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-medium text-muted-foreground">
-          Lựa chọn của mẫu
-        </p>
-        <Button type="button" variant="outline" size="sm" onClick={addOption}>
+        <span className="text-xs font-medium text-muted-foreground">
+          Lựa chọn riêng
+        </span>
+        <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
           <Plus className="size-3.5" />
-          Thêm lựa chọn
+          Thêm
         </Button>
       </div>
       {value.length === 0 ? (
         <p className="rounded-admin-control border border-dashed border-border bg-admin-surface-alt px-3 py-3 text-center text-sm text-muted-foreground">
-          Chưa có lựa chọn cho mẫu.
+          Chưa có lựa chọn riêng.
         </p>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="grid gap-2">
           {value.map((option, index) => (
-            <div
-              key={option.id}
-              className="grid grid-cols-[1fr_1fr_auto_auto] gap-2"
-            >
+            <div key={option.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
               <Input
                 variant="sm"
                 placeholder="Mã"
                 value={option.value}
-                onChange={(event) =>
-                  updateOption(index, { value: event.target.value })
-                }
+                onChange={(event) => handleChange(index, { value: event.target.value })}
               />
               <Input
                 variant="sm"
-                placeholder="Nhãn (vd: Xanh Titan)"
+                placeholder="Nhãn"
                 value={option.label}
-                onChange={(event) =>
-                  updateOption(index, { label: event.target.value })
-                }
-              />
-              <Input
-                type="color"
-                variant="sm"
-                aria-label="Màu hiển thị"
-                className="h-7 w-10 shrink-0 p-1"
-                value={option.colorHex ?? '#ffffff'}
-                onChange={(event) =>
-                  updateOption(index, { colorHex: event.target.value })
-                }
+                onChange={(event) => handleChange(index, { label: event.target.value })}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 aria-label="Xóa lựa chọn"
-                className="shrink-0 text-muted-foreground"
                 onClick={() =>
-                  onChange(
-                    value.filter((_, optionIndex) => optionIndex !== index),
-                  )
+                  onChange(value.filter((_, optionIndex) => optionIndex !== index))
                 }
               >
                 <Trash2 className="size-4" />

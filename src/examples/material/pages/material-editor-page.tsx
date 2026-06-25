@@ -20,6 +20,7 @@ import {
 } from '../components/material-form.generated';
 import { MATERIAL_GROUPS_MOCK } from '../data/material-groups.mock';
 import { SPEC_DEFINITIONS_MOCK } from '../data/spec-definitions.mock';
+import { SPEC_VALUE_SETS_MOCK } from '../data/spec-value-sets.mock';
 import {
   buildMaterialSpecValues,
   legacyGroupFromModelGroupId,
@@ -81,6 +82,7 @@ export function MaterialEditorPage() {
       model,
       values.specValues,
       SPEC_DEFINITIONS_MOCK,
+      SPEC_VALUE_SETS_MOCK,
     );
     if (missingSpecs.length > 0) {
       toast.error(`Nhập thông số bắt buộc: ${missingSpecs.join(', ')}`);
@@ -98,6 +100,7 @@ export function MaterialEditorPage() {
         model,
         values.specValues,
         SPEC_DEFINITIONS_MOCK,
+        SPEC_VALUE_SETS_MOCK,
       ),
       tags: editing?.tags ?? [],
     };
@@ -175,6 +178,7 @@ export function MaterialEditorPage() {
             modelIdOptions={modelIdOptions}
             selectedModel={selectedModel}
             definitions={SPEC_DEFINITIONS_MOCK}
+            valueSets={SPEC_VALUE_SETS_MOCK}
           />
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/card';
 import { MATERIAL_GROUPS_MOCK } from '../../data/material-groups.mock';
 import { SPEC_DEFINITIONS_MOCK } from '../../data/spec-definitions.mock';
+import { SPEC_VALUE_SETS_MOCK } from '../../data/spec-value-sets.mock';
 import type { MaterialModel } from '../../model/material-model';
 import {
   nextMaterialModelId,
@@ -79,9 +80,13 @@ export function MaterialModelEditorPage() {
         source: spec.source,
         specDefinitionId: spec.specDefinitionId,
         customDefinition: spec.customDefinition,
+        labelOverride: spec.labelOverride?.trim() || undefined,
+        partKey: spec.partKey?.trim() || undefined,
+        selectionModeOverride: spec.selectionModeOverride,
+        valueSetIdOverride: spec.valueSetIdOverride,
+        optionSource: spec.optionSource,
         materialValueMode: spec.materialValueMode,
         defaultValue: spec.defaultValue,
-        allowedOptions: spec.allowedOptions,
         isRequired: spec.isRequired,
         sortOrder: index,
       })),
@@ -142,6 +147,7 @@ export function MaterialModelEditorPage() {
       <MaterialModelWizard
         form={form}
         definitions={SPEC_DEFINITIONS_MOCK}
+        valueSets={SPEC_VALUE_SETS_MOCK}
         groupOptions={groupOptions}
         onSubmit={handleSubmit}
         onCancel={() => navigate(ROUTES.EXAMPLE.MATERIAL_MODELS)}

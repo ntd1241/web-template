@@ -3,39 +3,19 @@ import type {
   MaterialGroupKey,
   MaterialSpecValue,
 } from '../model/material';
-import type { MaterialModel, MaterialModelSpec } from '../model/material-model';
+import type { MaterialModel } from '../model/material-model';
 import type { SpecDefinition } from '../model/spec-definition';
+import type { SpecValueSet } from '../model/spec-value-set';
+import {
+  resolveDefinitionForSpec,
+  resolveEffectiveOptions,
+  resolveEffectiveSelectionMode,
+} from './resolve-effective-specs';
 import {
   constrainSelectValue,
   isEmptySpecValue,
   isValidSpecValue,
 } from './spec-value';
-
-function definitionForSpec(
-  defById: Map<string, SpecDefinition>,
-  modelSpec: MaterialModelSpec,
-): SpecDefinition | undefined {
-  if (modelSpec.source === 'custom' && modelSpec.customDefinition) {
-    return {
-      id: modelSpec.id,
-      ...modelSpec.customDefinition,
-      allowModelOverride: true,
-    };
-  }
-  return modelSpec.specDefinitionId
-    ? defById.get(modelSpec.specDefinitionId)
-    : undefined;
-}
-
-function optionIdsForSpec(
-  definition: SpecDefinition,
-  modelSpec: MaterialModelSpec,
-): string[] | undefined {
-  if (definition.dataType !== 'list') return undefined;
-  return (modelSpec.allowedOptions ?? definition.options)?.map(
-    (option) => option.id,
-  );
-}
 
 export function legacyGroupFromModelGroupId(groupId: string): MaterialGroupKey {
   if (groupId === 'grp-kiem-ke') return 'kiem-ke';
@@ -62,31 +42,43 @@ export function buildMaterialSpecValues(
   model: MaterialModel,
   specValues: MaterialSpecValue[],
   definitions: SpecDefinition[],
+  valueSets: SpecValueSet[],
 ): MaterialSpecValue[] {
-  const defById = new Map(
-    definitions.map((definition) => [definition.id, definition]),
-  );
   const valueById = new Map(
     specValues.map((specValue) => [
       specValue.materialModelSpecId,
       specValue.value,
     ]),
   );
+  const context = { definitions, valueSets };
 
   return model.specs
     .filter((modelSpec) => modelSpec.materialValueMode === 'editable')
     .flatMap((modelSpec) => {
-      const definition = definitionForSpec(defById, modelSpec);
+      const definition = resolveDefinitionForSpec(modelSpec, context);
       if (!definition) return [];
 
+      const selectionMode = resolveEffectiveSelectionMode(
+        modelSpec,
+        definition,
+      );
+      const optionIds = resolveEffectiveOptions(
+        modelSpec,
+        definition,
+        valueSets,
+      )?.map((option) => option.id);
       const rawValue = valueById.get(modelSpec.id);
       const value = constrainSelectValue(
         definition,
         rawValue,
-        optionIdsForSpec(definition, modelSpec),
+        optionIds,
+        selectionMode,
       );
 
-      if (isEmptySpecValue(value) || !isValidSpecValue(definition, value)) {
+      if (
+        isEmptySpecValue(value) ||
+        !isValidSpecValue(definition, value, selectionMode)
+      ) {
         return [];
       }
 
@@ -98,30 +90,45 @@ export function validateMaterialSpecValues(
   model: MaterialModel,
   specValues: MaterialSpecValue[],
   definitions: SpecDefinition[],
+  valueSets: SpecValueSet[],
 ): string[] {
-  const defById = new Map(
-    definitions.map((definition) => [definition.id, definition]),
+  const normalizedValues = buildMaterialSpecValues(
+    model,
+    specValues,
+    definitions,
+    valueSets,
   );
   const valueById = new Map(
-    buildMaterialSpecValues(model, specValues, definitions).map((specValue) => [
+    normalizedValues.map((specValue) => [
       specValue.materialModelSpecId,
       specValue.value,
     ]),
   );
+  const context = { definitions, valueSets };
 
   return model.specs.flatMap((modelSpec) => {
     if (!modelSpec.isRequired || modelSpec.materialValueMode === 'locked') {
       return [];
     }
-    const definition = definitionForSpec(defById, modelSpec);
-    const value =
+    const definition = resolveDefinitionForSpec(modelSpec, context);
+    const selectionMode = resolveEffectiveSelectionMode(modelSpec, definition);
+    const optionIds = resolveEffectiveOptions(
+      modelSpec,
+      definition,
+      valueSets,
+    )?.map((option) => option.id);
+    const rawValue =
       valueById.get(modelSpec.id) ??
       modelSpec.defaultValue ??
       definition?.defaultValue;
+    const value = definition
+      ? constrainSelectValue(definition, rawValue, optionIds, selectionMode)
+      : undefined;
+
     if (
       !definition ||
       isEmptySpecValue(value) ||
-      !isValidSpecValue(definition, value)
+      !isValidSpecValue(definition, value, selectionMode)
     ) {
       return [definition?.name ?? modelSpec.id];
     }

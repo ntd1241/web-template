@@ -1,13 +1,5 @@
 import { z } from 'zod';
 
-/** Schema tạo/sửa thông số kỹ thuật. */
-const specOptionSchema = z.object({
-  id: z.string(),
-  label: z.string().min(1, 'Nhập nhãn'),
-  value: z.string().min(1, 'Nhập mã giá trị'),
-  colorHex: z.string().optional(),
-});
-
 const specValueSchema = z.union([
   z.string(),
   z.boolean(),
@@ -21,10 +13,10 @@ export const specDefinitionFormSchema = z.object({
   dataType: z.enum(['text', 'number', 'list', 'boolean', 'date']),
   unit: z.string(),
   description: z.string(),
-  allowMultiple: z.boolean(),
-  allowDynamicValues: z.boolean(),
-  allowModelOverride: z.boolean(),
-  options: z.array(specOptionSchema),
+  defaultValueSetId: z.string(),
+  defaultSelectionMode: z.enum(['single', 'multi']),
+  allowModelSelectionOverride: z.boolean(),
+  allowModelValueSetOverride: z.boolean(),
   defaultValue: specValueSchema.optional(),
 });
 

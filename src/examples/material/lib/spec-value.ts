@@ -4,6 +4,7 @@
  */
 import {
   type NumberSpecValue,
+  type ListSelectionMode,
   type SpecDataType,
   type SpecDefinition,
   type SpecOption,
@@ -57,6 +58,7 @@ export function emptySpecValue(
 export function isValidSpecValue(
   def: SpecDefinition,
   value: SpecValue | undefined,
+  selectionMode: ListSelectionMode | undefined = def.defaultSelectionMode,
 ): boolean {
   if (value === undefined) return false;
   switch (def.dataType) {
@@ -66,7 +68,7 @@ export function isValidSpecValue(
     case 'boolean':
       return typeof value === 'boolean';
     case 'list':
-      return def.allowMultiple
+      return selectionMode === 'multi'
         ? Array.isArray(value)
         : typeof value === 'string';
     case 'number':
@@ -77,12 +79,10 @@ export function isValidSpecValue(
 }
 
 function findOptionLabel(
-  def: SpecDefinition,
   optionId: string,
-  options?: SpecOption[],
+  options: SpecOption[] | undefined,
 ): string {
-  const optionList = options ?? def.options;
-  return optionList?.find((o) => o.id === optionId)?.label ?? optionId;
+  return options?.find((o) => o.id === optionId)?.label ?? optionId;
 }
 
 /** Chuỗi hiển thị tiếng Việt cho 1 value. */
@@ -90,6 +90,7 @@ export function formatSpecValue(
   def: SpecDefinition,
   value: SpecValue | undefined,
   options?: SpecOption[],
+  selectionMode: ListSelectionMode | undefined = def.defaultSelectionMode,
 ): string {
   if (isEmptySpecValue(value)) return '—';
   switch (def.dataType) {
@@ -101,11 +102,11 @@ export function formatSpecValue(
       return unit ? `${value.amount} ${unit}` : String(value.amount);
     }
     case 'list':
-      if (!def.allowMultiple) {
-        return findOptionLabel(def, value as string, options);
+      if (selectionMode !== 'multi') {
+        return findOptionLabel(value as string, options);
       }
       return (value as string[])
-        .map((id) => findOptionLabel(def, id, options))
+        .map((id) => findOptionLabel(id, options))
         .join(', ');
     default:
       // text | date
@@ -122,10 +123,11 @@ export function constrainSelectValue(
   def: SpecDefinition,
   value: SpecValue | undefined,
   allowedOptionIds: string[] | undefined,
+  selectionMode: ListSelectionMode | undefined = def.defaultSelectionMode,
 ): SpecValue | undefined {
   if (def.dataType !== 'list' || !allowedOptionIds) return value;
   const allowed = new Set(allowedOptionIds);
-  if (!def.allowMultiple) {
+  if (selectionMode !== 'multi') {
     return typeof value === 'string' && allowed.has(value) ? value : undefined;
   }
   if (Array.isArray(value)) {
