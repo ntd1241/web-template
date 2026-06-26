@@ -1,8 +1,8 @@
 import type { UseFormReturn } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select/multi-select';
 import {
   Select,
   SelectContent,
@@ -12,11 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { resolveEffectiveSpecs } from '../lib/resolve-effective-specs';
-import {
-  formatSpecValue,
-  isMultiSelectValue,
-  isNumberSpecValue,
-} from '../lib/spec-value';
+import { formatSpecValue, isNumberSpecValue } from '../lib/spec-value';
 import type { MaterialFormValues } from '../material.schema';
 import type { MaterialModel } from '../model/material-model';
 import type {
@@ -212,20 +208,40 @@ function SpecValueEditor({
       );
     case 'list': {
       if (selectionMode === 'multi') {
+        const selected = Array.isArray(value) ? value : [];
+        const handleToggle = (optionId: string, checked: boolean) => {
+          onChange(
+            checked
+              ? [...selected, optionId]
+              : selected.filter((id) => id !== optionId),
+          );
+        };
+        if (allowedOptions.length === 0) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              Không có lựa chọn
+            </span>
+          );
+        }
         return (
-          <MultiSelect
-            value={isMultiSelectValue(value) ? value : []}
-            options={allowedOptions.map((option) => ({
-              value: option.id,
-              label: option.label,
-              searchableText: `${option.label} ${option.value}`,
-            }))}
-            placeholder="Chọn giá trị"
-            searchPlaceholder="Tìm lựa chọn..."
-            emptyMessage="Không có lựa chọn"
-            maxChips={3}
-            onChange={onChange}
-          />
+          <div className="flex flex-wrap gap-x-5 gap-y-2.5">
+            {allowedOptions.map((option) => (
+              <label
+                key={option.id}
+                className="flex items-center gap-2 text-sm text-foreground"
+              >
+                <Checkbox
+                  size="sm"
+                  checked={selected.includes(option.id)}
+                  aria-label={option.label}
+                  onCheckedChange={(checked) =>
+                    handleToggle(option.id, checked === true)
+                  }
+                />
+                <OptionLabel option={option} />
+              </label>
+            ))}
+          </div>
         );
       }
       return (

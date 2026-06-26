@@ -4,7 +4,6 @@ import type { UseFormReturn } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import type { InspectionTable } from '../../model/inspection-table';
 import type { SpecDefinition } from '../../model/spec-definition';
 import type { SpecValueSet } from '../../model/spec-value-set';
 import type { MaterialModelFormValues } from '../material-model.schema';
@@ -17,7 +16,6 @@ interface MaterialModelWizardProps {
   valueSets: SpecValueSet[];
   groupOptions: { value: string; label: string }[];
   inspectionTableIdOptions: { value: string; label: string }[];
-  inspectionTables: InspectionTable[];
   onSubmit: (values: MaterialModelFormValues) => void;
   onCancel: () => void;
   title: string;
@@ -31,7 +29,6 @@ export function MaterialModelWizard({
   valueSets,
   groupOptions,
   inspectionTableIdOptions,
-  inspectionTables,
   onSubmit,
   onCancel,
   title,
@@ -105,7 +102,6 @@ export function MaterialModelWizard({
                 onSubmit={() => {}}
                 groupIdOptions={groupOptions}
                 inspectionTableIdOptions={inspectionTableIdOptions}
-                inspectionTables={inspectionTables}
               />
             </div>
           </div>

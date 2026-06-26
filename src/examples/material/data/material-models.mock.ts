@@ -69,7 +69,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     name: 'iPhone 17 Pro',
     description: 'Điện thoại flagship khung titan',
     origin: 'Trung Quốc',
-    groupId: 'grp-phone',
+    groupId: 'grp-cntt',
     imageUrls: [],
     specs: [
       {
@@ -153,7 +153,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-MBH',
     name: 'Mũ bảo hộ HDPE',
     origin: 'Việt Nam',
-    groupId: 'grp-an-toan',
+    groupId: 'grp-dung-cu-thao-lap',
     imageUrls: [],
     specs: [
       {
@@ -194,7 +194,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-KINH-2MAU',
     name: 'Kính bảo hộ hai phần',
     origin: 'Việt Nam',
-    groupId: 'grp-an-toan',
+    groupId: 'grp-dung-cu-thao-lap',
     imageUrls: [],
     specs: [
       {
@@ -232,7 +232,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-NAMCHAM-CAP',
     name: 'Bộ nam châm hai màu',
     origin: 'Việt Nam',
-    groupId: 'grp-cong-cu',
+    groupId: 'grp-dung-cu-thao-lap',
     imageUrls: [],
     specs: [
       {
@@ -256,7 +256,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-VO-NHUOM',
     name: 'Vỏ thiết bị sơn nhuộm',
     origin: 'Việt Nam',
-    groupId: 'grp-cong-cu',
+    groupId: 'grp-dung-cu-thao-lap',
     imageUrls: [],
     specs: [
       {
@@ -279,7 +279,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-CO2-5KG',
     name: 'Bình chữa cháy CO₂ 5kg',
     origin: 'Việt Nam',
-    groupId: 'grp-pccc',
+    groupId: 'grp-thiet-bi-ap-luc',
     imageUrls: [],
     specs: [
       {
@@ -306,7 +306,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-QR-S24',
     name: 'Máy kiểm kê QR S-24',
     origin: 'Trung Quốc',
-    groupId: 'grp-kiem-ke',
+    groupId: 'grp-ccdc-do',
     imageUrls: [],
     specs: [
       {
@@ -325,7 +325,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-IN-NHIET',
     name: 'Máy in nhiệt tem nhãn',
     origin: 'Trung Quốc',
-    groupId: 'grp-van-phong',
+    groupId: 'grp-cntt',
     imageUrls: [],
     specs: [],
   },
@@ -334,7 +334,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-KHOAN',
     name: 'Máy khoan cầm tay',
     origin: 'Đức',
-    groupId: 'grp-cong-cu',
+    groupId: 'grp-dung-cu-thao-lap',
     imageUrls: [],
     specs: [
       {
@@ -353,7 +353,7 @@ export const MATERIAL_MODELS_MOCK: MaterialModel[] = [
     code: 'MAU-CAN-50KG',
     name: 'Cân điện tử 50kg',
     origin: 'Việt Nam',
-    groupId: 'grp-kiem-ke',
+    groupId: 'grp-ccdc-do',
     imageUrls: [],
     specs: [
       {

@@ -35,7 +35,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import type { InspectionTable } from '../../model/inspection-table';
 import type { MaterialModel } from '../../model/material-model';
 import {
   materialModelFormSchema,
@@ -104,7 +103,6 @@ interface MaterialModelFormProps {
   id?: string;
   groupIdOptions: { value: string; label: string }[];
   inspectionTableIdOptions: { value: string; label: string }[];
-  inspectionTables: InspectionTable[];
 }
 
 export function MaterialModelForm({
@@ -113,13 +111,8 @@ export function MaterialModelForm({
   id = 'materialModel-form',
   groupIdOptions,
   inspectionTableIdOptions,
-  inspectionTables,
 }: MaterialModelFormProps) {
   const isSafetyManaged = form.watch('isSafetyManaged');
-  const selectedTableId = form.watch('inspectionTableId');
-  const previewTable = inspectionTables.find(
-    (table) => table.id === selectedTableId,
-  );
 
   return (
     <Form {...form}>
@@ -264,21 +257,6 @@ export function MaterialModelForm({
                   </FormItem>
                 )}
               />
-
-              {previewTable && (
-                <div className="rounded-admin-control border border-border bg-admin-surface-alt p-3">
-                  <p className="mb-2 text-sm font-medium">
-                    Checklist: {previewTable.name}
-                  </p>
-                  <ol className="flex flex-col gap-1 text-sm text-muted-foreground">
-                    {previewTable.criteria.map((criterion) => (
-                      <li key={criterion.id}>
-                        {criterion.order}. {criterion.content}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -295,7 +273,6 @@ interface MaterialModelFormDialogProps {
   title?: string;
   groupIdOptions: { value: string; label: string }[];
   inspectionTableIdOptions: { value: string; label: string }[];
-  inspectionTables: InspectionTable[];
 }
 
 export function MaterialModelFormDialog({
@@ -306,7 +283,6 @@ export function MaterialModelFormDialog({
   title,
   groupIdOptions,
   inspectionTableIdOptions,
-  inspectionTables,
 }: MaterialModelFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -325,7 +301,6 @@ export function MaterialModelFormDialog({
             id="materialModel-form"
             groupIdOptions={groupIdOptions}
             inspectionTableIdOptions={inspectionTableIdOptions}
-            inspectionTables={inspectionTables}
           />
         </div>
 

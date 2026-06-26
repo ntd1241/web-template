@@ -164,7 +164,6 @@ export function MaterialModelEditorPage() {
         valueSets={SPEC_VALUE_SETS_MOCK}
         groupOptions={groupOptions}
         inspectionTableIdOptions={inspectionTableIdOptions}
-        inspectionTables={inspectionTables}
         onSubmit={handleSubmit}
         onCancel={() => navigate(ROUTES.EXAMPLE.MATERIAL_MODELS)}
         title={editing ? 'Sửa mẫu vật tư' : 'Thêm mẫu vật tư'}
