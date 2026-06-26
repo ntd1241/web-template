@@ -1,6 +1,7 @@
 import { ROUTES } from '@/constants/routes';
 import {
   Boxes,
+  ClipboardCheck,
   FilePen,
   ListTree,
   PackageCheck,
@@ -78,6 +79,11 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
         icon: Boxes,
         path: ROUTES.EXAMPLE.MATERIAL_MODELS,
         wireframePath: '/example/material/models/wireframe',
+      },
+      {
+        label: 'Bảng kiểm định',
+        icon: ClipboardCheck,
+        path: ROUTES.EXAMPLE.MATERIAL_INSPECTIONS,
       },
     ],
   },
