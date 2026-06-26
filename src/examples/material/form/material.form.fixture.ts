@@ -34,9 +34,17 @@ const spec: FormSpec = {
     },
     {
       kind: 'select',
+      name: 'groupId',
+      label: 'Nhóm',
+      width: 'normal',
+      placeholder: 'Chọn nhóm',
+      optionsFrom: 'prop',
+    },
+    {
+      kind: 'select',
       name: 'modelId',
       label: 'Mẫu',
-      width: 'full',
+      width: 'normal',
       required: true,
       placeholder: 'Chọn mẫu vật tư',
       optionsFrom: 'prop',

@@ -33,16 +33,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import {
+  materialFormSchema,
+  type MaterialFormValues,
+} from '../material.schema';
 import type { Material } from '../model/material';
-import { materialFormSchema, type MaterialFormValues } from '../material.schema';
-import { DeviceSpecField } from './device-spec-field';
 import type { MaterialModel } from '../model/material-model';
 import type { SpecDefinition } from '../model/spec-definition';
 import type { SpecValueSet } from '../model/spec-value-set';
+import { DeviceSpecField } from './device-spec-field';
 
 export const materialDefaultValues: MaterialFormValues = {
   name: '',
   code: '',
+  groupId: '',
   modelId: '',
   specValues: [],
 };
@@ -65,6 +69,7 @@ export function mapMaterialToFormValues(
   return {
     name: entity.name,
     code: entity.code,
+    groupId: '',
     modelId: entity.modelId,
     specValues: entity.specValues,
   };
@@ -74,10 +79,12 @@ interface MaterialFormProps {
   form: UseFormReturn<MaterialFormValues>;
   onSubmit: (values: MaterialFormValues) => void;
   id?: string;
+  groupIdOptions: { value: string; label: string }[];
   modelIdOptions: { value: string; label: string }[];
   selectedModel: MaterialModel | undefined;
   definitions: SpecDefinition[];
   valueSets: SpecValueSet[];
+  onGroupChange?: (groupId: string) => void;
   onModelChange?: () => void;
 }
 
@@ -85,10 +92,12 @@ export function MaterialForm({
   form,
   onSubmit,
   id = 'material-form',
+  groupIdOptions,
   modelIdOptions,
   selectedModel,
   definitions,
   valueSets,
+  onGroupChange,
   onModelChange,
 }: MaterialFormProps) {
   return (
@@ -124,8 +133,43 @@ export function MaterialForm({
                   Mã thiết bị<span className="text-destructive"> *</span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="vd: DD-IP-000301" variant="md" {...field} />
+                  <Input
+                    placeholder="vd: DD-IP-000301"
+                    variant="md"
+                    {...field}
+                  />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="groupId"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Nhóm</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    onGroupChange?.(value);
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn nhóm" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {groupIdOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -135,7 +179,7 @@ export function MaterialForm({
             control={form.control}
             name="modelId"
             render={({ field }) => (
-              <FormItem className="md:col-span-12">
+              <FormItem className="md:col-span-6">
                 <FormLabel>
                   Mẫu<span className="text-destructive"> *</span>
                 </FormLabel>
@@ -188,10 +232,12 @@ interface MaterialFormDialogProps {
   form: UseFormReturn<MaterialFormValues>;
   onSubmit: (values: MaterialFormValues) => void;
   title?: string;
+  groupIdOptions: { value: string; label: string }[];
   modelIdOptions: { value: string; label: string }[];
   selectedModel: MaterialModel | undefined;
   definitions: SpecDefinition[];
   valueSets: SpecValueSet[];
+  onGroupChange?: (groupId: string) => void;
   onModelChange?: () => void;
 }
 
@@ -201,10 +247,12 @@ export function MaterialFormDialog({
   form,
   onSubmit,
   title,
+  groupIdOptions,
   modelIdOptions,
   selectedModel,
   definitions,
   valueSets,
+  onGroupChange,
   onModelChange,
 }: MaterialFormDialogProps) {
   return (
@@ -224,10 +272,12 @@ export function MaterialFormDialog({
             form={form}
             onSubmit={onSubmit}
             id="material-form"
+            groupIdOptions={groupIdOptions}
             modelIdOptions={modelIdOptions}
             selectedModel={selectedModel}
             definitions={definitions}
             valueSets={valueSets}
+            onGroupChange={onGroupChange}
             onModelChange={onModelChange}
           />
         </div>

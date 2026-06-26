@@ -21,6 +21,7 @@ import {
 import { MATERIAL_GROUPS_MOCK } from '../data/material-groups.mock';
 import { SPEC_DEFINITIONS_MOCK } from '../data/spec-definitions.mock';
 import { SPEC_VALUE_SETS_MOCK } from '../data/spec-value-sets.mock';
+import { filterModelsByGroup } from '../lib/filter-models-by-group';
 import {
   buildMaterialSpecValues,
   legacyGroupFromModelGroupId,
@@ -28,6 +29,7 @@ import {
 } from '../lib/material-device';
 import type { MaterialFormValues } from '../material.schema';
 import type { Material } from '../model/material';
+import type { MaterialGroup } from '../model/material-group';
 import {
   nextMaterialId,
   useMaterialCatalogStore,
@@ -43,6 +45,7 @@ export function MaterialEditorPage() {
     : null;
   const isEdit = Boolean(id);
   const form = useMaterialForm();
+  const watchedGroupId = form.watch('groupId');
   const watchedModelId = form.watch('modelId');
 
   const modelById = useMemo(
@@ -53,23 +56,52 @@ export function MaterialEditorPage() {
     () => new Map(MATERIAL_GROUPS_MOCK.map((group) => [group.id, group.name])),
     [],
   );
+  const groupIdOptions = useMemo(
+    () =>
+      MATERIAL_GROUPS_MOCK.map((group) => ({
+        value: group.id,
+        label: `${'— '.repeat(depthOf(MATERIAL_GROUPS_MOCK, group.id))}${group.name}`,
+      })),
+    [],
+  );
   const modelIdOptions = useMemo(
     () =>
-      materialModels.map((model) => ({
+      filterModelsByGroup(
+        materialModels,
+        MATERIAL_GROUPS_MOCK,
+        watchedGroupId || null,
+      ).map((model) => ({
         value: model.id,
         label: `${model.name} · ${groupNameById.get(model.groupId) ?? '—'}`,
       })),
-    [groupNameById, materialModels],
+    [groupNameById, materialModels, watchedGroupId],
   );
   const selectedModel = watchedModelId
     ? modelById.get(watchedModelId)
     : undefined;
 
   useEffect(() => {
-    form.reset(
-      editing ? mapMaterialToFormValues(editing) : materialDefaultValues,
-    );
+    if (editing) {
+      const model = modelById.get(editing.modelId);
+      form.reset({
+        ...mapMaterialToFormValues(editing),
+        groupId: model?.groupId ?? '',
+      });
+      return;
+    }
+    form.reset(materialDefaultValues);
   }, [editing, form]);
+
+  const handleGroupChange = () => {
+    form.setValue('modelId', '', {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue('specValues', [], {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
 
   const handleSubmit = (values: MaterialFormValues) => {
     const model = modelById.get(values.modelId);
@@ -175,13 +207,26 @@ export function MaterialEditorPage() {
             form={form}
             onSubmit={handleSubmit}
             id="material-page-form"
+            groupIdOptions={groupIdOptions}
             modelIdOptions={modelIdOptions}
             selectedModel={selectedModel}
             definitions={SPEC_DEFINITIONS_MOCK}
             valueSets={SPEC_VALUE_SETS_MOCK}
+            onGroupChange={handleGroupChange}
           />
         </div>
       </div>
     </div>
   );
+}
+
+function depthOf(groups: MaterialGroup[], id: string): number {
+  const byId = new Map(groups.map((group) => [group.id, group]));
+  let depth = 0;
+  let current = byId.get(id);
+  while (current?.parentId) {
+    depth += 1;
+    current = byId.get(current.parentId);
+  }
+  return depth;
 }
