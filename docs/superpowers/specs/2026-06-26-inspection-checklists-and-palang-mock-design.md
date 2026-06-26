@@ -51,19 +51,25 @@ grp-palang     "Palăng"             parentId: grp-kiem-dinh
 ```
 (Khác `grp-kiem-ke` "Thiết bị kiểm kê" sẵn có — kiểm định ≠ kiểm kê.)
 
+### Value set mới (`data/spec-value-sets.mock.ts`)
+- `vs-palang-muctai` "Mức tải palăng", kind `generic`, isActive true, 3 option (từ cột "Đặc trưng kỹ thuật"):
+  - `muctai-le-3` "Tải trọng ≤ 3,0 tấn"
+  - `muctai-3-75` "3,0 tấn < Tải trọng ≤ 7,5 tấn"
+  - `muctai-tren-75` "Tải trọng > 7,5 tấn"
+
 ### Spec-definitions mới (`data/spec-definitions.mock.ts`)
-Tất cả `allowModelSelectionOverride: false`, `allowModelValueSetOverride: false`:
-- `spec-palang-taitrong-tk`  "Tải trọng thiết kế"  number, unit `Tấn`
-- `spec-palang-chieucao`     "Chiều cao nâng"      number, unit `Mét`
-- `spec-palang-taitrong-max` "Tải trọng lớn nhất"  number, unit `Tấn`
-- `spec-palang-nsx`          "Nhà sản xuất"        text
-- `spec-palang-mahieu`       "Mã hiệu"             text
+- `spec-palang-muctai` "Mức tải" — **list** (giống màu sắc/dung lượng), `defaultValueSetId: 'vs-palang-muctai'`, `defaultSelectionMode: 'single'`, `allowModelSelectionOverride: false`, `allowModelValueSetOverride: false`.
+- Còn lại `allowModelSelectionOverride: false`, `allowModelValueSetOverride: false`:
+  - `spec-palang-taitrong-tk`  "Tải trọng thiết kế"  number, unit `Tấn`
+  - `spec-palang-chieucao`     "Chiều cao nâng"      number, unit `Mét`
+  - `spec-palang-taitrong-max` "Tải trọng lớn nhất"  number, unit `Tấn`
+  - `spec-palang-nsx`          "Nhà sản xuất"        text
+  - `spec-palang-mahieu`       "Mã hiệu"             text
 
 ### Mẫu (`data/material-models.mock.ts`) — chèn đầu
 `model-palang-xich-tay` "Palăng xích tay", groupId `grp-palang`,
-`isSafetyManaged: true`, `inspectionTableId: 'insp-palang'`. Specs:
-- tải trọng thiết kế (locked theo từng thiết bị → để `editable`, vì mỗi thiết bị khác tải), chiều cao nâng (editable), tải trọng lớn nhất (editable), nhà SX (editable), mã hiệu (editable).
-  → dùng `materialValueMode: 'editable'` để 5 thiết bị nhập giá trị riêng.
+`isSafetyManaged: true`, `inspectionTableId: 'insp-palang'`. Specs (tất cả `materialValueMode: 'editable'` để 5 thiết bị nhập riêng):
+- mức tải (list, single — chọn 1 trong 3 option), tải trọng thiết kế, chiều cao nâng, tải trọng lớn nhất, nhà SX, mã hiệu.
 
 ### Thiết bị thật (`data/materials.mock.ts`) — chèn đầu
 5 dòng đại diện đủ 3 mức tải (≤3T, 3–7.5T, >7.5T), modelId `model-palang-xich-tay`,
