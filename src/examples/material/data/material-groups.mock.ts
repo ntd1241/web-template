@@ -3,6 +3,21 @@ import type { MaterialGroup } from '../model/material-group';
 /** Cây nhóm vật tư mock — giữ các nhóm legacy làm nhánh để bảng cũ không vỡ. */
 export const MATERIAL_GROUPS_MOCK: MaterialGroup[] = [
   {
+    id: 'grp-kiem-dinh',
+    code: 'NHOM-KD',
+    name: 'Vật tư kiểm định',
+    parentId: null,
+    description: 'Thiết bị nâng hạ phải kiểm định an toàn.',
+    sortOrder: 0,
+  },
+  {
+    id: 'grp-palang',
+    code: 'NHOM-PALANG',
+    name: 'Palăng',
+    parentId: 'grp-kiem-dinh',
+    sortOrder: 1,
+  },
+  {
     id: 'grp-mobile',
     code: 'NHOM-DD',
     name: 'Thiết bị di động',

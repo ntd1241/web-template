@@ -3,6 +3,121 @@ import type { Material } from '../model/material';
 /** Mock-first material list for the management table pilot. */
 export const MATERIALS_MOCK: Material[] = [
   {
+    id: 'mt-palang-1',
+    name: 'Palăng xích tay NITTO 1T×3M',
+    code: 'PLX.1.3.001.SCĐ-VT4',
+    imageUrl: '',
+    group: 'kiem-ke',
+    modelId: 'model-palang-xich-tay',
+    specValues: [
+      { materialModelSpecId: 'pl-muctai', value: 'muctai-le-3' },
+      {
+        materialModelSpecId: 'pl-taitrong-tk',
+        value: { amount: 1, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-chieucao', value: { amount: 3, unit: 'Mét' } },
+      {
+        materialModelSpecId: 'pl-taitrong-max',
+        value: { amount: 1, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-nsx', value: 'NITTO' },
+      { materialModelSpecId: 'pl-mahieu', value: 'NITTO 1T X 3M' },
+    ],
+    tags: ['palăng', 'kiểm định'],
+  },
+  {
+    id: 'mt-palang-2',
+    name: 'Palăng xích tay NITTO 2T×3M',
+    code: 'PLX.2.3.001.SCĐ-VT4',
+    imageUrl: '',
+    group: 'kiem-ke',
+    modelId: 'model-palang-xich-tay',
+    specValues: [
+      { materialModelSpecId: 'pl-muctai', value: 'muctai-le-3' },
+      {
+        materialModelSpecId: 'pl-taitrong-tk',
+        value: { amount: 2, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-chieucao', value: { amount: 3, unit: 'Mét' } },
+      {
+        materialModelSpecId: 'pl-taitrong-max',
+        value: { amount: 2, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-nsx', value: 'NITTO' },
+      { materialModelSpecId: 'pl-mahieu', value: 'NITTO 2T X 3M' },
+    ],
+    tags: ['palăng', 'kiểm định'],
+  },
+  {
+    id: 'mt-palang-3',
+    name: 'Palăng xích tay NITTO 3T×5M',
+    code: 'PLX.3.5.001.SCĐ-VT4',
+    imageUrl: '',
+    group: 'kiem-ke',
+    modelId: 'model-palang-xich-tay',
+    specValues: [
+      { materialModelSpecId: 'pl-muctai', value: 'muctai-le-3' },
+      {
+        materialModelSpecId: 'pl-taitrong-tk',
+        value: { amount: 3, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-chieucao', value: { amount: 5, unit: 'Mét' } },
+      {
+        materialModelSpecId: 'pl-taitrong-max',
+        value: { amount: 3, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-nsx', value: 'NITTO' },
+      { materialModelSpecId: 'pl-mahieu', value: 'NITTO 3T X 5M' },
+    ],
+    tags: ['palăng', 'kiểm định'],
+  },
+  {
+    id: 'mt-palang-4',
+    name: 'Palăng xích tay NITTO 5T×4M',
+    code: 'PLX.5.4.001.SCĐ-VT4',
+    imageUrl: '',
+    group: 'kiem-ke',
+    modelId: 'model-palang-xich-tay',
+    specValues: [
+      { materialModelSpecId: 'pl-muctai', value: 'muctai-3-75' },
+      {
+        materialModelSpecId: 'pl-taitrong-tk',
+        value: { amount: 5, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-chieucao', value: { amount: 4, unit: 'Mét' } },
+      {
+        materialModelSpecId: 'pl-taitrong-max',
+        value: { amount: 5, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-nsx', value: 'NITTO' },
+      { materialModelSpecId: 'pl-mahieu', value: 'NITTO 5T X 4M' },
+    ],
+    tags: ['palăng', 'kiểm định'],
+  },
+  {
+    id: 'mt-palang-5',
+    name: 'Palăng xích tay NITTO 10T×5M',
+    code: 'PLX.10.5.001.SCĐ-VT4',
+    imageUrl: '',
+    group: 'kiem-ke',
+    modelId: 'model-palang-xich-tay',
+    specValues: [
+      { materialModelSpecId: 'pl-muctai', value: 'muctai-tren-75' },
+      {
+        materialModelSpecId: 'pl-taitrong-tk',
+        value: { amount: 10, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-chieucao', value: { amount: 5, unit: 'Mét' } },
+      {
+        materialModelSpecId: 'pl-taitrong-max',
+        value: { amount: 10, unit: 'Tấn' },
+      },
+      { materialModelSpecId: 'pl-nsx', value: 'NITTO' },
+      { materialModelSpecId: 'pl-mahieu', value: 'NITTO 10T X 5M' },
+    ],
+    tags: ['palăng', 'kiểm định'],
+  },
+  {
     id: '601af811-5def-4bd0-b8d3-8429dece65a7',
     name: 'Máy kiểm kê QR S-24',
     code: 'TB-QR-000601',
@@ -29,7 +144,9 @@ export const MATERIALS_MOCK: Material[] = [
     imageUrl: '',
     group: 'an-toan',
     modelId: 'model-helmet',
-    specValues: [{ materialModelSpecId: 'helmet-shell-color', value: 'color-yellow' }],
+    specValues: [
+      { materialModelSpecId: 'helmet-shell-color', value: 'color-yellow' },
+    ],
     tags: ['Bảo hộ', 'Cấp phát'],
   },
   {
@@ -109,7 +226,10 @@ export const MATERIALS_MOCK: Material[] = [
     group: 'cong-cu',
     modelId: 'model-magnet-pair',
     specValues: [
-      { materialModelSpecId: 'magnet-colors', value: ['color-blue', 'color-red'] },
+      {
+        materialModelSpecId: 'magnet-colors',
+        value: ['color-blue', 'color-red'],
+      },
     ],
     tags: ['Nam châm', 'Định vị'],
   },
@@ -120,7 +240,9 @@ export const MATERIALS_MOCK: Material[] = [
     imageUrl: '',
     group: 'cong-cu',
     modelId: 'model-powder-coated-shell',
-    specValues: [{ materialModelSpecId: 'dyed-shell-color', value: 'dye-cobalt' }],
+    specValues: [
+      { materialModelSpecId: 'dyed-shell-color', value: 'dye-cobalt' },
+    ],
     tags: ['Vỏ thay thế', 'Sơn nhuộm'],
   },
 ];
