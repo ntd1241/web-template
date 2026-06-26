@@ -31,7 +31,8 @@ import type { MaterialModelFormValues } from '../material-model.schema';
 export function MaterialModelEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { materialModels, upsertMaterialModel } = useMaterialCatalogStore();
+  const { inspectionTables, materialModels, upsertMaterialModel } =
+    useMaterialCatalogStore();
   const editing = id
     ? (materialModels.find((model) => model.id === id) ?? null)
     : null;
@@ -66,6 +67,15 @@ export function MaterialModelEditorPage() {
     }));
   }, []);
 
+  const inspectionTableIdOptions = useMemo(
+    () =>
+      inspectionTables.map((table) => ({
+        value: table.id,
+        label: table.name,
+      })),
+    [inspectionTables],
+  );
+
   const handleSubmit = (values: MaterialModelFormValues) => {
     const next: MaterialModel = {
       id: editing?.id ?? nextMaterialModelId(),
@@ -74,6 +84,10 @@ export function MaterialModelEditorPage() {
       description: values.description.trim() || undefined,
       origin: values.origin.trim() || undefined,
       groupId: values.groupId,
+      isSafetyManaged: values.isSafetyManaged,
+      inspectionTableId: values.isSafetyManaged
+        ? values.inspectionTableId || undefined
+        : undefined,
       imageUrls: values.imageUrls,
       specs: values.specs.map((spec, index) => ({
         id: spec.id,
@@ -149,6 +163,8 @@ export function MaterialModelEditorPage() {
         definitions={SPEC_DEFINITIONS_MOCK}
         valueSets={SPEC_VALUE_SETS_MOCK}
         groupOptions={groupOptions}
+        inspectionTableIdOptions={inspectionTableIdOptions}
+        inspectionTables={inspectionTables}
         onSubmit={handleSubmit}
         onCancel={() => navigate(ROUTES.EXAMPLE.MATERIAL_MODELS)}
         title={editing ? 'Sửa mẫu vật tư' : 'Thêm mẫu vật tư'}

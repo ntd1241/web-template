@@ -55,6 +55,20 @@ const spec: FormSpec = {
       width: 'full',
       rows: 2,
     },
+    {
+      kind: 'switch',
+      name: 'isSafetyManaged',
+      label: 'Quản lý an toàn',
+      width: 'full',
+    },
+    {
+      kind: 'select',
+      name: 'inspectionTableId',
+      label: 'Bảng kiểm định',
+      width: 'normal',
+      placeholder: 'Chọn bảng kiểm định',
+      optionsFrom: 'prop',
+    },
   ],
 };
 
