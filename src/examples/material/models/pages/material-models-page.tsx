@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -26,6 +27,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ConfirmDeleteDialog } from '../../components/confirm-delete-dialog';
 import { MATERIAL_GROUPS_MOCK } from '../../data/material-groups.mock';
+import { MaterialGroupTree } from '../../groups/components/material-group-tree';
+import { buildGroupTree } from '../../groups/group-tree';
+import { filterModelsByGroup } from '../../lib/filter-models-by-group';
 import type { MaterialModel } from '../../model/material-model';
 import { useMaterialCatalogStore } from '../../stores/material-catalog.store';
 import { useMaterialModelColumns } from '../components/material-model-columns.generated';
@@ -38,6 +42,7 @@ export function MaterialModelsPage() {
     removeMaterialModel,
   } = useMaterialCatalogStore();
   const [keyword, setKeyword] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<MaterialModel | null>(null);
 
   const groupNameById = useMemo(
@@ -53,15 +58,30 @@ export function MaterialModelsPage() {
     return map;
   }, [materials]);
 
+  const tree = useMemo(() => buildGroupTree(MATERIAL_GROUPS_MOCK), []);
+
+  const modelCountByGroup = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const model of models) {
+      map.set(model.groupId, (map.get(model.groupId) ?? 0) + 1);
+    }
+    return map;
+  }, [models]);
+
   const filtered = useMemo(() => {
+    const byGroup = filterModelsByGroup(
+      models,
+      MATERIAL_GROUPS_MOCK,
+      selectedGroupId,
+    );
     const kw = keyword.trim().toLowerCase();
-    if (!kw) return models;
-    return models.filter(
+    if (!kw) return byGroup;
+    return byGroup.filter(
       (model) =>
         model.name.toLowerCase().includes(kw) ||
         model.code.toLowerCase().includes(kw),
     );
-  }, [models, keyword]);
+  }, [models, keyword, selectedGroupId]);
 
   const handleEdit = (row: MaterialModel) => {
     navigate(
@@ -100,7 +120,37 @@ export function MaterialModelsPage() {
   });
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col gap-4 p-6 xl:flex-row">
+      <Card className="flex min-h-0 w-full flex-col overflow-hidden xl:w-80 xl:shrink-0">
+        <CardHeader className="p-4">
+          <CardHeading>
+            <CardTitle>Cây nhóm vật tư</CardTitle>
+            <CardDescription>Lọc mẫu theo nhóm và nhóm con</CardDescription>
+          </CardHeading>
+        </CardHeader>
+        <CardContent className="min-h-0 flex-1 px-2 pb-3">
+          <button
+            type="button"
+            className="mb-2 flex w-full items-center justify-between rounded-admin-control px-3 py-2 text-start text-sm text-foreground hover:bg-admin-surface-alt"
+            onClick={() => setSelectedGroupId(null)}
+          >
+            <span>Tất cả</span>
+            <span className="rounded-full bg-admin-surface-alt px-2 py-0.5 text-xs text-muted-foreground">
+              {models.length}
+            </span>
+          </button>
+          <ScrollArea className="h-[calc(100%-2.75rem)]">
+            <MaterialGroupTree
+              nodes={tree}
+              selectedId={selectedGroupId}
+              modelCountByGroup={modelCountByGroup}
+              onSelect={setSelectedGroupId}
+              onAddChild={() => {}}
+            />
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
       <DataGrid
         table={table}
         recordCount={filtered.length}

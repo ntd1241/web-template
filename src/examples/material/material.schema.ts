@@ -11,6 +11,7 @@ const materialSpecValueSchema = z.object({
 export const materialFormSchema = z.object({
   name: z.string().min(1, 'Bắt buộc'),
   code: z.string().min(1, 'Bắt buộc'),
+  groupId: z.string(),
   modelId: z.string().min(1, 'Chọn mẫu'),
   specValues: z.array(materialSpecValueSchema),
 });

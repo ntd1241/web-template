@@ -49,59 +49,74 @@ const modelSpecSchema = z.object({
   isRequired: z.boolean(),
 });
 
-export const materialModelFormSchema = z.object({
-  name: z.string().min(1, 'Bắt buộc'),
-  code: z.string().min(1, 'Bắt buộc'),
-  origin: z.string(),
-  groupId: z.string().min(1, 'Chọn nhóm'),
-  description: z.string(),
-  imageUrls: z.array(z.string()),
-  specs: z.array(modelSpecSchema),
-}).superRefine((values, ctx) => {
-  const counts = new Map<string, number>();
-  for (const spec of values.specs) {
-    if (spec.source === 'catalog' && spec.specDefinitionId) {
-      counts.set(spec.specDefinitionId, (counts.get(spec.specDefinitionId) ?? 0) + 1);
-    }
-  }
-
-  values.specs.forEach((spec, index) => {
-    if (
-      spec.source === 'catalog' &&
-      spec.specDefinitionId &&
-      (counts.get(spec.specDefinitionId) ?? 0) > 1 &&
-      !spec.partKey?.trim()
-    ) {
+export const materialModelFormSchema = z
+  .object({
+    name: z.string().min(1, 'Bắt buộc'),
+    code: z.string().min(1, 'Bắt buộc'),
+    origin: z.string(),
+    groupId: z.string().min(1, 'Chọn nhóm'),
+    description: z.string(),
+    isSafetyManaged: z.boolean(),
+    inspectionTableId: z.string().optional(),
+    imageUrls: z.array(z.string()),
+    specs: z.array(modelSpecSchema),
+  })
+  .superRefine((values, ctx) => {
+    if (values.isSafetyManaged && !values.inspectionTableId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['specs', index, 'partKey'],
-        message: 'Nhập khóa bộ phận cho thông số bị lặp',
+        path: ['inspectionTableId'],
+        message: 'Chọn bảng kiểm định',
       });
     }
-  });
 
-  const duplicatePartKeys = new Set<string>();
-  const seenPartKeys = new Map<string, number>();
-  values.specs.forEach((spec) => {
-    if (!spec.specDefinitionId || !spec.partKey?.trim()) return;
-    const key = `${spec.specDefinitionId}:${spec.partKey.trim().toLowerCase()}`;
-    const count = seenPartKeys.get(key) ?? 0;
-    seenPartKeys.set(key, count + 1);
-    if (count > 0) duplicatePartKeys.add(key);
-  });
-
-  values.specs.forEach((spec, index) => {
-    if (!spec.specDefinitionId || !spec.partKey?.trim()) return;
-    const key = `${spec.specDefinitionId}:${spec.partKey.trim().toLowerCase()}`;
-    if (duplicatePartKeys.has(key)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['specs', index, 'partKey'],
-        message: 'Khóa bộ phận phải duy nhất trong cùng thông số',
-      });
+    const counts = new Map<string, number>();
+    for (const spec of values.specs) {
+      if (spec.source === 'catalog' && spec.specDefinitionId) {
+        counts.set(
+          spec.specDefinitionId,
+          (counts.get(spec.specDefinitionId) ?? 0) + 1,
+        );
+      }
     }
+
+    values.specs.forEach((spec, index) => {
+      if (
+        spec.source === 'catalog' &&
+        spec.specDefinitionId &&
+        (counts.get(spec.specDefinitionId) ?? 0) > 1 &&
+        !spec.partKey?.trim()
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['specs', index, 'partKey'],
+          message: 'Nhập khóa bộ phận cho thông số bị lặp',
+        });
+      }
+    });
+
+    const duplicatePartKeys = new Set<string>();
+    const seenPartKeys = new Map<string, number>();
+    values.specs.forEach((spec) => {
+      if (!spec.specDefinitionId || !spec.partKey?.trim()) return;
+      const key = `${spec.specDefinitionId}:${spec.partKey.trim().toLowerCase()}`;
+      const count = seenPartKeys.get(key) ?? 0;
+      seenPartKeys.set(key, count + 1);
+      if (count > 0) duplicatePartKeys.add(key);
+    });
+
+    values.specs.forEach((spec, index) => {
+      if (!spec.specDefinitionId || !spec.partKey?.trim()) return;
+      const key = `${spec.specDefinitionId}:${spec.partKey.trim().toLowerCase()}`;
+      if (duplicatePartKeys.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['specs', index, 'partKey'],
+          message: 'Khóa bộ phận phải duy nhất trong cùng thông số',
+        });
+      }
+    });
   });
-});
 
 export type MaterialModelFormValues = z.infer<typeof materialModelFormSchema>;
 export type ModelSpecFormValue = z.infer<typeof modelSpecSchema>;

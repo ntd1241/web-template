@@ -70,4 +70,8 @@ export interface MaterialModel {
   groupId: string;
   imageUrls: string[];
   specs: MaterialModelSpec[];
+  /** "Quản lý an toàn" — bật thì gắn bảng kiểm định. */
+  isSafetyManaged?: boolean;
+  /** FK -> InspectionTable, chỉ khi isSafetyManaged. */
+  inspectionTableId?: string;
 }
