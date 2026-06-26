@@ -205,7 +205,7 @@ export function AppRoutingSetup() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainLayoutPage />} />
       </Route>
-      {/* Trang example chỉ có ở dev — production build tự loại (DCE). Xóa dòng này + thư mục src/examples để gỡ. */}
+      {/* Xóa dòng này + thư mục src/examples để gỡ toàn bộ trang example. */}
       {exampleRoutes}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
