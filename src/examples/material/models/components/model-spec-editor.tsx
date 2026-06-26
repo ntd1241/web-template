@@ -24,6 +24,17 @@ import {
 } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import {
+  resolveEffectiveLabel,
+  resolveEffectiveOptions,
+  resolveEffectiveSelectionMode,
+  resolveEffectiveValueSet,
+} from '../../lib/resolve-effective-specs';
+import { isNumberSpecValue } from '../../lib/spec-value';
+import {
+  MATERIAL_MODEL_SPEC_SOURCE_LABELS,
+  type CustomSpecDefinition,
+} from '../../model/material-model';
+import {
   LIST_SELECTION_MODE_LABELS,
   SPEC_DATA_TYPE_LABELS,
   type ListSelectionMode,
@@ -33,17 +44,6 @@ import {
   type SpecValue,
 } from '../../model/spec-definition';
 import type { SpecValueSet } from '../../model/spec-value-set';
-import {
-  MATERIAL_MODEL_SPEC_SOURCE_LABELS,
-  type CustomSpecDefinition,
-} from '../../model/material-model';
-import {
-  resolveEffectiveLabel,
-  resolveEffectiveOptions,
-  resolveEffectiveSelectionMode,
-  resolveEffectiveValueSet,
-} from '../../lib/resolve-effective-specs';
-import { isNumberSpecValue } from '../../lib/spec-value';
 import type {
   MaterialModelFormValues,
   ModelSpecFormValue,
@@ -196,7 +196,7 @@ export function ModelSpecEditor({
         </div>
       </div>
 
-      <div className="grid shrink-0 grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_15rem] border-b border-border px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
+      <div className="grid shrink-0 grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_15rem] px-3 text-xs font-medium uppercase text-secondary-foreground">
         <div>Thông số</div>
         <div>Nguồn giá trị</div>
         <div className="text-right">Cờ + cấu hình</div>
@@ -408,10 +408,14 @@ function ModelSpecSheet({
       valueSetId === '__default__' ? undefined : valueSetId,
       { shouldDirty: true, shouldValidate: true },
     );
-    form.setValue(`${base}.optionSource`, { mode: 'inherit' }, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    form.setValue(
+      `${base}.optionSource`,
+      { mode: 'inherit' },
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
     form.setValue(`${base}.defaultValue`, selectionMode === 'multi' ? [] : '', {
       shouldDirty: true,
       shouldValidate: true,
@@ -540,7 +544,10 @@ function ModelSpecSheet({
                         className="inline-flex h-7 items-center gap-1.5 rounded-admin-control border border-border px-2 text-xs data-[checked=true]:border-primary data-[checked=true]:bg-primary/10 data-[checked=true]:text-primary"
                         data-checked={isChecked}
                         onClick={() =>
-                          handleSubsetToggle(option.id, !subsetIds.includes(option.id))
+                          handleSubsetToggle(
+                            option.id,
+                            !subsetIds.includes(option.id),
+                          )
                         }
                       >
                         {option.colorHex && (
@@ -561,10 +568,14 @@ function ModelSpecSheet({
               <CustomOptionsEditor
                 value={spec.customDefinition?.options ?? []}
                 onChange={(nextOptions) =>
-                  form.setValue(`${base}.customDefinition.options`, nextOptions, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
+                  form.setValue(
+                    `${base}.customDefinition.options`,
+                    nextOptions,
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    },
+                  )
                 }
               />
             )}
@@ -636,9 +647,13 @@ function CustomDefinitionEditor({
             variant="sm"
             value={def.name}
             onChange={(event) =>
-              form.setValue(`${base}.customDefinition.name`, event.target.value, {
-                shouldDirty: true,
-              })
+              form.setValue(
+                `${base}.customDefinition.name`,
+                event.target.value,
+                {
+                  shouldDirty: true,
+                },
+              )
             }
           />
         </FieldBlock>
@@ -647,9 +662,13 @@ function CustomDefinitionEditor({
             variant="sm"
             value={def.code}
             onChange={(event) =>
-              form.setValue(`${base}.customDefinition.code`, event.target.value, {
-                shouldDirty: true,
-              })
+              form.setValue(
+                `${base}.customDefinition.code`,
+                event.target.value,
+                {
+                  shouldDirty: true,
+                },
+              )
             }
           />
         </FieldBlock>
@@ -676,9 +695,13 @@ function CustomDefinitionEditor({
             disabled={def.dataType !== 'number'}
             value={def.unit ?? ''}
             onChange={(event) =>
-              form.setValue(`${base}.customDefinition.unit`, event.target.value, {
-                shouldDirty: true,
-              })
+              form.setValue(
+                `${base}.customDefinition.unit`,
+                event.target.value,
+                {
+                  shouldDirty: true,
+                },
+              )
             }
           />
         </FieldBlock>
@@ -828,18 +851,25 @@ function CustomOptionsEditor({
       ) : (
         <div className="grid gap-2">
           {value.map((option, index) => (
-            <div key={option.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <div
+              key={option.id}
+              className="grid grid-cols-[1fr_1fr_auto] gap-2"
+            >
               <Input
                 variant="sm"
                 placeholder="Mã"
                 value={option.value}
-                onChange={(event) => handleChange(index, { value: event.target.value })}
+                onChange={(event) =>
+                  handleChange(index, { value: event.target.value })
+                }
               />
               <Input
                 variant="sm"
                 placeholder="Nhãn"
                 value={option.label}
-                onChange={(event) => handleChange(index, { label: event.target.value })}
+                onChange={(event) =>
+                  handleChange(index, { label: event.target.value })
+                }
               />
               <Button
                 type="button"
@@ -847,7 +877,9 @@ function CustomOptionsEditor({
                 size="icon"
                 aria-label="Xóa lựa chọn"
                 onClick={() =>
-                  onChange(value.filter((_, optionIndex) => optionIndex !== index))
+                  onChange(
+                    value.filter((_, optionIndex) => optionIndex !== index),
+                  )
                 }
               >
                 <Trash2 className="size-4" />

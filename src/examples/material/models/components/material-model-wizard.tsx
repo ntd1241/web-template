@@ -43,8 +43,8 @@ export function MaterialModelWizard({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
-      <div className="shrink-0 px-5 py-4">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden gap-y-5">
+      <div className="shrink-0">
         <ol className="flex flex-wrap items-center gap-3">
           {STEPS.map((label, index) => {
             const isActive = index === step;
@@ -80,9 +80,7 @@ export function MaterialModelWizard({
         </ol>
       </div>
 
-      <Separator />
-
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden  rounded-xl bg-card border border-border">
         <div className="flex h-full min-h-0 flex-col">
           <div
             className={cn(
@@ -108,8 +106,7 @@ export function MaterialModelWizard({
         </div>
       </div>
 
-      <Separator />
-      <div className="flex shrink-0 items-center justify-between px-6 py-4">
+      <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
             type="button"
