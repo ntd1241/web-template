@@ -43,9 +43,34 @@ if (import.meta.env.DEV) {
       default: m.MaterialsManagementPage,
     })),
   );
+  const MaterialEditorPage = lazy(() =>
+    import('./material/pages/material-editor-page').then((m) => ({
+      default: m.MaterialEditorPage,
+    })),
+  );
   const SuppliersPage = lazy(() =>
     import('./suppliers/pages/suppliers-page').then((m) => ({
       default: m.SuppliersPage,
+    })),
+  );
+  const SpecDefinitionsPage = lazy(() =>
+    import('./material/specs/pages/spec-definitions-page').then((m) => ({
+      default: m.SpecDefinitionsPage,
+    })),
+  );
+  const MaterialGroupsPage = lazy(() =>
+    import('./material/groups/pages/material-groups-page').then((m) => ({
+      default: m.MaterialGroupsPage,
+    })),
+  );
+  const MaterialModelsPage = lazy(() =>
+    import('./material/models/pages/material-models-page').then((m) => ({
+      default: m.MaterialModelsPage,
+    })),
+  );
+  const MaterialModelEditorPage = lazy(() =>
+    import('./material/models/pages/material-model-editor-page').then((m) => ({
+      default: m.MaterialModelEditorPage,
     })),
   );
   const MaterialPublicDetailPage = lazy(() =>
@@ -61,6 +86,11 @@ if (import.meta.env.DEV) {
   const RolePermissionsWireframe = lazy(() =>
     import('./role-permissions/wireframe').then((m) => ({
       default: m.RolePermissionsWireframe,
+    })),
+  );
+  const MaterialModelSpecWireframe = lazy(() =>
+    import('./material/models/wireframe').then((m) => ({
+      default: m.MaterialModelSpecWireframe,
     })),
   );
 
@@ -100,6 +130,62 @@ if (import.meta.env.DEV) {
           }
         />
         <Route
+          path={ROUTES.EXAMPLE.MATERIAL_CREATE}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_EDIT}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_SPECS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <SpecDefinitionsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_GROUPS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialGroupsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_MODELS}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_MODEL_CREATE}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path={ROUTES.EXAMPLE.MATERIAL_MODEL_EDIT}
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelEditorPage />
+            </Suspense>
+          }
+        />
+        <Route
           path={ROUTES.EXAMPLE.SUPPLIERS}
           element={
             <Suspense fallback={<ScreenLoader />}>
@@ -120,6 +206,14 @@ if (import.meta.env.DEV) {
           element={
             <Suspense fallback={<ScreenLoader />}>
               <RolePermissionsWireframe />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/example/material/models/wireframe"
+          element={
+            <Suspense fallback={<ScreenLoader />}>
+              <MaterialModelSpecWireframe />
             </Suspense>
           }
         />

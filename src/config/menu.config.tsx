@@ -1,9 +1,12 @@
 import { ROUTES } from '@/constants/routes';
 import {
+  Boxes,
   FilePen,
+  ListTree,
   PackageCheck,
   ShieldCheck,
   ShoppingCart,
+  SlidersHorizontal,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -59,6 +62,22 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Vật tư',
         icon: PackageCheck,
         path: ROUTES.EXAMPLE.MATERIALS,
+      },
+      {
+        label: 'Nhóm vật tư',
+        icon: ListTree,
+        path: ROUTES.EXAMPLE.MATERIAL_GROUPS,
+      },
+      {
+        label: 'Danh mục thông số',
+        icon: SlidersHorizontal,
+        path: ROUTES.EXAMPLE.MATERIAL_SPECS,
+      },
+      {
+        label: 'Mẫu vật tư',
+        icon: Boxes,
+        path: ROUTES.EXAMPLE.MATERIAL_MODELS,
+        wireframePath: '/example/material/models/wireframe',
       },
     ],
   },

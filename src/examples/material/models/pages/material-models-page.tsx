@@ -5,7 +5,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ExternalLink, Plus, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -24,58 +24,48 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ConfirmDeleteDialog } from '../components/confirm-delete-dialog';
-import { useMaterialColumns } from '../components/material-columns.generated';
-import { MATERIAL_GROUPS_MOCK } from '../data/material-groups.mock';
-import type { Material } from '../model/material';
-import { useMaterialCatalogStore } from '../stores/material-catalog.store';
+import { ConfirmDeleteDialog } from '../../components/confirm-delete-dialog';
+import { MATERIAL_GROUPS_MOCK } from '../../data/material-groups.mock';
+import type { MaterialModel } from '../../model/material-model';
+import { useMaterialCatalogStore } from '../../stores/material-catalog.store';
+import { useMaterialModelColumns } from '../components/material-model-columns.generated';
 
-const sampleMaterialId = '601af811-5def-4bd0-b8d3-8429dece65a7';
-
-export function MaterialsManagementPage() {
+export function MaterialModelsPage() {
   const navigate = useNavigate();
-  const { materials, materialModels, removeMaterial } =
-    useMaterialCatalogStore();
+  const {
+    materials,
+    materialModels: models,
+    removeMaterialModel,
+  } = useMaterialCatalogStore();
   const [keyword, setKeyword] = useState('');
-  const [deleting, setDeleting] = useState<Material | null>(null);
+  const [deleting, setDeleting] = useState<MaterialModel | null>(null);
 
-  const modelNameById = useMemo(
-    () => new Map(materialModels.map((model) => [model.id, model.name])),
-    [materialModels],
-  );
   const groupNameById = useMemo(
-    () => new Map(MATERIAL_GROUPS_MOCK.map((group) => [group.id, group.name])),
+    () => new Map(MATERIAL_GROUPS_MOCK.map((g) => [g.id, g.name])),
     [],
   );
-  const groupNameByModelId = useMemo(
-    () =>
-      new Map(
-        materialModels.map((model) => [
-          model.id,
-          groupNameById.get(model.groupId) ?? '—',
-        ]),
-      ),
-    [groupNameById, materialModels],
-  );
+
+  const deviceCountByModel = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const material of materials) {
+      map.set(material.modelId, (map.get(material.modelId) ?? 0) + 1);
+    }
+    return map;
+  }, [materials]);
+
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
-    if (!kw) return materials;
+    if (!kw) return models;
+    return models.filter(
+      (model) =>
+        model.name.toLowerCase().includes(kw) ||
+        model.code.toLowerCase().includes(kw),
+    );
+  }, [models, keyword]);
 
-    return materials.filter((material) => {
-      const modelName = modelNameById.get(material.modelId) ?? '';
-      const groupName = groupNameByModelId.get(material.modelId) ?? '';
-      return (
-        material.name.toLowerCase().includes(kw) ||
-        material.code.toLowerCase().includes(kw) ||
-        modelName.toLowerCase().includes(kw) ||
-        groupName.toLowerCase().includes(kw)
-      );
-    });
-  }, [groupNameByModelId, keyword, materials, modelNameById]);
-
-  const handleEdit = (row: Material) => {
+  const handleEdit = (row: MaterialModel) => {
     navigate(
-      buildPath(ROUTES.EXAMPLE.MATERIAL_EDIT, {
+      buildPath(ROUTES.EXAMPLE.MATERIAL_MODEL_EDIT, {
         id: row.id,
       }),
     );
@@ -83,17 +73,24 @@ export function MaterialsManagementPage() {
 
   const handleConfirmDelete = () => {
     if (!deleting) return;
-    removeMaterial(deleting.id);
-    toast.success(`Đã xóa "${deleting.name}"`);
+    const deviceCount = deviceCountByModel.get(deleting.id) ?? 0;
+    if (deviceCount > 0) {
+      toast.error('Không thể xóa: mẫu còn thiết bị thật.');
+      setDeleting(null);
+      return;
+    }
+    removeMaterialModel(deleting.id);
+    toast.success(`Đã xóa mẫu "${deleting.name}"`);
     setDeleting(null);
   };
 
-  const columns = useMaterialColumns({
-    modelNameById,
-    groupNameByModelId,
+  const columns = useMaterialModelColumns({
+    groupNameById,
+    deviceCountByModel,
     onEdit: handleEdit,
     onDelete: setDeleting,
   });
+
   const table = useReactTable({
     data: filtered,
     columns,
@@ -102,23 +99,19 @@ export function MaterialsManagementPage() {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  const publicUrl = buildPath(ROUTES.EXAMPLE.MATERIAL_PUBLIC_DETAIL, {
-    id: sampleMaterialId,
-  });
-
   return (
     <div className="flex h-full min-h-0 flex-col p-6">
       <DataGrid
         table={table}
         recordCount={filtered.length}
-        emptyMessage="Chưa có vật tư nào"
+        emptyMessage="Chưa có mẫu vật tư nào"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
           <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
-              <CardTitle>Quản lý vật tư</CardTitle>
+              <CardTitle>Quản lý mẫu vật tư</CardTitle>
               <CardDescription>
-                Danh sách vật tư / thiết bị gắn mã QR
+                Mẫu gom nhiều thiết bị cùng loại để thống kê
               </CardDescription>
             </CardHeading>
             <CardToolbar>
@@ -127,21 +120,15 @@ export function MaterialsManagementPage() {
                 <Input
                   value={keyword}
                   onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="Tìm tên / mã / mẫu"
+                  placeholder="Tìm theo tên / mã"
                   variant="md"
-                  className="w-60 pl-8"
+                  className="w-56 pl-8"
                 />
               </div>
-              <Button asChild variant="outline">
-                <Link to={publicUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="size-4" />
-                  Mở trang public
-                </Link>
-              </Button>
               <Button asChild variant="primary">
-                <Link to={ROUTES.EXAMPLE.MATERIAL_CREATE}>
+                <Link to={ROUTES.EXAMPLE.MATERIAL_MODEL_CREATE}>
                   <Plus className="size-4" />
-                  Thêm thiết bị
+                  Thêm mẫu
                 </Link>
               </Button>
             </CardToolbar>
@@ -163,8 +150,8 @@ export function MaterialsManagementPage() {
       <ConfirmDeleteDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title="Xóa thiết bị"
-        description={`Bạn chắc chắn muốn xóa "${deleting?.name ?? ''}"? Hành động không thể hoàn tác.`}
+        title="Xóa mẫu vật tư"
+        description={`Bạn chắc chắn muốn xóa mẫu "${deleting?.name ?? ''}"?`}
         onConfirm={handleConfirmDelete}
       />
     </div>
