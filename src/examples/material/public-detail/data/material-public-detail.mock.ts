@@ -19,6 +19,7 @@ import {
   Wrench,
   type LucideIcon,
 } from 'lucide-react';
+import { toAbsoluteUrl } from '@/lib/helpers';
 
 export type MaterialPublicTabValue =
   | 'general'
@@ -97,12 +98,16 @@ export const materialGalleryItems: MaterialGalleryImage[] = [
   {
     id: 'overview',
     label: 'Bình chữa cháy bột và CO₂',
-    url: 'https://pcccgiaphu.com/upload/images/phan-biet-binh-chua-chay-1.jpg',
+    url: toAbsoluteUrl(
+      '/media/images/ChatGPT Image Jun 30, 2026, 04_02_48 PM.png',
+    ),
   },
   {
     id: 'co2-extinguisher',
     label: 'Bình chữa cháy CO₂ MT5 5kg',
-    url: 'https://mesenco.com/wp-content/uploads/2024/03/BINH-CHUA-CHAY-KHI-CO2-MT5-5KG-2.jpg',
+    url: toAbsoluteUrl(
+      '/media/images/ChatGPT Image Jun 30, 2026, 04_11_54 PM.png',
+    ),
   },
 ];
 

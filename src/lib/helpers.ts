@@ -67,11 +67,12 @@ export function getInitials(
 
 export function toAbsoluteUrl(pathname: string): string {
   const baseUrl = import.meta.env.BASE_URL;
+  const normalizedPathname = pathname.replace(/^\/+/, '');
 
   if (baseUrl && baseUrl !== '/') {
-    return import.meta.env.BASE_URL + pathname;
+    return `${baseUrl.replace(/\/+$/, '')}/${normalizedPathname}`;
   } else {
-    return pathname;
+    return `/${normalizedPathname}`;
   }
 }
 
