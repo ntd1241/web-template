@@ -3,16 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { MaterialSummarySidebar } from './material-summary-sidebar';
 
 describe('MaterialSummarySidebar', () => {
-  it('hiển thị icon bên trái và ảnh QR bên phải mã vật tư', () => {
+  it('hiển thị icon bên trái và QR thật bên phải mã vật tư', () => {
     render(<MaterialSummarySidebar />);
 
-    const qrImage = screen.getByRole('img', { name: 'Mã QR vật tư' });
-    const materialCode = screen.getByText('PCCC-BC-00128');
+    const qrImage = screen.getAllByRole('img', {
+      name: 'QR Code PCCC-BC-00128',
+    })[0];
+    const materialCode = screen.getAllByText('PCCC-BC-00128')[0];
 
-    expect(qrImage).toHaveAttribute(
-      'src',
-      'https://images.seeklogo.com/logo-png/21/2/qr-code-logo-png_seeklogo-217342.png',
-    );
+    expect(qrImage.tagName).toBe('svg');
+    expect(qrImage).toHaveAttribute('data-qr-value', window.location.href);
     expect(
       materialCode.compareDocumentPosition(qrImage) &
         Node.DOCUMENT_POSITION_FOLLOWING,

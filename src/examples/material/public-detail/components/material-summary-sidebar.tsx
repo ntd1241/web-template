@@ -4,6 +4,7 @@ import {
   materialPublicInfo,
   publicDetailIcons,
 } from '../data/material-public-detail.mock';
+import { MaterialQrCode, MaterialQrLabelCard } from './material-qr-label-card';
 import { PublicInfoCard } from './public-info-card';
 
 export function MaterialSummarySidebar() {
@@ -38,18 +39,18 @@ export function MaterialSummarySidebar() {
                     {fact.value}
                   </span>
                 </span>
-                {'imageSrc' in fact && (
-                  <img
-                    src={fact.imageSrc}
-                    alt="Mã QR vật tư"
-                    className="size-16 shrink-0 rounded-lg border border-admin-primary-foam bg-white object-contain p-1"
-                  />
+                {'showQr' in fact && (
+                  <span className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-admin-primary-foam bg-white p-1">
+                    <MaterialQrCode className="size-14 shrink-0" size={56} />
+                  </span>
                 )}
               </div>
             );
           })}
         </div>
       </PublicInfoCard>
+
+      <MaterialQrLabelCard />
 
       <PublicInfoCard
         title="Tình trạng sử dụng"

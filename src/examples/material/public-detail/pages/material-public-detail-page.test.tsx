@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MaterialPublicDetailPage } from './material-public-detail-page';
 
@@ -14,6 +14,43 @@ describe('MaterialPublicDetailPage', () => {
     expect(screen.getByRole('region', { name: 'Photo gallery' })).toBeVisible();
     expect(
       screen.getByRole('heading', { name: 'Thông tin vật tư' }),
+    ).toBeVisible();
+    const materialInfoCard = screen
+      .getByRole('heading', { name: 'Thông tin vật tư' })
+      .closest('[data-slot="card"]');
+
+    expect(materialInfoCard).not.toBeNull();
+    expect(
+      within(materialInfoCard as HTMLElement)
+        .getByRole('img', { name: 'QR Code PCCC-BC-00128' })
+        .getAttribute('data-qr-value'),
+    ).toBe(window.location.href);
+    expect(screen.getByRole('heading', { name: 'Nhãn QR Code' })).toBeVisible();
+    const qrLabelCard = screen
+      .getByRole('heading', { name: 'Nhãn QR Code' })
+      .closest('[data-slot="card"]');
+
+    expect(qrLabelCard).not.toBeNull();
+    expect(
+      within(qrLabelCard as HTMLElement).getByRole('img', {
+        name: 'QR Code PCCC-BC-00128',
+      }),
+    ).toBeVisible();
+    expect(
+      within(qrLabelCard as HTMLElement)
+        .getByRole('img', { name: 'QR Code PCCC-BC-00128' })
+        .getAttribute('data-qr-value'),
+    ).toBe(window.location.href);
+    expect(
+      within(qrLabelCard as HTMLElement).getByText(
+        'Bình chữa cháy bột ABC 4kg',
+      ),
+    ).toBeVisible();
+    expect(
+      within(qrLabelCard as HTMLElement).getByText('PCCC-BC-00128'),
+    ).toBeVisible();
+    expect(
+      within(qrLabelCard as HTMLElement).getByText('Ngày cấp: 15/06/2026'),
     ).toBeVisible();
 
     await user.click(screen.getByRole('tab', { name: 'Lịch sử bàn giao' }));

@@ -76,8 +76,15 @@ export const materialPublicInfo = {
   group: 'Thiết bị PCCC',
   department: 'Ban Quản lý tòa nhà',
   owner: 'Trần Quốc Bảo',
+  issuedDate: '15/06/2026',
   nextMaintenanceDate: '15/12/2026',
   lastInventoryDate: '15/06/2026',
+} as const;
+
+export const materialQrLabel = {
+  name: materialPublicInfo.name,
+  code: materialPublicInfo.code,
+  issuedDate: materialPublicInfo.issuedDate,
 } as const;
 
 export interface MaterialGalleryImage {
@@ -104,8 +111,7 @@ export const materialFacts = [
     label: 'Mã vật tư',
     value: materialPublicInfo.code,
     icon: QrCode,
-    imageSrc:
-      'https://images.seeklogo.com/logo-png/21/2/qr-code-logo-png_seeklogo-217342.png',
+    showQr: true,
     tone: 'primary',
   },
   {
@@ -137,5 +143,6 @@ export const publicDetailIcons = {
   ImageIcon,
   Info,
   PackageCheck,
+  QrCode,
   ShieldCheck,
 };
