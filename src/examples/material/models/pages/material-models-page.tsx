@@ -237,14 +237,6 @@ export function MaterialModelsPage() {
             <CardTitle>Cây nhóm vật tư</CardTitle>
             <CardDescription>Lọc mẫu theo nhóm và nhóm con</CardDescription>
           </CardHeading>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setGroupDialog({ kind: 'create', parentId: null })}
-          >
-            <Plus className="size-4" />
-            Nhóm gốc
-          </Button>
         </CardHeader>
         <MaterialGroupTreePanel
           className="min-h-0 flex-1"
