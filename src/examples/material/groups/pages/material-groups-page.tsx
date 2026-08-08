@@ -24,6 +24,7 @@ import { MaterialGroupTree } from '../components/material-group-tree';
 import {
   buildGroupTree,
   countDirectChildren,
+  countModelsByGroup,
   getSelfAndDescendantIds,
 } from '../group-tree';
 import {
@@ -48,12 +49,8 @@ export function MaterialGroupsPage() {
   const tree = useMemo(() => buildGroupTree(groups), [groups]);
 
   const modelCountByGroup = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const model of MATERIAL_MODELS_MOCK) {
-      map.set(model.groupId, (map.get(model.groupId) ?? 0) + 1);
-    }
-    return map;
-  }, []);
+    return countModelsByGroup(MATERIAL_MODELS_MOCK, groups);
+  }, [groups]);
 
   const editingGroup =
     mode.kind === 'edit'
@@ -126,10 +123,10 @@ export function MaterialGroupsPage() {
     toast.success(`Đã thêm nhóm "${values.name}"`);
   };
 
-  const handleRequestDelete = () => {
-    if (!editingGroup) return;
-    const childCount = countDirectChildren(groups, editingGroup.id);
-    const modelCount = modelCountByGroup.get(editingGroup.id) ?? 0;
+  const handleRequestDelete = (group = editingGroup) => {
+    if (!group) return;
+    const childCount = countDirectChildren(groups, group.id);
+    const modelCount = modelCountByGroup.get(group.id) ?? 0;
     if (childCount > 0) {
       toast.error('Không thể xóa: nhóm còn nhóm con.');
       return;
@@ -138,7 +135,7 @@ export function MaterialGroupsPage() {
       toast.error('Không thể xóa: nhóm còn mẫu vật tư.');
       return;
     }
-    setDeleting(editingGroup);
+    setDeleting(group);
   };
 
   const handleConfirmDelete = () => {
@@ -175,6 +172,7 @@ export function MaterialGroupsPage() {
             modelCountByGroup={modelCountByGroup}
             onSelect={(id) => setMode({ kind: 'edit', id })}
             onAddChild={(parentId) => setMode({ kind: 'create', parentId })}
+            onDelete={handleRequestDelete}
           />
         </ScrollArea>
       </Card>

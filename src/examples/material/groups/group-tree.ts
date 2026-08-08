@@ -1,4 +1,5 @@
 import type { MaterialGroup } from '../model/material-group';
+import type { MaterialModel } from '../model/material-model';
 
 export interface GroupTreeNode extends MaterialGroup {
   children: GroupTreeNode[];
@@ -66,4 +67,28 @@ export function countDirectChildren(
   id: string,
 ): number {
   return groups.filter((group) => group.parentId === id).length;
+}
+
+/** Đếm mẫu trực thuộc mỗi nhóm, gồm cả các nhóm con của nhóm đó. */
+export function countModelsByGroup(
+  models: MaterialModel[],
+  groups: MaterialGroup[],
+): Map<string, number> {
+  const byId = new Map(groups.map((group) => [group.id, group]));
+  const counts = new Map(groups.map((group) => [group.id, 0]));
+
+  for (const model of models) {
+    const visited = new Set<string>();
+    let currentId: string | null = model.groupId;
+
+    while (currentId && !visited.has(currentId)) {
+      visited.add(currentId);
+      if (counts.has(currentId)) {
+        counts.set(currentId, (counts.get(currentId) ?? 0) + 1);
+      }
+      currentId = byId.get(currentId)?.parentId ?? null;
+    }
+  }
+
+  return counts;
 }
