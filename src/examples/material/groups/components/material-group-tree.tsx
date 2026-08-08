@@ -140,26 +140,19 @@ function MaterialGroupTreeItem({
         style={{ paddingLeft: `${node.depth * 16 + 4}px` }}
       >
         {hasChildren ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label={isExpanded ? 'Thu gọn' : 'Mở rộng'}
-                className="flex size-5 shrink-0 items-center justify-center text-muted-foreground"
-                onClick={() => setIsExpanded((prev) => !prev)}
-              >
-                <ChevronRight
-                  className={cn(
-                    'size-4 transition-transform',
-                    isExpanded && 'rotate-90',
-                  )}
-                />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent variant="light">
-              {isExpanded ? 'Thu gọn' : 'Mở rộng'}
-            </TooltipContent>
-          </Tooltip>
+          <button
+            type="button"
+            aria-label={isExpanded ? 'Thu gọn' : 'Mở rộng'}
+            className="flex size-5 shrink-0 items-center justify-center text-muted-foreground"
+            onClick={() => setIsExpanded((prev) => !prev)}
+          >
+            <ChevronRight
+              className={cn(
+                'size-4 transition-transform',
+                isExpanded && 'rotate-90',
+              )}
+            />
+          </button>
         ) : (
           <span className="size-5 shrink-0" />
         )}
