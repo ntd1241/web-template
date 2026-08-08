@@ -22,6 +22,7 @@ export const ROUTES = {
     SUPPLIERS: '/example/suppliers',
     ROLE_PERMISSIONS: '/example/role-permissions',
     CHARTS: '/example/charts',
+    SETTINGS: '/example/settings',
     OPERATIONS_DASHBOARD: '/example/operations-dashboard',
   },
 } as const;

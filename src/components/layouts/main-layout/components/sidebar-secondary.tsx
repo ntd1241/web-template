@@ -42,12 +42,12 @@ export function SidebarSecondary() {
                         key={item.label}
                         to={target!.to}
                         className={cn(
-                          'flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-admin-blue-text transition-colors hover:bg-field hover:text-accent-foreground',
+                          'flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-field hover:text-accent-foreground',
                           active &&
-                            'bg-[#dbeafe] text-[#0e5cd6] hover:bg-[#dbeafe] hover:text-[#0e5cd6]',
+                            'bg-[#dbeafe] text-[#0e5cd6] hover:bg-[#dbeafe] hover:text-[#0e5cd6] [&_svg]:text-[#0e5cd6]',
                         )}
                       >
-                        <Icon className="size-4.5 shrink-0 opacity-70" />
+                        <Icon className="size-4.5 shrink-0 text-foreground" />
                         <span className="truncate">{item.label}</span>
                         {target!.isWireframe && (
                           <span className="ml-auto rounded bg-border px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">

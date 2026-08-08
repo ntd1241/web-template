@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   FilePen,
   PackageCheck,
+  Settings,
   ShieldCheck,
   ShoppingCart,
   SlidersHorizontal,
@@ -85,6 +86,11 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
   {
     title: 'Hệ thống',
     items: [
+      {
+        label: 'Cài đặt',
+        icon: Settings,
+        path: ROUTES.EXAMPLE.SETTINGS,
+      },
       {
         label: 'Showcase biểu đồ',
         icon: ChartLine,
