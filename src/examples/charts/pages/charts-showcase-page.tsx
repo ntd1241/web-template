@@ -31,6 +31,7 @@ import {
   YAxis,
   ZAxis,
 } from 'recharts';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -59,6 +60,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 type ChartCategory =
   | 'Line & Area'
@@ -75,6 +84,7 @@ type ChartCardProps = {
   description: string;
   selected: boolean;
   onSelect: () => void;
+  className?: string;
   children: ReactNode;
 };
 
@@ -111,6 +121,13 @@ const categoryMix = [
   { name: 'Kiểm tra', value: 28 },
   { name: 'CCDC', value: 18 },
   { name: 'Khác', value: 12 },
+];
+
+const filterablePieData = [
+  { name: 'Kiểm định', value: 42, records: 18, rate: '91%' },
+  { name: 'Kiểm tra', value: 28, records: 12, rate: '78%' },
+  { name: 'CCDC', value: 18, records: 9, rate: '84%' },
+  { name: 'Khác', value: 12, records: 6, rate: '67%' },
 ];
 
 const performance = [
@@ -254,6 +271,11 @@ const chartCatalog: Array<{
   { id: 'pie-basic', title: 'Pie có nhãn', category: 'Pie & Radial' },
   { id: 'donut', title: 'Donut', category: 'Pie & Radial' },
   { id: 'pie-nested', title: 'Pie lồng nhau', category: 'Pie & Radial' },
+  {
+    id: 'pie-filter-table',
+    title: 'Pie filter bảng',
+    category: 'Pie & Radial',
+  },
   { id: 'radial-progress', title: 'Radial KPI', category: 'Pie & Radial' },
   { id: 'radial-multi', title: 'Radial nhiều KPI', category: 'Pie & Radial' },
   { id: 'radial-gauge', title: 'Radial gauge', category: 'Pie & Radial' },
@@ -300,6 +322,17 @@ export function ChartsShowcasePage() {
   const [selectedChart, setSelectedChart] = useState<string | null>(null);
   const [tooltipStyle, setTooltipStyle] =
     useState<ChartTooltipStyle>('default');
+  const [selectedPieSegment, setSelectedPieSegment] = useState<string | null>(
+    null,
+  );
+
+  const visiblePieTableRows = useMemo(
+    () =>
+      selectedPieSegment
+        ? filterablePieData.filter((row) => row.name === selectedPieSegment)
+        : filterablePieData,
+    [selectedPieSegment],
+  );
 
   const selectedMeta = useMemo(
     () => chartCatalog.find((chart) => chart.id === selectedChart),
@@ -1047,6 +1080,117 @@ export function ChartsShowcasePage() {
                   </ChartCard>
 
                   <ChartCard
+                    id="pie-filter-table"
+                    category="Pie & Radial"
+                    title="Pie filter bảng"
+                    description="Click một segment để lọc bảng dữ liệu bên cạnh."
+                    selected={selectedChart === 'pie-filter-table'}
+                    onSelect={() => setSelectedChart('pie-filter-table')}
+                    className="xl:col-span-2 2xl:col-span-2"
+                  >
+                    <div className="grid gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(17rem,1.1fr)] md:items-center">
+                      <ChartFrame config={pieConfig}>
+                        <PieChart>
+                          <ChartTooltip
+                            content={<ChartTooltipContent hideLabel />}
+                          />
+                          <Pie
+                            data={filterablePieData}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={52}
+                            outerRadius={88}
+                            paddingAngle={3}
+                            onClick={(_, index) => {
+                              const segment = filterablePieData[index];
+
+                              if (!segment) {
+                                return;
+                              }
+
+                              setSelectedPieSegment((current) =>
+                                current === segment.name ? null : segment.name,
+                              );
+                            }}
+                          >
+                            {filterablePieData.map((entry, index) => {
+                              const isSelected =
+                                !selectedPieSegment ||
+                                selectedPieSegment === entry.name;
+
+                              return (
+                                <Cell
+                                  key={entry.name}
+                                  fill={
+                                    isSelected
+                                      ? [
+                                          COLORS.primary,
+                                          COLORS.blue,
+                                          COLORS.green,
+                                          COLORS.amber,
+                                        ][index]
+                                      : 'var(--admin-neutral-300)'
+                                  }
+                                  className="cursor-pointer transition-opacity"
+                                />
+                              );
+                            })}
+                          </Pie>
+                        </PieChart>
+                      </ChartFrame>
+
+                      <div className="min-w-0 rounded-lg border border-border/70">
+                        <div className="flex items-center justify-between gap-3 border-b border-border/70 px-3 py-2.5">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              Chi tiết danh mục
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {selectedPieSegment
+                                ? `Đang lọc: ${selectedPieSegment}`
+                                : 'Chọn một segment để lọc'}
+                            </p>
+                          </div>
+                          {selectedPieSegment && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedPieSegment(null)}
+                            >
+                              Bỏ lọc
+                            </Button>
+                          )}
+                        </div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Nhóm</TableHead>
+                              <TableHead className="text-right">Mẫu</TableHead>
+                              <TableHead className="text-right">Đạt</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {visiblePieTableRows.map((row) => (
+                              <TableRow key={row.name}>
+                                <TableCell className="py-2.5 text-xs font-medium">
+                                  {row.name}
+                                </TableCell>
+                                <TableCell className="py-2.5 text-right text-xs tabular-nums">
+                                  {row.records}
+                                </TableCell>
+                                <TableCell className="py-2.5 text-right text-xs font-medium tabular-nums text-primary">
+                                  {row.rate}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  </ChartCard>
+
+                  <ChartCard
                     id="radial-progress"
                     category="Pie & Radial"
                     title="Radial KPI"
@@ -1481,12 +1625,16 @@ function ChartCard({
   description,
   selected,
   onSelect,
+  className,
   children,
 }: ChartCardProps) {
   return (
     <Card
       data-chart-id={id}
-      className={selected ? 'border-primary ring-1 ring-primary/20' : undefined}
+      className={cn(
+        className,
+        selected && 'border-primary ring-1 ring-primary/20',
+      )}
     >
       <CardHeader className="items-start gap-3 p-4">
         <CardHeading>
