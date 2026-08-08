@@ -9,7 +9,6 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConfirmDeleteDialog } from '../../components/confirm-delete-dialog';
 import { MATERIAL_GROUPS_MOCK } from '../../data/material-groups.mock';
 import { MATERIAL_MODELS_MOCK } from '../../data/material-models.mock';
@@ -20,7 +19,7 @@ import {
   MaterialGroupForm,
   useMaterialGroupForm,
 } from '../components/material-group-form.generated';
-import { MaterialGroupTree } from '../components/material-group-tree';
+import { MaterialGroupTreePanel } from '../components/material-group-tree';
 import {
   buildGroupTree,
   countDirectChildren,
@@ -165,16 +164,15 @@ export function MaterialGroupsPage() {
             Nhóm gốc
           </Button>
         </CardHeader>
-        <ScrollArea className="min-h-0 flex-1 px-2 pb-3">
-          <MaterialGroupTree
-            nodes={tree}
-            selectedId={selectedId}
-            modelCountByGroup={modelCountByGroup}
-            onSelect={(id) => setMode({ kind: 'edit', id })}
-            onAddChild={(parentId) => setMode({ kind: 'create', parentId })}
-            onDelete={handleRequestDelete}
-          />
-        </ScrollArea>
+        <MaterialGroupTreePanel
+          className="min-h-0 flex-1"
+          nodes={tree}
+          selectedId={selectedId}
+          modelCountByGroup={modelCountByGroup}
+          onSelect={(id) => setMode({ kind: 'edit', id })}
+          onAddChild={(parentId) => setMode({ kind: 'create', parentId })}
+          onDelete={handleRequestDelete}
+        />
       </Card>
 
       <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">

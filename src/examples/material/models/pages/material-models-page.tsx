@@ -8,11 +8,9 @@ import {
 import { Plus, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -28,7 +26,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ConfirmDeleteDialog } from '../../components/confirm-delete-dialog';
 import { MATERIAL_GROUPS_MOCK } from '../../data/material-groups.mock';
-import { MaterialGroupTree } from '../../groups/components/material-group-tree';
+import { MaterialGroupTreePanel } from '../../groups/components/material-group-tree';
 import { buildGroupTree, countModelsByGroup } from '../../groups/group-tree';
 import { filterModelsByGroup } from '../../lib/filter-models-by-group';
 import type { MaterialModel } from '../../model/material-model';
@@ -125,40 +123,17 @@ export function MaterialModelsPage() {
             <CardDescription>Lọc mẫu theo nhóm và nhóm con</CardDescription>
           </CardHeading>
         </CardHeader>
-        <CardContent className="min-h-0 flex-1 px-2 pt-2 pb-3">
-          <ScrollArea className="h-full">
-            <button
-              type="button"
-              aria-pressed={selectedGroupId === null}
-              className={cn(
-                'mb-1 flex w-full items-center justify-between rounded-admin-control px-3 py-1.5 text-start text-sm hover:bg-admin-surface-alt',
-                selectedGroupId === null
-                  ? 'font-medium text-primary'
-                  : 'text-foreground',
-              )}
-              onClick={() => setSelectedGroupId(null)}
-            >
-              <span>Tất cả</span>
-              <span
-                className={cn(
-                  'rounded-full px-2 py-0.5 text-xs',
-                  selectedGroupId === null
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-admin-surface-alt text-muted-foreground',
-                )}
-              >
-                {models.length}
-              </span>
-            </button>
-            <MaterialGroupTree
-              nodes={tree}
-              selectedId={selectedGroupId}
-              modelCountByGroup={modelCountByGroup}
-              onSelect={setSelectedGroupId}
-              onAddChild={() => {}}
-            />
-          </ScrollArea>
-        </CardContent>
+        <MaterialGroupTreePanel
+          className="min-h-0 flex-1"
+          nodes={tree}
+          selectedId={selectedGroupId}
+          modelCountByGroup={modelCountByGroup}
+          onSelect={setSelectedGroupId}
+          onAddChild={() => {}}
+          allCount={models.length}
+          isAllSelected={selectedGroupId === null}
+          onSelectAll={() => setSelectedGroupId(null)}
+        />
       </Card>
 
       <DataGrid

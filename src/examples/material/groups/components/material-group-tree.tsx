@@ -3,6 +3,7 @@ import { ChevronRight, Folder, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { GroupTreeNode } from '../group-tree';
 
 interface MaterialGroupTreeProps {
@@ -12,6 +13,50 @@ interface MaterialGroupTreeProps {
   onSelect: (id: string) => void;
   onAddChild: (parentId: string) => void;
   onDelete?: (node: GroupTreeNode) => void;
+}
+
+interface MaterialGroupTreePanelProps extends MaterialGroupTreeProps {
+  className?: string;
+  allCount?: number;
+  isAllSelected?: boolean;
+  onSelectAll?: () => void;
+}
+
+export function MaterialGroupTreePanel({
+  className,
+  allCount,
+  isAllSelected = false,
+  onSelectAll,
+  ...treeProps
+}: MaterialGroupTreePanelProps) {
+  return (
+    <ScrollArea className={cn('min-h-0 flex-1 px-2 pt-2 pb-3', className)}>
+      {onSelectAll && allCount !== undefined && (
+        <button
+          type="button"
+          aria-pressed={isAllSelected}
+          className={cn(
+            'mb-1 flex w-full items-center justify-between rounded-admin-control px-3 py-1.5 text-start text-sm hover:bg-admin-surface-alt',
+            isAllSelected ? 'font-medium text-primary' : 'text-foreground',
+          )}
+          onClick={onSelectAll}
+        >
+          <span>Tất cả</span>
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-xs',
+              isAllSelected
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-admin-surface-alt text-muted-foreground',
+            )}
+          >
+            {allCount}
+          </span>
+        </button>
+      )}
+      <MaterialGroupTree {...treeProps} />
+    </ScrollArea>
+  );
 }
 
 export function MaterialGroupTree({
