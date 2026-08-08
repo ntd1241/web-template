@@ -33,6 +33,7 @@ import {
   useMaterialGroupForm,
 } from '../../groups/components/material-group-form.generated';
 import { MaterialGroupTreePanel } from '../../groups/components/material-group-tree';
+import { GeneratedMaterialGroupTreePanel } from '../../groups/components/material-group-tree.generated';
 import {
   buildGroupTree,
   countDirectChildren,
@@ -231,29 +232,55 @@ export function MaterialModelsPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 p-6 xl:flex-row">
-      <Card className="flex min-h-0 w-full flex-col overflow-hidden xl:w-80 xl:shrink-0">
-        <CardHeader className="p-4">
-          <CardHeading>
-            <CardTitle>Cây nhóm vật tư</CardTitle>
-            <CardDescription>Lọc mẫu theo nhóm và nhóm con</CardDescription>
-          </CardHeading>
-        </CardHeader>
-        <MaterialGroupTreePanel
-          className="min-h-0 flex-1"
-          nodes={tree}
-          selectedId={selectedGroupId}
-          modelCountByGroup={modelCountByGroup}
-          onSelect={setSelectedGroupId}
-          onAddChild={(parentId) =>
-            setGroupDialog({ kind: 'create', parentId })
-          }
-          onEdit={(node) => setGroupDialog({ kind: 'edit', id: node.id })}
-          onDelete={handleRequestGroupDelete}
-          allCount={models.length}
-          isAllSelected={selectedGroupId === null}
-          onSelectAll={() => setSelectedGroupId(null)}
-        />
-      </Card>
+      <div className="flex min-h-0 w-full flex-col gap-4 md:flex-row xl:w-[42rem] xl:shrink-0">
+        <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+          <CardHeader className="p-4">
+            <CardHeading>
+              <CardTitle>Cây nhóm vật tư</CardTitle>
+              <CardDescription>Lọc mẫu theo nhóm và nhóm con</CardDescription>
+            </CardHeading>
+          </CardHeader>
+          <MaterialGroupTreePanel
+            className="min-h-0 flex-1"
+            nodes={tree}
+            selectedId={selectedGroupId}
+            modelCountByGroup={modelCountByGroup}
+            onSelect={setSelectedGroupId}
+            onAddChild={(parentId) =>
+              setGroupDialog({ kind: 'create', parentId })
+            }
+            onEdit={(node) => setGroupDialog({ kind: 'edit', id: node.id })}
+            onDelete={handleRequestGroupDelete}
+            allCount={models.length}
+            isAllSelected={selectedGroupId === null}
+            onSelectAll={() => setSelectedGroupId(null)}
+          />
+        </Card>
+
+        <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+          <CardHeader className="p-4">
+            <CardHeading>
+              <CardTitle>Cây nhóm vật tư (generated)</CardTitle>
+              <CardDescription>
+                Bản sinh từ tree builder để đối chiếu
+              </CardDescription>
+            </CardHeading>
+          </CardHeader>
+          <GeneratedMaterialGroupTreePanel
+            className="min-h-0 flex-1"
+            nodes={tree}
+            selectedId={selectedGroupId}
+            countByNode={modelCountByGroup}
+            onSelect={setSelectedGroupId}
+            onAdd={(parentId) => setGroupDialog({ kind: 'create', parentId })}
+            onEdit={(node) => setGroupDialog({ kind: 'edit', id: node.id })}
+            onDelete={handleRequestGroupDelete}
+            allCount={models.length}
+            isAllSelected={selectedGroupId === null}
+            onSelectAll={() => setSelectedGroupId(null)}
+          />
+        </Card>
+      </div>
 
       <DataGrid
         table={table}

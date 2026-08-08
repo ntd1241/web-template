@@ -15,6 +15,7 @@
     "gen:table": "tsx tools/builders/cli/gen-table.ts",
     "gen:form": "tsx tools/builders/cli/gen-form.ts",
     "gen:editor-table": "tsx tools/builders/cli/gen-editor-table.ts",
+    "gen:tree": "tsx tools/builders/cli/gen-tree.ts",
     "prepare": "husky"
   },
   "lint-staged": {
