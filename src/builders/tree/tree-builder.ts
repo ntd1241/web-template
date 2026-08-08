@@ -1,5 +1,6 @@
 import {
   treeSpecSchema,
+  type ResolvedTreeSpec,
   type TreeActionSpec,
   type TreeSpec,
 } from './tree-spec';
@@ -59,7 +60,7 @@ function actionClass(action: TreeActionSpec): string {
   return 'text-muted-foreground';
 }
 
-function actionProps(spec: TreeSpec, componentName: string): string {
+function actionProps(spec: ResolvedTreeSpec, componentName: string): string {
   const lines = [
     `export interface ${componentName}Props {`,
     `  nodes: ${spec.entity}[];`,
@@ -82,7 +83,7 @@ function actionProps(spec: TreeSpec, componentName: string): string {
   return lines.join('\n');
 }
 
-function emitImports(spec: TreeSpec): string {
+function emitImports(spec: ResolvedTreeSpec): string {
   const icons = [
     'ChevronRight',
     'Folder',
@@ -169,7 +170,7 @@ function emitActionContainer(
 }
 
 function emitPanel(
-  spec: TreeSpec,
+  spec: ResolvedTreeSpec,
   panelName: string,
   componentName: string,
 ): string {
@@ -243,7 +244,7 @@ export function ${panelName}({
 }`;
 }
 
-function emitTree(spec: TreeSpec, componentName: string): string {
+function emitTree(spec: ResolvedTreeSpec, componentName: string): string {
   const nodeActions = spec.actions.filter((action) => {
     const scope = scopeOf(action);
     return scope === 'node' || scope === 'both';

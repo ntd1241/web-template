@@ -73,6 +73,11 @@ const MaterialPublicDetailPage = lazy(() =>
     }),
   ),
 );
+const ChartsShowcasePage = lazy(() =>
+  import('./charts/pages/charts-showcase-page').then((m) => ({
+    default: m.ChartsShowcasePage,
+  })),
+);
 
 // Greybox/wireframe — rendered INSIDE MainLayout so the real shell (sidebar +
 // topbar) surrounds it; the greybox only blocks out the page content area.
@@ -191,6 +196,14 @@ const exampleRoutes: ReactNode = (
         element={
           <Suspense fallback={<ScreenLoader />}>
             <RolePermissionsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path={ROUTES.EXAMPLE.CHARTS}
+        element={
+          <Suspense fallback={<ScreenLoader />}>
+            <ChartsShowcasePage />
           </Suspense>
         }
       />

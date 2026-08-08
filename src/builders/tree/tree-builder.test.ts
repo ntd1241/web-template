@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildTreeModule } from './tree-builder';
+import type { TreeSpec } from './tree-spec';
 import { treeSpecSchema } from './tree-spec';
 
 const baseSpec = {
@@ -18,7 +19,7 @@ const baseSpec = {
       optional: true,
     },
   ],
-} as const;
+} satisfies TreeSpec;
 
 describe('tree-builder', () => {
   it('emits a callback-only tree with built-in and custom actions', () => {

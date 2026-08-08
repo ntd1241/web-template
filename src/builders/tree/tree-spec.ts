@@ -91,4 +91,5 @@ export const treeSpecSchema = z
   });
 
 export type TreeActionSpec = z.infer<typeof actionSchema>;
-export type TreeSpec = z.infer<typeof treeSpecSchema>;
+export type TreeSpec = z.input<typeof treeSpecSchema>;
+export type ResolvedTreeSpec = z.output<typeof treeSpecSchema>;

@@ -21,6 +21,7 @@ export const ROUTES = {
     MATERIAL_PUBLIC_DETAIL: '/example/materials/public/:id',
     SUPPLIERS: '/example/suppliers',
     ROLE_PERMISSIONS: '/example/role-permissions',
+    CHARTS: '/example/charts',
     OPERATIONS_DASHBOARD: '/example/operations-dashboard',
   },
 } as const;

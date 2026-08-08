@@ -1,6 +1,7 @@
 import { ROUTES } from '@/constants/routes';
 import {
   Boxes,
+  ChartLine,
   ClipboardCheck,
   FilePen,
   PackageCheck,
@@ -84,6 +85,11 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
   {
     title: 'Hệ thống',
     items: [
+      {
+        label: 'Showcase biểu đồ',
+        icon: ChartLine,
+        path: ROUTES.EXAMPLE.CHARTS,
+      },
       {
         label: 'Phân quyền',
         icon: ShieldCheck,
