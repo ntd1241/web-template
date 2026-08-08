@@ -15,7 +15,6 @@ describe('MENU_GROUPS', () => {
     expect(visibleMenuPaths()).toEqual(
       expect.arrayContaining([
         ROUTES.EXAMPLE.MATERIALS,
-        ROUTES.EXAMPLE.MATERIAL_GROUPS,
         ROUTES.EXAMPLE.MATERIAL_SPECS,
         ROUTES.EXAMPLE.MATERIAL_MODELS,
         ROUTES.EXAMPLE.MATERIAL_INSPECTIONS,

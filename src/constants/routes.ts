@@ -14,7 +14,6 @@ export const ROUTES = {
     MATERIAL_CREATE: '/example/materials/new',
     MATERIAL_EDIT: '/example/materials/:id/edit',
     MATERIAL_SPECS: '/example/materials/specs',
-    MATERIAL_GROUPS: '/example/materials/groups',
     MATERIAL_INSPECTIONS: '/example/materials/inspections',
     MATERIAL_MODELS: '/example/materials/models',
     MATERIAL_MODEL_CREATE: '/example/materials/models/new',

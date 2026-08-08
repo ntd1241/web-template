@@ -3,7 +3,6 @@ import {
   Boxes,
   ClipboardCheck,
   FilePen,
-  ListTree,
   PackageCheck,
   ShieldCheck,
   ShoppingCart,
@@ -63,11 +62,6 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Vật tư',
         icon: PackageCheck,
         path: ROUTES.EXAMPLE.MATERIALS,
-      },
-      {
-        label: 'Nhóm vật tư',
-        icon: ListTree,
-        path: ROUTES.EXAMPLE.MATERIAL_GROUPS,
       },
       {
         label: 'Danh mục thông số',

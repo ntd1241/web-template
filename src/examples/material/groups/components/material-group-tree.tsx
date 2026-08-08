@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Folder, Plus, Trash2 } from 'lucide-react';
+import { ChevronRight, Folder, Pencil, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ interface MaterialGroupTreeProps {
   modelCountByGroup: Map<string, number>;
   onSelect: (id: string) => void;
   onAddChild: (parentId: string) => void;
+  onEdit?: (node: GroupTreeNode) => void;
   onDelete?: (node: GroupTreeNode) => void;
 }
 
@@ -65,6 +66,7 @@ export function MaterialGroupTree({
   modelCountByGroup,
   onSelect,
   onAddChild,
+  onEdit,
   onDelete,
 }: MaterialGroupTreeProps) {
   return (
@@ -77,6 +79,7 @@ export function MaterialGroupTree({
           modelCountByGroup={modelCountByGroup}
           onSelect={onSelect}
           onAddChild={onAddChild}
+          onEdit={onEdit}
           onDelete={onDelete}
         />
       ))}
@@ -90,6 +93,7 @@ function MaterialGroupTreeItem({
   modelCountByGroup,
   onSelect,
   onAddChild,
+  onEdit,
   onDelete,
 }: {
   node: GroupTreeNode;
@@ -97,6 +101,7 @@ function MaterialGroupTreeItem({
   modelCountByGroup: Map<string, number>;
   onSelect: (id: string) => void;
   onAddChild: (parentId: string) => void;
+  onEdit?: (node: GroupTreeNode) => void;
   onDelete?: (node: GroupTreeNode) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -159,7 +164,7 @@ function MaterialGroupTreeItem({
           {modelCount}
         </Badge>
 
-        <div className="absolute end-3 top-1/2 flex -translate-y-1/2 items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="absolute end-3 top-1/2 flex -translate-y-1/2 items-center gap-0.5 opacity-0 group-hover:opacity-100">
           <Button
             type="button"
             variant="ghost"
@@ -168,8 +173,20 @@ function MaterialGroupTreeItem({
             className="size-6 text-muted-foreground"
             onClick={() => onAddChild(node.id)}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-3.5 !opacity-100" />
           </Button>
+          {onEdit && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Sửa nhóm ${node.name}`}
+              className="size-6 text-primary"
+              onClick={() => onEdit(node)}
+            >
+              <Pencil className="size-3.5 !opacity-100" />
+            </Button>
+          )}
           {onDelete && (
             <Button
               type="button"
@@ -179,7 +196,7 @@ function MaterialGroupTreeItem({
               className="size-6 text-destructive"
               onClick={() => onDelete(node)}
             >
-              <Trash2 className="size-3.5" />
+              <Trash2 className="size-3.5 !opacity-100" />
             </Button>
           )}
         </div>
@@ -192,6 +209,7 @@ function MaterialGroupTreeItem({
           modelCountByGroup={modelCountByGroup}
           onSelect={onSelect}
           onAddChild={onAddChild}
+          onEdit={onEdit}
           onDelete={onDelete}
         />
       )}

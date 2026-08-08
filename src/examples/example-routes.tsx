@@ -51,11 +51,6 @@ const SpecDefinitionsPage = lazy(() =>
     default: m.SpecDefinitionsPage,
   })),
 );
-const MaterialGroupsPage = lazy(() =>
-  import('./material/groups/pages/material-groups-page').then((m) => ({
-    default: m.MaterialGroupsPage,
-  })),
-);
 const InspectionTablesPage = lazy(() =>
   import('./material/inspection/pages/inspection-tables-page').then((m) => ({
     default: m.InspectionTablesPage,
@@ -148,14 +143,6 @@ const exampleRoutes: ReactNode = (
         element={
           <Suspense fallback={<ScreenLoader />}>
             <SpecDefinitionsPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path={ROUTES.EXAMPLE.MATERIAL_GROUPS}
-        element={
-          <Suspense fallback={<ScreenLoader />}>
-            <MaterialGroupsPage />
           </Suspense>
         }
       />
