@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`chart-builder golden fixture > reproduces a line chart scaffold 1`] = `
+"/**
+ * Scaffolded by chart-builder. Run \`npm run gen:chart\` — do NOT hand-write this file.
+ * You own this file now — wire data and callbacks to screen logic or override the presentation.
+ * To change chart kind, series, or config, edit the spec and re-gen to a scratch path first.
+ */
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { cn } from '@/lib/utils';
+import {
+  ChartContainer,
+  ChartTooltipStyleProvider,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
+import type { MetricPoint } from '../metric-point';
+
+const chartConfig = {
+  current: { label: 'Hiện tại', color: 'var(--admin-primary)' },
+} satisfies ChartConfig;
+
+export interface MetricChartProps {
+  data: MetricPoint[];
+  className?: string;
+}
+
+export function MetricChart({ data, className }: MetricChartProps) {
+  return (
+    <ChartTooltipStyleProvider style='default'>
+
+      <ChartContainer config={chartConfig} className={cn('h-64 w-full aspect-auto', className)}>
+        <LineChart data={data}>
+          <CartesianGrid vertical={false} />
+          <XAxis dataKey='month' tickLine={false} axisLine={false} />
+          <YAxis tickLine={false} axisLine={false} width={32} />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Line
+            dataKey='current'
+            type="monotone"
+            stroke='var(--color-current)'
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ChartContainer>
+    
+</ChartTooltipStyleProvider>
+  );
+}
+"
+`;

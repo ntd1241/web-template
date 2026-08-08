@@ -21,6 +21,9 @@ and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 | `form`         | `<Entity>Form`, `<Entity>FormDialog`, `use<Entity>Form()` (RHF + zodResolver, responsive 12-col grid)     | `FormSpec` (`@/builders/form`)                | `npm run gen:form -- <spec> <out>`         | building reusable create/edit forms and dialog wrappers | [`docs/builders/form-dialog.md`](../../docs/builders/form-dialog.md) |
 | `tree`         | `<Entity>Tree` and optional `<Entity>TreePanel` with count badges and callback-only actions               | `TreeSpec` (`@/builders/tree`)                | `npm run gen:tree -- <spec> <out>`         | building hierarchical navigation/filter trees           | [`docs/builders/tree.md`](../../docs/builders/tree.md)               |
 
+| `chart` | Recharts chart component with series, axes, legend, tooltip, and optional point callbacks | `ChartSpec` (`@/builders/chart`) | `npm run gen:chart -- <spec> <out>` | building repeatable chart variants | [`docs/builders/chart.md`](../../docs/builders/chart.md) |
+| `tooltip` | Chart tooltip wrapper and optional shared style provider | `TooltipSpec` (`@/builders/tooltip`) | `npm run gen:tooltip -- <spec> <out>` | standardizing tooltip presentation across charts | [`docs/builders/tooltip.md`](../../docs/builders/tooltip.md) |
+
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_
 

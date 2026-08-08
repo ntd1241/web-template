@@ -1,0 +1,45 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tooltip-builder golden fixture > reproduces a shared tooltip scaffold 1`] = `
+"/**
+ * Scaffolded by tooltip-builder. Run \`npm run gen:tooltip\` — do NOT hand-write this file.
+ * You own this file now — compose the generated tooltip with a chart and wire screen-specific data.
+ * To change the preset or provider behavior, edit the spec and re-gen to a scratch path first.
+ */
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+import { ChartTooltip, ChartTooltipContent, ChartTooltipStyleProvider } from '@/components/ui/chart';
+import type { ChartTooltipStyle } from '@/components/ui/chart';
+
+export interface ShowcaseTooltipProps {
+  hideLabel?: boolean;
+  hideIndicator?: boolean;
+  className?: string;
+}
+
+export function ShowcaseTooltip({
+  hideLabel = false,
+  hideIndicator = false,
+  className,
+}: ShowcaseTooltipProps) {
+  return (
+    <ChartTooltip content={<ChartTooltipContent hideLabel={hideLabel} hideIndicator={hideIndicator} className={cn(undefined, className)} />} />
+  );
+}
+
+
+export function ShowcaseTooltipProvider({
+  style = 'emphasis',
+  children,
+}: {
+  children: ReactNode;
+  style?: ChartTooltipStyle;
+}) {
+  return (
+    <ChartTooltipStyleProvider style={style}>
+      {children}
+    </ChartTooltipStyleProvider>
+  );
+}
+"
+`;
