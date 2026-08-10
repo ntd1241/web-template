@@ -18,7 +18,7 @@ export function EmployeeCell({ employee }: { employee: Employee }) {
       <Avatar className="size-9">
         <AvatarFallback
           className={cn(
-            'border bg-gradient-to-br text-[14px] font-bold shadow-sm',
+            'border bg-gradient-to-br text-sm font-bold shadow-sm',
             TONE_CLASSES[employee.avatarTone],
           )}
         >
@@ -26,10 +26,10 @@ export function EmployeeCell({ employee }: { employee: Employee }) {
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0">
-        <div className="truncate text-[14px] font-semibold leading-5 text-admin-blue-darkest">
+        <div className="truncate text-sm font-semibold leading-5 text-admin-blue-darkest">
           {employee.name}
         </div>
-        <div className="mt-0.5 truncate text-[12px] leading-4 text-admin-blue-muted">
+        <div className="mt-0.5 truncate text-xs leading-4 text-admin-blue-muted">
           {employee.username}
         </div>
       </div>

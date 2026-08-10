@@ -18,18 +18,18 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
   active: {
     label: 'Đang hợp tác',
     className:
-      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-[12px] text-admin-success-text',
+      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
     dotClassName: 'bg-admin-success-dot opacity-100',
   },
   paused: {
     label: 'Tạm dừng',
     variant: 'warning',
-    className: 'rounded-md px-2.5 py-1 text-[12px]',
+    className: 'rounded-md px-2.5 py-1 text-xs',
   },
   stopped: {
     label: 'Ngừng hợp tác',
     variant: 'outline',
-    className: 'rounded-md px-2.5 py-1 text-[12px] text-muted-foreground',
+    className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
     dotClassName: 'bg-admin-neutral-400 opacity-100',
   },
 };

@@ -24,13 +24,13 @@ const employeeStatusBadgeConfig: StatusBadgeConfig<EmployeeStatus> = {
   active: {
     label: EMPLOYEE_STATUS_LABELS.active,
     className:
-      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-[12px] text-admin-success-text',
+      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
     dotClassName: 'bg-admin-success-dot opacity-100',
   },
   locked: {
     label: EMPLOYEE_STATUS_LABELS.locked,
     variant: 'outline',
-    className: 'rounded-md px-2.5 py-1 text-[12px] text-muted-foreground',
+    className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
     dotClassName: 'bg-admin-neutral-400 opacity-100',
   },
 };
@@ -82,9 +82,7 @@ export function useEmployeeColumns({
           // Action nhận biết quyền: chủ sở hữu hoặc thiếu quyền → không cho thao tác.
           if (!canManage || isOwner) {
             return (
-              <div className="text-right text-[12px] text-admin-neutral-400">
-                —
-              </div>
+              <div className="text-right text-xs text-admin-neutral-400">—</div>
             );
           }
 

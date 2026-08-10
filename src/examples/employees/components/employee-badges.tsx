@@ -18,7 +18,7 @@ export function EmployeeRoleBadge({ role }: { role: EmployeeRole }) {
   return (
     <Badge
       variant="outline"
-      className={cn('rounded-md px-2.5 py-1 text-[11px]', ROLE_CLASSES[role])}
+      className={cn('rounded-md px-2.5 py-1 text-xs', ROLE_CLASSES[role])}
     >
       {EMPLOYEE_ROLE_LABELS[role]}
     </Badge>
@@ -29,7 +29,7 @@ export function EmployeeRoleBadge({ role }: { role: EmployeeRole }) {
 export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
   if (status === 'active') {
     return (
-      <Badge className="gap-1.5 rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-[12px] text-admin-success-text">
+      <Badge className="gap-1.5 rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text">
         <BadgeDot className="bg-admin-success-dot opacity-100" />
         {EMPLOYEE_STATUS_LABELS.active}
       </Badge>
@@ -39,7 +39,7 @@ export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
   return (
     <Badge
       variant="outline"
-      className="gap-1.5 rounded-md px-2.5 py-1 text-[12px] text-muted-foreground"
+      className="gap-1.5 rounded-md px-2.5 py-1 text-xs text-muted-foreground"
     >
       <BadgeDot className="bg-admin-neutral-400 opacity-100" />
       {EMPLOYEE_STATUS_LABELS.locked}
