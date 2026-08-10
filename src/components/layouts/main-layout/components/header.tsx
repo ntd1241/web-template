@@ -68,10 +68,10 @@ export function Header() {
         )}
 
         <div className="min-w-0">
-          <h1 className="truncate text-[18px] font-bold leading-tight text-zinc-900">
+          <h1 className="truncate text-lg font-bold leading-tight text-zinc-900">
             Quản trị Tổ chức
           </h1>
-          <nav className="mt-0.5 flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
+          <nav className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Link to="/" className="hover:text-admin-neutral-700">
               Tổ chức
             </Link>
@@ -86,14 +86,14 @@ export function Header() {
         type="button"
       >
         <span className="hidden text-right sm:block">
-          <span className="block text-[14px] font-semibold leading-tight text-admin-blue-darkest">
+          <span className="block text-sm font-semibold leading-tight text-admin-blue-darkest">
             Thanh Hiếu
           </span>
-          <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
+          <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
             Tổ chức
           </span>
         </span>
-        <span className="flex size-10 items-center justify-center rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-[16px] font-bold text-[#f57c00] shadow-sm">
+        <span className="flex size-10 items-center justify-center rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
           T
         </span>
       </button>

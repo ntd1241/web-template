@@ -29,7 +29,7 @@ export function SidebarSecondary() {
 
             return (
               <section key={group.title}>
-                <h2 className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   {group.title}
                 </h2>
                 <div className="space-y-1">
@@ -42,7 +42,7 @@ export function SidebarSecondary() {
                         key={item.label}
                         to={target!.to}
                         className={cn(
-                          'flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-field hover:text-accent-foreground',
+                          'flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium text-foreground transition-colors hover:bg-field hover:text-accent-foreground',
                           active &&
                             'bg-[#dbeafe] text-[#0e5cd6] hover:bg-[#dbeafe] hover:text-[#0e5cd6] [&_svg]:text-[#0e5cd6]',
                         )}
@@ -50,7 +50,7 @@ export function SidebarSecondary() {
                         <Icon className="size-4.5 shrink-0 text-foreground" />
                         <span className="truncate">{item.label}</span>
                         {target!.isWireframe && (
-                          <span className="ml-auto rounded bg-border px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                          <span className="ml-auto rounded bg-border px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase text-muted-foreground">
                             block
                           </span>
                         )}
@@ -67,7 +67,7 @@ export function SidebarSecondary() {
       <div className="border-t border-border px-4 py-3">
         <label className="flex cursor-pointer items-center gap-2.5">
           <LayoutTemplate className="size-4 text-admin-neutral-400" />
-          <span className="flex-1 text-[12px] font-medium text-admin-neutral-600">
+          <span className="flex-1 text-xs font-medium text-admin-neutral-600">
             Block layout
           </span>
           <Switch
@@ -76,7 +76,7 @@ export function SidebarSecondary() {
             aria-label="Bật chế độ block layout"
           />
         </label>
-        <p className="mt-2 text-[11px] font-medium text-admin-neutral-400">
+        <p className="mt-2 text-xs font-medium text-admin-neutral-400">
           v0.0.1
         </p>
       </div>

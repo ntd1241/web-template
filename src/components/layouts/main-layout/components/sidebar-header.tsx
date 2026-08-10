@@ -10,7 +10,7 @@ export function SidebarHeader() {
       <span className="flex size-8 items-center justify-center rounded-lg bg-accent text-primary">
         <Blocks className="size-5" />
       </span>
-      <span className="text-[17px] font-bold tracking-tight text-foreground">
+      <span className="text-lg font-bold tracking-tight text-foreground">
         Admin Template
       </span>
     </Link>
