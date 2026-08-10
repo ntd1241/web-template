@@ -1,7 +1,11 @@
 import { useUiStore } from '@/stores/ui.store';
-import { Blocks, CircleHelp } from 'lucide-react';
+import { Blocks, BookOpen, CircleHelp } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { MENU_GROUPS, resolveMenuTarget } from '@/config/menu.config';
+import {
+  getMenuItemKey,
+  MENU_GROUPS,
+  resolveMenuTarget,
+} from '@/config/menu.config';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -9,55 +13,99 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+const secondaryRailItems = [
+  { label: 'Hướng dẫn sử dụng', icon: BookOpen },
+] as const;
+
 export function SidebarPrimary() {
   const { pathname } = useLocation();
   const wireframeMode = useUiStore((s) => s.wireframeMode);
+  const pinnedMenuPaths = useUiStore((s) => s.pinnedMenuPaths);
 
-  // Một icon đại diện cho mỗi nhóm có ít nhất một trang truy cập được.
-  const railItems = MENU_GROUPS.map((group) => {
-    const first = group.items
-      .map((item) => resolveMenuTarget(item, wireframeMode))
-      .find((target) => target !== null);
-    return first
-      ? { label: group.title, icon: group.items[0].icon, to: first.to }
-      : null;
-  }).filter((item) => item !== null);
+  const pinnedItems = pinnedMenuPaths
+    .map((path) => {
+      for (const group of MENU_GROUPS) {
+        const item = group.items.find(
+          (menuItem) => getMenuItemKey(menuItem) === path,
+        );
+        if (!item) continue;
+
+        const target = resolveMenuTarget(item, wireframeMode);
+        if (target) return { ...item, ...target };
+      }
+
+      return null;
+    })
+    .filter((item) => item !== null);
+
+  const hasRailContent =
+    pinnedItems.length > 0 || secondaryRailItems.length > 0;
 
   return (
     <div className="flex w-(--sidebar-collapsed-width) shrink-0 flex-col items-center bg-admin-neutral-900 py-4 text-white">
       <Link
         to="/"
-        className="mb-6 flex size-8 items-center justify-center rounded-lg bg-white text-primary shadow-sm"
+        className="flex size-8 items-center justify-center rounded-lg bg-white text-primary shadow-sm"
         aria-label="Trang chủ"
       >
         <Blocks className="size-5" />
       </Link>
 
-      <nav className="flex flex-1 flex-col items-center gap-2">
-        {railItems.map((item) => {
-          const active = pathname === item.to;
-          const Icon = item.icon;
+      <div className="flex flex-1 flex-col items-center">
+        {hasRailContent && <div className="my-3 h-px w-6 bg-white/15" />}
 
-          return (
-            <Tooltip key={item.label}>
-              <TooltipTrigger asChild>
-                <Link
-                  to={item.to}
-                  aria-label={item.label}
-                  className={cn(
-                    'flex size-10 items-center justify-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white',
-                    active &&
-                      'bg-primary text-white shadow-sm hover:bg-primary',
-                  )}
-                >
-                  <Icon className="size-5" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </nav>
+        {pinnedItems.length > 0 && (
+          <>
+            <nav className="flex flex-col items-center gap-2">
+              {pinnedItems.map((item) => {
+                const active = pathname === item.to;
+                const Icon = item.icon;
+
+                return (
+                  <Tooltip key={getMenuItemKey(item)}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to={item.to}
+                        aria-label={item.label}
+                        className={cn(
+                          'flex size-10 items-center justify-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white',
+                          active &&
+                            'bg-primary text-white shadow-sm hover:bg-primary',
+                        )}
+                      >
+                        <Icon className="size-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{item.label}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </nav>
+            <div className="my-3 h-px w-6 bg-white/15" />
+          </>
+        )}
+
+        <nav className="flex flex-col items-center gap-2">
+          {secondaryRailItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Tooltip key={item.label}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={item.label}
+                    className="flex size-10 items-center justify-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <Icon className="size-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </nav>
+      </div>
 
       <Tooltip>
         <TooltipTrigger asChild>

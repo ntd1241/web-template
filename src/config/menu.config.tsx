@@ -25,11 +25,17 @@ export interface MenuItemConfig {
   icon: LucideIcon;
   path?: string;
   wireframePath?: string;
+  badge?: number;
 }
 
 export interface MenuGroupConfig {
   title: string;
   items: MenuItemConfig[];
+}
+
+/** Khóa ổn định dùng cho các preference gắn với menu, ví dụ menu đã ghim. */
+export function getMenuItemKey(item: MenuItemConfig): string {
+  return item.path ?? item.wireframePath ?? item.label;
 }
 
 /**
@@ -54,7 +60,12 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
     title: 'Quản trị',
     items: [
       { label: 'Nhân viên', icon: Users, path: ROUTES.EXAMPLE.EMPLOYEES },
-      { label: 'Đơn hàng', icon: ShoppingCart, path: ROUTES.EXAMPLE.ORDERS },
+      {
+        label: 'Đơn hàng',
+        icon: ShoppingCart,
+        path: ROUTES.EXAMPLE.ORDERS,
+        badge: 3,
+      },
       {
         label: 'Sửa đơn hàng',
         icon: FilePen,

@@ -6,6 +6,8 @@ interface UiState {
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  pinnedMenuPaths: string[];
+  togglePinnedMenu: (path: string) => void;
   /** Dev-only: hiện các trang chỉ có block-layout (greybox) trong sidebar. */
   wireframeMode: boolean;
   toggleWireframeMode: () => void;
@@ -18,6 +20,13 @@ export const useUiStore = create<UiState>()(
       toggleSidebar: () =>
         set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      pinnedMenuPaths: [],
+      togglePinnedMenu: (path) =>
+        set((state) => ({
+          pinnedMenuPaths: state.pinnedMenuPaths.includes(path)
+            ? state.pinnedMenuPaths.filter((itemPath) => itemPath !== path)
+            : [...state.pinnedMenuPaths, path],
+        })),
       wireframeMode: false,
       toggleWireframeMode: () =>
         set((state) => ({ wireframeMode: !state.wireframeMode })),
