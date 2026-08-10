@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react';
 import {
+  Bell,
   CircleHelp,
   Languages,
   LogOut,
   Menu,
+  PackageCheck,
   PanelLeft,
   PanelLeftClose,
   Settings,
+  ShieldAlert,
+  ShoppingCart,
   UserRound,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,6 +32,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Sheet,
   SheetBody,
@@ -51,14 +61,85 @@ const DISPLAY_LANGUAGES = [
   },
 ] as const;
 
+const MOCK_NOTIFICATIONS = [
+  {
+    title: 'Đơn hàng mới được tạo',
+    description: 'Đơn hàng DH-2026-031 đang chờ xử lý.',
+    time: '5 phút trước',
+    icon: ShoppingCart,
+    iconClassName: 'bg-admin-blue-bg text-admin-blue-primary',
+    unread: true,
+  },
+  {
+    title: 'Mẫu vật tư đã được cập nhật',
+    description: 'Mẫu “Palang điện” vừa được cập nhật thông tin.',
+    time: '1 giờ trước',
+    icon: PackageCheck,
+    iconClassName: 'bg-admin-success-bg text-admin-success-text',
+    unread: true,
+  },
+  {
+    title: 'Bảo trì hệ thống',
+    description: 'Hệ thống sẽ bảo trì lúc 23:00 hôm nay.',
+    time: 'Hôm qua',
+    icon: ShieldAlert,
+    iconClassName: 'bg-admin-amber-bg text-admin-amber-dark',
+    unread: false,
+  },
+  {
+    title: 'Đã cấp quyền truy cập',
+    description: 'Bạn đã được cấp quyền quản lý danh mục thông số.',
+    time: 'Hôm qua',
+    icon: ShieldAlert,
+    iconClassName: 'bg-admin-violet-bg text-admin-violet-dark',
+    unread: false,
+  },
+  {
+    title: 'Nhân viên mới được thêm',
+    description: 'Nguyễn Minh Anh đã được thêm vào tổ chức.',
+    time: '2 ngày trước',
+    icon: UserRound,
+    iconClassName: 'bg-admin-blue-bg text-admin-blue-primary',
+    unread: false,
+  },
+  {
+    title: 'Cập nhật danh mục vật tư',
+    description: 'Có 4 vật tư mới được cập nhật trong hệ thống.',
+    time: '3 ngày trước',
+    icon: PackageCheck,
+    iconClassName: 'bg-admin-success-bg text-admin-success-text',
+    unread: false,
+  },
+  {
+    title: 'Đơn hàng đã hoàn tất',
+    description: 'Đơn hàng DH-2026-024 đã được xác nhận hoàn tất.',
+    time: '4 ngày trước',
+    icon: ShoppingCart,
+    iconClassName: 'bg-admin-amber-bg text-admin-amber-dark',
+    unread: false,
+  },
+  {
+    title: 'Phiên đăng nhập mới',
+    description: 'Tài khoản vừa đăng nhập trên thiết bị mới.',
+    time: '5 ngày trước',
+    icon: ShieldAlert,
+    iconClassName: 'bg-admin-red-bg text-admin-red-dark',
+    unread: false,
+  },
+] as const;
+
 export function Header() {
   const { isMobile, isSidebarOpen, sidebarToggle } = useLayout();
   const { pathname } = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [language, setLanguage] = useState('vi');
+  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const currentLanguage =
     DISPLAY_LANGUAGES.find((item) => item.code === language) ??
     DISPLAY_LANGUAGES[0];
+  const unreadNotificationCount = notifications.filter(
+    (notification) => notification.unread,
+  ).length;
 
   useEffect(() => {
     setIsSheetOpen(false);
@@ -123,114 +204,210 @@ export function Header() {
         </div>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="flex shrink-0 items-center gap-3 rounded-lg p-1.5 text-left outline-hidden transition-colors hover:bg-field focus-visible:ring-2 focus-visible:ring-ring"
-            type="button"
-            aria-label="Mở menu tài khoản"
+      <div className="flex shrink-0 items-center gap-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              mode="icon"
+              size="sm"
+              className="relative"
+              aria-label="Mở thông báo"
+            >
+              <Bell className="size-4.5" />
+              {unreadNotificationCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  size="xs"
+                  shape="circle"
+                  className="absolute -end-0.5 -top-0.5 size-4 min-w-4 p-0 text-[0.625rem] leading-none"
+                >
+                  {unreadNotificationCount}
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            className="w-[22rem] overflow-hidden p-0"
           >
-            <span className="hidden text-right sm:block">
-              <span className="block text-sm font-semibold leading-tight text-admin-blue-darkest">
-                Thanh Hiếu
-              </span>
-              <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
-                Tổ chức
-              </span>
-            </span>
-            <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
-              <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
-                T
-              </AvatarFallback>
-            </Avatar>
-          </button>
-        </DropdownMenuTrigger>
+            <div className="max-h-80 overflow-y-auto p-2">
+              <div className="space-y-1">
+                {notifications.map((notification) => {
+                  const Icon = notification.icon;
 
-        <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-1.5">
-          <DropdownMenuLabel className="px-2 py-1.5">
-            <div className="flex items-center gap-3">
+                  return (
+                    <button
+                      key={notification.title}
+                      type="button"
+                      className="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-field"
+                    >
+                      <span
+                        className={`flex size-9 shrink-0 items-center justify-center rounded-full ${notification.iconClassName}`}
+                      >
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-start justify-between gap-3">
+                          <span className="text-sm font-semibold text-foreground">
+                            {notification.title}
+                          </span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {notification.time}
+                          </span>
+                        </span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                          {notification.description}
+                        </span>
+                      </span>
+                      {notification.unread && (
+                        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
+              <span className="text-xs text-muted-foreground">
+                {unreadNotificationCount} tin chưa đọc
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-primary hover:text-primary"
+                disabled={unreadNotificationCount === 0}
+                onClick={() =>
+                  setNotifications((current) =>
+                    current.map((notification) => ({
+                      ...notification,
+                      unread: false,
+                    })),
+                  )
+                }
+              >
+                Đánh dấu đã đọc tất cả
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex shrink-0 items-center gap-3 rounded-lg p-1.5 text-left outline-hidden transition-colors hover:bg-field focus-visible:ring-2 focus-visible:ring-ring"
+              type="button"
+              aria-label="Mở menu tài khoản"
+            >
+              <span className="hidden text-right sm:block">
+                <span className="block text-sm font-semibold leading-tight text-admin-blue-darkest">
+                  Thanh Hiếu
+                </span>
+                <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
+                  Tổ chức
+                </span>
+              </span>
               <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
                 <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
                   T
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  Thanh Hiếu
-                </p>
-                <p className="truncate text-xs font-normal text-muted-foreground">
-                  thanh.hieu@admin.vn
-                </p>
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="w-64 p-1.5"
+          >
+            <DropdownMenuLabel className="px-2 py-1.5">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
+                  <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
+                    T
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    Thanh Hiếu
+                  </p>
+                  <p className="truncate text-xs font-normal text-muted-foreground">
+                    thanh.hieu@admin.vn
+                  </p>
+                </div>
               </div>
-            </div>
-          </DropdownMenuLabel>
+            </DropdownMenuLabel>
 
-          <DropdownMenuSeparator />
+            <DropdownMenuSeparator />
 
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <UserRound />
-              Tài khoản
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
+              <DropdownMenuItem>
+                <UserRound />
+                Tài khoản
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings />
+                Cài đặt
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Tùy chọn</DropdownMenuLabel>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Languages />
+                  <span className="min-w-0 flex-1 truncate">Ngôn ngữ</span>
+                  <img
+                    src={currentLanguage.flag}
+                    alt={currentLanguage.label}
+                    className="h-3.5 w-5 shrink-0 rounded-sm object-cover"
+                  />
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-48">
+                  <DropdownMenuRadioGroup
+                    value={language}
+                    onValueChange={setLanguage}
+                  >
+                    {DISPLAY_LANGUAGES.map((item) => (
+                      <DropdownMenuRadioItem
+                        key={item.code}
+                        value={item.code}
+                        indicator="check"
+                        indicatorPosition="end"
+                        className="gap-2"
+                      >
+                        <img
+                          src={item.flag}
+                          alt={item.label}
+                          className="h-3.5 w-5 rounded-sm object-cover"
+                        />
+                        {item.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuItem>
+                <CircleHelp />
+                Trợ giúp
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem variant="destructive">
+              <LogOut />
+              Đăng xuất
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings />
-              Cài đặt
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Tùy chọn</DropdownMenuLabel>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Languages />
-                <span className="min-w-0 flex-1 truncate">Ngôn ngữ</span>
-                <img
-                  src={currentLanguage.flag}
-                  alt={currentLanguage.label}
-                  className="h-3.5 w-5 shrink-0 rounded-sm object-cover"
-                />
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-48">
-                <DropdownMenuRadioGroup
-                  value={language}
-                  onValueChange={setLanguage}
-                >
-                  {DISPLAY_LANGUAGES.map((item) => (
-                    <DropdownMenuRadioItem
-                      key={item.code}
-                      value={item.code}
-                      indicator="check"
-                      indicatorPosition="end"
-                      className="gap-2"
-                    >
-                      <img
-                        src={item.flag}
-                        alt={item.label}
-                        className="h-3.5 w-5 rounded-sm object-cover"
-                      />
-                      {item.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuItem>
-              <CircleHelp />
-              Trợ giúp
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem variant="destructive">
-            <LogOut />
-            Đăng xuất
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }
