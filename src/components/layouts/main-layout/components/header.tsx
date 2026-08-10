@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Bell,
   CircleHelp,
   Languages,
   LogOut,
@@ -147,8 +146,8 @@ export function Header() {
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" sideOffset={8} className="w-72">
-          <DropdownMenuLabel className="px-2 py-2">
+        <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-1.5">
+          <DropdownMenuLabel className="px-2 py-1.5">
             <div className="flex items-center gap-3">
               <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
                 <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
@@ -172,11 +171,11 @@ export function Header() {
             <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
             <DropdownMenuItem>
               <UserRound />
-              Hồ sơ cá nhân
+              Tài khoản
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings />
-              Cài đặt tài khoản
+              Cài đặt
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
@@ -184,16 +183,10 @@ export function Header() {
 
           <DropdownMenuGroup>
             <DropdownMenuLabel>Tùy chọn</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Bell />
-              Tùy chọn thông báo
-            </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Languages />
-                <span className="min-w-0 flex-1 truncate">
-                  Ngôn ngữ hiển thị
-                </span>
+                <span className="min-w-0 flex-1 truncate">Ngôn ngữ</span>
                 <img
                   src={currentLanguage.flag}
                   alt={currentLanguage.label}
@@ -226,7 +219,7 @@ export function Header() {
             </DropdownMenuSub>
             <DropdownMenuItem>
               <CircleHelp />
-              Trung tâm trợ giúp
+              Trợ giúp
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
