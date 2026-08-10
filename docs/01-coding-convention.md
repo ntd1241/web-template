@@ -74,6 +74,8 @@ is available.
 
 - Use Tailwind 4 utilities and semantic tokens defined in `src/styles/globals.css`.
 - Do not add a Tailwind 3 config or hardcode palette values in feature UI.
+- Because the app supports display density by scaling the root `font-size`, limit explicit `px` values. Prefer Tailwind utilities (which use the design scale) or `rem` for typography, spacing, and component dimensions so the density setting scales consistently.
+- Use `px` only when a fixed pixel size is intentional and necessary, such as a 1px border, a small icon or asset constraint, or a pixel-based visualization requirement. Avoid arbitrary Tailwind values such as `text-[14px]` when a semantic utility or `rem` value is suitable.
 - Shared appearance belongs in component defaults or tokens, not repeated page overrides.
 - Use `cn()` for conditional classes.
 - Follow [`02-design-system.md`](./02-design-system.md) only when making a shared UX or visual decision.

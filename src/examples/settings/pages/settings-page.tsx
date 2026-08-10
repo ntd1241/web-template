@@ -1,4 +1,11 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import {
   Bell,
   Building2,
@@ -11,7 +18,14 @@ import {
   UserRound,
   type LucideIcon,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import {
+  useAppSettings,
+  type AppAppearanceSettings,
+  type AppDensity,
+  type AppTheme,
+} from '@/providers/app-settings-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -63,8 +77,8 @@ type SettingsValues = {
     sessionTimeout: string;
   };
   appearance: {
-    theme: string;
-    density: string;
+    theme: AppTheme;
+    density: AppDensity;
     sidebarCollapsed: boolean;
   };
 };
@@ -97,7 +111,7 @@ const initialSettings: SettingsValues = {
   },
   appearance: {
     theme: 'system',
-    density: 'comfortable',
+    density: 'large',
     sidebarCollapsed: false,
   },
 };
@@ -110,13 +124,65 @@ const tabs = [
   { value: 'appearance', label: 'Giao diện', icon: Palette },
 ] as const;
 
-export function SettingsPage() {
-  const [settings, setSettings] = useState<SettingsValues>(initialSettings);
-  const [savedSettings, setSavedSettings] =
-    useState<SettingsValues>(initialSettings);
+type SettingsTab = (typeof tabs)[number]['value'];
+type SavedSettingsTab = Exclude<SettingsTab, 'appearance'>;
 
-  const isDirty = useMemo(
-    () => JSON.stringify(settings) !== JSON.stringify(savedSettings),
+function createInitialSettings(
+  appearance: AppAppearanceSettings,
+  activeTheme?: string,
+): SettingsValues {
+  const theme =
+    activeTheme === 'light' ||
+    activeTheme === 'dark' ||
+    activeTheme === 'system'
+      ? activeTheme
+      : appearance.theme;
+
+  return {
+    ...initialSettings,
+    appearance: {
+      ...initialSettings.appearance,
+      theme,
+      density: appearance.density,
+      sidebarCollapsed: appearance.sidebarCollapsed,
+    },
+  };
+}
+
+export function SettingsPage() {
+  const { theme: activeTheme, setTheme } = useTheme();
+  const { appearance, saveAppearance } = useAppSettings();
+  const initialPageSettings = useMemo(
+    () => createInitialSettings(appearance, activeTheme),
+    [activeTheme, appearance],
+  );
+  const hasHydratedInitialAppearance = useRef(false);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const [settings, setSettings] = useState<SettingsValues>(initialPageSettings);
+  const [savedSettings, setSavedSettings] =
+    useState<SettingsValues>(initialPageSettings);
+
+  useEffect(() => {
+    if (hasHydratedInitialAppearance.current || activeTheme === undefined) {
+      return;
+    }
+
+    hasHydratedInitialAppearance.current = true;
+    setSettings(initialPageSettings);
+    setSavedSettings(initialPageSettings);
+  }, [activeTheme, initialPageSettings]);
+
+  const isSectionDirty = (section: keyof SettingsValues) =>
+    JSON.stringify(settings[section]) !==
+    JSON.stringify(savedSettings[section]);
+
+  const hasUnsavedChanges = useMemo(
+    () =>
+      (Object.keys(settings) as Array<keyof SettingsValues>).some(
+        (section) =>
+          JSON.stringify(settings[section]) !==
+          JSON.stringify(savedSettings[section]),
+      ),
     [savedSettings, settings],
   );
 
@@ -130,22 +196,124 @@ export function SettingsPage() {
     }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSavedSettings(settings);
-    toast.success('Đã lưu cài đặt ứng dụng');
+  const updateAppearance = (patch: Partial<SettingsValues['appearance']>) => {
+    const nextAppearance = { ...settings.appearance, ...patch };
+
+    setSettings((current) => ({
+      ...current,
+      appearance: nextAppearance,
+    }));
+    setSavedSettings((current) => ({
+      ...current,
+      appearance: nextAppearance,
+    }));
+    saveAppearance({
+      theme: nextAppearance.theme,
+      density: nextAppearance.density,
+      sidebarCollapsed: nextAppearance.sidebarCollapsed,
+    });
+    if (patch.theme !== undefined) {
+      setTheme(nextAppearance.theme);
+    }
   };
 
-  const handleReset = () => {
-    setSettings(savedSettings);
-    toast.info('Đã hoàn tác các thay đổi chưa lưu');
+  const saveSection = (section: SavedSettingsTab) => {
+    setSavedSettings((current) => ({
+      ...current,
+      [section]: settings[section],
+    }));
+    toast.success(`Đã lưu cài đặt ${getTabLabel(section).toLowerCase()}`);
+  };
+
+  const resetSection = (section: SavedSettingsTab) => {
+    setSettings((current) => ({
+      ...current,
+      [section]: savedSettings[section],
+    }));
+    toast.info(`Đã hoàn tác thay đổi ở tab ${getTabLabel(section)}`);
+  };
+
+  const confirmLeave = useCallback(
+    (message: string) => !hasUnsavedChanges || window.confirm(message),
+    [hasUnsavedChanges],
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    const handleInternalNavigation = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) {
+        return;
+      }
+
+      const target = event.target as Element | null;
+      const link = target?.closest('a[href]');
+
+      if (
+        !link ||
+        link.getAttribute('target') === '_blank' ||
+        link.hasAttribute('download') ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const href = link.getAttribute('href');
+
+      if (!href || href.startsWith('#') || href === window.location.pathname) {
+        return;
+      }
+
+      if (!confirmLeave('Bạn có thay đổi chưa lưu. Bạn vẫn muốn rời trang?')) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleInternalNavigation, true);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleInternalNavigation, true);
+    };
+  }, [confirmLeave, hasUnsavedChanges]);
+
+  const handleTabChange = (nextTab: string) => {
+    if (nextTab === activeTab) {
+      return;
+    }
+
+    if (
+      isSectionDirty(activeTab) &&
+      !confirmLeave(
+        `Tab ${getTabLabel(activeTab)} có thay đổi chưa lưu. Bạn vẫn muốn chuyển tab?`,
+      )
+    ) {
+      return;
+    }
+
+    if (tabs.some((tab) => tab.value === nextTab)) {
+      setActiveTab(nextTab as SettingsTab);
+    }
   };
 
   return (
     <div className="flex h-full min-h-0 flex-col p-6">
-      <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
+      <div className="flex min-h-0 flex-1 flex-col">
         <Tabs
-          defaultValue="profile"
+          value={activeTab}
+          onValueChange={handleTabChange}
           className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[240px_minmax(0,1fr)]"
         >
           <Card className="flex h-fit max-h-full min-h-0 self-start flex-col">
@@ -282,7 +450,11 @@ export function SettingsPage() {
                     </div>
                   </div>
                 </SettingsSection>
-                <SettingsActions isDirty={isDirty} onReset={handleReset} />
+                <SettingsActions
+                  isDirty={isSectionDirty('profile')}
+                  onSave={() => saveSection('profile')}
+                  onReset={() => resetSection('profile')}
+                />
               </TabsContent>
 
               <TabsContent value="organization" className="mt-0 space-y-5">
@@ -358,7 +530,11 @@ export function SettingsPage() {
                     </SettingsField>
                   </div>
                 </SettingsSection>
-                <SettingsActions isDirty={isDirty} onReset={handleReset} />
+                <SettingsActions
+                  isDirty={isSectionDirty('organization')}
+                  onSave={() => saveSection('organization')}
+                  onReset={() => resetSection('organization')}
+                />
               </TabsContent>
 
               <TabsContent value="notifications" className="mt-0 space-y-5">
@@ -426,7 +602,11 @@ export function SettingsPage() {
                     </Select>
                   </SettingsField>
                 </SettingsSection>
-                <SettingsActions isDirty={isDirty} onReset={handleReset} />
+                <SettingsActions
+                  isDirty={isSectionDirty('notifications')}
+                  onSave={() => saveSection('notifications')}
+                  onReset={() => resetSection('notifications')}
+                />
               </TabsContent>
 
               <TabsContent value="security" className="mt-0 space-y-5">
@@ -478,7 +658,11 @@ export function SettingsPage() {
                     </SettingsField>
                   </div>
                 </SettingsSection>
-                <SettingsActions isDirty={isDirty} onReset={handleReset} />
+                <SettingsActions
+                  isDirty={isSectionDirty('security')}
+                  onSave={() => saveSection('security')}
+                  onReset={() => resetSection('security')}
+                />
               </TabsContent>
 
               <TabsContent value="appearance" className="mt-0 space-y-5">
@@ -491,9 +675,15 @@ export function SettingsPage() {
                     <SettingsField label="Chủ đề">
                       <Select
                         value={settings.appearance.theme}
-                        onValueChange={(theme) =>
-                          updateSection('appearance', { theme })
-                        }
+                        onValueChange={(theme) => {
+                          if (
+                            theme === 'system' ||
+                            theme === 'light' ||
+                            theme === 'dark'
+                          ) {
+                            updateAppearance({ theme });
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -508,16 +698,23 @@ export function SettingsPage() {
                     <SettingsField label="Mật độ hiển thị">
                       <Select
                         value={settings.appearance.density}
-                        onValueChange={(density) =>
-                          updateSection('appearance', { density })
-                        }
+                        onValueChange={(density) => {
+                          if (
+                            density === 'small' ||
+                            density === 'medium' ||
+                            density === 'large'
+                          ) {
+                            updateAppearance({ density });
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="comfortable">Thoải mái</SelectItem>
-                          <SelectItem value="compact">Gọn</SelectItem>
+                          <SelectItem value="small">Nhỏ (90%)</SelectItem>
+                          <SelectItem value="medium">Vừa (95%)</SelectItem>
+                          <SelectItem value="large">Lớn (100%)</SelectItem>
                         </SelectContent>
                       </Select>
                     </SettingsField>
@@ -530,25 +727,30 @@ export function SettingsPage() {
                     description="Mở nội dung rộng hơn khi làm việc với bảng dữ liệu."
                     checked={settings.appearance.sidebarCollapsed}
                     onCheckedChange={(sidebarCollapsed) =>
-                      updateSection('appearance', { sidebarCollapsed })
+                      updateAppearance({ sidebarCollapsed })
                     }
                   />
                 </SettingsSection>
-                <SettingsActions isDirty={isDirty} onReset={handleReset} />
               </TabsContent>
             </div>
           </ScrollArea>
         </Tabs>
-      </form>
+      </div>
     </div>
   );
 }
 
+function getTabLabel(tab: SettingsTab) {
+  return tabs.find((item) => item.value === tab)?.label ?? tab;
+}
+
 function SettingsActions({
   isDirty,
+  onSave,
   onReset,
 }: {
   isDirty: boolean;
+  onSave: () => void;
   onReset: () => void;
 }) {
   return (
@@ -567,7 +769,12 @@ function SettingsActions({
         <RotateCcw />
         Hoàn tác
       </Button>
-      <Button type="submit" variant="primary" disabled={!isDirty}>
+      <Button
+        type="button"
+        variant="primary"
+        onClick={onSave}
+        disabled={!isDirty}
+      >
         <Save />
         Lưu thay đổi
       </Button>

@@ -11,12 +11,13 @@ import { configureApiAuth } from '@/lib/axios';
 import { queryClient } from '@/lib/query-client';
 import { Toaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from '@/components/common/error-boundary';
+import { AppSettingsProvider } from './app-settings-provider';
 
 const { BASE_URL } = import.meta.env;
 
 /**
  * Gom toàn bộ provider của app vào một nơi. Thứ tự (ngoài → trong):
- * Error → Theme → i18n → Helmet → QueryClient → LoadingBar → Router → Toaster.
+ * Error → Theme → AppSettings → i18n → Helmet → QueryClient → LoadingBar → Router → Toaster.
  */
 export function AppProviders({ children }: { children: ReactNode }) {
   // Nối axios với auth store mà không tạo import vòng.
@@ -37,19 +38,21 @@ export function AppProviders({ children }: { children: ReactNode }) {
         disableTransitionOnChange
         enableColorScheme
       >
-        <I18nProvider>
-          <HelmetProvider>
-            <QueryClientProvider client={queryClient}>
-              <LoadingBarContainer>
-                <BrowserRouter basename={BASE_URL}>
-                  <Toaster />
-                  {children}
-                </BrowserRouter>
-              </LoadingBarContainer>
-              <ReactQueryDevtools initialIsOpen={false} />
-            </QueryClientProvider>
-          </HelmetProvider>
-        </I18nProvider>
+        <AppSettingsProvider>
+          <I18nProvider>
+            <HelmetProvider>
+              <QueryClientProvider client={queryClient}>
+                <LoadingBarContainer>
+                  <BrowserRouter basename={BASE_URL}>
+                    <Toaster />
+                    {children}
+                  </BrowserRouter>
+                </LoadingBarContainer>
+                <ReactQueryDevtools initialIsOpen={false} />
+              </QueryClientProvider>
+            </HelmetProvider>
+          </I18nProvider>
+        </AppSettingsProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

@@ -10,6 +10,9 @@
 
 /** Colors - https://tailwindcss.com/docs/colors **/
 :root {
+  --app-root-font-size: 16px;
+  font-size: var(--app-root-font-size);
+
   --admin-primary: #1677ff;
   --admin-primary-dark: #0e5cd6;
   --admin-primary-darker: #0a47a8;

@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAppSettings } from '@/providers/app-settings-provider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface LayoutState {
   style: CSSProperties;
@@ -19,9 +20,20 @@ interface LayoutProviderProps {
 
 const LayoutContext = createContext<LayoutState | undefined>(undefined);
 
-export function LayoutProvider({ children, style: customStyle, bodyClassName = '' }: LayoutProviderProps) {
+export function LayoutProvider({
+  children,
+  style: customStyle,
+  bodyClassName = '',
+}: LayoutProviderProps) {
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { appearance } = useAppSettings();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    !appearance.sidebarCollapsed,
+  );
+
+  useEffect(() => {
+    setIsSidebarOpen(!appearance.sidebarCollapsed);
+  }, [appearance.sidebarCollapsed]);
 
   const sidebarCurrentWidth = isSidebarOpen
     ? 'var(--sidebar-width)'
@@ -52,8 +64,15 @@ export function LayoutProvider({ children, style: customStyle, bodyClassName = '
   }, [bodyClassName]);
 
   return (
-    <LayoutContext.Provider value={{ bodyClassName, style, isMobile, isSidebarOpen, sidebarToggle }}>
-      <div data-slot="layout-wrapper" className="flex grow" data-sidebar-open={isSidebarOpen} style={style}>
+    <LayoutContext.Provider
+      value={{ bodyClassName, style, isMobile, isSidebarOpen, sidebarToggle }}
+    >
+      <div
+        data-slot="layout-wrapper"
+        className="flex grow"
+        data-sidebar-open={isSidebarOpen}
+        style={style}
+      >
         <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
       </div>
     </LayoutContext.Provider>
