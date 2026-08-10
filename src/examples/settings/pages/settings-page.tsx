@@ -46,6 +46,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { SettingsGroup, SettingsRow } from '@/components/ui/settings';
 import { Switch, SwitchWrapper } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -543,40 +544,64 @@ export function SettingsPage() {
                   title="Kênh thông báo"
                   description="Chọn những loại thông báo bạn muốn nhận."
                 >
-                  <div className="divide-y divide-border rounded-lg border border-border/70">
-                    <SettingsSwitchRow
+                  <SettingsGroup>
+                    <SettingsRow
                       title="Thông báo qua email"
                       description="Nhận cập nhật quan trọng và thông báo phê duyệt qua email."
-                      checked={settings.notifications.email}
-                      onCheckedChange={(email) =>
-                        updateSection('notifications', { email })
+                      control={
+                        <SwitchWrapper>
+                          <Switch
+                            checked={settings.notifications.email}
+                            onCheckedChange={(email) =>
+                              updateSection('notifications', { email })
+                            }
+                          />
+                        </SwitchWrapper>
                       }
                     />
-                    <SettingsSwitchRow
+                    <SettingsRow
                       title="Thông báo trong ứng dụng"
                       description="Hiển thị thông báo trong trung tâm thông báo."
-                      checked={settings.notifications.inApp}
-                      onCheckedChange={(inApp) =>
-                        updateSection('notifications', { inApp })
+                      control={
+                        <SwitchWrapper>
+                          <Switch
+                            checked={settings.notifications.inApp}
+                            onCheckedChange={(inApp) =>
+                              updateSection('notifications', { inApp })
+                            }
+                          />
+                        </SwitchWrapper>
                       }
                     />
-                    <SettingsSwitchRow
+                    <SettingsRow
                       title="Bảo trì hệ thống"
                       description="Thông báo trước khi hệ thống có lịch bảo trì."
-                      checked={settings.notifications.maintenance}
-                      onCheckedChange={(maintenance) =>
-                        updateSection('notifications', { maintenance })
+                      control={
+                        <SwitchWrapper>
+                          <Switch
+                            checked={settings.notifications.maintenance}
+                            onCheckedChange={(maintenance) =>
+                              updateSection('notifications', { maintenance })
+                            }
+                          />
+                        </SwitchWrapper>
                       }
                     />
-                    <SettingsSwitchRow
+                    <SettingsRow
                       title="Báo cáo tổng hợp hàng tuần"
                       description="Tóm tắt hoạt động và chỉ số vận hành mỗi tuần."
-                      checked={settings.notifications.weeklySummary}
-                      onCheckedChange={(weeklySummary) =>
-                        updateSection('notifications', { weeklySummary })
+                      control={
+                        <SwitchWrapper>
+                          <Switch
+                            checked={settings.notifications.weeklySummary}
+                            onCheckedChange={(weeklySummary) =>
+                              updateSection('notifications', { weeklySummary })
+                            }
+                          />
+                        </SwitchWrapper>
                       }
                     />
-                  </div>
+                  </SettingsGroup>
                 </SettingsSection>
 
                 <SettingsSection
@@ -615,24 +640,36 @@ export function SettingsPage() {
                   title="Bảo mật tài khoản"
                   description="Tăng cường bảo vệ tài khoản và kiểm soát phiên đăng nhập."
                 >
-                  <div className="divide-y divide-border rounded-lg border border-border/70">
-                    <SettingsSwitchRow
+                  <SettingsGroup>
+                    <SettingsRow
                       title="Xác thực hai bước"
                       description="Yêu cầu mã xác thực ngoài mật khẩu khi đăng nhập."
-                      checked={settings.security.twoFactor}
-                      onCheckedChange={(twoFactor) =>
-                        updateSection('security', { twoFactor })
+                      control={
+                        <SwitchWrapper>
+                          <Switch
+                            checked={settings.security.twoFactor}
+                            onCheckedChange={(twoFactor) =>
+                              updateSection('security', { twoFactor })
+                            }
+                          />
+                        </SwitchWrapper>
                       }
                     />
-                    <SettingsSwitchRow
+                    <SettingsRow
                       title="Cảnh báo đăng nhập mới"
                       description="Thông báo khi tài khoản đăng nhập từ thiết bị mới."
-                      checked={settings.security.loginAlerts}
-                      onCheckedChange={(loginAlerts) =>
-                        updateSection('security', { loginAlerts })
+                      control={
+                        <SwitchWrapper>
+                          <Switch
+                            checked={settings.security.loginAlerts}
+                            onCheckedChange={(loginAlerts) =>
+                              updateSection('security', { loginAlerts })
+                            }
+                          />
+                        </SwitchWrapper>
                       }
                     />
-                  </div>
+                  </SettingsGroup>
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <SettingsField
@@ -722,12 +759,18 @@ export function SettingsPage() {
 
                   <Separator />
 
-                  <SettingsSwitchRow
+                  <SettingsRow
                     title="Thu gọn sidebar mặc định"
                     description="Mở nội dung rộng hơn khi làm việc với bảng dữ liệu."
-                    checked={settings.appearance.sidebarCollapsed}
-                    onCheckedChange={(sidebarCollapsed) =>
-                      updateAppearance({ sidebarCollapsed })
+                    control={
+                      <SwitchWrapper>
+                        <Switch
+                          checked={settings.appearance.sidebarCollapsed}
+                          onCheckedChange={(sidebarCollapsed) =>
+                            updateAppearance({ sidebarCollapsed })
+                          }
+                        />
+                      </SwitchWrapper>
                     }
                   />
                 </SettingsSection>
@@ -829,30 +872,6 @@ function SettingsField({
       {description && (
         <p className="text-xs text-muted-foreground">{description}</p>
       )}
-    </div>
-  );
-}
-
-function SettingsSwitchRow({
-  title,
-  description,
-  checked,
-  onCheckedChange,
-}: {
-  title: string;
-  description: string;
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-foreground">{title}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-      </div>
-      <SwitchWrapper className="shrink-0">
-        <Switch checked={checked} onCheckedChange={onCheckedChange} />
-      </SwitchWrapper>
     </div>
   );
 }
