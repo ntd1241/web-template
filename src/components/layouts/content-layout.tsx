@@ -150,26 +150,15 @@ export function ContentLayout({
         )}
       </div>
 
-      <ScrollArea
-        className={cn(
-          'min-h-0 min-w-0 flex-1',
-          contentHeight === 'fill' && 'h-full',
-        )}
-        viewportClassName={
-          contentHeight === 'fill'
-            ? '[&>div]:!flex [&>div]:min-h-full [&>div]:flex-col'
-            : undefined
-        }
-      >
-        <div
-          className={cn(
-            'min-w-0 pb-2 pe-2',
-            contentHeight === 'fill' && '!flex min-h-full flex-1 flex-col',
-          )}
-        >
+      {contentHeight === 'fill' ? (
+        <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden pe-2">
           {content}
         </div>
-      </ScrollArea>
+      ) : (
+        <ScrollArea className="min-h-0 min-w-0 flex-1">
+          <div className="min-w-0 pb-2 pe-2">{content}</div>
+        </ScrollArea>
+      )}
     </div>
   );
 }

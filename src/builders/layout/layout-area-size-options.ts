@@ -11,7 +11,9 @@ export const layoutAreaSizeOptions = [
   { value: 'xl', label: 'Rộng', className: 'lg:w-96', widthRem: 24 },
 ] as const;
 
-export type LayoutAreaSize = (typeof layoutAreaSizeOptions)[number]['value'];
+export const layoutAreaSizeValues = ['sm', 'md', 'lg', 'xl'] as const;
+
+export type LayoutAreaSize = (typeof layoutAreaSizeValues)[number];
 
 export const DEFAULT_LAYOUT_AREA_SIZE: LayoutAreaSize = 'md';
 
@@ -20,5 +22,6 @@ export const layoutAreaHeightOptions = [
   { value: 'fill', label: 'Đầy chiều cao' },
 ] as const;
 
-export type LayoutAreaHeight =
-  (typeof layoutAreaHeightOptions)[number]['value'];
+export const layoutAreaHeightValues = ['fit', 'fill'] as const;
+
+export type LayoutAreaHeight = (typeof layoutAreaHeightValues)[number];

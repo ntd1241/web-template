@@ -16,6 +16,7 @@
     "gen:form": "tsx tools/builders/cli/gen-form.ts",
     "gen:editor-table": "tsx tools/builders/cli/gen-editor-table.ts",
     "gen:tree": "tsx tools/builders/cli/gen-tree.ts",
+    "gen:layout": "tsx tools/builders/cli/gen-layout.ts",
     "gen:chart": "tsx tools/builders/cli/gen-chart.ts",
     "gen:tooltip": "tsx tools/builders/cli/gen-tooltip.ts",
     "prepare": "husky"

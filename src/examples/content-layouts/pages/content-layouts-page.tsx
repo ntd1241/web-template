@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ContentLayout } from '@/components/layouts/content-layout';
+import { GeneratedTwoColumnContentLayout } from '../components/generated-two-column-content-layout';
 
 export function ContentLayoutsPage() {
   const [navigationSize, setNavigationSize] = useState<LayoutAreaSize>(
@@ -57,7 +57,7 @@ export function ContentLayoutsPage() {
         </p>
       </div>
 
-      <ContentLayout
+      <GeneratedTwoColumnContentLayout
         navigationSize={navigationSize}
         navigationMinSize={navigationMinSize}
         navigationMaxSize={navigationMaxSize}
