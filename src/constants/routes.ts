@@ -23,6 +23,7 @@ export const ROUTES = {
     ROLE_PERMISSIONS: '/example/role-permissions',
     CHARTS: '/example/charts',
     SETTINGS: '/example/settings',
+    CONTENT_LAYOUT_TWO_COLUMN: '/example/content-layouts/two-column',
     OPERATIONS_DASHBOARD: '/example/operations-dashboard',
   },
 } as const;

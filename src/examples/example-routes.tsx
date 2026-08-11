@@ -83,6 +83,11 @@ const SettingsPage = lazy(() =>
     default: m.SettingsPage,
   })),
 );
+const ContentLayoutsPage = lazy(() =>
+  import('./content-layouts/pages/content-layouts-page').then((m) => ({
+    default: m.ContentLayoutsPage,
+  })),
+);
 
 // Greybox/wireframe — rendered INSIDE MainLayout so the real shell (sidebar +
 // topbar) surrounds it; the greybox only blocks out the page content area.
@@ -217,6 +222,14 @@ const exampleRoutes: ReactNode = (
         element={
           <Suspense fallback={<ScreenLoader />}>
             <SettingsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path={ROUTES.EXAMPLE.CONTENT_LAYOUT_TWO_COLUMN}
+        element={
+          <Suspense fallback={<ScreenLoader />}>
+            <ContentLayoutsPage />
           </Suspense>
         }
       />

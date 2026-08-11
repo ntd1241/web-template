@@ -3,6 +3,7 @@ import {
   Boxes,
   ChartLine,
   ClipboardCheck,
+  Columns2,
   FilePen,
   PackageCheck,
   Settings,
@@ -112,6 +113,16 @@ export const MENU_GROUPS: MenuGroupConfig[] = [
         icon: ShieldCheck,
         path: ROUTES.EXAMPLE.ROLE_PERMISSIONS,
         wireframePath: '/example/role-permissions/wireframe',
+      },
+    ],
+  },
+  {
+    title: 'Content layouts',
+    items: [
+      {
+        label: 'Chia 2 phần',
+        icon: Columns2,
+        path: ROUTES.EXAMPLE.CONTENT_LAYOUT_TWO_COLUMN,
       },
     ],
   },
