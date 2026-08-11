@@ -50,3 +50,26 @@ screen to override defaults without changing the generated file:
 ```
 
 Business state and builder children remain outside the generated wrapper.
+
+## Presets
+
+Use the shared preset registry when a new page follows a common content shape:
+
+```ts
+import { layoutPresets } from '@/builders/layout';
+
+const spec = {
+  componentName: 'GeneratedFullHeightSplitLayout',
+  defaults: {
+    ...layoutPresets.fullHeightSplit.defaults,
+    navigationResizable: true,
+  },
+};
+```
+
+Available presets:
+
+- `layoutPresets.contentFit`: navigation follows its content and the main area uses the normal page scroll behavior.
+- `layoutPresets.fullHeightSplit`: navigation and content fill the layout height; the data area owns its internal scroll while the footer stays visible.
+
+Presets are starting points, not locks. Override individual defaults when a page has a slightly different navigation width, height mode, or resize behavior.
