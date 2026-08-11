@@ -19,6 +19,7 @@
     "gen:layout": "tsx tools/builders/cli/gen-layout.ts",
     "gen:chart": "tsx tools/builders/cli/gen-chart.ts",
     "gen:tooltip": "tsx tools/builders/cli/gen-tooltip.ts",
+    "gen:account-menu": "tsx tools/builders/cli/gen-account-menu.ts",
     "prepare": "husky"
   },
   "lint-staged": {

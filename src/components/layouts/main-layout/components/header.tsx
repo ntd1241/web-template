@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
   Bell,
+  Building2,
   CircleHelp,
   Languages,
   LogOut,
   Menu,
   PackageCheck,
+  Palette,
   PanelLeft,
   PanelLeftClose,
   Settings,
@@ -13,6 +15,7 @@ import {
   ShoppingCart,
   UserRound,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Link, useLocation } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -44,6 +47,12 @@ import {
   SheetHeader,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useLayout } from './context';
 import { SidebarPrimary } from './sidebar-primary';
 import { SidebarSecondary } from './sidebar-secondary';
@@ -59,6 +68,12 @@ const DISPLAY_LANGUAGES = [
     label: 'English',
     flag: toAbsoluteUrl('/media/flags/united-states.svg'),
   },
+] as const;
+
+const DISPLAY_THEMES = [
+  { value: 'system', label: 'Theo hệ thống' },
+  { value: 'light', label: 'Sáng' },
+  { value: 'dark', label: 'Tối' },
 ] as const;
 
 const MOCK_NOTIFICATIONS = [
@@ -128,15 +143,45 @@ const MOCK_NOTIFICATIONS = [
   },
 ] as const;
 
+function AccountMenuHeader() {
+  return (
+    <>
+      <DropdownMenuLabel className="px-2 py-1.5">
+        <div className="flex items-center gap-3">
+          <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
+            <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
+              T
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">
+              Thanh Hiếu
+            </p>
+            <p className="truncate text-xs font-normal text-muted-foreground">
+              thanh.hieu@admin.vn
+            </p>
+          </div>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+    </>
+  );
+}
+
 export function Header() {
   const { isMobile, isSidebarOpen, sidebarToggle } = useLayout();
   const { pathname } = useLocation();
+  const { theme, setTheme } = useTheme();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [language, setLanguage] = useState('vi');
+  const [desktopNotificationsEnabled, setDesktopNotificationsEnabled] =
+    useState(true);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const currentLanguage =
     DISPLAY_LANGUAGES.find((item) => item.code === language) ??
     DISPLAY_LANGUAGES[0];
+  const currentTheme =
+    DISPLAY_THEMES.find((item) => item.value === theme) ?? DISPLAY_THEMES[0];
   const unreadNotificationCount = notifications.filter(
     (notification) => notification.unread,
   ).length;
@@ -323,35 +368,41 @@ export function Header() {
             sideOffset={8}
             className="w-64 p-1.5"
           >
-            <DropdownMenuLabel className="px-2 py-1.5">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
-                  <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
-                    T
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    Thanh Hiếu
-                  </p>
-                  <p className="truncate text-xs font-normal text-muted-foreground">
-                    thanh.hieu@admin.vn
-                  </p>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
+            <AccountMenuHeader />
 
             <DropdownMenuGroup>
               <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
               <DropdownMenuItem>
                 <UserRound />
-                Tài khoản
+                <span className="min-w-0 flex-1">Tài khoản</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="destructive"
+                      size="xs"
+                      shape="circle"
+                      className="size-4 min-w-4 shrink-0 px-0 text-[0.625rem]"
+                    >
+                      !
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent variant="destructive">
+                    Cần cập nhật thông tin tài khoản
+                  </TooltipContent>
+                </Tooltip>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings />
                 Cài đặt
+              </DropdownMenuItem>
+              <DropdownMenuItem className="items-start py-2">
+                <Building2 className="mt-0.5" />
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span>Tổ chức</span>
+                  <span className="truncate text-xs font-normal text-muted-foreground">
+                    Công ty TNHH Vacom
+                  </span>
+                </span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
@@ -359,6 +410,32 @@ export function Header() {
 
             <DropdownMenuGroup>
               <DropdownMenuLabel>Tùy chọn</DropdownMenuLabel>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Palette />
+                  <span className="min-w-0 flex-1 truncate">Chủ đề</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {currentTheme.label}
+                  </span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-48">
+                  <DropdownMenuRadioGroup
+                    value={theme ?? 'system'}
+                    onValueChange={setTheme}
+                  >
+                    {DISPLAY_THEMES.map((item) => (
+                      <DropdownMenuRadioItem
+                        key={item.value}
+                        value={item.value}
+                        indicator="check"
+                        indicatorPosition="end"
+                      >
+                        {item.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <Languages />
@@ -393,6 +470,20 @@ export function Header() {
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              <DropdownMenuItem
+                className="justify-between"
+                onSelect={(event) => event.preventDefault()}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Bell />
+                  <span className="truncate">Thông báo trên màn hình</span>
+                </span>
+                <Switch
+                  size="sm"
+                  checked={desktopNotificationsEnabled}
+                  onCheckedChange={setDesktopNotificationsEnabled}
+                />
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <CircleHelp />
                 Trợ giúp
