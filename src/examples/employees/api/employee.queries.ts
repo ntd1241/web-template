@@ -16,7 +16,7 @@ export const employeeKeys = createQueryKeys<EmployeeListParams>('employees');
 export function useEmployeeListQuery(params: EmployeeListParams) {
   return useQuery({
     queryKey: employeeKeys.list(params),
-    queryFn: () => employeeApi.getList(params),
+    queryFn: ({ signal }) => employeeApi.getList(params, signal),
     placeholderData: keepPreviousData,
   });
 }

@@ -32,8 +32,11 @@ function filterMock(params: SupplierListParams): PaginatedResponse<Supplier> {
 }
 
 export const supplierApi = {
-  getList(params: SupplierListParams): Promise<PaginatedResponse<Supplier>> {
-    if (env.useMock) return mockResponse(filterMock(params), 250);
-    return api.get(BASE, { params });
+  getList(
+    params: SupplierListParams,
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Supplier>> {
+    if (env.useMock) return mockResponse(filterMock(params), 250, signal);
+    return api.get(BASE, { params, signal });
   },
 };

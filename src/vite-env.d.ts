@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   /** Base URL của REST API. Ví dụ: http://localhost:3000/api/v1 */
   readonly VITE_API_URL: string;
+  /** Timeout request API tính theo mili-giây. */
+  readonly VITE_API_TIMEOUT_MS?: string;
   /** Bật mock data thay vì gọi API thật. '1' | 'true' để bật. */
   readonly VITE_USE_MOCK: string;
   /** Tên app, dùng cho <title>, header. */

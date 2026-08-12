@@ -2,6 +2,7 @@ import { DEFAULT_LOCALE } from '@/i18n/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiError } from '@/types/api.types';
 import {
+  getApiErrorMessage,
   getErrorMessage,
   getFieldErrors,
   isApiError,
@@ -47,6 +48,20 @@ describe('error helpers', () => {
     );
   });
 
+  it('reads backend payload messages and status overrides', () => {
+    expect(
+      getApiErrorMessage({
+        response: { status: 422, data: { detail: 'Dữ liệu không hợp lệ' } },
+      }),
+    ).toBe('Dữ liệu không hợp lệ');
+    expect(
+      getApiErrorMessage(
+        { response: { status: 503, data: {} } },
+        { statusMessages: { 503: 'Máy chủ đang bảo trì' } },
+      ),
+    ).toBe('Máy chủ đang bảo trì');
+  });
+
   it('uses non-empty string errors', () => {
     expect(getErrorMessage('Lỗi từ mock')).toBe('Lỗi từ mock');
   });
@@ -79,5 +94,11 @@ describe('error helpers', () => {
 
     expect(toastErrorMock).toHaveBeenCalledTimes(1);
     expect(toastErrorMock).toHaveBeenCalledWith('Không thể lưu dữ liệu');
+  });
+
+  it('does not toast cancelled requests', () => {
+    toastError({ code: 'ERR_CANCELED', message: 'canceled' });
+
+    expect(toastErrorMock).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/i18n-provider';
 import { useAuthStore } from '@/stores/auth.store';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -15,19 +15,17 @@ import { AppSettingsProvider } from './app-settings-provider';
 
 const { BASE_URL } = import.meta.env;
 
+// Cấu hình trước khi render để request đầu tiên đã có thể đọc token.
+configureApiAuth({
+  getToken: () => useAuthStore.getState().token,
+  onUnauthorized: () => useAuthStore.getState().logout(),
+});
+
 /**
  * Gom toàn bộ provider của app vào một nơi. Thứ tự (ngoài → trong):
  * Error → Theme → AppSettings → i18n → Helmet → QueryClient → LoadingBar → Router → Toaster.
  */
 export function AppProviders({ children }: { children: ReactNode }) {
-  // Nối axios với auth store mà không tạo import vòng.
-  useEffect(() => {
-    configureApiAuth({
-      getToken: () => useAuthStore.getState().token,
-      onUnauthorized: () => useAuthStore.getState().logout(),
-    });
-  }, []);
-
   return (
     <ErrorBoundary>
       <ThemeProvider

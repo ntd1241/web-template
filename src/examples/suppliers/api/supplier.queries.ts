@@ -8,7 +8,7 @@ export const supplierKeys = createQueryKeys<SupplierListParams>('suppliers');
 export function useSupplierListQuery(params: SupplierListParams) {
   return useQuery({
     queryKey: supplierKeys.list(params),
-    queryFn: () => supplierApi.getList(params),
+    queryFn: ({ signal }) => supplierApi.getList(params, signal),
     placeholderData: keepPreviousData,
   });
 }

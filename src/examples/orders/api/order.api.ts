@@ -22,13 +22,20 @@ function paginateMock(params: OrderListParams): PaginatedResponse<Order> {
 }
 
 export const orderApi = {
-  getList(params: OrderListParams): Promise<PaginatedResponse<Order>> {
-    return mockResponse(paginateMock(params));
+  getList(
+    params: OrderListParams,
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Order>> {
+    return mockResponse(paginateMock(params), 400, signal);
   },
 
-  getItems(orderId: string): Promise<OrderItem[]> {
+  getItems(orderId: string, signal?: AbortSignal): Promise<OrderItem[]> {
     const items = MOCK_ORDER_ITEMS[orderId] ?? [];
-    return mockResponse(items.map((item) => ({ ...item })), 250);
+    return mockResponse(
+      items.map((item) => ({ ...item })),
+      250,
+      signal,
+    );
   },
 
   saveItems(orderId: string, items: OrderItem[]): Promise<OrderItem[]> {

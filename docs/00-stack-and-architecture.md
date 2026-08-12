@@ -5,18 +5,18 @@ Read this for feature boundaries, data flow, or setup decisions. For UI-only wor
 
 ## Current Stack
 
-| Concern | Choice | Source |
-| --- | --- | --- |
-| Build | Vite | `vite.config.ts` |
-| UI | React 19, TypeScript strict | `src/`, `tsconfig.app.json` |
-| Styling | Tailwind CSS 4 via `@tailwindcss/vite` | `src/styles/globals.css` |
-| Routing | React Router declarative routes | `src/routing/app-routing-setup.tsx` |
-| Server state | TanStack React Query | `src/lib/query-client.ts` |
-| Client state | Zustand | `src/stores/` |
-| HTTP | Axios | `src/lib/axios.ts` |
-| Forms | react-hook-form and zod | feature schemas, `src/components/ui/form.tsx` |
-| i18n | react-intl, Vietnamese default | `src/i18n/` |
-| Testing | Vitest and Testing Library | `vitest.config.ts`, `src/test/` |
+| Concern      | Choice                                 | Source                                        |
+| ------------ | -------------------------------------- | --------------------------------------------- |
+| Build        | Vite                                   | `vite.config.ts`                              |
+| UI           | React 19, TypeScript strict            | `src/`, `tsconfig.app.json`                   |
+| Styling      | Tailwind CSS 4 via `@tailwindcss/vite` | `src/styles/globals.css`                      |
+| Routing      | React Router declarative routes        | `src/routing/app-routing-setup.tsx`           |
+| Server state | TanStack React Query                   | `src/lib/query-client.ts`                     |
+| Client state | Zustand                                | `src/stores/`                                 |
+| HTTP         | Axios                                  | `src/lib/axios.ts`                            |
+| Forms        | react-hook-form and zod                | feature schemas, `src/components/ui/form.tsx` |
+| i18n         | react-intl, Vietnamese default         | `src/i18n/`                                   |
+| Testing      | Vitest and Testing Library             | `vitest.config.ts`, `src/test/`               |
 
 Exact versions belong in `package.json`, not duplicated here.
 
@@ -68,6 +68,25 @@ Page or feature component
 - Feature-local UI state stays local.
 - Global stores contain only cross-feature client state.
 - API errors are normalized at the client boundary and surfaced through query/mutation state.
+
+### HTTP client conventions
+
+`src/lib/axios.ts` là HTTP boundary duy nhất cho REST API của project. Feature API
+chỉ gọi instance `api`, không đọc `import.meta.env` hoặc tạo Axios instance riêng.
+
+- `VITE_API_URL` và `VITE_API_TIMEOUT_MS` được đọc qua `src/config/env.ts`.
+- Request object JSON tự nhận `Content-Type`; `FormData`, file và query params
+  không bị ép thành JSON để giữ nguyên cơ chế multipart của trình duyệt.
+- Token được lấy qua auth getter đã cấu hình trước khi app render; không đọc
+  localStorage trực tiếp trong Axios interceptor.
+- Query function nên nhận `signal` từ TanStack Query và truyền tiếp vào Axios
+  để hủy request khi query cũ không còn cần thiết. Mock response cũng hỗ trợ
+  `AbortSignal` để behavior giữa mock và API thật nhất quán.
+- Response lỗi được chuẩn hóa thành `ApiError`, giữ status, code, field errors,
+  request id và thông tin timeout/network. Toast lỗi xử lý ở query/mutation
+  boundary; interceptor không tự hiển thị toast.
+- Refresh-token queue chỉ nên thêm sau khi backend chốt contract refresh token;
+  khi triển khai, cần bảo đảm nhiều request `401` dùng chung một lần refresh.
 
 ## Add Or Extend A Feature
 

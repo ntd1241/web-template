@@ -15,7 +15,7 @@ export const orderKeys = createQueryKeys<OrderListParams>('orders');
 export function useOrderListQuery(params: OrderListParams) {
   return useQuery({
     queryKey: orderKeys.list(params),
-    queryFn: () => orderApi.getList(params),
+    queryFn: ({ signal }) => orderApi.getList(params, signal),
     placeholderData: keepPreviousData,
   });
 }
@@ -23,7 +23,7 @@ export function useOrderListQuery(params: OrderListParams) {
 export function useOrderItemsQuery(orderId: string) {
   return useQuery({
     queryKey: orderKeys.detail(orderId),
-    queryFn: () => orderApi.getItems(orderId),
+    queryFn: ({ signal }) => orderApi.getItems(orderId, signal),
   });
 }
 

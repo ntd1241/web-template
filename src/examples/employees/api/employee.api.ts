@@ -33,9 +33,12 @@ function filterMock(params: EmployeeListParams): PaginatedResponse<Employee> {
  * Đây là chỗ DUY NHẤT chạm tới network cho domain này (docs/00 §3).
  */
 export const employeeApi = {
-  getList(params: EmployeeListParams): Promise<PaginatedResponse<Employee>> {
-    if (env.useMock) return mockResponse(filterMock(params));
-    return api.get(BASE, { params });
+  getList(
+    params: EmployeeListParams,
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Employee>> {
+    if (env.useMock) return mockResponse(filterMock(params), 400, signal);
+    return api.get(BASE, { params, signal });
   },
 
   setStatus(id: string, status: Employee['status']): Promise<Employee> {
