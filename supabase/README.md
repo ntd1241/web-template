@@ -26,10 +26,27 @@ trong Supabase SQL Editor hoặc qua Supabase CLI. Migration tạo:
 
 - `tenants`: thông tin tenant, plan, trạng thái, settings và metadata.
 - `tenant_members`: liên kết user với tenant và role owner/admin/member.
+- `user_profiles`: hồ sơ ứng dụng dùng chung, liên kết 1:1 với `auth.users`.
 - helper functions cho membership/role checks.
 - RPC `create_tenant` để tạo tenant và owner membership trong cùng transaction.
 - RLS: user chỉ đọc tenant/member record mình thuộc về; owner/admin mới được
   cập nhật tenant và quản lý membership.
+
+## Model user
+
+Không tạo một user riêng cho từng tenant:
+
+- `auth.users` là identity đăng nhập toàn cục của Supabase Auth. Email, phone
+  và các timestamp đăng nhập do Auth làm nguồn sự thật.
+- `user_profiles` lưu thông tin hồ sơ dùng chung như tên, avatar, locale và
+  tùy chọn hiển thị. Trigger tự tạo profile sau signup và migration backfill
+  các Auth user đã tồn tại.
+- `tenant_members` liên kết một Auth user với từng tenant, đồng thời lưu các
+  dữ liệu theo tenant như role và trạng thái membership.
+
+Như vậy một người chỉ có một tài khoản đăng nhập nhưng có thể thuộc nhiều
+tenant với role khác nhau. Model frontend biểu diễn user hiện tại bằng
+`CurrentUser.auth` + `CurrentUser.profile`.
 
 Frontend dùng model camelCase trong
 [`src/features/tenants/model/tenant.ts`](../src/features/tenants/model/tenant.ts),
