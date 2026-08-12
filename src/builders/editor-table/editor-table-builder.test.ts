@@ -70,6 +70,22 @@ describe('buildEditorTableModule', () => {
     expect(source).toContain('formatCurrencyVND(lineTotal)');
   });
 
+  it('passes shared date value format through to the date input renderer', () => {
+    const sourceWithDateFormat = buildEditorTableModule({
+      ...orderItemsSpec,
+      columns: [
+        {
+          kind: 'date',
+          name: 'expiryDate',
+          header: 'Hạn dùng',
+          valueMode: 'date',
+        },
+      ],
+    });
+
+    expect(sourceWithDateFormat).toContain('valueMode="date"');
+  });
+
   it('supports remaining and natural viewport modes', () => {
     expect(
       buildEditorTableModule({

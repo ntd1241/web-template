@@ -29,6 +29,19 @@ and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_
 
+## Shared lower-level builders
+
+[`src/builders/shared/form-field-builder.ts`](./shared/form-field-builder.ts) is the lower-level
+form-control builder used by `form` and `editor-table`. It maps normalized field kinds to the existing
+UI primitives (`Input`, `DatePickerInput`, `Select`, and so on), while higher-level builders provide
+binding expressions and surface-specific attributes. It is intentionally not a CLI generator: it is
+a composition primitive so generated outputs remain scaffold-and-own files.
+
+The matching control-level Zod schemas live in
+[`src/builders/shared/form-field-spec.ts`](./shared/form-field-spec.ts). Higher-level specs extend
+those schemas with their own layout and behavior fields, so additions such as date `valueMode` are
+validated and typed from one source.
+
 ## Core rules
 
 - **Model-first.** A table's columns and a form's fields are _projections_ of the same entity type.

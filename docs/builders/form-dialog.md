@@ -3,6 +3,13 @@
 Use the form builder for reusable create/edit forms backed by react-hook-form and zod. The registry
 and command source of truth is [`src/builders/README.md`](../../src/builders/README.md).
 
+Control JSX is emitted through the shared lower-level form-field builder at
+[`src/builders/shared/form-field-builder.ts`](../../src/builders/shared/form-field-builder.ts),
+so new higher-level form surfaces should reuse that builder instead of mapping field kinds to UI
+primitives again. The control-level Zod schemas live in
+[`src/builders/shared/form-field-spec.ts`](../../src/builders/shared/form-field-spec.ts); this form
+schema extends them with form-only metadata such as `label`, `width`, and `required`.
+
 ## Generated Exports
 
 From one `FormSpec`, the builder emits one `*-form.generated.tsx` file with named exports:
@@ -56,6 +63,10 @@ Static select-like options are emitted as module constants only when `optionsFro
 | `combobox`    | `Combobox`            | `value` and `onChange`                                       |
 | `multiselect` | `MultiSelect`         | `value` and `onChange`                                       |
 | `switch`      | `Switch`              | `checked` and `onCheckedChange`                              |
+
+Date fields may set `valueMode: 'date' | 'iso-date'`. This value contract is defined once by the
+shared field schema and passed through to `DatePickerInput`; higher-level builders should forward it
+instead of redefining date format behavior.
 
 Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` is 8, and `full` is 12. Fields stack on mobile.
 

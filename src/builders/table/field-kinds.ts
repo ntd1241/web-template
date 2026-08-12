@@ -1,13 +1,10 @@
 import type { ColumnKind } from './column-spec';
 
 /**
- * Seed of the shared **field-kind registry** (plan decision 4). For now it only
- * carries the table-side mapping: each kind → the `data-grid-columns`
- * column-factory method it emits, and whether the cell needs a render callback
- * supplied by the owned container (JSX/handlers the builder can't serialize).
- *
- * The form builder will extend this with an `input` field per kind so a single
- * registry drives both table columns and form inputs.
+ * Table-side projection of the shared field vocabulary. Display columns map to
+ * the `data-grid-columns` factory; editable form controls are owned by
+ * `shared/form-field-builder.ts` and are reused by the form/editor-table
+ * builders instead of being duplicated here.
  */
 export interface ColumnKindMeta {
   /** Column-factory method this kind compiles to (`col.<factoryMethod>(...)`). */

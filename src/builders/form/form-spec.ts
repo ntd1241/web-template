@@ -1,4 +1,14 @@
 import { z } from 'zod';
+import {
+  comboboxFieldControlSchema,
+  dateFieldControlSchema,
+  multiselectFieldControlSchema,
+  numberFieldControlSchema,
+  selectFieldControlSchema,
+  switchFieldControlSchema,
+  textareaFieldControlSchema,
+  textFieldControlSchema,
+} from '../shared/form-field-spec';
 
 /**
  * Spec schema for the form/dialog builder. A `FormSpec` is the **projection** of
@@ -19,9 +29,6 @@ const fieldName = z
 export const FORM_WIDTHS = ['normal', 'large', 'full'] as const;
 const width = z.enum(FORM_WIDTHS).optional();
 
-const option = z.object({ value: z.string(), label: z.string().min(1) });
-const optionsFrom = z.enum(['static', 'prop']).optional();
-
 const base = {
   name: fieldName,
   label: z.string().min(1),
@@ -30,47 +37,21 @@ const base = {
   placeholder: z.string().optional(),
 };
 
-const textField = z.object({
-  kind: z.literal('text'),
-  inputType: z.enum(['text', 'email', 'tel', 'password', 'url']).optional(),
-  ...base,
-});
+const textField = textFieldControlSchema.extend(base);
 
-const numberField = z.object({ kind: z.literal('number'), ...base });
+const numberField = numberFieldControlSchema.extend(base);
 
-const dateField = z.object({ kind: z.literal('date'), ...base });
+const dateField = dateFieldControlSchema.extend(base);
 
-const textareaField = z.object({
-  kind: z.literal('textarea'),
-  rows: z.number().int().positive().optional(),
-  ...base,
-});
+const textareaField = textareaFieldControlSchema.extend(base);
 
-const selectField = z.object({
-  kind: z.literal('select'),
-  options: z.array(option).optional(),
-  optionsFrom,
-  ...base,
-});
+const selectField = selectFieldControlSchema.extend(base);
 
-const comboboxField = z.object({
-  kind: z.literal('combobox'),
-  options: z.array(option).optional(),
-  optionsFrom,
-  searchPlaceholder: z.string().optional(),
-  ...base,
-});
+const comboboxField = comboboxFieldControlSchema.extend(base);
 
-const multiselectField = z.object({
-  kind: z.literal('multiselect'),
-  options: z.array(option).optional(),
-  optionsFrom,
-  searchPlaceholder: z.string().optional(),
-  emptyMessage: z.string().optional(),
-  ...base,
-});
+const multiselectField = multiselectFieldControlSchema.extend(base);
 
-const switchField = z.object({ kind: z.literal('switch'), ...base });
+const switchField = switchFieldControlSchema.extend(base);
 
 export const formFieldSchema = z.discriminatedUnion('kind', [
   textField,

@@ -2,6 +2,7 @@ import {
   EDITOR_TABLE_FIELD_CONTROL,
   FIELD_ALIGNMENT_CLASS,
 } from '../shared/field-control-registry';
+import { buildFormFieldControl } from '../shared/form-field-builder';
 import {
   editorTableSpecSchema,
   type EditorTableColumnSpec,
@@ -133,27 +134,24 @@ function editableCell(
   column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
 ): string {
   if (column.kind === 'number') {
+    const control = buildFormFieldControl({
+      kind: column.kind,
+      surface: 'cell',
+      fieldExpression: 'inputField',
+      valueExpression: 'inputField.value',
+      onChangeExpression: 'inputField.onChange',
+      variant: inputVariant(column),
+      ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
+      ariaInvalidExpression: `!!${fieldError(column)}`,
+      className: FIELD_ALIGNMENT_CLASS.right,
+      numberAttributes: numberAttrs(column),
+    });
     return `<TableCell className="px-2 py-2">
   <Controller
     control={form.control}
     name={\`${fieldName(spec, column.name)}\`}
     render={({ field: inputField }) => (
-      <Input
-        aria-label={\`${ariaLabel(column)} dòng \${index + 1}\`}
-        aria-invalid={!!${fieldError(column)}}
-        className="${FIELD_ALIGNMENT_CLASS.right}"${numberAttrs(column)}
-        type="number"
-        value={inputField.value}
-        variant="${inputVariant(column)}"
-        onBlur={inputField.onBlur}
-        onChange={(event) =>
-          inputField.onChange(
-            Number.isNaN(event.target.valueAsNumber)
-              ? 0
-              : event.target.valueAsNumber,
-          )
-        }
-      />
+      ${control}
     )}
   />
   {${fieldError(column)} && (
@@ -165,21 +163,22 @@ function editableCell(
   }
 
   if (column.kind === 'date') {
+    const control = buildFormFieldControl({
+      kind: column.kind,
+      surface: 'cell',
+      fieldExpression: 'inputField',
+      variant: inputVariant(column),
+      ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
+      ariaInvalidExpression: `!!${fieldError(column)}`,
+      calendarLabelExpression: `\`Chọn ${ariaLabel(column).toLowerCase()} dòng \${index + 1}\``,
+      valueMode: column.valueMode,
+    });
     return `<TableCell className="px-2 py-2">
   <Controller
     control={form.control}
     name={\`${fieldName(spec, column.name)}\`}
     render={({ field: inputField }) => (
-      <DatePickerInput
-        aria-label={\`${ariaLabel(column)} dòng \${index + 1}\`}
-        aria-invalid={!!${fieldError(column)}}
-        calendarLabel={\`Chọn ${ariaLabel(column).toLowerCase()} dòng \${index + 1}\`}
-        value={inputField.value}
-        valueMode="iso-date"
-        variant="${inputVariant(column)}"
-        onBlur={inputField.onBlur}
-        onChange={inputField.onChange}
-      />
+      ${control}
     )}
   />
   {${fieldError(column)} && (
@@ -190,20 +189,22 @@ function editableCell(
 </TableCell>`;
   }
 
-  const type = column.inputType ?? 'text';
-  const typeAttr = type === 'text' ? '' : `\n        type="${type}"`;
+  const control = buildFormFieldControl({
+    kind: column.kind,
+    surface: 'cell',
+    fieldExpression: 'inputField',
+    inputType: column.inputType,
+    variant: inputVariant(column),
+    ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
+    ariaInvalidExpression: `!!${fieldError(column)}`,
+  });
 
   return `<TableCell className="px-2 py-2">
   <Controller
     control={form.control}
     name={\`${fieldName(spec, column.name)}\`}
     render={({ field: inputField }) => (
-      <Input
-        {...inputField}
-        aria-label={\`${ariaLabel(column)} dòng \${index + 1}\`}
-        aria-invalid={!!${fieldError(column)}}${typeAttr}
-        variant="${inputVariant(column)}"
-      />
+      ${control}
     )}
   />
   {${fieldError(column)} && (
@@ -227,34 +228,28 @@ function computedCell(
 function emitHeaderBulkInput(
   column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
 ) {
-  if (column.kind === 'date') {
-    return `<DatePickerInput
-    aria-label={\`Áp dụng ${ariaLabel(column).toLowerCase()} cho dòng đã chọn\`}
-    calendarLabel={\`Chọn ${ariaLabel(column).toLowerCase()} cho dòng đã chọn\`}
-    disabled={selectedIndexes.length === 0}
-    value={headerBulkValues.${column.name}}
-    valueMode="iso-date"
-    variant="sm"
-    onChange={(value) => handleHeaderBulkChange(${quote(column.name)}, value)}
-  />`;
-  }
+  const control = buildFormFieldControl({
+    kind: column.kind,
+    surface: 'cell',
+    valueExpression: `headerBulkValues.${column.name}`,
+    variant: 'sm',
+    inputType: column.kind === 'text' ? column.inputType : undefined,
+    className:
+      column.kind === 'number' ? FIELD_ALIGNMENT_CLASS.right : undefined,
+    disabledExpression: 'selectedIndexes.length === 0',
+    ariaLabelExpression: `\`Áp dụng ${ariaLabel(column).toLowerCase()} cho dòng đã chọn\``,
+    calendarLabelExpression:
+      column.kind === 'date'
+        ? `\`Chọn ${ariaLabel(column).toLowerCase()} cho dòng đã chọn\``
+        : undefined,
+    valueMode: column.valueMode,
+    onChangeHandlerExpression:
+      column.kind === 'date'
+        ? `(value) => handleHeaderBulkChange(${quote(column.name)}, value)`
+        : `(event) => handleHeaderBulkChange(${quote(column.name)}, event.target.value)`,
+  });
 
-  const type =
-    column.kind === 'number' ? 'number' : (column.inputType ?? 'text');
-  const typeAttr = type === 'text' ? '' : `\n    type="${type}"`;
-  const className =
-    column.kind === 'number'
-      ? `\n    className="${FIELD_ALIGNMENT_CLASS.right}"`
-      : '';
-  return `<Input
-    aria-label={\`Áp dụng ${ariaLabel(column).toLowerCase()} cho dòng đã chọn\`}
-    disabled={selectedIndexes.length === 0}${className}${typeAttr}
-    value={headerBulkValues.${column.name}}
-    variant="sm"
-    onChange={(event) =>
-      handleHeaderBulkChange(${quote(column.name)}, event.target.value)
-    }
-  />`;
+  return control;
 }
 
 function emitHeaderCell(
@@ -417,6 +412,34 @@ ${cases}
 }
 
 function emitBulkActionBar() {
+  const dateControl = buildFormFieldControl({
+    kind: 'date',
+    surface: 'cell',
+    valueExpression: 'bulkValue',
+    onChangeExpression: 'setBulkValue',
+    variant: 'sm',
+    ariaLabelExpression: quote('Giá trị áp dụng hàng loạt'),
+    calendarLabel: 'Chọn giá trị áp dụng hàng loạt',
+  });
+  const numberControl = buildFormFieldControl({
+    kind: 'number',
+    surface: 'cell',
+    valueExpression: 'bulkValue',
+    variant: 'sm',
+    className: 'w-36 text-right tabular-nums',
+    ariaLabelExpression: quote('Giá trị áp dụng hàng loạt'),
+    onChangeHandlerExpression: '(event) => setBulkValue(event.target.value)',
+  });
+  const textControl = buildFormFieldControl({
+    kind: 'text',
+    surface: 'cell',
+    valueExpression: 'bulkValue',
+    variant: 'sm',
+    className: 'w-48',
+    ariaLabelExpression: quote('Giá trị áp dụng hàng loạt'),
+    onChangeHandlerExpression: '(event) => setBulkValue(event.target.value)',
+  });
+
   return `      {selectedIndexes.length > 0 && (
         <div
           role="toolbar"
@@ -446,23 +469,11 @@ function emitBulkActionBar() {
             </SelectContent>
           </Select>
           {activeBulkField?.kind === 'date' ? (
-            <DatePickerInput
-              aria-label="Giá trị áp dụng hàng loạt"
-              calendarLabel="Chọn giá trị áp dụng hàng loạt"
-              value={bulkValue}
-              valueMode="iso-date"
-              variant="sm"
-              onChange={setBulkValue}
-            />
+            ${dateControl}
+          ) : activeBulkField?.kind === 'number' ? (
+            ${numberControl}
           ) : (
-            <Input
-              aria-label="Giá trị áp dụng hàng loạt"
-              className={activeBulkField?.kind === 'number' ? 'w-36 text-right tabular-nums' : 'w-48'}
-              type={activeBulkField?.kind === 'number' ? 'number' : 'text'}
-              value={bulkValue}
-              variant="sm"
-              onChange={(event) => setBulkValue(event.target.value)}
-            />
+            ${textControl}
           )}
           <Button type="button" variant="primary" size="sm" onClick={handleBulkApply}>
             Áp dụng

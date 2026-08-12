@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  dateFieldControlSchema,
+  numberFieldControlSchema,
+  textFieldControlSchema,
+} from '../shared/form-field-spec';
 
 const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
 
@@ -25,15 +30,12 @@ const indexColumn = z.object({
   ...baseColumn,
 });
 
-const textColumn = z.object({
-  kind: z.literal('text'),
-  inputType: z.enum(['text', 'email', 'tel', 'url']).optional(),
+const textColumn = textFieldControlSchema.extend({
   bulkEdit: z.boolean().default(false),
   ...fieldColumnBase,
 });
 
-const numberColumn = z.object({
-  kind: z.literal('number'),
+const numberColumn = numberFieldControlSchema.extend({
   min: z.number().optional(),
   max: z.number().optional(),
   step: z.number().optional(),
@@ -41,8 +43,7 @@ const numberColumn = z.object({
   ...fieldColumnBase,
 });
 
-const dateColumn = z.object({
-  kind: z.literal('date'),
+const dateColumn = dateFieldControlSchema.extend({
   bulkEdit: z.boolean().default(false),
   ...fieldColumnBase,
 });

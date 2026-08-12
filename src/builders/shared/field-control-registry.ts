@@ -63,6 +63,8 @@ export const FORM_FIELD_CONTROL = {
   },
 } as const;
 
+export type FormFieldControlKind = keyof typeof FORM_FIELD_CONTROL;
+
 export const EDITOR_TABLE_FIELD_CONTROL = {
   text: {
     importName: 'Input',

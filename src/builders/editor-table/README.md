@@ -51,6 +51,14 @@ The builder emits default row actions: duplicate, insert below, and delete. The
 action column is pinned to the right so it remains visible during horizontal
 scroll.
 
+Editable cells, bulk action inputs, and optional header inputs reuse the shared
+lower-level form-field builder at `src/builders/shared/form-field-builder.ts`.
+Add a new control kind there first, then expose it from this builder's spec
+instead of duplicating the UI primitive mapping in the editor-table generator.
+The column schema extends the matching control schema from
+`src/builders/shared/form-field-spec.ts` and keeps table-only metadata such as
+`header`, `widthClass`, and `bulkEdit` local to this builder.
+
 ## Multi Edit
 
 Set `multiEdit.enabled` and mark safe editable columns with `bulkEdit: true` to

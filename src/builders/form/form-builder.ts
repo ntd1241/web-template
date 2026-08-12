@@ -1,4 +1,5 @@
 import { BUILDER_INPUT_VARIANTS } from '../shared/field-control-registry';
+import { buildFormFieldControl } from '../shared/form-field-builder';
 import { FORM_KIND_REGISTRY, FORM_WIDTH_SPAN } from './field-kinds';
 import { formSpecSchema, type FormFieldSpec, type FormSpec } from './form-spec';
 
@@ -31,10 +32,6 @@ function span(field: FormFieldSpec): string {
   return FORM_WIDTH_SPAN[
     field.width ?? (field.kind === 'switch' ? 'full' : 'normal')
   ];
-}
-
-function attr(name: string, value?: string): string {
-  return value ? ` ${name}="${value}"` : '';
 }
 
 const OPTION_KINDS = new Set(['select', 'combobox', 'multiselect']);
@@ -109,47 +106,25 @@ function labelJsx(field: FormFieldSpec): string {
 
 /** The control element(s) for a field (everything between label and message). */
 function controlJsx(field: FormFieldSpec): string {
-  const ph = attr('placeholder', field.placeholder);
-
-  switch (field.kind) {
-    case 'text': {
-      const type =
-        field.inputType && field.inputType !== 'text'
-          ? ` type="${field.inputType}"`
-          : '';
-      return `<FormControl>\n  <Input${type}${ph} variant="${BUILDER_INPUT_VARIANTS.form}" {...field} />\n</FormControl>`;
-    }
-    case 'number':
-      return `<FormControl>\n  <Input type="number"${ph} variant="${BUILDER_INPUT_VARIANTS.form}" {...field} />\n</FormControl>`;
-    case 'date':
-      return `<FormControl>\n  <DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ${field.label.toLowerCase()}" variant="${BUILDER_INPUT_VARIANTS.form}" />\n</FormControl>`;
-    case 'textarea':
-      return `<FormControl>\n  <Textarea rows={${field.rows ?? 3}}${ph} {...field} />\n</FormControl>`;
-    case 'select':
-      return `<Select value={field.value} onValueChange={field.onChange}>
-  <FormControl>
-    <SelectTrigger>
-      <SelectValue${ph} />
-    </SelectTrigger>
-  </FormControl>
-  <SelectContent>
-    {${field.name}Options.map((opt) => (
-      <SelectItem key={opt.value} value={opt.value}>
-        {opt.label}
-      </SelectItem>
-    ))}
-  </SelectContent>
-</Select>`;
-    case 'combobox':
-      return `<FormControl>\n  <Combobox value={field.value} onChange={field.onChange} options={${field.name}Options}${ph} />\n</FormControl>`;
-    case 'multiselect': {
-      const sp = attr('searchPlaceholder', field.searchPlaceholder);
-      const em = attr('emptyMessage', field.emptyMessage);
-      return `<FormControl>\n  <MultiSelect value={field.value} onChange={field.onChange} options={${field.name}Options}${ph}${sp}${em} />\n</FormControl>`;
-    }
-    case 'switch':
-      return `<FormControl>\n  <Switch checked={field.value} onCheckedChange={field.onChange} />\n</FormControl>`;
-  }
+  return buildFormFieldControl({
+    kind: field.kind,
+    surface: 'form',
+    variant: BUILDER_INPUT_VARIANTS.form,
+    placeholder: field.placeholder,
+    inputType: field.kind === 'text' ? field.inputType : undefined,
+    rows: field.kind === 'textarea' ? field.rows : undefined,
+    optionsExpression: isOptionField(field)
+      ? `${field.name}Options`
+      : undefined,
+    searchPlaceholder:
+      field.kind === 'combobox' || field.kind === 'multiselect'
+        ? field.searchPlaceholder
+        : undefined,
+    emptyMessage: field.kind === 'multiselect' ? field.emptyMessage : undefined,
+    calendarLabel:
+      field.kind === 'date' ? `Chọn ${field.label.toLowerCase()}` : undefined,
+    valueMode: field.kind === 'date' ? field.valueMode : undefined,
+  });
 }
 
 function emitField(field: FormFieldSpec): string {

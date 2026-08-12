@@ -64,6 +64,7 @@ describe('buildFormModule', () => {
           name: 'startDate',
           label: 'Ngày vào làm',
           required: true,
+          valueMode: 'iso-date',
         },
       ],
     });
@@ -73,7 +74,7 @@ describe('buildFormModule', () => {
     );
     expect(dateSource).toContain('startDate: undefined,');
     expect(dateSource).toContain(
-      '<DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ngày vào làm" variant="md" />',
+      '<DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ngày vào làm" valueMode="iso-date" variant="md" />',
     );
   });
 

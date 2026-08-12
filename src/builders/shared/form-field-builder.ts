@@ -1,0 +1,178 @@
+import {
+  FORM_FIELD_CONTROL,
+  type FormFieldControlKind,
+} from './field-control-registry';
+
+export type FormFieldBinding =
+  | 'spread'
+  | 'select'
+  | 'valueOnChange'
+  | 'checked';
+
+export interface FormFieldControlOptions {
+  kind: FormFieldControlKind;
+  /** `form` keeps the generated FormControl wrapper; `cell` emits the input only. */
+  surface?: 'form' | 'cell';
+  binding?: FormFieldBinding;
+  fieldExpression?: string;
+  valueExpression?: string;
+  onChangeExpression?: string;
+  onChangeHandlerExpression?: string;
+  onBlurExpression?: string;
+  variant?: string;
+  placeholder?: string;
+  inputType?: string;
+  rows?: number;
+  optionsExpression?: string;
+  searchPlaceholder?: string;
+  emptyMessage?: string;
+  calendarLabel?: string;
+  calendarLabelExpression?: string;
+  valueMode?: 'date' | 'iso-date';
+  ariaLabelExpression?: string;
+  ariaInvalidExpression?: string;
+  disabledExpression?: string;
+  className?: string;
+  numberAttributes?: string;
+}
+
+function attribute(name: string, value?: string): string {
+  return value ? ` ${name}="${value.replace(/"/g, '&quot;')}"` : '';
+}
+
+function expressionAttribute(name: string, expression?: string): string {
+  return expression ? ` ${name}={${expression}}` : '';
+}
+
+function controlOpen(options: FormFieldControlOptions): string {
+  return options.surface === 'form' ? '<FormControl>\n  ' : '';
+}
+
+function controlClose(options: FormFieldControlOptions): string {
+  return options.surface === 'form' ? '\n</FormControl>' : '';
+}
+
+function fieldExpression(options: FormFieldControlOptions): string {
+  return options.fieldExpression ?? 'field';
+}
+
+function controlledValue(options: FormFieldControlOptions): string {
+  return options.valueExpression ?? `${fieldExpression(options)}.value`;
+}
+
+function controlledChange(options: FormFieldControlOptions): string {
+  return options.onChangeExpression ?? `${fieldExpression(options)}.onChange`;
+}
+
+function controlledBlur(options: FormFieldControlOptions): string {
+  return options.onBlurExpression ?? `${fieldExpression(options)}.onBlur`;
+}
+
+function inputAttributes(options: FormFieldControlOptions): string {
+  const attrs = [
+    expressionAttribute('aria-label', options.ariaLabelExpression),
+    expressionAttribute('aria-invalid', options.ariaInvalidExpression),
+    expressionAttribute('disabled', options.disabledExpression),
+    attribute('className', options.className),
+  ];
+
+  if (options.numberAttributes) attrs.push(options.numberAttributes);
+
+  return attrs.join('');
+}
+
+/**
+ * Shared codegen for form controls. Higher-level builders provide the binding
+ * expressions and surface-specific attributes; this function owns the
+ * control-to-UI mapping and keeps the emitted JSX consistent.
+ */
+export function buildFormFieldControl(
+  options: FormFieldControlOptions,
+): string {
+  const meta = FORM_FIELD_CONTROL[options.kind];
+  const binding = options.binding ?? meta.binding;
+  const variant = attribute('variant', options.variant);
+  const placeholder = attribute('placeholder', options.placeholder);
+  const field = fieldExpression(options);
+  const value = controlledValue(options);
+  const change = controlledChange(options);
+  const blur = controlledBlur(options);
+  const attrs = inputAttributes(options);
+
+  switch (options.kind) {
+    case 'text':
+    case 'number': {
+      const type = options.kind === 'number' ? 'number' : options.inputType;
+      const typeAttr = type && type !== 'text' ? ` type="${type}"` : '';
+      const controlled =
+        binding !== 'spread' ||
+        options.valueExpression !== undefined ||
+        options.onChangeExpression !== undefined;
+      const onChange =
+        options.kind === 'number'
+          ? `${change}(\n            Number.isNaN(event.target.valueAsNumber)\n              ? 0\n              : event.target.valueAsNumber,\n          )`
+          : `${change}(event)`;
+      const changeAttribute = options.onChangeHandlerExpression
+        ? ` onChange={${options.onChangeHandlerExpression}}`
+        : `\n        onChange={(event) =>\n          ${onChange}\n        }`;
+      const input = controlled
+        ? `<Input${attrs}${typeAttr}${placeholder} value={${value}}${variant}\n        onBlur={${blur}}${changeAttribute}\n      />`
+        : options.surface === 'cell'
+          ? `<Input {...${field}}${attrs}${typeAttr}${variant} />`
+          : `<Input${typeAttr}${placeholder}${variant} {...${field}} />`;
+
+      return `${controlOpen(options)}${input}${controlClose(options)}`;
+    }
+    case 'date': {
+      const calendarLabel = options.calendarLabelExpression
+        ? ` calendarLabel={${options.calendarLabelExpression}}`
+        : options.calendarLabel
+          ? attribute('calendarLabel', options.calendarLabel)
+          : '';
+      const valueMode = options.valueMode
+        ? ` valueMode="${options.valueMode}"`
+        : '';
+      const input =
+        options.surface === 'form'
+          ? `<DatePickerInput value={${value}} onChange={${change}} onBlur={${blur}}${calendarLabel}${valueMode}${variant} />`
+          : `<DatePickerInput${attrs}${calendarLabel} value={${value}} valueMode="${options.valueMode ?? 'iso-date'}"${variant}\n        onBlur={${blur}}\n        onChange={${options.onChangeHandlerExpression ?? change}}\n      />`;
+      return `${controlOpen(options)}${input}${controlClose(options)}`;
+    }
+    case 'textarea': {
+      const input = `<Textarea rows={${options.rows ?? 3}}${placeholder} {...${field}} />`;
+      return `${controlOpen(options)}${input}${controlClose(options)}`;
+    }
+    case 'select': {
+      const optionsExpression = options.optionsExpression ?? 'options';
+      return `<Select value={${value}} onValueChange={${change}}>
+  <FormControl>
+    <SelectTrigger>
+      <SelectValue${placeholder} />
+    </SelectTrigger>
+  </FormControl>
+  <SelectContent>
+    {${optionsExpression}.map((opt) => (
+      <SelectItem key={opt.value} value={opt.value}>
+        {opt.label}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>`;
+    }
+    case 'combobox': {
+      const optionsExpression = options.optionsExpression ?? 'options';
+      return `${controlOpen(options)}<Combobox value={${value}} onChange={${change}} options={${optionsExpression}}${placeholder} />${controlClose(options)}`;
+    }
+    case 'multiselect': {
+      const optionsExpression = options.optionsExpression ?? 'options';
+      const searchPlaceholder = attribute(
+        'searchPlaceholder',
+        options.searchPlaceholder,
+      );
+      const emptyMessage = attribute('emptyMessage', options.emptyMessage);
+      return `${controlOpen(options)}<MultiSelect value={${value}} onChange={${change}} options={${optionsExpression}}${placeholder}${searchPlaceholder}${emptyMessage} />${controlClose(options)}`;
+    }
+    case 'switch':
+      return `${controlOpen(options)}<Switch checked={${value}} onCheckedChange={${change}} />${controlClose(options)}`;
+  }
+}
