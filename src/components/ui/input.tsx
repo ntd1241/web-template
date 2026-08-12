@@ -121,13 +121,20 @@ function Input({
   className,
   type,
   variant,
+  warning = false,
   ...props
-}: React.ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
+}: React.ComponentProps<'input'> &
+  VariantProps<typeof inputVariants> & { warning?: boolean }) {
   return (
     <input
       data-slot="input"
       type={type}
-      className={cn(inputVariants({ variant }), className)}
+      className={cn(
+        inputVariants({ variant }),
+        warning &&
+          'border-[var(--color-warning-accent,var(--color-yellow-500))] focus-visible:border-[var(--color-warning-accent,var(--color-yellow-500))] focus-visible:ring-[var(--color-warning-accent,var(--color-yellow-500))]/30',
+        className,
+      )}
       {...props}
     />
   );

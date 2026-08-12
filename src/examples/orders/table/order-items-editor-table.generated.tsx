@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from 'react';
 import { Copy, Plus, Trash2 } from 'lucide-react';
-import { Controller, useFieldArray } from 'react-hook-form';
+import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import type { UseFormReturn } from 'react-hook-form';
 import { formatCurrencyVND } from '@/lib/format';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { OrderItemsFormValues } from '../form/order-items.schema';
 import type { OrderItem } from '../model/order';
 
@@ -44,7 +49,7 @@ export function OrderItemsEditorTable({
     name: 'items',
     keyName: 'fieldId',
   });
-  const watchedRows = form.watch('items') ?? [];
+  const watchedRows = useWatch({ control: form.control, name: 'items' }) ?? [];
 
   const handleAddRow = () => {
     append(createRow());
@@ -328,20 +333,43 @@ export function OrderItemsEditorTable({
                         <Controller
                           control={form.control}
                           name={`items.${index}.sku`}
-                          render={({ field: inputField }) => (
-                            <Input
-                              {...inputField}
-                              aria-label={`Mã hàng dòng ${index + 1}`}
-                              aria-invalid={!!errors?.sku}
-                              variant="sm"
-                            />
-                          )}
+                          render={({ field: inputField }) => {
+                            const skuWarning =
+                              inputField.value === 'ST25-10KG'
+                                ? 'Mã hàng cần được kiểm tra lại trước khi lưu'
+                                : undefined;
+                            const skuInput = (
+                              <Input
+                                {...inputField}
+                                aria-label={`Mã hàng dòng ${index + 1}`}
+                                aria-invalid={!!errors?.sku}
+                                warning={Boolean(skuWarning)}
+                                variant="sm"
+                              />
+                            );
+                            const skuMessage =
+                              errors?.sku?.message ?? skuWarning;
+
+                            return (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="block w-full">
+                                    {skuInput}
+                                  </span>
+                                </TooltipTrigger>
+                                {skuMessage && (
+                                  <TooltipContent
+                                    variant={
+                                      errors?.sku ? 'destructive' : 'warning'
+                                    }
+                                  >
+                                    {skuMessage}
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            );
+                          }}
                         />
-                        {errors?.sku && (
-                          <div className="mt-1 text-xs text-destructive">
-                            {errors?.sku?.message}
-                          </div>
-                        )}
                       </TableCell>
                       <TableCell className="px-2 py-2">
                         <Controller

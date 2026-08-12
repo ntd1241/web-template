@@ -137,4 +137,59 @@ describe('OrderEditPage', () => {
       );
     });
   });
+
+  it('shows an empty sku error in a destructive tooltip instead of inline text', async () => {
+    const user = userEvent.setup();
+    const saveSpy = vi.spyOn(orderApi, 'saveItems');
+    saveSpy.mockClear();
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    const skuInput = screen.getByLabelText('Mã hàng dòng 1');
+    await user.clear(skuInput);
+    await user.click(screen.getByRole('button', { name: 'Lưu' }));
+
+    await waitFor(() => expect(saveSpy).not.toHaveBeenCalled());
+    expect(skuInput.closest('td')?.querySelector('.mt-1') ?? null).toBeNull();
+
+    await user.hover(skuInput);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Mã hàng không được để trống',
+    );
+  }, 10000);
+
+  it('rejects whitespace in sku and shows the message on hover', async () => {
+    const user = userEvent.setup();
+    const saveSpy = vi.spyOn(orderApi, 'saveItems');
+    saveSpy.mockClear();
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    const skuInput = screen.getByLabelText('Mã hàng dòng 1');
+    await user.clear(skuInput);
+    await user.type(skuInput, 'ST 25');
+    await user.click(screen.getByRole('button', { name: 'Lưu' }));
+
+    await waitFor(() => expect(saveSpy).not.toHaveBeenCalled());
+    await user.hover(skuInput);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Mã hàng không được chứa khoảng trắng',
+    );
+  }, 10000);
+
+  it('shows a warning tooltip for a sku that needs review', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByDisplayValue('Gạo ST25');
+    const skuInput = screen.getByLabelText('Mã hàng dòng 1');
+    await user.hover(skuInput);
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Mã hàng cần được kiểm tra lại trước khi lưu',
+    );
+    expect(skuInput).toHaveClass(
+      'border-[var(--color-warning-accent,var(--color-yellow-500))]',
+    );
+  }, 10000);
 });

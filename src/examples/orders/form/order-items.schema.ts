@@ -2,7 +2,13 @@ import { z } from 'zod';
 
 export const orderItemSchema = z.object({
   id: z.string(),
-  sku: z.string(),
+  sku: z
+    .string()
+    .min(1, 'Mã hàng không được để trống')
+    .refine(
+      (value) => !/\s/.test(value),
+      'Mã hàng không được chứa khoảng trắng',
+    ),
   name: z.string().min(1, 'Nhập tên hàng hóa'),
   unit: z.string(),
   warehouse: z.string(),
