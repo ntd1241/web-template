@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { optionSchema, optionsSourceSchema } from './schema-primitives';
 
 /**
  * Shared, control-level schemas. Higher-level builders extend these objects
@@ -13,12 +14,14 @@ export const textFieldControlSchema = z.object({
 
 export const numberFieldControlSchema = z.object({
   kind: z.literal('number'),
+  /** Semantic display/input format; the renderer maps this to the runtime control. */
+  format: z.enum(['plain', 'currency', 'percent']).optional(),
 });
 
 export const dateFieldControlSchema = z.object({
   kind: z.literal('date'),
-  /** Value contract consumed by DatePickerInput. */
-  valueMode: z.enum(['date', 'iso-date']).optional(),
+  /** Semantic date format; the renderer maps this to DatePickerInput's value mode. */
+  format: z.enum(['display', 'iso']).optional(),
 });
 
 export const textareaFieldControlSchema = z.object({
@@ -26,26 +29,23 @@ export const textareaFieldControlSchema = z.object({
   rows: z.number().int().positive().optional(),
 });
 
-const option = z.object({ value: z.string(), label: z.string().min(1) });
-const optionsFrom = z.enum(['static', 'prop']).optional();
-
 export const selectFieldControlSchema = z.object({
   kind: z.literal('select'),
-  options: z.array(option).optional(),
-  optionsFrom,
+  options: z.array(optionSchema).optional(),
+  optionsFrom: optionsSourceSchema.optional(),
 });
 
 export const comboboxFieldControlSchema = z.object({
   kind: z.literal('combobox'),
-  options: z.array(option).optional(),
-  optionsFrom,
+  options: z.array(optionSchema).optional(),
+  optionsFrom: optionsSourceSchema.optional(),
   searchPlaceholder: z.string().optional(),
 });
 
 export const multiselectFieldControlSchema = z.object({
   kind: z.literal('multiselect'),
-  options: z.array(option).optional(),
-  optionsFrom,
+  options: z.array(optionSchema).optional(),
+  optionsFrom: optionsSourceSchema.optional(),
   searchPlaceholder: z.string().optional(),
   emptyMessage: z.string().optional(),
 });

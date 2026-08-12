@@ -4,12 +4,9 @@ import {
   numberFieldControlSchema,
   textFieldControlSchema,
 } from '../shared/form-field-spec';
+import { identifierSchema } from '../shared/schema-primitives';
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
-
-const identifier = z
-  .string()
-  .regex(IDENTIFIER, 'phải là một định danh TypeScript hợp lệ');
+const identifier = identifierSchema;
 
 const widthClass = z.string().min(1).optional();
 
@@ -64,14 +61,14 @@ export const editorTableColumnSchema = z.discriminatedUnion('kind', [
 ]);
 
 export const editorTableSpecSchema = z.object({
-  entity: z.string().regex(IDENTIFIER, 'entity phải là tên kiểu hợp lệ'),
-  componentName: z.string().regex(IDENTIFIER).optional(),
+  entity: identifier,
+  componentName: identifier.optional(),
   modelImport: z.string().min(1),
-  valuesType: z.string().regex(IDENTIFIER),
+  valuesType: identifier,
   valuesImport: z.string().min(1),
-  arrayName: z.string().regex(IDENTIFIER),
+  arrayName: identifier,
   specPath: z.string().optional(),
-  createRowProp: z.string().regex(IDENTIFIER).optional(),
+  createRowProp: identifier.optional(),
   tableMinWidthClass: z.string().min(1).default('min-w-[1200px]'),
   /**
    * Optional self-contained header above the table (title + row count + an

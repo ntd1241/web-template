@@ -1,8 +1,7 @@
 import { z } from 'zod';
+import { identifierSchema, optionSchema } from '../shared/schema-primitives';
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
-
-const identifier = z.string().regex(IDENTIFIER, 'phải là một định danh hợp lệ');
+const identifier = identifierSchema;
 
 const iconName = identifier;
 
@@ -40,9 +39,8 @@ const itemSchema = z.discriminatedUnion('kind', [
     defaultValue: z.string().optional(),
     options: z
       .array(
-        z.object({
+        optionSchema.extend({
           value: identifier,
-          label: z.string().min(1),
           asset: z.string().min(1).optional(),
           assetAlt: z.string().min(1).optional(),
         }),

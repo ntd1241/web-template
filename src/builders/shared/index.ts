@@ -31,3 +31,11 @@ export {
   type SharedTextareaFieldControl,
   type FormFieldControlSpec,
 } from './form-field-spec';
+export {
+  identifierSchema,
+  optionSchema,
+  optionsSourceSchema,
+  tooltipStyleSchema,
+  type BuilderOption,
+  type TooltipStyle,
+} from './schema-primitives';

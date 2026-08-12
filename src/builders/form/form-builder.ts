@@ -112,6 +112,10 @@ function controlJsx(field: FormFieldSpec): string {
     variant: BUILDER_INPUT_VARIANTS.form,
     placeholder: field.placeholder,
     inputType: field.kind === 'text' ? field.inputType : undefined,
+    format:
+      field.kind === 'number' || field.kind === 'date'
+        ? field.format
+        : undefined,
     rows: field.kind === 'textarea' ? field.rows : undefined,
     optionsExpression: isOptionField(field)
       ? `${field.name}Options`
@@ -123,7 +127,6 @@ function controlJsx(field: FormFieldSpec): string {
     emptyMessage: field.kind === 'multiselect' ? field.emptyMessage : undefined,
     calendarLabel:
       field.kind === 'date' ? `Chọn ${field.label.toLowerCase()}` : undefined,
-    valueMode: field.kind === 'date' ? field.valueMode : undefined,
   });
 }
 
@@ -151,6 +154,10 @@ function emitField(field: FormFieldSpec): string {
 
 function emitImports(spec: FormSpec): string {
   const kinds = new Set(spec.fields.map((f) => f.kind));
+  const hasFormattedNumber = spec.fields.some(
+    (field) =>
+      field.kind === 'number' && field.format && field.format !== 'plain',
+  );
   const propFields = propOptionFields(spec.fields);
   const needMessage = spec.fields.some((f) => f.kind !== 'switch');
 
@@ -174,8 +181,12 @@ function emitImports(spec: FormSpec): string {
     "import { Separator } from '@/components/ui/separator';",
   ];
 
-  if (kinds.has('text') || kinds.has('number'))
+  if (kinds.has('text') || (kinds.has('number') && !hasFormattedNumber))
     lines.push("import { Input } from '@/components/ui/input';");
+  if (hasFormattedNumber)
+    lines.push(
+      "import { NumericInput } from '@/components/ui/inputs/numeric-input';",
+    );
   if (kinds.has('date'))
     lines.push(
       "import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';",

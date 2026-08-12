@@ -78,12 +78,32 @@ describe('buildEditorTableModule', () => {
           kind: 'date',
           name: 'expiryDate',
           header: 'Hạn dùng',
-          valueMode: 'date',
+          format: 'display',
         },
       ],
     });
 
     expect(sourceWithDateFormat).toContain('valueMode="date"');
+  });
+
+  it('uses NumericInput for formatted number columns', () => {
+    const sourceWithNumberFormat = buildEditorTableModule({
+      ...orderItemsSpec,
+      columns: [
+        {
+          kind: 'number',
+          name: 'unitPrice',
+          header: 'Đơn giá',
+          format: 'currency',
+        },
+      ],
+    });
+
+    expect(sourceWithNumberFormat).toContain(
+      "import { NumericInput } from '@/components/ui/inputs/numeric-input';",
+    );
+    expect(sourceWithNumberFormat).toContain('<NumericInput');
+    expect(sourceWithNumberFormat).toContain('suffix=" ₫"');
   });
 
   it('supports remaining and natural viewport modes', () => {

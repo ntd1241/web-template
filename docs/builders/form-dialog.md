@@ -64,9 +64,9 @@ Static select-like options are emitted as module constants only when `optionsFro
 | `multiselect` | `MultiSelect`         | `value` and `onChange`                                       |
 | `switch`      | `Switch`              | `checked` and `onCheckedChange`                              |
 
-Date fields may set `valueMode: 'date' | 'iso-date'`. This value contract is defined once by the
-shared field schema and passed through to `DatePickerInput`; higher-level builders should forward it
-instead of redefining date format behavior.
+Date fields may set `format: 'display' | 'iso'`; number fields may set
+`format: 'plain' | 'currency' | 'percent'`. These semantic presets are defined once by the shared
+field schema and mapped to runtime controls by the field renderer.
 
 Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` is 8, and `full` is 12. Fields stack on mobile.
 

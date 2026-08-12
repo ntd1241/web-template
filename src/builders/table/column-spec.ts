@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  identifierSchema,
+  optionSchema,
+  optionsSourceSchema,
+} from '../shared/schema-primitives';
 
 /**
  * Spec schema for the table builder. A `TableSpec` is the **projection** of an
@@ -8,13 +13,10 @@ import { z } from 'zod';
  * Validated with zod so an invalid spec fails loudly before any TSX is emitted.
  */
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
 /** Dot-path accessor, e.g. `fullName` or `profile.name`. */
 const FIELD_PATH = /^[a-zA-Z_$][\w$]*(\.[a-zA-Z_$][\w$]*)*$/;
 
-const columnId = z
-  .string()
-  .regex(IDENTIFIER, 'id phải là một định danh hợp lệ (vd: fullName)');
+const columnId = identifierSchema;
 
 const fieldPath = z
   .string()
@@ -84,15 +86,10 @@ const badgeColumn = z.object({
   ...accessorBase,
 });
 
-const option = z.object({
-  value: z.string(),
-  label: z.string().min(1),
-});
-
 const editableSelectColumn = z.object({
   kind: z.literal('editableSelect'),
-  options: z.array(option).optional(),
-  optionsFrom: z.enum(['static', 'prop']).optional(),
+  options: z.array(optionSchema).optional(),
+  optionsFrom: optionsSourceSchema.optional(),
   placeholder: z.string().optional(),
   ...accessorBase,
 });
@@ -143,11 +140,11 @@ export const columnSpecSchema = z.discriminatedUnion('kind', [
 export const tableSpecSchema = z
   .object({
     /** Row type name, e.g. `Employee`. */
-    entity: z.string().regex(IDENTIFIER, 'entity phải là tên kiểu hợp lệ'),
+    entity: identifierSchema,
     /** Import specifier for the row type, e.g. `../model/employee`. */
     modelImport: z.string().min(1),
     /** Hook name; defaults to `use<Entity>Columns`. */
-    hookName: z.string().regex(IDENTIFIER).optional(),
+    hookName: identifierSchema.optional(),
     /** Spec path recorded in the provenance banner of the generated file. */
     specPath: z.string().optional(),
     columns: z.array(columnSpecSchema).min(1, 'cần ít nhất một cột'),

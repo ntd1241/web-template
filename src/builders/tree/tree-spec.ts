@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { identifierSchema } from '../shared/schema-primitives';
 
 /**
  * Spec schema for the tree builder. The builder owns the presentational tree
@@ -6,9 +7,7 @@ import { z } from 'zod';
  * screen that consumes the generated component.
  */
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
-
-const identifier = z.string().regex(IDENTIFIER, 'phải là một định danh hợp lệ');
+const identifier = identifierSchema;
 
 const actionSchema = z.object({
   /** Stable action key; also drives the default callback name. */

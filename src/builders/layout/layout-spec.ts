@@ -1,13 +1,12 @@
 import { z } from 'zod';
+import { identifierSchema } from '../shared/schema-primitives';
 import {
   layoutAreaHeightValues,
   layoutAreaSizeOptions,
   layoutAreaSizeValues,
 } from './layout-area-size-options';
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
-
-const identifier = z.string().regex(IDENTIFIER, 'phải là một định danh hợp lệ');
+const identifier = identifierSchema;
 
 const sizeValue = z.enum(layoutAreaSizeValues);
 const heightValue = z.enum(layoutAreaHeightValues);

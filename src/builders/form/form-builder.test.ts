@@ -64,7 +64,7 @@ describe('buildFormModule', () => {
           name: 'startDate',
           label: 'Ngày vào làm',
           required: true,
-          valueMode: 'iso-date',
+          format: 'iso',
         },
       ],
     });
@@ -75,6 +75,33 @@ describe('buildFormModule', () => {
     expect(dateSource).toContain('startDate: undefined,');
     expect(dateSource).toContain(
       '<DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ngày vào làm" valueMode="iso-date" variant="md" />',
+    );
+  });
+
+  it('maps semantic number formats to NumericInput', () => {
+    const formattedSource = buildFormModule({
+      entity: 'Invoice',
+      schemaImport: './invoice.schema',
+      schemaName: 'invoiceSchema',
+      valuesType: 'InvoiceValues',
+      title: 'Tạo hóa đơn',
+      fields: [
+        {
+          kind: 'number',
+          name: 'total',
+          label: 'Tổng tiền',
+          format: 'currency',
+        },
+      ],
+    });
+
+    expect(formattedSource).toContain(
+      "import { NumericInput } from '@/components/ui/inputs/numeric-input';",
+    );
+    expect(formattedSource).toContain('<NumericInput');
+    expect(formattedSource).toContain('suffix=" ₫"');
+    expect(formattedSource).not.toContain(
+      "import { Input } from '@/components/ui/input';",
     );
   });
 

@@ -79,7 +79,7 @@ describe('form-field builder', () => {
     expect(
       dateFieldControlSchema.safeParse({
         kind: 'date',
-        valueMode: 'iso-date',
+        format: 'iso',
       }).success,
     ).toBe(true);
     expect(
@@ -91,7 +91,7 @@ describe('form-field builder', () => {
     expect(
       dateFieldControlSchema.safeParse({
         kind: 'date',
-        valueMode: 'unsupported',
+        format: 'unsupported',
       }).success,
     ).toBe(false);
   });

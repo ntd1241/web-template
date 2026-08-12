@@ -9,6 +9,7 @@ import {
   textareaFieldControlSchema,
   textFieldControlSchema,
 } from '../shared/form-field-spec';
+import { identifierSchema } from '../shared/schema-primitives';
 
 /**
  * Spec schema for the form/dialog builder. A `FormSpec` is the **projection** of
@@ -20,10 +21,7 @@ import {
  * `full` = whole row); on mobile every field stacks full-width.
  */
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
-const fieldName = z
-  .string()
-  .regex(/^[a-zA-Z_$][\w$]*$/, 'name phải là một khóa hợp lệ của form values');
+const fieldName = identifierSchema;
 
 /** Width presets → column span on the desktop 12-col grid. */
 export const FORM_WIDTHS = ['normal', 'large', 'full'] as const;
@@ -67,18 +65,18 @@ export const formFieldSchema = z.discriminatedUnion('kind', [
 export const formSpecSchema = z
   .object({
     /** Entity name, e.g. `Supplier` → component `SupplierFormDialog`. */
-    entity: z.string().regex(IDENTIFIER, 'entity phải là tên kiểu hợp lệ'),
+    entity: identifierSchema,
     /** Import specifier for the schema module. */
     schemaImport: z.string().min(1),
     /** Exported zod schema name used as the resolver. */
-    schemaName: z.string().regex(IDENTIFIER),
+    schemaName: identifierSchema,
     /** Exported inferred values type name. */
-    valuesType: z.string().regex(IDENTIFIER),
+    valuesType: identifierSchema,
     /** Dialog title + optional description (Vietnamese). */
     title: z.string().min(1),
     description: z.string().optional(),
     /** Component name; defaults to `<Entity>FormDialog`. */
-    componentName: z.string().regex(IDENTIFIER).optional(),
+    componentName: identifierSchema.optional(),
     /** Spec path recorded in the provenance banner. */
     specPath: z.string().optional(),
     fields: z.array(formFieldSchema).min(1, 'cần ít nhất một trường'),

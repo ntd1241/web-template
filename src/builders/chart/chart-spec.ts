@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import {
+  identifierSchema,
+  tooltipStyleSchema,
+} from '../shared/schema-primitives';
 
-const IDENTIFIER = /^[a-zA-Z_$][\w$]*$/;
-
-const identifier = z.string().regex(IDENTIFIER, 'phải là một định danh hợp lệ');
+const identifier = identifierSchema;
 
 const seriesSchema = z.object({
   key: identifier,
@@ -43,9 +45,7 @@ export const chartSpecSchema = z
     includeTooltip: z.boolean().default(true),
     includeLegend: z.boolean().default(false),
     interactive: z.boolean().default(false),
-    tooltipStyle: z
-      .enum(['default', 'line', 'dashed', 'compact', 'emphasis'])
-      .default('default'),
+    tooltipStyle: tooltipStyleSchema.default('default'),
     heightClassName: z.string().min(1).default('h-64 w-full aspect-auto'),
     showGrid: z.boolean().default(true),
   })

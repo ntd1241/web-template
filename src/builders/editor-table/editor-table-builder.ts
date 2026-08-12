@@ -140,6 +140,7 @@ function editableCell(
       fieldExpression: 'inputField',
       valueExpression: 'inputField.value',
       onChangeExpression: 'inputField.onChange',
+      format: column.format,
       variant: inputVariant(column),
       ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
       ariaInvalidExpression: `!!${fieldError(column)}`,
@@ -171,7 +172,7 @@ function editableCell(
       ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
       ariaInvalidExpression: `!!${fieldError(column)}`,
       calendarLabelExpression: `\`Chọn ${ariaLabel(column).toLowerCase()} dòng \${index + 1}\``,
-      valueMode: column.valueMode,
+      format: column.kind === 'date' ? column.format : undefined,
     });
     return `<TableCell className="px-2 py-2">
   <Controller
@@ -234,6 +235,10 @@ function emitHeaderBulkInput(
     valueExpression: `headerBulkValues.${column.name}`,
     variant: 'sm',
     inputType: column.kind === 'text' ? column.inputType : undefined,
+    format:
+      column.kind === 'number' || column.kind === 'date'
+        ? column.format
+        : undefined,
     className:
       column.kind === 'number' ? FIELD_ALIGNMENT_CLASS.right : undefined,
     disabledExpression: 'selectedIndexes.length === 0',
@@ -242,7 +247,6 @@ function emitHeaderBulkInput(
       column.kind === 'date'
         ? `\`Chọn ${ariaLabel(column).toLowerCase()} cho dòng đã chọn\``
         : undefined,
-    valueMode: column.valueMode,
     onChangeHandlerExpression:
       column.kind === 'date'
         ? `(value) => handleHeaderBulkChange(${quote(column.name)}, value)`
@@ -572,7 +576,19 @@ function hasComputedColumn(spec: NormalizedEditorTableSpec): boolean {
 
 function hasInputColumn(spec: NormalizedEditorTableSpec): boolean {
   return spec.columns.some(
-    (column) => column.kind === 'text' || column.kind === 'number',
+    (column) =>
+      column.kind === 'text' ||
+      (column.kind === 'number' &&
+        (!column.format || column.format === 'plain')),
+  );
+}
+
+function hasFormattedNumberColumn(spec: NormalizedEditorTableSpec): boolean {
+  return spec.columns.some(
+    (column) =>
+      column.kind === 'number' &&
+      column.format !== undefined &&
+      column.format !== 'plain',
   );
 }
 
@@ -593,6 +609,7 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
   const editable = hasEditableColumn(spec);
   const computed = hasComputedColumn(spec);
   const input = hasInputColumn(spec);
+  const formattedNumber = hasFormattedNumberColumn(spec);
   const date = hasDateColumn(spec);
   const multiEdit = hasMultiEdit(spec);
   const icons = spec.actions.enabled ? 'Copy, Plus, Trash2' : 'Plus';
@@ -609,6 +626,10 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
     lines.push("import { Checkbox } from '@/components/ui/checkbox';");
   if (input || multiEdit)
     lines.push("import { Input } from '@/components/ui/input';");
+  if (formattedNumber)
+    lines.push(
+      "import { NumericInput } from '@/components/ui/inputs/numeric-input';",
+    );
   if (date || multiEdit)
     lines.push(
       "import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';",

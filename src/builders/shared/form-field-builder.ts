@@ -28,7 +28,7 @@ export interface FormFieldControlOptions {
   emptyMessage?: string;
   calendarLabel?: string;
   calendarLabelExpression?: string;
-  valueMode?: 'date' | 'iso-date';
+  format?: 'plain' | 'currency' | 'percent' | 'display' | 'iso';
   ariaLabelExpression?: string;
   ariaInvalidExpression?: string;
   disabledExpression?: string;
@@ -81,6 +81,20 @@ function inputAttributes(options: FormFieldControlOptions): string {
   return attrs.join('');
 }
 
+function dateValueMode(options: FormFieldControlOptions): 'date' | 'iso-date' {
+  if (options.format === 'display') return 'date';
+  if (options.format === 'iso') return 'iso-date';
+  return options.surface === 'cell' ? 'iso-date' : 'date';
+}
+
+function numberFormatSuffix(
+  format?: FormFieldControlOptions['format'],
+): string {
+  if (format === 'currency') return ' suffix=" ₫"';
+  if (format === 'percent') return ' suffix=" %"';
+  return '';
+}
+
 /**
  * Shared codegen for form controls. Higher-level builders provide the binding
  * expressions and surface-specific attributes; this function owns the
@@ -102,6 +116,10 @@ export function buildFormFieldControl(
   switch (options.kind) {
     case 'text':
     case 'number': {
+      const isFormattedNumber =
+        options.kind === 'number' &&
+        options.format !== undefined &&
+        options.format !== 'plain';
       const type = options.kind === 'number' ? 'number' : options.inputType;
       const typeAttr = type && type !== 'text' ? ` type="${type}"` : '';
       const controlled =
@@ -115,11 +133,13 @@ export function buildFormFieldControl(
       const changeAttribute = options.onChangeHandlerExpression
         ? ` onChange={${options.onChangeHandlerExpression}}`
         : `\n        onChange={(event) =>\n          ${onChange}\n        }`;
-      const input = controlled
-        ? `<Input${attrs}${typeAttr}${placeholder} value={${value}}${variant}\n        onBlur={${blur}}${changeAttribute}\n      />`
-        : options.surface === 'cell'
-          ? `<Input {...${field}}${attrs}${typeAttr}${variant} />`
-          : `<Input${typeAttr}${placeholder}${variant} {...${field}} />`;
+      const input = isFormattedNumber
+        ? `<NumericInput${attrs}${numberFormatSuffix(options.format)}${placeholder} value={${value}}${variant}\n        onBlur={${blur}}\n        onValueChange={${change}}\n      />`
+        : controlled
+          ? `<Input${attrs}${typeAttr}${placeholder} value={${value}}${variant}\n        onBlur={${blur}}${changeAttribute}\n      />`
+          : options.surface === 'cell'
+            ? `<Input {...${field}}${attrs}${typeAttr}${variant} />`
+            : `<Input${typeAttr}${placeholder}${variant} {...${field}} />`;
 
       return `${controlOpen(options)}${input}${controlClose(options)}`;
     }
@@ -129,13 +149,11 @@ export function buildFormFieldControl(
         : options.calendarLabel
           ? attribute('calendarLabel', options.calendarLabel)
           : '';
-      const valueMode = options.valueMode
-        ? ` valueMode="${options.valueMode}"`
-        : '';
+      const valueMode = ` valueMode="${dateValueMode(options)}"`;
       const input =
         options.surface === 'form'
           ? `<DatePickerInput value={${value}} onChange={${change}} onBlur={${blur}}${calendarLabel}${valueMode}${variant} />`
-          : `<DatePickerInput${attrs}${calendarLabel} value={${value}} valueMode="${options.valueMode ?? 'iso-date'}"${variant}\n        onBlur={${blur}}\n        onChange={${options.onChangeHandlerExpression ?? change}}\n      />`;
+          : `<DatePickerInput${attrs}${calendarLabel} value={${value}}${valueMode}${variant}\n        onBlur={${blur}}\n        onChange={${options.onChangeHandlerExpression ?? change}}\n      />`;
       return `${controlOpen(options)}${input}${controlClose(options)}`;
     }
     case 'textarea': {

@@ -39,7 +39,7 @@ a composition primitive so generated outputs remain scaffold-and-own files.
 
 The matching control-level Zod schemas live in
 [`src/builders/shared/form-field-spec.ts`](./shared/form-field-spec.ts). Higher-level specs extend
-those schemas with their own layout and behavior fields, so additions such as date `valueMode` are
+those schemas with their own layout and behavior fields, so additions such as date/number `format`
 validated and typed from one source.
 
 ## Core rules
