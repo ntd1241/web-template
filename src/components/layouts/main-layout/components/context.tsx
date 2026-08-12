@@ -1,8 +1,19 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import type { MenuGroupConfig } from '@/config/menu.types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppSettings } from '@/providers/app-settings-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+
+export interface LayoutShellConfig {
+  menuGroups: MenuGroupConfig[];
+  homePath: string;
+  brandName: string;
+  headerTitle: string;
+  breadcrumbRootLabel: string;
+  breadcrumbRootPath: string;
+  breadcrumbCurrent: string;
+}
 
 interface LayoutState {
   style: CSSProperties;
@@ -10,12 +21,14 @@ interface LayoutState {
   isMobile: boolean;
   isSidebarOpen: boolean;
   sidebarToggle: () => void;
+  shell: LayoutShellConfig;
 }
 
 interface LayoutProviderProps {
   children: ReactNode;
   style?: CSSProperties;
   bodyClassName?: string;
+  shell?: Partial<LayoutShellConfig>;
 }
 
 const LayoutContext = createContext<LayoutState | undefined>(undefined);
@@ -24,6 +37,7 @@ export function LayoutProvider({
   children,
   style: customStyle,
   bodyClassName = '',
+  shell: customShell,
 }: LayoutProviderProps) {
   const isMobile = useIsMobile();
   const { appearance } = useAppSettings();
@@ -51,6 +65,17 @@ export function LayoutProvider({
 
   const sidebarToggle = () => setIsSidebarOpen((open) => !open);
 
+  const shell: LayoutShellConfig = {
+    menuGroups: [],
+    homePath: '/',
+    brandName: 'Admin Template',
+    headerTitle: 'Quản trị Tổ chức',
+    breadcrumbRootLabel: 'Tổ chức',
+    breadcrumbRootPath: '/',
+    breadcrumbCurrent: 'Nhân viên',
+    ...customShell,
+  };
+
   useEffect(() => {
     if (!bodyClassName) return;
 
@@ -65,7 +90,14 @@ export function LayoutProvider({
 
   return (
     <LayoutContext.Provider
-      value={{ bodyClassName, style, isMobile, isSidebarOpen, sidebarToggle }}
+      value={{
+        bodyClassName,
+        style,
+        isMobile,
+        isSidebarOpen,
+        sidebarToggle,
+        shell,
+      }}
     >
       <div
         data-slot="layout-wrapper"

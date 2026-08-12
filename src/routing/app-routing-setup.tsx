@@ -38,8 +38,9 @@ import { Layout36Page } from '@/pages/layout-36/page';
 import { Layout37Page } from '@/pages/layout-37/page';
 import { Layout38Page } from '@/pages/layout-38/page';
 import { Layout39Page } from '@/pages/layout-39/page';
-import { MainLayoutPage } from '@/pages/main-layout/page';
+import { ProjectMockPage } from '@/project/pages/project-mock-page';
 import { Navigate, Route, Routes } from 'react-router';
+import { PROJECT_MENU_GROUPS } from '@/config/project-menu.config';
 import { Layout1 } from '@/components/layouts/layout-1';
 import { Layout2 } from '@/components/layouts/layout-2';
 import { Layout3 } from '@/components/layouts/layout-3';
@@ -202,8 +203,22 @@ export function AppRoutingSetup() {
       <Route element={<Layout39 />}>
         <Route path="/layout-39" element={<Layout39Page />} />
       </Route>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<MainLayoutPage />} />
+      <Route
+        element={
+          <MainLayout
+            shell={{
+              menuGroups: PROJECT_MENU_GROUPS,
+              homePath: '/',
+              brandName: 'Project thật',
+              headerTitle: 'Project thật',
+              breadcrumbRootLabel: 'Trang chủ',
+              breadcrumbRootPath: '/',
+              breadcrumbCurrent: 'Tổng quan',
+            }}
+          />
+        }
+      >
+        <Route path="/" element={<ProjectMockPage />} />
       </Route>
       {/* Xóa dòng này + thư mục src/examples để gỡ toàn bộ trang example. */}
       {exampleRoutes}

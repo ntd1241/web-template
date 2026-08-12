@@ -1,8 +1,13 @@
 import { Helmet } from 'react-helmet-async';
 import { LayoutProvider } from './components/context';
+import type { LayoutShellConfig } from './components/context';
 import { Wrapper } from './components/wrapper';
 
-export function MainLayout() {
+interface MainLayoutProps {
+  shell?: Partial<LayoutShellConfig>;
+}
+
+export function MainLayout({ shell }: MainLayoutProps = {}) {
   return (
     <>
       <Helmet>
@@ -11,6 +16,7 @@ export function MainLayout() {
 
       <LayoutProvider
         bodyClassName="bg-muted overflow-hidden"
+        shell={shell}
         style={
           {
             '--sidebar-width': '280px',

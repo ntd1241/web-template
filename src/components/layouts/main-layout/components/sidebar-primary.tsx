@@ -1,17 +1,14 @@
 import { useUiStore } from '@/stores/ui.store';
 import { Blocks, BookOpen, CircleHelp } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  getMenuItemKey,
-  MENU_GROUPS,
-  resolveMenuTarget,
-} from '@/config/menu.config';
+import { getMenuItemKey, resolveMenuTarget } from '@/config/menu.types';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useLayout } from './context';
 
 const secondaryRailItems = [
   { label: 'Hướng dẫn sử dụng', icon: BookOpen },
@@ -19,12 +16,13 @@ const secondaryRailItems = [
 
 export function SidebarPrimary() {
   const { pathname } = useLocation();
+  const { shell } = useLayout();
   const wireframeMode = useUiStore((s) => s.wireframeMode);
   const pinnedMenuPaths = useUiStore((s) => s.pinnedMenuPaths);
 
   const pinnedItems = pinnedMenuPaths
     .map((path) => {
-      for (const group of MENU_GROUPS) {
+      for (const group of shell.menuGroups) {
         const item = group.items.find(
           (menuItem) => getMenuItemKey(menuItem) === path,
         );
@@ -44,7 +42,7 @@ export function SidebarPrimary() {
   return (
     <div className="flex w-(--sidebar-collapsed-width) shrink-0 flex-col items-center bg-admin-neutral-900 py-4 text-white">
       <Link
-        to="/"
+        to={shell.homePath}
         className="flex size-8 items-center justify-center rounded-lg bg-white text-primary shadow-sm"
         aria-label="Trang chủ"
       >

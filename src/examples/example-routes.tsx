@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { ROUTES } from '@/constants/routes';
-import { Route } from 'react-router';
+import { Navigate, Route } from 'react-router';
+import { MENU_GROUPS } from '@/config/menu.config';
 import { MainLayout } from '@/components/layouts/main-layout';
 import { PublicLayout } from '@/components/layouts/public-layout';
 import { ScreenLoader } from '@/components/screen-loader';
@@ -104,7 +105,25 @@ const MaterialModelSpecWireframe = lazy(() =>
 
 const exampleRoutes: ReactNode = (
   <>
-    <Route element={<MainLayout />}>
+    <Route
+      element={
+        <MainLayout
+          shell={{
+            menuGroups: MENU_GROUPS,
+            homePath: ROUTES.EXAMPLE.EMPLOYEES,
+            brandName: 'Example',
+            headerTitle: 'Example',
+            breadcrumbRootLabel: 'Example',
+            breadcrumbRootPath: ROUTES.EXAMPLE.EMPLOYEES,
+            breadcrumbCurrent: 'Nhân viên',
+          }}
+        />
+      }
+    >
+      <Route
+        path="/example"
+        element={<Navigate to={ROUTES.EXAMPLE.EMPLOYEES} replace />}
+      />
       <Route
         path={ROUTES.EXAMPLE.EMPLOYEES}
         element={

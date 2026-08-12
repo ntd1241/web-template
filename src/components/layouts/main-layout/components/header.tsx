@@ -169,7 +169,7 @@ function AccountMenuHeader() {
 }
 
 export function Header() {
-  const { isMobile, isSidebarOpen, sidebarToggle } = useLayout();
+  const { isMobile, isSidebarOpen, sidebarToggle, shell } = useLayout();
   const { pathname } = useLocation();
   const { theme, setTheme } = useTheme();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -237,14 +237,17 @@ export function Header() {
 
         <div className="min-w-0">
           <h1 className="truncate text-lg font-bold leading-tight text-zinc-900">
-            Quản trị Tổ chức
+            {shell.headerTitle}
           </h1>
           <nav className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Link to="/" className="hover:text-admin-neutral-700">
-              Tổ chức
+            <Link
+              to={shell.breadcrumbRootPath}
+              className="hover:text-admin-neutral-700"
+            >
+              {shell.breadcrumbRootLabel}
             </Link>
             <span className="text-admin-neutral-300">/</span>
-            <span className="text-[#0e5cd6]">Nhân viên</span>
+            <span className="text-[#0e5cd6]">{shell.breadcrumbCurrent}</span>
           </nav>
         </div>
       </div>

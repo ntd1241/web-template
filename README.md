@@ -16,7 +16,7 @@ Chi tiết & kiến trúc: **[`docs/00-stack-and-architecture.md`](docs/00-stack
 ```bash
 npm install --force        # --force do React 19 peer ranges
 cp .env.example .env.local # cấu hình env (mặc định mock-first, chạy được ngay)
-npm run dev                # http://localhost:5173  (/ = trang quản lý nhân viên mẫu)
+npm run dev                # http://localhost:5173  (/ = project thật mock, /example/* = trang mẫu)
 ```
 
 Template chạy **mock-first**: `VITE_USE_MOCK=1` nên không cần backend. Khi có API thật, đặt

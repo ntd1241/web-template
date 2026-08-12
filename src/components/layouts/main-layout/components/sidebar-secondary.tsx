@@ -1,11 +1,7 @@
 import { useUiStore } from '@/stores/ui.store';
 import { LayoutTemplate, Pin } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  getMenuItemKey,
-  MENU_GROUPS,
-  resolveMenuTarget,
-} from '@/config/menu.config';
+import { getMenuItemKey, resolveMenuTarget } from '@/config/menu.types';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,10 +12,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useLayout } from './context';
 import { SidebarHeader } from './sidebar-header';
 
 export function SidebarSecondary() {
   const { pathname } = useLocation();
+  const { shell } = useLayout();
   const wireframeMode = useUiStore((s) => s.wireframeMode);
   const toggleWireframeMode = useUiStore((s) => s.toggleWireframeMode);
   const pinnedMenuPaths = useUiStore((s) => s.pinnedMenuPaths);
@@ -33,7 +31,7 @@ export function SidebarSecondary() {
         viewportClassName="[&>div]:!block [&>div]:!w-full [&>div]:!min-w-0"
       >
         <nav className="space-y-6 px-3 py-4">
-          {MENU_GROUPS.map((group) => {
+          {shell.menuGroups.map((group) => {
             const items = group.items
               .map((item) => ({
                 item,

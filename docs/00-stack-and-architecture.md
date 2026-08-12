@@ -33,6 +33,23 @@ Exact versions belong in `package.json`, not duplicated here.
 - `src/examples/<domain>/`: dev-only reference features, excluded from production.
 - `src/builders/`: build-time UI scaffold generators; see [`src/builders/README.md`](../src/builders/README.md).
 
+### Hai vùng ứng dụng trong cùng một project
+
+Project hiện được chia thành hai vùng để vừa phát triển sản phẩm thật vừa đối
+chiếu với các màn hình mẫu:
+
+- **Project thật**: route ở root (`/` và các route nghiệp vụ thật phát triển về
+  sau), dùng menu và sidebar riêng tại `src/config/project-menu.config.tsx`.
+- **Example**: toàn bộ màn hình tham chiếu nằm dưới namespace `/example/*`,
+  dùng menu example tại `src/config/menu.config.tsx` và đăng ký route tập trung
+  ở `src/examples/example-routes.tsx`.
+
+Khi thêm chức năng thật, ưu tiên đặt code trong `src/features/` hoặc thư mục
+project tương ứng và đăng ký vào route/menu của project thật. Không trộn route
+hoặc menu example vào project thật. Khi bàn giao, có thể gỡ example bằng cách
+loại bỏ đăng ký `exampleRoutes` và thư mục `src/examples/` mà không ảnh hưởng
+đến shell, component dùng chung và route thật.
+
 Do not relocate existing Metronic layout modules merely to match feature-first structure.
 
 ## Data Flow
