@@ -1,5 +1,7 @@
 import axios, {
   type AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios';
@@ -13,11 +15,6 @@ import { env } from '@/config/env';
  * Mock-first: khi `env.useMock` bật, feature API nên trả mock data và không
  * chạm tới instance này — xem `src/mocks/`.
  */
-export const api = axios.create({
-  baseURL: env.apiUrl,
-  timeout: env.apiTimeoutMs,
-});
-
 type ApiErrorPayload = {
   message?: unknown;
   detail?: unknown;
@@ -104,52 +101,75 @@ export function configureApiAuth(options: {
   onUnauthorized = options.onUnauthorized;
 }
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (
-    shouldUseJsonContentType(config.data) &&
-    !config.headers.has('Content-Type')
-  ) {
-    config.headers.set('Content-Type', 'application/json');
+function handleResponseError(
+  error: AxiosError<ApiErrorPayload>,
+): Promise<never> {
+  if (error.response?.status === 401) {
+    onUnauthorized();
+  }
+  if (axios.isCancel(error)) {
+    return Promise.reject(error);
   }
 
-  const token = getToken();
-  if (token && !config.headers.has('Authorization')) {
-    config.headers.set('Authorization', `Bearer ${token}`);
-  }
-  return config;
+  const payload = error.response?.data as ApiErrorPayload | undefined;
+  const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+  const normalized: ApiError = {
+    message:
+      getPayloadMessage(payload) ??
+      (isTimeout
+        ? 'Yêu cầu mất quá nhiều thời gian, vui lòng thử lại.'
+        : error.response
+          ? 'Đã có lỗi xảy ra, vui lòng thử lại.'
+          : 'Không thể kết nối đến máy chủ, vui lòng kiểm tra mạng.'),
+    status: error.response?.status,
+    code: getString(payload?.code) ?? error.code,
+    errors: getFieldErrors(payload?.errors),
+    details: payload,
+    requestId: getHeaderValue(error.response, 'x-request-id'),
+    isNetworkError: !error.response,
+    isTimeout,
+  };
+  return Promise.reject(normalized);
+}
+
+export function getConfiguredApiToken(): string | null {
+  return getToken();
+}
+
+export function createApiClient(
+  config: AxiosRequestConfig = {},
+): AxiosInstance {
+  const instance = axios.create({
+    timeout: 30_000,
+    ...config,
+  });
+
+  instance.interceptors.request.use(
+    (requestConfig: InternalAxiosRequestConfig) => {
+      if (
+        shouldUseJsonContentType(requestConfig.data) &&
+        !requestConfig.headers.has('Content-Type')
+      ) {
+        requestConfig.headers.set('Content-Type', 'application/json');
+      }
+
+      const token = getToken();
+      if (token && !requestConfig.headers.has('Authorization')) {
+        requestConfig.headers.set('Authorization', `Bearer ${token}`);
+      }
+      return requestConfig;
+    },
+  );
+
+  instance.interceptors.response.use(
+    (response: AxiosResponse) => response.data,
+    handleResponseError,
+  );
+
+  return instance;
+}
+
+export const api = createApiClient({
+  baseURL: env.apiUrl,
+  timeout: env.apiTimeoutMs,
 });
-
-api.interceptors.response.use(
-  (response: AxiosResponse) => response.data,
-  (
-    error: AxiosError<{ message?: string; errors?: Record<string, string[]> }>,
-  ) => {
-    if (error.response?.status === 401) {
-      onUnauthorized();
-    }
-    if (axios.isCancel(error)) {
-      return Promise.reject(error);
-    }
-
-    const payload = error.response?.data as ApiErrorPayload | undefined;
-    const isTimeout =
-      error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
-    const normalized: ApiError = {
-      message:
-        getPayloadMessage(payload) ??
-        (isTimeout
-          ? 'Yêu cầu mất quá nhiều thời gian, vui lòng thử lại.'
-          : error.response
-            ? 'Đã có lỗi xảy ra, vui lòng thử lại.'
-            : 'Không thể kết nối đến máy chủ, vui lòng kiểm tra mạng.'),
-      status: error.response?.status,
-      code: getString(payload?.code) ?? error.code,
-      errors: getFieldErrors(payload?.errors),
-      details: payload,
-      requestId: getHeaderValue(error.response, 'x-request-id'),
-      isNetworkError: !error.response,
-      isTimeout,
-    };
-    return Promise.reject(normalized);
-  },
-);

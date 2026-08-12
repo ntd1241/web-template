@@ -20,6 +20,9 @@ docs/.vitepress/.temp
 
 # Tailwind CSS build output
 *.css.map
+
+# Supabase CLI local metadata
+supabase/.temp/
 # Codex delegation worktrees
 .worktrees/
 

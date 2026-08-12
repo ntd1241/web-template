@@ -5,6 +5,12 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   /** Timeout request API tính theo mili-giây. */
   readonly VITE_API_TIMEOUT_MS?: string;
+  /** URL project Supabase, ví dụ https://<project-ref>.supabase.co. */
+  readonly VITE_SUPABASE_URL?: string;
+  /** Publishable/anon key, chỉ dùng ở browser cùng với RLS. */
+  readonly VITE_SUPABASE_ANON_KEY?: string;
+  /** Schema PostgREST mặc định, thường là public. */
+  readonly VITE_SUPABASE_SCHEMA?: string;
   /** Bật mock data thay vì gọi API thật. '1' | 'true' để bật. */
   readonly VITE_USE_MOCK: string;
   /** Tên app, dùng cho <title>, header. */

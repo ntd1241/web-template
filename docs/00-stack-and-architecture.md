@@ -32,6 +32,7 @@ Exact versions belong in `package.json`, not duplicated here.
 - `src/features/<domain>/`: production domain features.
 - `src/examples/<domain>/`: dev-only reference features, excluded from production.
 - `src/builders/`: build-time UI scaffold generators; see [`src/builders/README.md`](../src/builders/README.md).
+- `supabase/`: temporary Supabase migrations and setup notes for the real project.
 
 ### Hai vùng ứng dụng trong cùng một project
 
@@ -73,6 +74,11 @@ Page or feature component
 
 `src/lib/axios.ts` là HTTP boundary duy nhất cho REST API của project. Feature API
 chỉ gọi instance `api`, không đọc `import.meta.env` hoặc tạo Axios instance riêng.
+
+Supabase tạm thời dùng cùng nền Axios qua `src/lib/supabase.ts`, gọi PostgREST
+với publishable/anon key và user JWT. RLS trong database là lớp bảo vệ chính;
+không đưa `service_role` key vào frontend. Chi tiết migration tenant nằm ở
+[`supabase/README.md`](../supabase/README.md).
 
 - `VITE_API_URL` và `VITE_API_TIMEOUT_MS` được đọc qua `src/config/env.ts`.
 - Request object JSON tự nhận `Content-Type`; `FormData`, file và query params
