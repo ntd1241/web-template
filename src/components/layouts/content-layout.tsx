@@ -116,8 +116,8 @@ export function ContentLayout({
   return (
     <div
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-5 lg:flex-row',
-        contentHeight === 'fill' && 'h-full',
+        'flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto lg:flex-row lg:overflow-hidden',
+        contentHeight === 'fill' && 'lg:h-full',
         className,
       )}
     >
@@ -151,11 +151,14 @@ export function ContentLayout({
       </div>
 
       {contentHeight === 'fill' ? (
-        <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden pe-2">
+        <div className="min-w-0 flex-none overflow-visible pe-2 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden">
           {content}
         </div>
       ) : (
-        <ScrollArea className="min-h-0 min-w-0 flex-1">
+        <ScrollArea
+          className="min-w-0 flex-none overflow-visible lg:min-h-0 lg:flex-1 lg:overflow-hidden"
+          viewportClassName="h-auto max-lg:!overflow-visible lg:h-full"
+        >
           <div className="min-w-0 pb-2 pe-2">{content}</div>
         </ScrollArea>
       )}

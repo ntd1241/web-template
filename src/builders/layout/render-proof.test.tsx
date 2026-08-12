@@ -33,5 +33,8 @@ describe('generated content layout render proof', () => {
     expect(
       screen.getByText('Fit content').closest('[data-slot="scroll-area"]'),
     ).not.toBeNull();
+    expect(
+      screen.getByText('Fit content').closest('[data-slot="scroll-area"]'),
+    ).toHaveClass('flex-none');
   });
 });

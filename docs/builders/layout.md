@@ -72,4 +72,16 @@ Available presets:
 - `layoutPresets.contentFit`: navigation follows its content and the main area uses the normal page scroll behavior.
 - `layoutPresets.fullHeightSplit`: navigation and content fill the layout height; the data area owns its internal scroll while the footer stays visible.
 
+## Responsive behavior
+
+The shared `ContentLayout` keeps the two-column split and independent content
+scroll on desktop. Below the desktop breakpoint it automatically changes to a
+single vertical flow: the navigation area uses its content height, the content
+area is no longer constrained to half of the viewport, and the outer layout
+scrolls both areas together. This is the default for trees, filters, settings
+tabs, and table pages.
+
+Use a drawer only as a separate page-level variant when the navigation itself is
+long enough that keeping it visible would create excessive mobile scrolling.
+
 Presets are starting points, not locks. Override individual defaults when a page has a slightly different navigation width, height mode, or resize behavior.
