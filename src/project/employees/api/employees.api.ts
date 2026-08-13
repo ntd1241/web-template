@@ -3,6 +3,7 @@ import type {
   Employee,
   EmployeeAvatarRow,
   EmployeeFormValues,
+  EmployeeRole,
   EmployeeRow,
   EmployeeStatus,
 } from '../model/employee';
@@ -20,6 +21,7 @@ interface EmployeeRoleAssignmentRow {
 interface EmployeeRoleRow {
   id: string;
   name: string;
+  color: EmployeeRole['color'];
 }
 
 function queryParams(params: Record<string, string>) {
@@ -88,20 +90,20 @@ export async function loadEmployeeWorkspace(
       supabaseApi.get(
         '/roles',
         queryParams({
-          select: 'id,name',
+          select: 'id,name,color',
           tenant_id: `eq.${tenantId}`,
           is_active: 'eq.true',
         }),
       ),
     ),
   ]);
-  const roleNameById = new Map(roles.map((role) => [role.id, role.name]));
-  const roleNamesByUserId = new Map<string, string[]>();
+  const roleById = new Map(roles.map((role) => [role.id, role]));
+  const roleNamesByUserId = new Map<string, EmployeeRole[]>();
   for (const assignment of assignments) {
-    const roleName = roleNameById.get(assignment.role_id);
-    if (!roleName) continue;
+    const role = roleById.get(assignment.role_id);
+    if (!role) continue;
     const userRoles = roleNamesByUserId.get(assignment.user_id) ?? [];
-    userRoles.push(roleName);
+    userRoles.push({ name: role.name, color: role.color });
     roleNamesByUserId.set(assignment.user_id, userRoles);
   }
 

@@ -46,6 +46,7 @@ import {
   CardToolbar,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ColorSelect } from '@/components/ui/color-select';
 import {
   Dialog,
   DialogBody,
@@ -74,9 +75,14 @@ import {
   countPermissions,
   getTagSummary,
   PERMISSION_TAGS,
+  ROLE_COLOR_LABELS,
+  ROLE_COLOR_SWATCH_CLASSES,
+  ROLE_COLOR_TEXT_CLASSES,
+  ROLE_COLORS,
   type PermissionItem,
   type PermissionModule,
   type PermissionTag,
+  type RoleColor,
   type RoleSummary,
   type SummaryState,
 } from '../model/role-permission';
@@ -324,6 +330,7 @@ export function RolePermissionsPage() {
         return updateRole(role.id, {
           name: role.name.trim(),
           description: role.description.trim() || null,
+          color: role.color,
         });
       }
 
@@ -335,6 +342,7 @@ export function RolePermissionsPage() {
         tenant_id: workspaceQuery.data.tenantId,
         code,
         name: role.name.trim(),
+        color: role.color,
         description: role.description.trim() || null,
         scope: role.scope ?? 'all',
       });
@@ -428,9 +436,18 @@ export function RolePermissionsPage() {
                 }
               }}
             >
-              <span className="min-w-0">
-                <span className="block truncate text-[13px] font-semibold">
-                  {role.name}
+              <span className="flex min-w-0 items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'size-2.5 shrink-0 rounded-full border',
+                    ROLE_COLOR_SWATCH_CLASSES[role.color],
+                  )}
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-semibold">
+                    {role.name}
+                  </span>
                 </span>
               </span>
               <Badge
@@ -452,6 +469,7 @@ export function RolePermissionsPage() {
                 id: '',
                 code: '',
                 name: '',
+                color: 'blue',
                 description: '',
                 userCount: 0,
                 scope: 'all',
@@ -868,6 +886,21 @@ function RoleEditDialog({
               onChange={(event) =>
                 role &&
                 onRoleChange({ ...role, name: event.currentTarget.value })
+              }
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Màu vai trò</label>
+            <ColorSelect<RoleColor>
+              value={role?.color ?? 'blue'}
+              options={ROLE_COLORS.map((color) => ({
+                value: color,
+                label: ROLE_COLOR_LABELS[color],
+                swatchClassName: ROLE_COLOR_SWATCH_CLASSES[color],
+                textClassName: ROLE_COLOR_TEXT_CLASSES[color],
+              }))}
+              onValueChange={(color) =>
+                role && onRoleChange({ ...role, color })
               }
             />
           </div>

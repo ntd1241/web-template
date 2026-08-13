@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { RoleColor } from '../../model/role-color';
 
 export const EMPLOYEE_STATUSES = ['active', 'inactive'] as const;
 export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
@@ -26,12 +27,17 @@ export const employeeFormSchema = z.object({
 
 export type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
 
+export interface EmployeeRole {
+  name: string;
+  color: RoleColor;
+}
+
 export interface Employee {
   id: string;
   tenantId: string;
   userId: string | null;
   avatarUrl: string | null;
-  roles: string[];
+  roles: EmployeeRole[];
   employeeCode: string;
   firstName: string;
   lastName: string;
@@ -80,7 +86,7 @@ export const emptyEmployeeForm: EmployeeFormValues = {
 export function mapEmployeeRow(
   row: EmployeeRow,
   avatarUrl: string | null = null,
-  roles: string[] = [],
+  roles: EmployeeRole[] = [],
 ): Employee {
   const displayName = [row.last_name, row.first_name]
     .filter(Boolean)

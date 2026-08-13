@@ -1,4 +1,5 @@
 import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
+import type { RoleColor } from '../model/role-color';
 import {
   applySelectedPermissionCodes,
   PERMISSION_TAGS,
@@ -21,6 +22,7 @@ interface CreateRoleInput {
   tenant_id: string;
   code: string;
   name: string;
+  color: RoleColor;
   description?: string | null;
   scope?: 'self' | 'department' | 'all';
   is_system?: boolean;
@@ -29,6 +31,7 @@ interface CreateRoleInput {
 interface UpdateRoleInput {
   name: string;
   description: string | null;
+  color: RoleColor;
 }
 
 export interface RolePermissionsWorkspace {
@@ -155,6 +158,7 @@ export async function loadRolePermissionsWorkspace(
     id: role.id,
     code: role.code,
     name: role.name,
+    color: role.color,
     description: role.description ?? '',
     userCount: userCountByRoleId.get(role.id) ?? 0,
     scope: role.scope,

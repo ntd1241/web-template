@@ -1,4 +1,14 @@
+import type { RoleColor } from './role-color';
+
 export const PERMISSION_TAGS = ['Xem', 'Chỉnh sửa', 'Xóa', 'Duyệt'] as const;
+export {
+  ROLE_COLORS,
+  ROLE_COLOR_CLASSES,
+  ROLE_COLOR_LABELS,
+  ROLE_COLOR_SWATCH_CLASSES,
+  ROLE_COLOR_TEXT_CLASSES,
+} from './role-color';
+export type { RoleColor } from './role-color';
 
 export type PermissionTag = (typeof PERMISSION_TAGS)[number];
 export type SummaryState = 'all' | 'partial' | 'none' | 'na';
@@ -9,6 +19,7 @@ export interface RoleSummary {
   id: string;
   code?: string;
   name: string;
+  color: RoleColor;
   description: string;
   userCount: number;
   scope?: PermissionScope;
@@ -73,6 +84,7 @@ export interface RoleRow {
   tenant_id: string;
   code: string;
   name: string;
+  color: RoleColor;
   description: string | null;
   scope: PermissionScope;
   is_system: boolean;
