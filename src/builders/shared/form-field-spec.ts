@@ -12,6 +12,13 @@ export const textFieldControlSchema = z.object({
   inputType: z.enum(['text', 'email', 'tel', 'password', 'url']).optional(),
 });
 
+export const imageFieldControlSchema = z.object({
+  kind: z.literal('image'),
+  accept: z.string().optional(),
+  maxSizeMb: z.number().positive().optional(),
+  fallbackText: z.string().max(3).optional(),
+});
+
 export const numberFieldControlSchema = z.object({
   kind: z.literal('number'),
   /** Semantic display/input format; the renderer maps this to the runtime control. */
@@ -56,6 +63,7 @@ export const switchFieldControlSchema = z.object({
 
 export const formFieldControlSchemas = {
   text: textFieldControlSchema,
+  image: imageFieldControlSchema,
   number: numberFieldControlSchema,
   date: dateFieldControlSchema,
   textarea: textareaFieldControlSchema,
@@ -67,6 +75,7 @@ export const formFieldControlSchemas = {
 
 export const formFieldControlSchema = z.discriminatedUnion('kind', [
   textFieldControlSchema,
+  imageFieldControlSchema,
   numberFieldControlSchema,
   dateFieldControlSchema,
   textareaFieldControlSchema,
@@ -77,6 +86,7 @@ export const formFieldControlSchema = z.discriminatedUnion('kind', [
 ]);
 
 export type SharedTextFieldControl = z.infer<typeof textFieldControlSchema>;
+export type SharedImageFieldControl = z.infer<typeof imageFieldControlSchema>;
 export type SharedNumberFieldControl = z.infer<typeof numberFieldControlSchema>;
 export type SharedDateFieldControl = z.infer<typeof dateFieldControlSchema>;
 export type SharedTextareaFieldControl = z.infer<

@@ -27,6 +27,7 @@ export interface FormKindMeta {
 
 export const FORM_KIND_REGISTRY: Record<FormFieldKind, FormKindMeta> = {
   text: FORM_FIELD_CONTROL.text,
+  image: FORM_FIELD_CONTROL.image,
   number: FORM_FIELD_CONTROL.number,
   date: FORM_FIELD_CONTROL.date,
   textarea: FORM_FIELD_CONTROL.textarea,

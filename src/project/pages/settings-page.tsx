@@ -7,13 +7,7 @@ import {
 } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  Building2,
-  Palette,
-  RotateCcw,
-  Save,
-  type LucideIcon,
-} from 'lucide-react';
+import { Building2, Palette, Save, type LucideIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { queryClient } from '@/lib/query-client';
@@ -43,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   loadCurrentTenantSettings,
   updateTenantSettings,
+  uploadTenantLogo,
 } from '../api/tenant-settings.api';
 import {
   TenantSettingsForm,
@@ -62,6 +57,7 @@ export function ProjectSettingsPage() {
   const { theme, setTheme } = useTheme();
   const { appearance, saveAppearance } = useAppSettings();
   const [activeTab, setActiveTab] = useState<SettingsTab>('organization');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const tenantSettingsQuery = useQuery({
     queryKey: ['project', 'tenant-settings', userId],
     queryFn: () => {
@@ -79,18 +75,32 @@ export function ProjectSettingsPage() {
     if (!data || hydratedTenantIdRef.current === data.tenantId) return;
 
     form.reset(data.values);
+    setLogoFile(null);
     currentSettingsRef.current = data.settings;
     hydratedTenantIdRef.current = data.tenantId;
   }, [form, tenantSettingsQuery.data]);
 
   const tenantMutation = useMutation({
-    mutationFn: (values: TenantSettingsValues) => {
+    mutationFn: async (values: TenantSettingsValues) => {
       const tenantId = tenantSettingsQuery.data?.tenantId;
       if (!tenantId) throw new Error('Chưa tải được tenant hiện tại.');
 
-      return updateTenantSettings(tenantId, values, currentSettingsRef.current);
+      const savedValues = logoFile
+        ? {
+            ...values,
+            logoUrl: await uploadTenantLogo(tenantId, logoFile),
+          }
+        : values;
+
+      await updateTenantSettings(
+        tenantId,
+        savedValues,
+        currentSettingsRef.current,
+      );
+
+      return savedValues;
     },
-    onSuccess: async (_, values) => {
+    onSuccess: async (values) => {
       currentSettingsRef.current = {
         ...currentSettingsRef.current,
         description: values.description,
@@ -101,6 +111,7 @@ export function ProjectSettingsPage() {
         website: values.website,
       };
       form.reset(values);
+      setLogoFile(null);
       await queryClient.invalidateQueries({
         queryKey: ['project', 'tenant-settings', userId],
       });
@@ -118,7 +129,7 @@ export function ProjectSettingsPage() {
     },
   });
 
-  const organizationDirty = form.formState.isDirty;
+  const organizationDirty = form.formState.isDirty || Boolean(logoFile);
   const confirmLeave = useCallback(
     (message: string) => !organizationDirty || window.confirm(message),
     [organizationDirty],
@@ -238,6 +249,7 @@ export function ProjectSettingsPage() {
                     <TenantSettingsForm
                       form={form}
                       onSubmit={(values) => tenantMutation.mutate(values)}
+                      onLogoUrlFileChange={setLogoFile}
                       id="project-tenant-settings-form"
                     />
                   )}
@@ -247,12 +259,6 @@ export function ProjectSettingsPage() {
               <SettingsActions
                 isDirty={organizationDirty}
                 isPending={tenantMutation.isPending}
-                onReset={() => {
-                  const values = tenantSettingsQuery.data?.values;
-                  if (!values) return;
-                  form.reset(values);
-                  toast.info('Đã hoàn tác thay đổi thông tin tổ chức.');
-                }}
                 formId="project-tenant-settings-form"
               />
             </TabsContent>
@@ -326,30 +332,14 @@ export function ProjectSettingsPage() {
 function SettingsActions({
   isDirty,
   isPending,
-  onReset,
   formId,
 }: {
   isDirty: boolean;
   isPending: boolean;
-  onReset: () => void;
   formId: string;
 }) {
   return (
-    <div className="flex items-center justify-end gap-2 pt-4">
-      {!isDirty && (
-        <span className="me-auto text-xs text-muted-foreground">
-          Không có thay đổi chưa lưu
-        </span>
-      )}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onReset}
-        disabled={!isDirty || isPending}
-      >
-        <RotateCcw />
-        Hoàn tác
-      </Button>
+    <div className="flex items-center justify-end gap-2 pt-2">
       <Button
         type="submit"
         variant="primary"
@@ -366,7 +356,6 @@ function SettingsActions({
 function SettingsSection({
   icon: Icon,
   title,
-  description,
   children,
 }: {
   icon: LucideIcon;

@@ -10,6 +10,15 @@ const spec: FormSpec = {
   specPath: 'src/project/forms/tenant.form.fixture.ts',
   fields: [
     {
+      kind: 'image',
+      name: 'logoUrl',
+      label: 'Logo tổ chức',
+      width: 'full',
+      accept: 'image/png,image/jpeg,image/webp',
+      maxSizeMb: 5,
+      fallbackText: 'V',
+    },
+    {
       kind: 'text',
       name: 'name',
       label: 'Tên tổ chức',
@@ -28,13 +37,6 @@ const spec: FormSpec = {
       label: 'Mô tả',
       width: 'full',
       rows: 3,
-    },
-    {
-      kind: 'text',
-      name: 'logoUrl',
-      label: 'Ảnh/logo URL',
-      width: 'normal',
-      placeholder: 'https://...',
     },
     {
       kind: 'text',

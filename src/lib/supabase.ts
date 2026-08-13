@@ -26,6 +26,16 @@ export const supabaseAuthApi = createApiClient({
   },
 });
 
+/** Supabase Storage REST client dùng cùng token/session với PostgREST. */
+export const supabaseStorageApi = createApiClient({
+  baseURL: env.supabaseUrl ? `${env.supabaseUrl}/storage/v1` : '',
+  timeout: env.apiTimeoutMs,
+  headers: {
+    Accept: 'application/json',
+    apikey: env.supabaseAnonKey,
+  },
+});
+
 supabaseApi.interceptors.request.use((config) => {
   config.headers.set('apikey', env.supabaseAnonKey);
   config.headers.set(
@@ -44,6 +54,15 @@ supabaseApi.interceptors.request.use((config) => {
 });
 
 supabaseAuthApi.interceptors.request.use((config) => {
+  config.headers.set('apikey', env.supabaseAnonKey);
+  config.headers.set(
+    'Authorization',
+    `Bearer ${getConfiguredApiToken() ?? env.supabaseAnonKey}`,
+  );
+  return config;
+});
+
+supabaseStorageApi.interceptors.request.use((config) => {
   config.headers.set('apikey', env.supabaseAnonKey);
   config.headers.set(
     'Authorization',

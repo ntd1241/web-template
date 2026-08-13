@@ -24,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,10 +34,10 @@ import {
 } from '../model/tenant-settings';
 
 export const tenantSettingsDefaultValues: TenantSettingsValues = {
+  logoUrl: '',
   name: '',
   legalName: '',
   description: '',
-  logoUrl: '',
   taxCode: '',
   email: '',
   phone: '',
@@ -69,17 +70,40 @@ interface TenantSettingsFormProps {
   form: UseFormReturn<TenantSettingsValues>;
   onSubmit: (values: TenantSettingsValues) => void;
   id?: string;
+  onLogoUrlFileChange?: (file: File | null) => void;
 }
 
 export function TenantSettingsForm({
   form,
   onSubmit,
   id = 'tenantSettings-form',
+  onLogoUrlFileChange,
 }: TenantSettingsFormProps) {
   return (
     <Form {...form}>
       <form id={id} onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-12">
+          <FormField
+            control={form.control}
+            name="logoUrl"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12">
+                <FormControl>
+                  <ImageUploadField
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    onFileChange={onLogoUrlFileChange}
+                    accept="image/png,image/jpeg,image/webp"
+                    maxSizeMb={5}
+                    label="Logo tổ chức"
+                    fallbackText="V"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="name"
@@ -118,20 +142,6 @@ export function TenantSettingsForm({
                 <FormLabel>Mô tả</FormLabel>
                 <FormControl>
                   <Textarea rows={3} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="logoUrl"
-            render={({ field }) => (
-              <FormItem className="md:col-span-6">
-                <FormLabel>Ảnh/logo URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://..." variant="md" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -219,6 +229,7 @@ interface TenantSettingsFormDialogProps {
   form: UseFormReturn<TenantSettingsValues>;
   onSubmit: (values: TenantSettingsValues) => void;
   title?: string;
+  onLogoUrlFileChange?: (file: File | null) => void;
 }
 
 export function TenantSettingsFormDialog({
@@ -227,6 +238,7 @@ export function TenantSettingsFormDialog({
   form,
   onSubmit,
   title,
+  onLogoUrlFileChange,
 }: TenantSettingsFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -245,6 +257,7 @@ export function TenantSettingsFormDialog({
             form={form}
             onSubmit={onSubmit}
             id="tenantSettings-form"
+            onLogoUrlFileChange={onLogoUrlFileChange}
           />
         </div>
 

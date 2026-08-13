@@ -15,6 +15,12 @@ export const FORM_FIELD_CONTROL = {
     hasOptions: false,
     importName: 'Input',
   },
+  image: {
+    binding: 'valueOnChange',
+    defaultLiteral: "''",
+    hasOptions: false,
+    importName: 'ImageUploadField',
+  },
   number: {
     binding: 'spread',
     defaultLiteral: '0',

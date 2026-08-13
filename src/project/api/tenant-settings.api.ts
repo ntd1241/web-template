@@ -1,4 +1,9 @@
-import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
+import { env } from '@/config/env';
+import {
+  assertSupabaseConfigured,
+  supabaseApi,
+  supabaseStorageApi,
+} from '@/lib/supabase';
 import {
   mapTenantSettingsRow,
   type TenantSettingsRow,
@@ -104,4 +109,36 @@ export async function updateTenantSettings(
       },
     ),
   );
+}
+
+const TENANT_ASSETS_BUCKET = 'tenant-assets';
+
+function fileExtension(file: File): string {
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  if (extension && /^[a-z0-9]+$/.test(extension)) return extension;
+
+  return file.type === 'image/png'
+    ? 'png'
+    : file.type === 'image/webp'
+      ? 'webp'
+      : 'jpg';
+}
+
+export async function uploadTenantLogo(
+  tenantId: string,
+  file: File,
+): Promise<string> {
+  assertSupabaseConfigured();
+
+  const path = `${tenantId}/logo.${fileExtension(file)}`;
+  await request<unknown>(
+    supabaseStorageApi.post(`/object/${TENANT_ASSETS_BUCKET}/${path}`, file, {
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true',
+      },
+    }),
+  );
+
+  return `${env.supabaseUrl}/storage/v1/object/public/${TENANT_ASSETS_BUCKET}/${path}`;
 }

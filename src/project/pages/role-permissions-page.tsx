@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -193,6 +199,57 @@ export function RolePermissionsPage() {
     () => countChanges(modules, savedModules),
     [modules, savedModules],
   );
+  const hasUnsavedChanges = changeCount > 0;
+  const confirmLeave = useCallback(
+    (message: string) => !hasUnsavedChanges || window.confirm(message),
+    [hasUnsavedChanges],
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    const handleInternalNavigation = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+
+      const target = event.target as Element | null;
+      const link = target?.closest('a[href]');
+      if (
+        !link ||
+        link.getAttribute('target') === '_blank' ||
+        link.hasAttribute('download') ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href === window.location.pathname) {
+        return;
+      }
+
+      if (!confirmLeave('Bạn có thay đổi chưa lưu. Bạn vẫn muốn rời trang?')) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleInternalNavigation, true);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleInternalNavigation, true);
+    };
+  }, [confirmLeave, hasUnsavedChanges]);
+
   const totalPermissions = useMemo(
     () => countAllPermissions(modules),
     [modules],
@@ -360,7 +417,16 @@ export function RolePermissionsPage() {
                   ? 'border-primary bg-primary/8 text-foreground'
                   : 'border-border bg-background hover:bg-field',
               )}
-              onClick={() => setSelectedRoleId(role.id)}
+              onClick={() => {
+                if (
+                  role.id === activeRoleId ||
+                  confirmLeave(
+                    'Bạn có thay đổi quyền chưa lưu. Bạn vẫn muốn chuyển vai trò?',
+                  )
+                ) {
+                  setSelectedRoleId(role.id);
+                }
+              }}
             >
               <span className="min-w-0">
                 <span className="block truncate text-[13px] font-semibold">

@@ -58,6 +58,18 @@ function propOptionFields(fields: FormFieldSpec[]): OptionFieldSpec[] {
   );
 }
 
+type ImageFieldSpec = Extract<FormFieldSpec, { kind: 'image' }>;
+
+function imageFields(fields: FormFieldSpec[]): ImageFieldSpec[] {
+  return fields.filter(
+    (field): field is ImageFieldSpec => field.kind === 'image',
+  );
+}
+
+function imageFilePropName(fieldName: string): string {
+  return `on${fieldName.charAt(0).toUpperCase()}${fieldName.slice(1)}FileChange`;
+}
+
 function lowerFirst(value: string): string {
   return `${value.charAt(0).toLowerCase()}${value.slice(1)}`;
 }
@@ -127,6 +139,12 @@ function controlJsx(field: FormFieldSpec): string {
     emptyMessage: field.kind === 'multiselect' ? field.emptyMessage : undefined,
     calendarLabel:
       field.kind === 'date' ? `Chọn ${field.label.toLowerCase()}` : undefined,
+    accept: field.kind === 'image' ? field.accept : undefined,
+    maxSizeMb: field.kind === 'image' ? field.maxSizeMb : undefined,
+    onFileChangeExpression:
+      field.kind === 'image' ? imageFilePropName(field.name) : undefined,
+    label: field.kind === 'image' ? field.label : undefined,
+    fallbackText: field.kind === 'image' ? field.fallbackText : undefined,
   });
 }
 
@@ -137,7 +155,12 @@ function emitField(field: FormFieldSpec): string {
   ${controlJsx(field)}
   <FormLabel className="font-normal text-foreground">${field.label}</FormLabel>
 </FormItem>`
-      : `<FormItem className="${span(field)}">
+      : field.kind === 'image'
+        ? `<FormItem className="${span(field)}">
+  ${controlJsx(field)}
+  <FormMessage />
+</FormItem>`
+        : `<FormItem className="${span(field)}">
   <FormLabel>${labelJsx(field)}</FormLabel>
   ${controlJsx(field)}
   <FormMessage />
@@ -183,6 +206,10 @@ function emitImports(spec: FormSpec): string {
 
   if (kinds.has('text') || (kinds.has('number') && !hasFormattedNumber))
     lines.push("import { Input } from '@/components/ui/input';");
+  if (kinds.has('image'))
+    lines.push(
+      "import { ImageUploadField } from '@/components/ui/image-upload-field';",
+    );
   if (hasFormattedNumber)
     lines.push(
       "import { NumericInput } from '@/components/ui/inputs/numeric-input';",
@@ -242,6 +269,30 @@ function emitForwardedPropOptions(fields: OptionFieldSpec[]): string {
     .join(' ');
 }
 
+function emitImagePropRows(fields: ImageFieldSpec[]): string {
+  return fields
+    .map(
+      (field) =>
+        `  ${imageFilePropName(field.name)}?: (file: File | null) => void;`,
+    )
+    .join('\n');
+}
+
+function emitImagePropParams(fields: ImageFieldSpec[]): string {
+  return fields
+    .map((field) => `  ${imageFilePropName(field.name)},`)
+    .join('\n');
+}
+
+function emitForwardedImageProps(fields: ImageFieldSpec[]): string {
+  return fields
+    .map(
+      (field) =>
+        `${imageFilePropName(field.name)}={${imageFilePropName(field.name)}}`,
+    )
+    .join(' ');
+}
+
 export function buildFormModule(input: FormSpec): string {
   const spec = formSpecSchema.parse(input);
   const dialogComponent = spec.componentName ?? `${spec.entity}FormDialog`;
@@ -251,6 +302,7 @@ export function buildFormModule(input: FormSpec): string {
   const mapperName = `map${spec.entity}ToFormValues`;
   const sourceTypeName = `${spec.entity}FormSource`;
   const propFields = propOptionFields(spec.fields);
+  const imageFieldSpecs = imageFields(spec.fields);
 
   const fields = spec.fields.map(emitField).join('\n\n');
   const options = emitOptionConsts(spec.fields);
@@ -260,13 +312,21 @@ export function buildFormModule(input: FormSpec): string {
   const propOptionRows = emitPropOptionRows(propFields);
   const propOptionParams = emitPropOptionParams(propFields);
   const forwardedPropOptions = emitForwardedPropOptions(propFields);
-  const formPropsExtra = propOptionRows ? `\n${propOptionRows}` : '';
-  const dialogPropsExtra = propOptionRows ? `\n${propOptionRows}` : '';
-  const formParamsExtra = propOptionParams ? `\n${propOptionParams}` : '';
-  const dialogParamsExtra = propOptionParams ? `\n${propOptionParams}` : '';
-  const forwardPropsAttr = forwardedPropOptions
-    ? ` ${forwardedPropOptions}`
-    : '';
+  const imagePropRows = emitImagePropRows(imageFieldSpecs);
+  const imagePropParams = emitImagePropParams(imageFieldSpecs);
+  const forwardedImageProps = emitForwardedImageProps(imageFieldSpecs);
+  const propRows = [propOptionRows, imagePropRows].filter(Boolean).join('\n');
+  const propParams = [propOptionParams, imagePropParams]
+    .filter(Boolean)
+    .join('\n');
+  const forwardedProps = [forwardedPropOptions, forwardedImageProps]
+    .filter(Boolean)
+    .join(' ');
+  const formPropsExtra = propRows ? `\n${propRows}` : '';
+  const dialogPropsExtra = propRows ? `\n${propRows}` : '';
+  const formParamsExtra = propParams ? `\n${propParams}` : '';
+  const dialogParamsExtra = propParams ? `\n${propParams}` : '';
+  const forwardPropsAttr = forwardedProps ? ` ${forwardedProps}` : '';
 
   const body = `// TODO(scaffold): replace with the real entity type used for edit-mode mapping.
 type ${sourceTypeName} = unknown;

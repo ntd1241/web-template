@@ -34,6 +34,11 @@ export interface FormFieldControlOptions {
   disabledExpression?: string;
   className?: string;
   numberAttributes?: string;
+  accept?: string;
+  maxSizeMb?: number;
+  onFileChangeExpression?: string;
+  label?: string;
+  fallbackText?: string;
 }
 
 function attribute(name: string, value?: string): string {
@@ -141,6 +146,19 @@ export function buildFormFieldControl(
             ? `<Input {...${field}}${attrs}${typeAttr}${variant} />`
             : `<Input${typeAttr}${placeholder}${variant} {...${field}} />`;
 
+      return `${controlOpen(options)}${input}${controlClose(options)}`;
+    }
+    case 'image': {
+      const accept = attribute('accept', options.accept);
+      const maxSizeMb = options.maxSizeMb
+        ? ` maxSizeMb={${options.maxSizeMb}}`
+        : '';
+      const onFileChange = options.onFileChangeExpression
+        ? ` onFileChange={${options.onFileChangeExpression}}`
+        : '';
+      const label = attribute('label', options.label);
+      const fallbackText = attribute('fallbackText', options.fallbackText);
+      const input = `<ImageUploadField value={${value}} onValueChange={${change}}${onFileChange}${accept}${maxSizeMb}${label}${fallbackText} />`;
       return `${controlOpen(options)}${input}${controlClose(options)}`;
     }
     case 'date': {
