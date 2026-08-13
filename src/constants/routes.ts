@@ -20,11 +20,13 @@ export const ROUTES = {
     MATERIAL_MODEL_EDIT: '/example/materials/models/:id/edit',
     MATERIAL_PUBLIC_DETAIL: '/example/materials/public/:id',
     SUPPLIERS: '/example/suppliers',
-    ROLE_PERMISSIONS: '/example/role-permissions',
     CHARTS: '/example/charts',
     SETTINGS: '/example/settings',
     CONTENT_LAYOUT_TWO_COLUMN: '/example/content-layouts/two-column',
     OPERATIONS_DASHBOARD: '/example/operations-dashboard',
+  },
+  PROJECT: {
+    ROLE_PERMISSIONS: '/permissions',
   },
 } as const;
 

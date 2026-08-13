@@ -1,6 +1,6 @@
+import { ROUTES } from '@/constants/routes';
 import { exampleRoutes } from '@/examples/example-routes';
 import { LoginPage } from '@/features/auth/pages/login-page';
-import { NotFoundPage } from '@/pages/not-found/page';
 import { Layout1Page } from '@/pages/layout-1/page';
 import { Layout2Page } from '@/pages/layout-2/page';
 import { Layout3Page } from '@/pages/layout-3/page';
@@ -40,7 +40,9 @@ import { Layout36Page } from '@/pages/layout-36/page';
 import { Layout37Page } from '@/pages/layout-37/page';
 import { Layout38Page } from '@/pages/layout-38/page';
 import { Layout39Page } from '@/pages/layout-39/page';
+import { NotFoundPage } from '@/pages/not-found/page';
 import { ProjectMockPage } from '@/project/pages/project-mock-page';
+import { RolePermissionsPage } from '@/project/pages/role-permissions-page';
 import { Route, Routes } from 'react-router';
 import { PROJECT_MENU_GROUPS } from '@/config/project-menu.config';
 import { Layout1 } from '@/components/layouts/layout-1';
@@ -224,6 +226,10 @@ export function AppRoutingSetup() {
           }
         >
           <Route path="/" element={<ProjectMockPage />} />
+          <Route
+            path={ROUTES.PROJECT.ROLE_PERMISSIONS}
+            element={<RolePermissionsPage />}
+          />
         </Route>
       </Route>
       {/* Xóa dòng này + thư mục src/examples để gỡ toàn bộ trang example. */}

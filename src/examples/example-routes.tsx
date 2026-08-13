@@ -27,11 +27,6 @@ const OrderEditPage = lazy(() =>
     default: m.OrderEditPage,
   })),
 );
-const RolePermissionsPage = lazy(() =>
-  import('./role-permissions/pages/role-permissions-page').then((m) => ({
-    default: m.RolePermissionsPage,
-  })),
-);
 const MaterialsManagementPage = lazy(() =>
   import('./material/pages/materials-management-page').then((m) => ({
     default: m.MaterialsManagementPage,
@@ -217,14 +212,6 @@ const exampleRoutes: ReactNode = (
         element={
           <Suspense fallback={<ScreenLoader />}>
             <SuppliersPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path={ROUTES.EXAMPLE.ROLE_PERMISSIONS}
-        element={
-          <Suspense fallback={<ScreenLoader />}>
-            <RolePermissionsPage />
           </Suspense>
         }
       />
