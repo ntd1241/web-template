@@ -310,13 +310,13 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
-      <div className="flex min-h-0 flex-1 flex-col">
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[240px_minmax(0,1fr)]"
-        >
+    <div className="h-full min-h-0">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-5"
+      >
+        <div className="shrink-0 px-6 pt-6 lg:min-h-0 lg:pe-0">
           <Card className="flex h-fit max-h-full min-h-0 self-start flex-col">
             <ScrollArea className="max-h-full min-h-0 flex-1">
               <TabsList className="flex-col items-stretch gap-1 bg-transparent p-2 [&_[data-slot=tabs-trigger]]:justify-start [&_[data-slot=tabs-trigger]]:gap-3 [&_[data-slot=tabs-trigger]]:rounded-lg [&_[data-slot=tabs-trigger]]:px-3 [&_[data-slot=tabs-trigger]]:py-2.5 [&_[data-slot=tabs-trigger][data-state=active]]:bg-primary/10 [&_[data-slot=tabs-trigger][data-state=active]]:text-primary [&_[data-slot=tabs-trigger][data-state=active]_svg]:text-primary">
@@ -333,452 +333,452 @@ export function SettingsPage() {
               </TabsList>
             </ScrollArea>
           </Card>
+        </div>
 
-          <ScrollArea className="min-h-0 flex-1">
-            <div className="min-w-0 space-y-5 pb-2 pe-2">
-              <TabsContent value="profile" className="mt-0 space-y-5">
-                <SettingsSection
-                  icon={UserRound}
-                  title="Thông tin cá nhân"
-                  description="Thông tin hiển thị trong hồ sơ và lịch sử thao tác."
-                >
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                    <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-semibold text-primary-foreground">
-                      LT
-                    </div>
-                    <div className="space-y-1">
-                      <p className="font-medium text-foreground">
-                        Ảnh đại diện tài khoản
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        JPG hoặc PNG, tối đa 2MB.
-                      </p>
-                      <Button type="button" variant="outline" size="sm">
-                        Thay ảnh đại diện
-                      </Button>
-                    </div>
+        <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full">
+          <div className="min-w-0 space-y-5 px-6 pb-6 pt-6 lg:ps-0 lg:pe-6">
+            <TabsContent value="profile" className="mt-0 space-y-5">
+              <SettingsSection
+                icon={UserRound}
+                title="Thông tin cá nhân"
+                description="Thông tin hiển thị trong hồ sơ và lịch sử thao tác."
+              >
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                  <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-semibold text-primary-foreground">
+                    LT
                   </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <SettingsField label="Họ và tên" htmlFor="full-name">
-                      <Input
-                        id="full-name"
-                        value={settings.profile.fullName}
-                        onChange={(event) =>
-                          updateSection('profile', {
-                            fullName: event.target.value,
-                          })
-                        }
-                      />
-                    </SettingsField>
-                    <SettingsField label="Email" htmlFor="email">
-                      <Input
-                        id="email"
-                        type="email"
-                        value={settings.profile.email}
-                        onChange={(event) =>
-                          updateSection('profile', {
-                            email: event.target.value,
-                          })
-                        }
-                      />
-                    </SettingsField>
-                    <SettingsField label="Số điện thoại" htmlFor="phone">
-                      <Input
-                        id="phone"
-                        value={settings.profile.phone}
-                        onChange={(event) =>
-                          updateSection('profile', {
-                            phone: event.target.value,
-                          })
-                        }
-                      />
-                    </SettingsField>
-                    <SettingsField label="Ngôn ngữ">
-                      <Select
-                        value={settings.profile.language}
-                        onValueChange={(language) =>
-                          updateSection('profile', { language })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="vi">Tiếng Việt</SelectItem>
-                          <SelectItem value="en">English</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </SettingsField>
-                    <SettingsField label="Múi giờ" className="md:col-span-2">
-                      <Select
-                        value={settings.profile.timeZone}
-                        onValueChange={(timeZone) =>
-                          updateSection('profile', { timeZone })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="asia-ho-chi-minh">
-                            (GMT+07:00) Hồ Chí Minh
-                          </SelectItem>
-                          <SelectItem value="asia-singapore">
-                            (GMT+08:00) Singapore
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </SettingsField>
+                  <div className="space-y-1">
+                    <p className="font-medium text-foreground">
+                      Ảnh đại diện tài khoản
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      JPG hoặc PNG, tối đa 2MB.
+                    </p>
+                    <Button type="button" variant="outline" size="sm">
+                      Thay ảnh đại diện
+                    </Button>
                   </div>
-                </SettingsSection>
+                </div>
 
-                <SettingsSection
-                  icon={Globe2}
-                  title="Ngôn ngữ và khu vực"
-                  description="Các thiết lập này ảnh hưởng đến định dạng hiển thị trong ứng dụng."
-                >
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
-                    <div className="flex items-start gap-3">
-                      <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <p>
-                        Thay đổi chỉ được áp dụng sau khi bạn bấm{' '}
-                        <span className="font-medium text-foreground">
-                          Lưu thay đổi
-                        </span>
-                        . Không có request riêng khi chỉnh từng trường.
-                      </p>
-                    </div>
-                  </div>
-                </SettingsSection>
-                <SettingsActions
-                  isDirty={isSectionDirty('profile')}
-                  onSave={() => saveSection('profile')}
-                  onReset={() => resetSection('profile')}
-                />
-              </TabsContent>
-
-              <TabsContent value="organization" className="mt-0 space-y-5">
-                <SettingsSection
-                  icon={Building2}
-                  title="Thông tin tổ chức"
-                  description="Thông tin dùng chung cho biểu mẫu, chứng từ và các báo cáo."
-                >
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <SettingsField label="Tên tổ chức" htmlFor="org-name">
-                      <Input
-                        id="org-name"
-                        value={settings.organization.name}
-                        onChange={(event) =>
-                          updateSection('organization', {
-                            name: event.target.value,
-                          })
-                        }
-                      />
-                    </SettingsField>
-                    <SettingsField label="Mã số thuế" htmlFor="tax-code">
-                      <Input
-                        id="tax-code"
-                        value={settings.organization.taxCode}
-                        onChange={(event) =>
-                          updateSection('organization', {
-                            taxCode: event.target.value,
-                          })
-                        }
-                      />
-                    </SettingsField>
-                    <SettingsField
-                      label="Địa chỉ"
-                      htmlFor="org-address"
-                      className="md:col-span-2"
-                    >
-                      <Textarea
-                        id="org-address"
-                        rows={3}
-                        value={settings.organization.address}
-                        onChange={(event) =>
-                          updateSection('organization', {
-                            address: event.target.value,
-                          })
-                        }
-                      />
-                    </SettingsField>
-                    <SettingsField
-                      label="Kho mặc định"
-                      description="Kho được chọn mặc định khi tạo phiếu mới."
-                    >
-                      <Select
-                        value={settings.organization.warehouse}
-                        onValueChange={(warehouse) =>
-                          updateSection('organization', { warehouse })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="kho-trung-tam">
-                            Kho trung tâm
-                          </SelectItem>
-                          <SelectItem value="kho-mien-bac">
-                            Kho miền Bắc
-                          </SelectItem>
-                          <SelectItem value="kho-mien-nam">
-                            Kho miền Nam
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </SettingsField>
-                  </div>
-                </SettingsSection>
-                <SettingsActions
-                  isDirty={isSectionDirty('organization')}
-                  onSave={() => saveSection('organization')}
-                  onReset={() => resetSection('organization')}
-                />
-              </TabsContent>
-
-              <TabsContent value="notifications" className="mt-0 space-y-5">
-                <SettingsSection
-                  icon={Bell}
-                  title="Kênh thông báo"
-                  description="Chọn những loại thông báo bạn muốn nhận."
-                >
-                  <SettingsGroup>
-                    <SettingsRow
-                      title="Thông báo qua email"
-                      description="Nhận cập nhật quan trọng và thông báo phê duyệt qua email."
-                      control={
-                        <SwitchWrapper>
-                          <Switch
-                            checked={settings.notifications.email}
-                            onCheckedChange={(email) =>
-                              updateSection('notifications', { email })
-                            }
-                          />
-                        </SwitchWrapper>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SettingsField label="Họ và tên" htmlFor="full-name">
+                    <Input
+                      id="full-name"
+                      value={settings.profile.fullName}
+                      onChange={(event) =>
+                        updateSection('profile', {
+                          fullName: event.target.value,
+                        })
                       }
                     />
-                    <SettingsRow
-                      title="Thông báo trong ứng dụng"
-                      description="Hiển thị thông báo trong trung tâm thông báo."
-                      control={
-                        <SwitchWrapper>
-                          <Switch
-                            checked={settings.notifications.inApp}
-                            onCheckedChange={(inApp) =>
-                              updateSection('notifications', { inApp })
-                            }
-                          />
-                        </SwitchWrapper>
+                  </SettingsField>
+                  <SettingsField label="Email" htmlFor="email">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={settings.profile.email}
+                      onChange={(event) =>
+                        updateSection('profile', {
+                          email: event.target.value,
+                        })
                       }
                     />
-                    <SettingsRow
-                      title="Bảo trì hệ thống"
-                      description="Thông báo trước khi hệ thống có lịch bảo trì."
-                      control={
-                        <SwitchWrapper>
-                          <Switch
-                            checked={settings.notifications.maintenance}
-                            onCheckedChange={(maintenance) =>
-                              updateSection('notifications', { maintenance })
-                            }
-                          />
-                        </SwitchWrapper>
+                  </SettingsField>
+                  <SettingsField label="Số điện thoại" htmlFor="phone">
+                    <Input
+                      id="phone"
+                      value={settings.profile.phone}
+                      onChange={(event) =>
+                        updateSection('profile', {
+                          phone: event.target.value,
+                        })
                       }
                     />
-                    <SettingsRow
-                      title="Báo cáo tổng hợp hàng tuần"
-                      description="Tóm tắt hoạt động và chỉ số vận hành mỗi tuần."
-                      control={
-                        <SwitchWrapper>
-                          <Switch
-                            checked={settings.notifications.weeklySummary}
-                            onCheckedChange={(weeklySummary) =>
-                              updateSection('notifications', { weeklySummary })
-                            }
-                          />
-                        </SwitchWrapper>
-                      }
-                    />
-                  </SettingsGroup>
-                </SettingsSection>
-
-                <SettingsSection
-                  icon={Bell}
-                  title="Tần suất gửi tổng hợp"
-                  description="Quy định thời điểm hệ thống gom và gửi thông báo."
-                >
-                  <SettingsField label="Tần suất">
+                  </SettingsField>
+                  <SettingsField label="Ngôn ngữ">
                     <Select
-                      value={settings.notifications.digest}
-                      onValueChange={(digest) =>
-                        updateSection('notifications', { digest })
+                      value={settings.profile.language}
+                      onValueChange={(language) =>
+                        updateSection('profile', { language })
                       }
                     >
-                      <SelectTrigger className="max-w-sm">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="realtime">Ngay lập tức</SelectItem>
-                        <SelectItem value="daily">Mỗi ngày</SelectItem>
-                        <SelectItem value="weekly">Mỗi tuần</SelectItem>
+                        <SelectItem value="vi">Tiếng Việt</SelectItem>
+                        <SelectItem value="en">English</SelectItem>
                       </SelectContent>
                     </Select>
                   </SettingsField>
-                </SettingsSection>
-                <SettingsActions
-                  isDirty={isSectionDirty('notifications')}
-                  onSave={() => saveSection('notifications')}
-                  onReset={() => resetSection('notifications')}
-                />
-              </TabsContent>
-
-              <TabsContent value="security" className="mt-0 space-y-5">
-                <SettingsSection
-                  icon={ShieldCheck}
-                  title="Bảo mật tài khoản"
-                  description="Tăng cường bảo vệ tài khoản và kiểm soát phiên đăng nhập."
-                >
-                  <SettingsGroup>
-                    <SettingsRow
-                      title="Xác thực hai bước"
-                      description="Yêu cầu mã xác thực ngoài mật khẩu khi đăng nhập."
-                      control={
-                        <SwitchWrapper>
-                          <Switch
-                            checked={settings.security.twoFactor}
-                            onCheckedChange={(twoFactor) =>
-                              updateSection('security', { twoFactor })
-                            }
-                          />
-                        </SwitchWrapper>
+                  <SettingsField label="Múi giờ" className="md:col-span-2">
+                    <Select
+                      value={settings.profile.timeZone}
+                      onValueChange={(timeZone) =>
+                        updateSection('profile', { timeZone })
                       }
-                    />
-                    <SettingsRow
-                      title="Cảnh báo đăng nhập mới"
-                      description="Thông báo khi tài khoản đăng nhập từ thiết bị mới."
-                      control={
-                        <SwitchWrapper>
-                          <Switch
-                            checked={settings.security.loginAlerts}
-                            onCheckedChange={(loginAlerts) =>
-                              updateSection('security', { loginAlerts })
-                            }
-                          />
-                        </SwitchWrapper>
-                      }
-                    />
-                  </SettingsGroup>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <SettingsField
-                      label="Thời gian hết hạn phiên"
-                      description="Tự động đăng xuất khi không hoạt động."
                     >
-                      <Select
-                        value={settings.security.sessionTimeout}
-                        onValueChange={(sessionTimeout) =>
-                          updateSection('security', { sessionTimeout })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="15">15 phút</SelectItem>
-                          <SelectItem value="30">30 phút</SelectItem>
-                          <SelectItem value="60">60 phút</SelectItem>
-                          <SelectItem value="never">Không tự động</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </SettingsField>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asia-ho-chi-minh">
+                          (GMT+07:00) Hồ Chí Minh
+                        </SelectItem>
+                        <SelectItem value="asia-singapore">
+                          (GMT+08:00) Singapore
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </SettingsField>
+                </div>
+              </SettingsSection>
+
+              <SettingsSection
+                icon={Globe2}
+                title="Ngôn ngữ và khu vực"
+                description="Các thiết lập này ảnh hưởng đến định dạng hiển thị trong ứng dụng."
+              >
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-3">
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <p>
+                      Thay đổi chỉ được áp dụng sau khi bạn bấm{' '}
+                      <span className="font-medium text-foreground">
+                        Lưu thay đổi
+                      </span>
+                      . Không có request riêng khi chỉnh từng trường.
+                    </p>
                   </div>
-                </SettingsSection>
-                <SettingsActions
-                  isDirty={isSectionDirty('security')}
-                  onSave={() => saveSection('security')}
-                  onReset={() => resetSection('security')}
-                />
-              </TabsContent>
+                </div>
+              </SettingsSection>
+              <SettingsActions
+                isDirty={isSectionDirty('profile')}
+                onSave={() => saveSection('profile')}
+                onReset={() => resetSection('profile')}
+              />
+            </TabsContent>
 
-              <TabsContent value="appearance" className="mt-0 space-y-5">
-                <SettingsSection
-                  icon={Palette}
-                  title="Giao diện ứng dụng"
-                  description="Tùy chỉnh cách hiển thị phù hợp với quy trình làm việc."
-                >
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <SettingsField label="Chủ đề">
-                      <Select
-                        value={settings.appearance.theme}
-                        onValueChange={(theme) => {
-                          if (
-                            theme === 'system' ||
-                            theme === 'light' ||
-                            theme === 'dark'
-                          ) {
-                            updateAppearance({ theme });
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="system">Theo hệ thống</SelectItem>
-                          <SelectItem value="light">Sáng</SelectItem>
-                          <SelectItem value="dark">Tối</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </SettingsField>
-                    <SettingsField label="Mật độ hiển thị">
-                      <Select
-                        value={settings.appearance.density}
-                        onValueChange={(density) => {
-                          if (
-                            density === 'small' ||
-                            density === 'medium' ||
-                            density === 'large'
-                          ) {
-                            updateAppearance({ density });
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="small">Nhỏ (90%)</SelectItem>
-                          <SelectItem value="medium">Vừa (95%)</SelectItem>
-                          <SelectItem value="large">Lớn (100%)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </SettingsField>
-                  </div>
+            <TabsContent value="organization" className="mt-0 space-y-5">
+              <SettingsSection
+                icon={Building2}
+                title="Thông tin tổ chức"
+                description="Thông tin dùng chung cho biểu mẫu, chứng từ và các báo cáo."
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SettingsField label="Tên tổ chức" htmlFor="org-name">
+                    <Input
+                      id="org-name"
+                      value={settings.organization.name}
+                      onChange={(event) =>
+                        updateSection('organization', {
+                          name: event.target.value,
+                        })
+                      }
+                    />
+                  </SettingsField>
+                  <SettingsField label="Mã số thuế" htmlFor="tax-code">
+                    <Input
+                      id="tax-code"
+                      value={settings.organization.taxCode}
+                      onChange={(event) =>
+                        updateSection('organization', {
+                          taxCode: event.target.value,
+                        })
+                      }
+                    />
+                  </SettingsField>
+                  <SettingsField
+                    label="Địa chỉ"
+                    htmlFor="org-address"
+                    className="md:col-span-2"
+                  >
+                    <Textarea
+                      id="org-address"
+                      rows={3}
+                      value={settings.organization.address}
+                      onChange={(event) =>
+                        updateSection('organization', {
+                          address: event.target.value,
+                        })
+                      }
+                    />
+                  </SettingsField>
+                  <SettingsField
+                    label="Kho mặc định"
+                    description="Kho được chọn mặc định khi tạo phiếu mới."
+                  >
+                    <Select
+                      value={settings.organization.warehouse}
+                      onValueChange={(warehouse) =>
+                        updateSection('organization', { warehouse })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kho-trung-tam">
+                          Kho trung tâm
+                        </SelectItem>
+                        <SelectItem value="kho-mien-bac">
+                          Kho miền Bắc
+                        </SelectItem>
+                        <SelectItem value="kho-mien-nam">
+                          Kho miền Nam
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </SettingsField>
+                </div>
+              </SettingsSection>
+              <SettingsActions
+                isDirty={isSectionDirty('organization')}
+                onSave={() => saveSection('organization')}
+                onReset={() => resetSection('organization')}
+              />
+            </TabsContent>
 
-                  <Separator />
-
+            <TabsContent value="notifications" className="mt-0 space-y-5">
+              <SettingsSection
+                icon={Bell}
+                title="Kênh thông báo"
+                description="Chọn những loại thông báo bạn muốn nhận."
+              >
+                <SettingsGroup>
                   <SettingsRow
-                    title="Thu gọn sidebar mặc định"
-                    description="Mở nội dung rộng hơn khi làm việc với bảng dữ liệu."
+                    title="Thông báo qua email"
+                    description="Nhận cập nhật quan trọng và thông báo phê duyệt qua email."
                     control={
                       <SwitchWrapper>
                         <Switch
-                          checked={settings.appearance.sidebarCollapsed}
-                          onCheckedChange={(sidebarCollapsed) =>
-                            updateAppearance({ sidebarCollapsed })
+                          checked={settings.notifications.email}
+                          onCheckedChange={(email) =>
+                            updateSection('notifications', { email })
                           }
                         />
                       </SwitchWrapper>
                     }
                   />
-                </SettingsSection>
-              </TabsContent>
-            </div>
-          </ScrollArea>
-        </Tabs>
-      </div>
+                  <SettingsRow
+                    title="Thông báo trong ứng dụng"
+                    description="Hiển thị thông báo trong trung tâm thông báo."
+                    control={
+                      <SwitchWrapper>
+                        <Switch
+                          checked={settings.notifications.inApp}
+                          onCheckedChange={(inApp) =>
+                            updateSection('notifications', { inApp })
+                          }
+                        />
+                      </SwitchWrapper>
+                    }
+                  />
+                  <SettingsRow
+                    title="Bảo trì hệ thống"
+                    description="Thông báo trước khi hệ thống có lịch bảo trì."
+                    control={
+                      <SwitchWrapper>
+                        <Switch
+                          checked={settings.notifications.maintenance}
+                          onCheckedChange={(maintenance) =>
+                            updateSection('notifications', { maintenance })
+                          }
+                        />
+                      </SwitchWrapper>
+                    }
+                  />
+                  <SettingsRow
+                    title="Báo cáo tổng hợp hàng tuần"
+                    description="Tóm tắt hoạt động và chỉ số vận hành mỗi tuần."
+                    control={
+                      <SwitchWrapper>
+                        <Switch
+                          checked={settings.notifications.weeklySummary}
+                          onCheckedChange={(weeklySummary) =>
+                            updateSection('notifications', { weeklySummary })
+                          }
+                        />
+                      </SwitchWrapper>
+                    }
+                  />
+                </SettingsGroup>
+              </SettingsSection>
+
+              <SettingsSection
+                icon={Bell}
+                title="Tần suất gửi tổng hợp"
+                description="Quy định thời điểm hệ thống gom và gửi thông báo."
+              >
+                <SettingsField label="Tần suất">
+                  <Select
+                    value={settings.notifications.digest}
+                    onValueChange={(digest) =>
+                      updateSection('notifications', { digest })
+                    }
+                  >
+                    <SelectTrigger className="max-w-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="realtime">Ngay lập tức</SelectItem>
+                      <SelectItem value="daily">Mỗi ngày</SelectItem>
+                      <SelectItem value="weekly">Mỗi tuần</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </SettingsField>
+              </SettingsSection>
+              <SettingsActions
+                isDirty={isSectionDirty('notifications')}
+                onSave={() => saveSection('notifications')}
+                onReset={() => resetSection('notifications')}
+              />
+            </TabsContent>
+
+            <TabsContent value="security" className="mt-0 space-y-5">
+              <SettingsSection
+                icon={ShieldCheck}
+                title="Bảo mật tài khoản"
+                description="Tăng cường bảo vệ tài khoản và kiểm soát phiên đăng nhập."
+              >
+                <SettingsGroup>
+                  <SettingsRow
+                    title="Xác thực hai bước"
+                    description="Yêu cầu mã xác thực ngoài mật khẩu khi đăng nhập."
+                    control={
+                      <SwitchWrapper>
+                        <Switch
+                          checked={settings.security.twoFactor}
+                          onCheckedChange={(twoFactor) =>
+                            updateSection('security', { twoFactor })
+                          }
+                        />
+                      </SwitchWrapper>
+                    }
+                  />
+                  <SettingsRow
+                    title="Cảnh báo đăng nhập mới"
+                    description="Thông báo khi tài khoản đăng nhập từ thiết bị mới."
+                    control={
+                      <SwitchWrapper>
+                        <Switch
+                          checked={settings.security.loginAlerts}
+                          onCheckedChange={(loginAlerts) =>
+                            updateSection('security', { loginAlerts })
+                          }
+                        />
+                      </SwitchWrapper>
+                    }
+                  />
+                </SettingsGroup>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SettingsField
+                    label="Thời gian hết hạn phiên"
+                    description="Tự động đăng xuất khi không hoạt động."
+                  >
+                    <Select
+                      value={settings.security.sessionTimeout}
+                      onValueChange={(sessionTimeout) =>
+                        updateSection('security', { sessionTimeout })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 phút</SelectItem>
+                        <SelectItem value="30">30 phút</SelectItem>
+                        <SelectItem value="60">60 phút</SelectItem>
+                        <SelectItem value="never">Không tự động</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </SettingsField>
+                </div>
+              </SettingsSection>
+              <SettingsActions
+                isDirty={isSectionDirty('security')}
+                onSave={() => saveSection('security')}
+                onReset={() => resetSection('security')}
+              />
+            </TabsContent>
+
+            <TabsContent value="appearance" className="mt-0 space-y-5">
+              <SettingsSection
+                icon={Palette}
+                title="Giao diện ứng dụng"
+                description="Tùy chỉnh cách hiển thị phù hợp với quy trình làm việc."
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SettingsField label="Chủ đề">
+                    <Select
+                      value={settings.appearance.theme}
+                      onValueChange={(theme) => {
+                        if (
+                          theme === 'system' ||
+                          theme === 'light' ||
+                          theme === 'dark'
+                        ) {
+                          updateAppearance({ theme });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="system">Theo hệ thống</SelectItem>
+                        <SelectItem value="light">Sáng</SelectItem>
+                        <SelectItem value="dark">Tối</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </SettingsField>
+                  <SettingsField label="Mật độ hiển thị">
+                    <Select
+                      value={settings.appearance.density}
+                      onValueChange={(density) => {
+                        if (
+                          density === 'small' ||
+                          density === 'medium' ||
+                          density === 'large'
+                        ) {
+                          updateAppearance({ density });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Nhỏ (90%)</SelectItem>
+                        <SelectItem value="medium">Vừa (95%)</SelectItem>
+                        <SelectItem value="large">Lớn (100%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </SettingsField>
+                </div>
+
+                <Separator />
+
+                <SettingsRow
+                  title="Thu gọn sidebar mặc định"
+                  description="Mở nội dung rộng hơn khi làm việc với bảng dữ liệu."
+                  control={
+                    <SwitchWrapper>
+                      <Switch
+                        checked={settings.appearance.sidebarCollapsed}
+                        onCheckedChange={(sidebarCollapsed) =>
+                          updateAppearance({ sidebarCollapsed })
+                        }
+                      />
+                    </SwitchWrapper>
+                  }
+                />
+              </SettingsSection>
+            </TabsContent>
+          </div>
+        </ScrollArea>
+      </Tabs>
     </div>
   );
 }

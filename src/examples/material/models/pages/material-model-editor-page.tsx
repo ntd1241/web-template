@@ -139,7 +139,7 @@ export function MaterialModelEditorPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-6">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-6 xl:overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">

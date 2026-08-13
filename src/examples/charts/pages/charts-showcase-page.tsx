@@ -342,10 +342,10 @@ export function ChartsShowcasePage() {
     activeCategory === 'all' || activeCategory === category;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 p-6">
-      <ScrollArea className="min-h-0 flex-1">
+    <div className="h-full min-h-0">
+      <ScrollArea className="h-full min-h-0" viewportClassName="h-full">
         <ChartTooltipStyleProvider style={tooltipStyle}>
-          <div className="space-y-4 pb-2">
+          <div className="space-y-4 p-6">
             <Card>
               <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
                 <CardHeading>

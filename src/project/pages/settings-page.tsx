@@ -201,31 +201,33 @@ export function ProjectSettingsPage() {
   const currentTheme = theme === 'light' || theme === 'dark' ? theme : 'system';
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="h-full min-h-0">
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
-        className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[240px_minmax(0,1fr)]"
+        className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-5"
       >
-        <Card className="flex h-fit max-h-full min-h-0 self-start flex-col">
-          <ScrollArea className="max-h-full min-h-0 flex-1">
-            <TabsList className="flex-col items-stretch gap-1 bg-transparent p-2 [&_[data-slot=tabs-trigger]]:justify-start [&_[data-slot=tabs-trigger]]:gap-3 [&_[data-slot=tabs-trigger]]:rounded-lg [&_[data-slot=tabs-trigger]]:px-3 [&_[data-slot=tabs-trigger]]:py-2.5 [&_[data-slot=tabs-trigger][data-state=active]]:bg-primary/10 [&_[data-slot=tabs-trigger][data-state=active]]:text-primary [&_[data-slot=tabs-trigger][data-state=active]_svg]:text-primary">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
+        <div className="shrink-0 px-6 pt-6 lg:min-h-0 lg:pe-0">
+          <Card className="flex h-fit max-h-full min-h-0 self-start flex-col">
+            <ScrollArea className="max-h-full min-h-0 flex-1">
+              <TabsList className="flex-col items-stretch gap-1 bg-transparent p-2 [&_[data-slot=tabs-trigger]]:justify-start [&_[data-slot=tabs-trigger]]:gap-3 [&_[data-slot=tabs-trigger]]:rounded-lg [&_[data-slot=tabs-trigger]]:px-3 [&_[data-slot=tabs-trigger]]:py-2.5 [&_[data-slot=tabs-trigger][data-state=active]]:bg-primary/10 [&_[data-slot=tabs-trigger][data-state=active]]:text-primary [&_[data-slot=tabs-trigger][data-state=active]_svg]:text-primary">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
 
-                return (
-                  <TabsTrigger key={tab.value} value={tab.value}>
-                    <Icon className="size-4" />
-                    {tab.label}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </ScrollArea>
-        </Card>
+                  return (
+                    <TabsTrigger key={tab.value} value={tab.value}>
+                      <Icon className="size-4" />
+                      {tab.label}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </ScrollArea>
+          </Card>
+        </div>
 
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="min-w-0 space-y-5 pb-2 pe-2">
+        <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full">
+          <div className="min-w-0 space-y-5 px-6 pb-6 pt-6 lg:ps-0 lg:pe-6">
             <TabsContent value="organization" className="mt-0 space-y-5">
               <Card>
                 <CardHeader className="p-5">

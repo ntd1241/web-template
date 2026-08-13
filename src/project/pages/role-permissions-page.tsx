@@ -401,7 +401,7 @@ export function RolePermissionsPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full max-w-full min-w-0 flex-col gap-4 overflow-hidden p-4 xl:flex-row xl:p-6">
+    <div className="flex h-full min-h-0 w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto p-4 xl:flex-row xl:overflow-hidden xl:p-6">
       <Card className="max-h-[220px] w-full max-w-full shrink-0 overflow-hidden xl:max-h-none xl:w-[260px]">
         <CardHeader className="min-h-0 flex-col items-start gap-1 p-4">
           <CardTitle className="text-[15px]">Vai trò</CardTitle>
