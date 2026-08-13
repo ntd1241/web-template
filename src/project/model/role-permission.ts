@@ -1,4 +1,5 @@
-import type { RoleColor } from './role-color';
+import { z } from 'zod';
+import { ROLE_COLORS, type RoleColor } from './role-color';
 
 export const PERMISSION_TAGS = ['Xem', 'Chỉnh sửa', 'Xóa', 'Duyệt'] as const;
 export {
@@ -14,6 +15,15 @@ export type PermissionTag = (typeof PERMISSION_TAGS)[number];
 export type SummaryState = 'all' | 'partial' | 'none' | 'na';
 export const PERMISSION_SCOPES = ['self', 'department', 'all'] as const;
 export type PermissionScope = (typeof PERMISSION_SCOPES)[number];
+
+export const roleFormSchema = z.object({
+  code: z.string().trim().min(1, 'Vui lòng nhập mã vai trò.'),
+  name: z.string().trim().min(1, 'Vui lòng nhập tên vai trò.'),
+  color: z.enum(ROLE_COLORS),
+  description: z.string(),
+});
+
+export type RoleFormValues = z.infer<typeof roleFormSchema>;
 
 export interface RoleSummary {
   id: string;
