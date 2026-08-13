@@ -105,6 +105,21 @@ useEffect(() => {
 - Failure keeps the dialog and entered values open and shows normalized feedback.
 - Closing clears stale selection at the page boundary.
 
+### Dialog lifecycle pattern
+
+Keep dialog visibility and the entity being edited in separate state values:
+
+- `dialogOpen` controls whether the dialog is open.
+- `dialogEntity` keeps the create/edit mode and source entity stable during the close animation.
+- Reset the form when opening the dialog, after assigning `dialogEntity`.
+- On cancel or successful submit, set only `dialogOpen` to `false`.
+- Do not immediately clear `dialogEntity` or reset the form while the dialog is closing. The next
+  open action replaces the entity and resets the form with fresh values.
+
+This prevents a closing dialog from switching mode mid-animation, such as briefly showing a
+create-only field while editing. It also prevents submitted values from appearing to change before
+the dialog disappears. Failed submissions keep both the dialog and entered values unchanged.
+
 The page may render `<Entity>Form` inline for a full page or drawer surface and reuse the same
 `use<Entity>Form()` instance, submit callback, mapper, and option props.
 

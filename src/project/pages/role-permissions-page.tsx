@@ -160,7 +160,8 @@ export function RolePermissionsPage() {
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [modules, setModules] = useState<PermissionModule[]>([]);
   const [expandedModules, setExpandedModules] = useState<string[]>(['system']);
-  const [editingRole, setEditingRole] = useState<RoleSummary | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogRole, setDialogRole] = useState<RoleSummary | null>(null);
   const [deletingRole, setDeletingRole] = useState<RoleSummary | null>(null);
   const roleForm = useRoleForm();
 
@@ -176,16 +177,16 @@ export function RolePermissionsPage() {
     [activeRoleId, modulesByRoleId],
   );
 
-  useEffect(() => {
-    if (!editingRole) return;
-
+  const openRoleDialog = (role: RoleSummary) => {
+    setDialogRole(role);
     roleForm.reset({
-      code: editingRole.code ?? '',
-      name: editingRole.name,
-      color: editingRole.color,
-      description: editingRole.description,
+      code: role.code ?? '',
+      name: role.name,
+      color: role.color,
+      description: role.description,
     });
-  }, [editingRole, roleForm]);
+    setDialogOpen(true);
+  };
 
   useEffect(() => {
     if (!activeRoleId) {
@@ -352,7 +353,7 @@ export function RolePermissionsPage() {
     },
     onSuccess: async (role) => {
       toast.success('Đã lưu thông tin vai trò.');
-      setEditingRole(null);
+      setDialogOpen(false);
       if (role.id) setSelectedRoleId(role.id);
       await queryClient.invalidateQueries({
         queryKey: ['project', 'role-permissions', userId],
@@ -381,8 +382,8 @@ export function RolePermissionsPage() {
   });
 
   const handleSaveRole = (values: RoleFormValues) => {
-    if (!editingRole) return;
-    saveRoleMutation.mutate({ role: editingRole, values });
+    if (!dialogRole) return;
+    saveRoleMutation.mutate({ role: dialogRole, values });
   };
 
   if (workspaceQuery.isPending) {
@@ -468,7 +469,7 @@ export function RolePermissionsPage() {
             variant="outline"
             className="mt-auto justify-center"
             onClick={() =>
-              setEditingRole({
+              openRoleDialog({
                 id: '',
                 code: '',
                 name: '',
@@ -500,7 +501,7 @@ export function RolePermissionsPage() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={() => setEditingRole(selectedRole)}
+                onClick={() => openRoleDialog(selectedRole)}
               >
                 <Pencil />
                 Chỉnh sửa vai trò
@@ -593,12 +594,12 @@ export function RolePermissionsPage() {
       </Card>
 
       <RoleFormDialog
-        open={!!editingRole}
-        onOpenChange={(open) => !open && setEditingRole(null)}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         form={roleForm}
         onSubmit={handleSaveRole}
-        title={editingRole?.id ? 'Chỉnh sửa vai trò' : 'Thêm vai trò'}
-        isCreating={!editingRole?.id}
+        title={dialogRole?.id ? 'Chỉnh sửa vai trò' : 'Thêm vai trò'}
+        isCreating={!dialogRole?.id}
         isSaving={saveRoleMutation.isPending}
       />
 
