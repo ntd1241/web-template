@@ -52,3 +52,32 @@ Frontend dùng model camelCase trong
 [`src/features/tenants/model/tenant.ts`](../src/features/tenants/model/tenant.ts),
 còn `TenantRow`/`TenantMemberRow` giữ nguyên snake_case của PostgREST và mapper
 đổi về domain model.
+
+## Phân quyền tenant
+
+Migration `20260813000000_create_tenant_permissions.sql` tạo catalog quyền dùng
+chung, role theo tenant, liên kết role với thành viên và override riêng cho user:
+
+- `permission_definitions`: danh mục quyền ổn định theo mã `resource:action`.
+- `permission_modules` và `permission_groups`: cấu trúc hiển thị module/nhóm quyền,
+  không còn phụ thuộc vào mock ở frontend.
+- `roles` và `role_permissions`: role nghiệp vụ thuộc từng tenant.
+- `tenant_member_roles`: một user có thể có nhiều role trong một tenant.
+- `user_permission_overrides`: chỉ lưu ngoại lệ `allow` hoặc `deny`, không sao chép
+  toàn bộ quyền của role.
+
+Catalog hiện tại của project thật chỉ có module `Tổ chức`, gồm hai nhóm `Thông tin
+tổ chức` và `Nhân viên`. Khi thêm nghiệp vụ mới, tạo migration bổ sung module/nhóm
+thay vì đưa quyền mock vào frontend.
+
+Quyền hiệu lực được tính theo công thức:
+
+```text
+(quyền từ role OR override allow) AND NOT override deny
+```
+
+Vì vậy khi role được cập nhật, user vẫn nhận quyền mới của role; chỉ các quyền có
+override mới giữ khác biệt. Các RPC `get_effective_permissions` và
+`has_tenant_permission` là nguồn dùng chung cho kiểm tra quyền, còn RLS vẫn là
+lớp bảo vệ cuối cùng. `ensure_tenant_permission_defaults` khởi tạo bốn role mẫu
+cho tenant khi trang phân quyền được mở lần đầu.

@@ -1,4 +1,6 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useAuthStore } from '@/stores/auth.store';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -12,7 +14,19 @@ import {
   Trash2,
   type LucideIcon,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,18 +57,24 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  clonePermissionModules,
+  createRole,
+  deleteRole,
+  loadRolePermissionsWorkspace,
+  replaceRolePermissions,
+  updateRole,
+} from '../api/role-permissions.api';
+import {
   countPermissions,
   getTagSummary,
-  INITIAL_PERMISSION_MODULES,
   PERMISSION_TAGS,
-  ROLE_SUMMARIES,
   type PermissionItem,
   type PermissionModule,
   type PermissionTag,
   type RoleSummary,
   type SummaryState,
 } from '../model/role-permission';
+
+const EMPTY_PERMISSION_MODULES: PermissionModule[] = [];
 
 const tagMeta: Record<
   PermissionTag,
@@ -107,12 +127,17 @@ function flattenSelected(modules: PermissionModule[]) {
     .sort((a, b) => a.code.localeCompare(b.code));
 }
 
-function countPermissionChanges(modules: PermissionModule[]) {
+function countChanges(
+  modules: PermissionModule[],
+  savedModules: PermissionModule[],
+) {
   const current = flattenSelected(modules);
-  const initial = flattenSelected(INITIAL_PERMISSION_MODULES);
+  const saved = flattenSelected(savedModules);
 
   return current.filter(
-    (item, index) => item.selected !== initial[index]?.selected,
+    (item, index) =>
+      item.code !== saved[index]?.code ||
+      item.selected !== saved[index]?.selected,
   ).length;
 }
 
@@ -124,15 +149,49 @@ function countAllPermissions(modules: PermissionModule[]) {
 }
 
 export function RolePermissionsPage() {
-  const [roles, setRoles] = useState<RoleSummary[]>(ROLE_SUMMARIES);
-  const [selectedRoleId, setSelectedRoleId] = useState('manager');
-  const [modules, setModules] = useState(() => clonePermissionModules());
+  const userId = useAuthStore((state) => state.user?.id);
+  const workspaceQuery = useQuery({
+    queryKey: ['project', 'role-permissions', userId],
+    queryFn: () => {
+      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
+      return loadRolePermissionsWorkspace(userId);
+    },
+    enabled: Boolean(userId),
+  });
+  const [selectedRoleId, setSelectedRoleId] = useState('');
+  const [modules, setModules] = useState<PermissionModule[]>([]);
   const [expandedModules, setExpandedModules] = useState<string[]>(['system']);
   const [editingRole, setEditingRole] = useState<RoleSummary | null>(null);
+  const [deletingRole, setDeletingRole] = useState<RoleSummary | null>(null);
 
-  const selectedRole =
-    roles.find((role) => role.id === selectedRoleId) ?? roles[0];
-  const changeCount = useMemo(() => countPermissionChanges(modules), [modules]);
+  const roles = workspaceQuery.data?.roles ?? [];
+  const activeRoleId = selectedRoleId || roles[0]?.id || '';
+  const selectedRole = roles.find((role) => role.id === activeRoleId);
+  const modulesByRoleId = workspaceQuery.data?.modulesByRoleId;
+  const savedModules = useMemo(
+    () =>
+      activeRoleId
+        ? (modulesByRoleId?.[activeRoleId] ?? EMPTY_PERMISSION_MODULES)
+        : EMPTY_PERMISSION_MODULES,
+    [activeRoleId, modulesByRoleId],
+  );
+
+  useEffect(() => {
+    if (!activeRoleId) {
+      setModules((current) =>
+        current.length === 0 ? current : EMPTY_PERMISSION_MODULES,
+      );
+      return;
+    }
+
+    setSelectedRoleId((current) => current || activeRoleId);
+    setModules(structuredClone(savedModules));
+  }, [activeRoleId, savedModules]);
+
+  const changeCount = useMemo(
+    () => countChanges(modules, savedModules),
+    [modules, savedModules],
+  );
   const totalPermissions = useMemo(
     () => countAllPermissions(modules),
     [modules],
@@ -171,18 +230,117 @@ export function RolePermissionsPage() {
   };
 
   const handleReset = () => {
-    setModules(clonePermissionModules());
+    setModules(structuredClone(savedModules));
   };
+
+  const savePermissionsMutation = useMutation({
+    mutationFn: () =>
+      replaceRolePermissions(
+        activeRoleId,
+        modules.flatMap((module) =>
+          module.groups.flatMap((group) =>
+            group.permissions
+              .filter((permission) => permission.selected)
+              .map((permission) => permission.code),
+          ),
+        ),
+      ),
+    onSuccess: async () => {
+      toast.success('Đã lưu quyền cho vai trò.');
+      await queryClient.invalidateQueries({
+        queryKey: ['project', 'role-permissions', userId],
+      });
+    },
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? error.message : 'Không thể lưu quyền.',
+      ),
+  });
+
+  const saveRoleMutation = useMutation({
+    mutationFn: async (role: RoleSummary) => {
+      if (!workspaceQuery.data)
+        throw new Error('Dữ liệu tenant chưa sẵn sàng.');
+
+      if (role.id) {
+        return updateRole(role.id, {
+          name: role.name.trim(),
+          description: role.description.trim() || null,
+        });
+      }
+
+      const code = role.code?.trim().toLowerCase();
+      if (!code) throw new Error('Vui lòng nhập mã vai trò.');
+      if (!role.name.trim()) throw new Error('Vui lòng nhập tên vai trò.');
+
+      return createRole({
+        tenant_id: workspaceQuery.data.tenantId,
+        code,
+        name: role.name.trim(),
+        description: role.description.trim() || null,
+        scope: role.scope ?? 'all',
+      });
+    },
+    onSuccess: async (role) => {
+      toast.success('Đã lưu thông tin vai trò.');
+      setEditingRole(null);
+      if (role.id) setSelectedRoleId(role.id);
+      await queryClient.invalidateQueries({
+        queryKey: ['project', 'role-permissions', userId],
+      });
+    },
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? error.message : 'Không thể lưu vai trò.',
+      ),
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: (role: RoleSummary) => deleteRole(role.id),
+    onSuccess: async () => {
+      toast.success('Đã xóa vai trò.');
+      setDeletingRole(null);
+      setSelectedRoleId('');
+      await queryClient.invalidateQueries({
+        queryKey: ['project', 'role-permissions', userId],
+      });
+    },
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? error.message : 'Không thể xóa vai trò.',
+      ),
+  });
 
   const handleSaveRole = () => {
     if (!editingRole) return;
-    setRoles((current) =>
-      current.map((role) =>
-        role.id === editingRole.id ? { ...role, ...editingRole } : role,
-      ),
-    );
-    setEditingRole(null);
+    saveRoleMutation.mutate(editingRole);
   };
+
+  if (workspaceQuery.isPending) {
+    return (
+      <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+        Đang tải cấu hình phân quyền...
+      </div>
+    );
+  }
+
+  if (workspaceQuery.isError) {
+    return (
+      <div className="flex h-full items-center justify-center p-6 text-sm text-destructive">
+        {workspaceQuery.error instanceof Error
+          ? workspaceQuery.error.message
+          : 'Không thể tải cấu hình phân quyền.'}
+      </div>
+    );
+  }
+
+  if (!selectedRole) {
+    return (
+      <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+        Chưa có vai trò nào trong tenant.
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 w-full max-w-full min-w-0 flex-col gap-4 overflow-hidden p-4 xl:flex-row xl:p-6">
@@ -197,7 +355,7 @@ export function RolePermissionsPage() {
               type="button"
               className={cn(
                 'flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors',
-                role.id === selectedRoleId
+                role.id === activeRoleId
                   ? 'border-primary bg-primary/8 text-foreground'
                   : 'border-border bg-background hover:bg-field',
               )}
@@ -213,7 +371,20 @@ export function RolePermissionsPage() {
               </Badge>
             </button>
           ))}
-          <Button variant="outline" className="mt-auto justify-center">
+          <Button
+            variant="outline"
+            className="mt-auto justify-center"
+            onClick={() =>
+              setEditingRole({
+                id: '',
+                code: '',
+                name: '',
+                description: '',
+                userCount: 0,
+                scope: 'all',
+              })
+            }
+          >
             + Thêm vai trò
           </Button>
         </CardContent>
@@ -232,13 +403,35 @@ export function RolePermissionsPage() {
             </div>
           </CardHeading>
           <CardToolbar>
-            <Button
-              variant="outline"
-              onClick={() => setEditingRole(selectedRole)}
-            >
-              <Pencil />
-              Chỉnh sửa vai trò
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditingRole(selectedRole)}
+              >
+                <Pencil />
+                Chỉnh sửa vai trò
+              </Button>
+              <Button
+                variant="outline"
+                className="text-destructive hover:bg-destructive/5 hover:text-destructive"
+                disabled={
+                  Boolean(selectedRole.isSystem) ||
+                  selectedRole.userCount > 0 ||
+                  deleteRoleMutation.isPending
+                }
+                title={
+                  selectedRole.isSystem
+                    ? 'Không thể xóa vai trò hệ thống'
+                    : selectedRole.userCount > 0
+                      ? 'Không thể xóa vai trò đang được gán cho người dùng'
+                      : 'Xóa vai trò'
+                }
+                onClick={() => setDeletingRole(selectedRole)}
+              >
+                <Trash2 />
+                Xóa vai trò
+              </Button>
+            </div>
           </CardToolbar>
         </CardHeader>
 
@@ -291,9 +484,15 @@ export function RolePermissionsPage() {
               <RotateCcw />
               Khôi phục
             </Button>
-            <Button variant="primary" disabled={changeCount === 0}>
+            <Button
+              variant="primary"
+              disabled={changeCount === 0 || savePermissionsMutation.isPending}
+              onClick={() => savePermissionsMutation.mutate()}
+            >
               <Save />
-              Lưu thay đổi
+              {savePermissionsMutation.isPending
+                ? 'Đang lưu...'
+                : 'Lưu thay đổi'}
             </Button>
           </div>
         </CardFooter>
@@ -304,6 +503,16 @@ export function RolePermissionsPage() {
         onRoleChange={setEditingRole}
         onClose={() => setEditingRole(null)}
         onSave={handleSaveRole}
+        isSaving={saveRoleMutation.isPending}
+      />
+
+      <RoleDeleteDialog
+        role={deletingRole}
+        isDeleting={deleteRoleMutation.isPending}
+        onClose={() => setDeletingRole(null)}
+        onConfirm={() => {
+          if (deletingRole) deleteRoleMutation.mutate(deletingRole);
+        }}
       />
     </div>
   );
@@ -540,6 +749,7 @@ interface RoleEditDialogProps {
   onRoleChange: (role: RoleSummary | null) => void;
   onClose: () => void;
   onSave: () => void;
+  isSaving: boolean;
 }
 
 function RoleEditDialog({
@@ -547,17 +757,37 @@ function RoleEditDialog({
   onRoleChange,
   onClose,
   onSave,
+  isSaving,
 }: RoleEditDialogProps) {
+  const isCreating = Boolean(role && !role.id);
+
   return (
     <Dialog open={!!role} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa vai trò</DialogTitle>
+          <DialogTitle>
+            {isCreating ? 'Thêm vai trò' : 'Chỉnh sửa vai trò'}
+          </DialogTitle>
           <DialogDescription>
-            Cập nhật tên và mô tả hiển thị của vai trò.
+            {isCreating
+              ? 'Tạo vai trò mới cho tenant hiện tại.'
+              : 'Cập nhật tên và mô tả hiển thị của vai trò.'}
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-4">
+          {isCreating && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Mã vai trò *</label>
+              <Input
+                value={role?.code ?? ''}
+                placeholder="ví dụ: warehouse_manager"
+                onChange={(event) =>
+                  role &&
+                  onRoleChange({ ...role, code: event.currentTarget.value })
+                }
+              />
+            </div>
+          )}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Tên vai trò *</label>
             <Input
@@ -586,11 +816,49 @@ function RoleEditDialog({
           <Button variant="outline" onClick={onClose}>
             Hủy
           </Button>
-          <Button variant="primary" onClick={onSave}>
-            Lưu thông tin
+          <Button variant="primary" onClick={onSave} disabled={isSaving}>
+            {isSaving ? 'Đang lưu...' : 'Lưu thông tin'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface RoleDeleteDialogProps {
+  role: RoleSummary | null;
+  isDeleting: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+function RoleDeleteDialog({
+  role,
+  isDeleting,
+  onClose,
+  onConfirm,
+}: RoleDeleteDialogProps) {
+  return (
+    <AlertDialog open={!!role} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Xóa vai trò?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Vai trò <strong>{role?.name}</strong> và các quyền được gán cho vai
+            trò này sẽ bị xóa. Hành động không thể hoàn tác.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>Hủy</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={isDeleting}
+            onClick={onConfirm}
+          >
+            {isDeleting ? 'Đang xóa...' : 'Xóa vai trò'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
