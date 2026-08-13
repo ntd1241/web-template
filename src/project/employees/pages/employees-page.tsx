@@ -1,22 +1,30 @@
 import { useMemo, useState } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Plus, RefreshCw, Search, TriangleAlert } from 'lucide-react';
+import {
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  type PaginationState,
+} from '@tanstack/react-table';
+import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardDescription,
+  CardFooter,
   CardHeader,
+  CardHeading,
   CardTable,
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
-import { Input } from '@/components/ui/input';
+import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   createEmployee,
@@ -40,6 +48,10 @@ export function EmployeesPage() {
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const form = useEmployeeForm();
@@ -129,6 +141,9 @@ export function EmployeesPage() {
     data: employees,
     columns,
     getRowId: (row) => row.id,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -160,33 +175,30 @@ export function EmployeesPage() {
         emptyMessage="Chưa có nhân viên"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
+          <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
+            <CardHeading>
               <CardTitle>Quản lý nhân viên</CardTitle>
               <CardDescription>
                 Quản lý hồ sơ nhân sự và liên kết tài khoản truy cập.
               </CardDescription>
-            </div>
+            </CardHeading>
             <CardToolbar className="flex-wrap">
-              <div className="relative">
-                <Search className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={keyword}
-                  onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="Tìm nhân viên..."
-                  className="w-56 ps-8"
-                />
-              </div>
+              <SearchInput
+                className="w-64"
+                placeholder="Tìm theo tên hoặc mã nhân viên"
+                value={keyword}
+                debounceMs={0}
+                onSearch={setKeyword}
+              />
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => workspaceQuery.refetch()}
               >
-                <RefreshCw className="size-4" />
+                <RefreshCw />
                 Làm mới
               </Button>
-              <Button variant="primary" size="sm" onClick={openCreate}>
-                <Plus className="size-4" />
+              <Button variant="primary" onClick={openCreate}>
+                <Plus />
                 Thêm nhân viên
               </Button>
             </CardToolbar>
@@ -197,6 +209,9 @@ export function EmployeesPage() {
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </CardTable>
+          <CardFooter className="justify-between">
+            <DataGridPagination />
+          </CardFooter>
         </Card>
       </DataGrid>
 

@@ -5,13 +5,6 @@ const spec: TableSpec = {
   modelImport: '../model/employee',
   specPath: 'src/project/employees/table/employee.table.fixture.ts',
   columns: [
-    { kind: 'index', header: 'STT' },
-    {
-      kind: 'text',
-      id: 'employeeCode',
-      header: 'Mã nhân viên',
-      field: 'employeeCode',
-    },
     {
       kind: 'custom',
       id: 'name',
@@ -19,20 +12,29 @@ const spec: TableSpec = {
       headerClassName: 'min-w-[220px]',
     },
     {
-      kind: 'text',
-      id: 'department',
-      header: 'Phòng ban',
-      field: 'department',
+      kind: 'custom',
+      id: 'roles',
+      header: 'Vai trò',
+      headerClassName: 'min-w-[200px]',
     },
-    { kind: 'text', id: 'jobTitle', header: 'Chức vụ', field: 'jobTitle' },
     {
       kind: 'badge',
       id: 'status',
       header: 'Trạng thái',
       field: 'status',
       config: {
-        active: { label: 'Đang làm việc', variant: 'success' },
-        inactive: { label: 'Ngừng làm việc', variant: 'secondary' },
+        active: {
+          label: 'Đang làm việc',
+          className:
+            'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
+          dotClassName: 'bg-admin-success-dot opacity-100',
+        },
+        inactive: {
+          label: 'Ngừng làm việc',
+          variant: 'outline',
+          className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+          dotClassName: 'bg-admin-neutral-400 opacity-100',
+        },
       },
     },
     {
@@ -41,8 +43,18 @@ const spec: TableSpec = {
       header: 'Tài khoản',
       field: 'accountLinked',
       config: {
-        true: { label: 'Đã liên kết', variant: 'success' },
-        false: { label: 'Chưa liên kết', variant: 'outline' },
+        true: {
+          label: 'Đã liên kết',
+          className:
+            'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
+          dotClassName: 'bg-admin-success-dot opacity-100',
+        },
+        false: {
+          label: 'Chưa liên kết',
+          variant: 'outline',
+          className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+          dotClassName: 'bg-admin-neutral-400 opacity-100',
+        },
       },
     },
     {

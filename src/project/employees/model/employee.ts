@@ -30,6 +30,8 @@ export interface Employee {
   id: string;
   tenantId: string;
   userId: string | null;
+  avatarUrl: string | null;
+  roles: string[];
   employeeCode: string;
   firstName: string;
   lastName: string;
@@ -58,6 +60,11 @@ export interface EmployeeRow {
   note: string;
 }
 
+export interface EmployeeAvatarRow {
+  id: string;
+  avatar_url: string | null;
+}
+
 export const emptyEmployeeForm: EmployeeFormValues = {
   employeeCode: '',
   firstName: '',
@@ -70,7 +77,11 @@ export const emptyEmployeeForm: EmployeeFormValues = {
   note: '',
 };
 
-export function mapEmployeeRow(row: EmployeeRow): Employee {
+export function mapEmployeeRow(
+  row: EmployeeRow,
+  avatarUrl: string | null = null,
+  roles: string[] = [],
+): Employee {
   const displayName = [row.last_name, row.first_name]
     .filter(Boolean)
     .join(' ')
@@ -80,6 +91,8 @@ export function mapEmployeeRow(row: EmployeeRow): Employee {
     id: row.id,
     tenantId: row.tenant_id,
     userId: row.user_id,
+    avatarUrl,
+    roles,
     employeeCode: row.employee_code,
     firstName: row.first_name,
     lastName: row.last_name,

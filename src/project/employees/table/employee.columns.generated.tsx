@@ -6,7 +6,7 @@
  */
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, UserRound } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   createColumnHelpers,
@@ -17,16 +17,38 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { EmployeeCell } from '../components/employee-cell';
+import { EmployeeRolesCell } from '../components/employee-roles-cell';
 import type { Employee } from '../model/employee';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
-  active: { label: 'Đang làm việc', variant: 'success' },
-  inactive: { label: 'Ngừng làm việc', variant: 'secondary' },
+  active: {
+    label: 'Đang làm việc',
+    className:
+      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
+    dotClassName: 'bg-admin-success-dot opacity-100',
+  },
+  inactive: {
+    label: 'Ngừng làm việc',
+    variant: 'outline',
+    className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+    dotClassName: 'bg-admin-neutral-400 opacity-100',
+  },
 };
 
 const accountBadgeConfig: StatusBadgeConfig<string> = {
-  true: { label: 'Đã liên kết', variant: 'success' },
-  false: { label: 'Chưa liên kết', variant: 'outline' },
+  true: {
+    label: 'Đã liên kết',
+    className:
+      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
+    dotClassName: 'bg-admin-success-dot opacity-100',
+  },
+  false: {
+    label: 'Chưa liên kết',
+    variant: 'outline',
+    className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+    dotClassName: 'bg-admin-neutral-400 opacity-100',
+  },
 };
 
 export interface UseEmployeeColumnsParams {
@@ -41,45 +63,17 @@ export function useEmployeeColumns(
     const col = createColumnHelpers<Employee>();
 
     return [
-      col.index({
-        header: 'STT',
-      }),
-      col.text({
-        id: 'employeeCode',
-        header: 'Mã nhân viên',
-        get: (row) => row.employeeCode,
-      }),
       col.custom({
         id: 'name',
         header: 'Nhân viên',
         headerClassName: 'min-w-[220px]',
-        cell: (row) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              {row.displayName.slice(0, 1).toUpperCase() || (
-                <UserRound className="size-4" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="truncate font-medium text-foreground">
-                {row.displayName}
-              </div>
-              <div className="truncate text-xs text-muted-foreground">
-                {row.phone || 'Chưa có số điện thoại'}
-              </div>
-            </div>
-          </div>
-        ),
+        cell: (row) => <EmployeeCell employee={row} />,
       }),
-      col.text({
-        id: 'department',
-        header: 'Phòng ban',
-        get: (row) => row.department,
-      }),
-      col.text({
-        id: 'jobTitle',
-        header: 'Chức vụ',
-        get: (row) => row.jobTitle,
+      col.custom({
+        id: 'roles',
+        header: 'Vai trò',
+        headerClassName: 'min-w-[200px]',
+        cell: (row) => <EmployeeRolesCell employee={row} />,
       }),
       col.badge({
         id: 'status',

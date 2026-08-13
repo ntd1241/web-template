@@ -20,6 +20,30 @@ Use the table builder for paginated or data-table columns. The registry and comm
 6. Wire `use<Entity>Columns()` into the feature's existing `useReactTable` and `DataGrid` setup.
 7. Run builder tests when builder/spec consistency changes, focused feature tests, and `npm run build`.
 
+## Standard page shell
+
+The table builder owns column definitions only. It must not introduce page-specific padding, toolbar
+sizes, card chrome, or pagination markup. Every generated table page should compose the shared shell:
+
+```tsx
+<Card className="min-h-0 flex-1 overflow-hidden">
+  <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
+    <CardHeading>...</CardHeading>
+    <CardToolbar>...</CardToolbar>
+  </CardHeader>
+  <CardTable className="min-h-0 flex-1">...</CardTable>
+  <CardFooter className="justify-between">
+    <DataGridPagination />
+  </CardFooter>
+</Card>
+```
+
+The standard table page shell uses `p-5` on `CardHeader` to match the existing employee/example pages.
+Toolbar buttons should use the shared Button default size unless the design explicitly calls for an
+icon-only control. This keeps generated table
+pages visually consistent; page-specific customization belongs in feature behavior and column cells,
+not in arbitrary shell spacing or button sizing.
+
 ## Column Kinds
 
 | Kind             | Field    | Output                                                              |

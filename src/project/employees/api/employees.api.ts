@@ -1,6 +1,7 @@
 import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
 import type {
   Employee,
+  EmployeeAvatarRow,
   EmployeeFormValues,
   EmployeeRow,
   EmployeeStatus,
@@ -9,6 +10,16 @@ import { mapEmployeeRow } from '../model/employee';
 
 interface TenantMembershipRow {
   tenant_id: string;
+}
+
+interface EmployeeRoleAssignmentRow {
+  user_id: string;
+  role_id: string;
+}
+
+interface EmployeeRoleRow {
+  id: string;
+  name: string;
 }
 
 function queryParams(params: Record<string, string>) {
@@ -57,7 +68,53 @@ export async function loadEmployeeWorkspace(
       }),
     ),
   );
-  return { tenantId, employees: rows.map(mapEmployeeRow) };
+  const profiles = await request<EmployeeAvatarRow[]>(
+    supabaseApi.get('/user_profiles', queryParams({ select: 'id,avatar_url' })),
+  );
+  const avatarsByUserId = new Map(
+    profiles.map((profile) => [profile.id, profile.avatar_url]),
+  );
+  const [assignments, roles] = await Promise.all([
+    request<EmployeeRoleAssignmentRow[]>(
+      supabaseApi.get(
+        '/tenant_member_roles',
+        queryParams({
+          select: 'user_id,role_id',
+          tenant_id: `eq.${tenantId}`,
+        }),
+      ),
+    ),
+    request<EmployeeRoleRow[]>(
+      supabaseApi.get(
+        '/roles',
+        queryParams({
+          select: 'id,name',
+          tenant_id: `eq.${tenantId}`,
+          is_active: 'eq.true',
+        }),
+      ),
+    ),
+  ]);
+  const roleNameById = new Map(roles.map((role) => [role.id, role.name]));
+  const roleNamesByUserId = new Map<string, string[]>();
+  for (const assignment of assignments) {
+    const roleName = roleNameById.get(assignment.role_id);
+    if (!roleName) continue;
+    const userRoles = roleNamesByUserId.get(assignment.user_id) ?? [];
+    userRoles.push(roleName);
+    roleNamesByUserId.set(assignment.user_id, userRoles);
+  }
+
+  return {
+    tenantId,
+    employees: rows.map((row) =>
+      mapEmployeeRow(
+        row,
+        row.user_id ? (avatarsByUserId.get(row.user_id) ?? null) : null,
+        row.user_id ? (roleNamesByUserId.get(row.user_id) ?? []) : [],
+      ),
+    ),
+  };
 }
 
 function toPayload(values: EmployeeFormValues) {
