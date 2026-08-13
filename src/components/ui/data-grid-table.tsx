@@ -227,7 +227,6 @@ function DataGridTableBodyRowSkeleton({ children }: { children: ReactNode }) {
         props.tableLayout?.stripped &&
           'odd:bg-muted/90 hover:bg-transparent odd:hover:bg-muted',
         table.options.enableRowSelection && '[&_>:first-child]:relative',
-        props.getRowClassName?.(row.original),
         props.tableClassNames?.bodyRow,
       )}
     >
@@ -307,6 +306,7 @@ function DataGridTableBodyRow<TData>({
         props.tableLayout?.stripped &&
           'odd:bg-muted/90 hover:bg-transparent odd:hover:bg-muted',
         table.options.enableRowSelection && '[&_>:first-child]:relative',
+        props.getRowClassName?.(row.original),
         props.tableClassNames?.bodyRow,
       )}
     >
