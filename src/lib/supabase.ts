@@ -55,9 +55,10 @@ supabaseApi.interceptors.request.use((config) => {
 
 supabaseAuthApi.interceptors.request.use((config) => {
   config.headers.set('apikey', env.supabaseAnonKey);
+  const isTokenRequest = config.url?.startsWith('/token') === true;
   config.headers.set(
     'Authorization',
-    `Bearer ${getConfiguredApiToken() ?? env.supabaseAnonKey}`,
+    `Bearer ${isTokenRequest ? env.supabaseAnonKey : (getConfiguredApiToken() ?? env.supabaseAnonKey)}`,
   );
   return config;
 });

@@ -85,4 +85,50 @@ describe('api axios instance', () => {
     });
     expect(onUnauthorized).toHaveBeenCalledOnce();
   });
+
+  it('refresh token rồi retry request khi access token hết hạn', async () => {
+    const onUnauthorized = vi.fn();
+    const refreshAccessToken = vi.fn().mockResolvedValue({
+      token: 'refreshed-token',
+      refreshToken: 'refreshed-refresh-token',
+    });
+    configureApiAuth({
+      getToken: () => 'expired-token',
+      getRefreshToken: () => 'refresh-token',
+      refreshAccessToken,
+      onUnauthorized,
+    });
+
+    adapter.mockImplementationOnce(async (config) => {
+      throw new AxiosError(
+        'Request failed',
+        'ERR_BAD_REQUEST',
+        config,
+        undefined,
+        {
+          status: 401,
+          statusText: 'Unauthorized',
+          headers: {},
+          config,
+          data: { message: 'Phiên đăng nhập đã hết hạn' },
+        },
+      );
+    });
+    adapter.mockResolvedValueOnce({
+      data: { ok: true },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as never,
+    });
+
+    await expect(api.get('/me')).resolves.toEqual({ ok: true });
+
+    expect(refreshAccessToken).toHaveBeenCalledOnce();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(adapter).toHaveBeenCalledTimes(2);
+    expect(adapter.mock.calls[1][0].headers.get('Authorization')).toBe(
+      'Bearer refreshed-token',
+    );
+  });
 });

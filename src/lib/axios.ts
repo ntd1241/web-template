@@ -95,20 +95,80 @@ function shouldUseJsonContentType(data: unknown): boolean {
 // Đặt qua setter để tránh import vòng giữa axios và store.
 let getToken: () => string | null = () => null;
 let onUnauthorized: () => void = () => {};
+let refreshAccessToken:
+  | (() => Promise<{ token: string; refreshToken?: string | null }>)
+  | null = null;
+let getRefreshToken: () => string | null = () => null;
+let refreshPromise: Promise<{
+  token: string;
+  refreshToken?: string | null;
+}> | null = null;
 
 export function configureApiAuth(options: {
   getToken: () => string | null;
+  getRefreshToken?: () => string | null;
+  refreshAccessToken?: () => Promise<{
+    token: string;
+    refreshToken?: string | null;
+  }>;
   onUnauthorized: () => void;
 }) {
   getToken = options.getToken;
+  getRefreshToken = options.getRefreshToken ?? (() => null);
+  refreshAccessToken = options.refreshAccessToken ?? null;
   onUnauthorized = options.onUnauthorized;
 }
 
-function handleResponseError(
+type AuthRequestConfig = InternalAxiosRequestConfig & {
+  _authRetry?: boolean;
+};
+
+function isAuthTokenRequest(config: AuthRequestConfig | undefined): boolean {
+  if (!config) return false;
+
+  const requestUrl = `${config.baseURL ?? ''}${config.url ?? ''}`;
+  return (
+    config.url?.startsWith('/token') === true ||
+    requestUrl.includes('/auth/v1/token')
+  );
+}
+
+async function handleResponseError(
   error: AxiosError<ApiErrorPayload>,
+  instance: AxiosInstance,
 ): Promise<never> {
   if (error.response?.status === 401) {
-    onUnauthorized();
+    const requestConfig = error.config as AuthRequestConfig | undefined;
+    const authTokenRequest = isAuthTokenRequest(requestConfig);
+    const currentRefreshToken = getRefreshToken();
+
+    if (
+      !authTokenRequest &&
+      requestConfig &&
+      !requestConfig._authRetry &&
+      currentRefreshToken &&
+      refreshAccessToken
+    ) {
+      requestConfig._authRetry = true;
+      const pendingRefresh =
+        refreshPromise ?? (refreshPromise = refreshAccessToken());
+
+      try {
+        const refreshed = await pendingRefresh;
+        requestConfig.headers.set('Authorization', `Bearer ${refreshed.token}`);
+        return instance.request(requestConfig);
+      } catch {
+        // A rejected refresh means the persisted session is no longer usable.
+      } finally {
+        if (refreshPromise === pendingRefresh) {
+          refreshPromise = null;
+        }
+      }
+    }
+
+    if (!authTokenRequest) {
+      onUnauthorized();
+    }
   }
   if (axios.isCancel(error)) {
     return Promise.reject(error);
@@ -166,7 +226,8 @@ export function createApiClient(
 
   instance.interceptors.response.use(
     (response: AxiosResponse) => response.data,
-    handleResponseError,
+    (error: AxiosError<ApiErrorPayload>) =>
+      handleResponseError(error, instance),
   );
 
   return instance;

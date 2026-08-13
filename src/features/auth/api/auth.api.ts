@@ -40,6 +40,17 @@ export async function signInWithPassword(
   );
 }
 
+export async function refreshSupabaseSession(
+  refreshToken: string,
+): Promise<SupabaseAuthSession> {
+  assertSupabaseConfigured();
+
+  return supabaseAuthApi.post<SupabaseAuthSession>(
+    '/token?grant_type=refresh_token',
+    { refresh_token: refreshToken },
+  );
+}
+
 export async function signOutFromSupabase(): Promise<void> {
   if (!env.supabaseEnabled) return;
 

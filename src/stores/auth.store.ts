@@ -23,6 +23,10 @@ interface AuthState {
     token: string;
     refreshToken?: string | null;
   }) => void;
+  updateTokens: (payload: {
+    token: string;
+    refreshToken?: string | null;
+  }) => void;
   logout: () => void;
   hasPermission: (permission: string) => boolean;
 }
@@ -35,6 +39,12 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       setAuth: ({ user, token, refreshToken = null }) =>
         set({ user, token, refreshToken }),
+      updateTokens: ({ token, refreshToken }) =>
+        set((state) => ({
+          token,
+          refreshToken:
+            refreshToken === undefined ? state.refreshToken : refreshToken,
+        })),
       logout: () => set({ user: null, token: null, refreshToken: null }),
       hasPermission: (permission) =>
         get().user?.permissions.includes(permission) ?? false,
