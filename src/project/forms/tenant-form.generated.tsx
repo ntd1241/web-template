@@ -1,0 +1,268 @@
+/**
+ * Scaffolded by form-builder from `src/project/forms/tenant.form.fixture.ts`. Run `npm run gen:form` — do NOT hand-write this file.
+ * You own this file now — wire submit + edit reset behavior in the parent. To change fields,
+ * widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
+ * hand-edit this banner or the generated options consts — that's how review detects a bypassed builder.
+ */
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import type { UseFormProps, UseFormReturn } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  tenantSettingsSchema,
+  type TenantSettingsValues,
+} from '../model/tenant-settings';
+
+export const tenantSettingsDefaultValues: TenantSettingsValues = {
+  name: '',
+  legalName: '',
+  description: '',
+  logoUrl: '',
+  taxCode: '',
+  email: '',
+  phone: '',
+  address: '',
+  website: '',
+};
+
+// TODO(scaffold): replace with the real entity type used for edit-mode mapping.
+type TenantSettingsFormSource = unknown;
+
+export function useTenantSettingsForm(
+  options?: Omit<UseFormProps<TenantSettingsValues>, 'resolver'>,
+) {
+  return useForm<TenantSettingsValues>({
+    resolver: zodResolver(tenantSettingsSchema),
+    defaultValues: tenantSettingsDefaultValues,
+    ...options,
+  });
+}
+
+export function mapTenantSettingsToFormValues(
+  entity: TenantSettingsFormSource,
+): TenantSettingsValues {
+  // TODO(scaffold): map entity → form values for edit mode.
+  void entity;
+  return tenantSettingsDefaultValues;
+}
+
+interface TenantSettingsFormProps {
+  form: UseFormReturn<TenantSettingsValues>;
+  onSubmit: (values: TenantSettingsValues) => void;
+  id?: string;
+}
+
+export function TenantSettingsForm({
+  form,
+  onSubmit,
+  id = 'tenantSettings-form',
+}: TenantSettingsFormProps) {
+  return (
+    <Form {...form}>
+      <form id={id} onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-12">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>
+                  Tên tổ chức<span className="text-destructive"> *</span>
+                </FormLabel>
+                <FormControl>
+                  <Input variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="legalName"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Tên pháp lý</FormLabel>
+                <FormControl>
+                  <Input variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12">
+                <FormLabel>Mô tả</FormLabel>
+                <FormControl>
+                  <Textarea rows={3} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="logoUrl"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Ảnh/logo URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://..." variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="taxCode"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Mã số thuế</FormLabel>
+                <FormControl>
+                  <Input variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Email liên hệ</FormLabel>
+                <FormControl>
+                  <Input type="email" variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Số điện thoại</FormLabel>
+                <FormControl>
+                  <Input type="tel" variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12">
+                <FormLabel>Địa chỉ</FormLabel>
+                <FormControl>
+                  <Textarea rows={3} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="website"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Website</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://..." variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+interface TenantSettingsFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<TenantSettingsValues>;
+  onSubmit: (values: TenantSettingsValues) => void;
+  title?: string;
+}
+
+export function TenantSettingsFormDialog({
+  open,
+  onOpenChange,
+  form,
+  onSubmit,
+  title,
+}: TenantSettingsFormDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
+          <DialogTitle>{title ?? 'Thông tin tổ chức'}</DialogTitle>
+          <DialogDescription>
+            Cập nhật thông tin nhận diện và liên hệ của tổ chức.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Separator />
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <TenantSettingsForm
+            form={form}
+            onSubmit={onSubmit}
+            id="tenantSettings-form"
+          />
+        </div>
+
+        <Separator />
+
+        <DialogFooter className="shrink-0 px-6 py-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Hủy
+          </Button>
+          <Button type="submit" variant="primary" form="tenantSettings-form">
+            Lưu
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

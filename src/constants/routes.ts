@@ -26,6 +26,7 @@ export const ROUTES = {
     OPERATIONS_DASHBOARD: '/example/operations-dashboard',
   },
   PROJECT: {
+    SETTINGS: '/settings',
     ROLE_PERMISSIONS: '/permissions',
   },
 } as const;

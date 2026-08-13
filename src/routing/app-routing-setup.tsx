@@ -44,6 +44,7 @@ import { NotFoundPage } from '@/pages/not-found/page';
 import { ProjectMainLayout } from '@/project/layout/project-main-layout';
 import { ProjectMockPage } from '@/project/pages/project-mock-page';
 import { RolePermissionsPage } from '@/project/pages/role-permissions-page';
+import { ProjectSettingsPage } from '@/project/pages/settings-page';
 import { Route, Routes } from 'react-router';
 import { Layout1 } from '@/components/layouts/layout-1';
 import { Layout2 } from '@/components/layouts/layout-2';
@@ -211,6 +212,10 @@ export function AppRoutingSetup() {
       <Route element={<ProtectedRoute />}>
         <Route element={<ProjectMainLayout />}>
           <Route path="/" element={<ProjectMockPage />} />
+          <Route
+            path={ROUTES.PROJECT.SETTINGS}
+            element={<ProjectSettingsPage />}
+          />
           <Route
             path={ROUTES.PROJECT.ROLE_PERMISSIONS}
             element={<RolePermissionsPage />}

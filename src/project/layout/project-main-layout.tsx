@@ -1,11 +1,13 @@
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import { PROJECT_MENU_GROUPS } from '@/config/project-menu.config';
 import { MainLayout } from '@/components/layouts/main-layout';
 import { loadProjectContext } from '../api/project-context.api';
 
 export function ProjectMainLayout() {
+  const { pathname } = useLocation();
   const userId = useAuthStore((state) => state.user?.id);
   const contextQuery = useQuery({
     queryKey: ['project', 'context', userId],
@@ -19,6 +21,12 @@ export function ProjectMainLayout() {
 
   const tenantName = contextQuery.data?.tenantName ?? 'Đang tải tenant...';
   const accountRoles = contextQuery.data?.roleNames ?? [];
+  const breadcrumbCurrent =
+    pathname === ROUTES.PROJECT.SETTINGS
+      ? 'Cài đặt'
+      : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
+        ? 'Phân quyền'
+        : 'Tổng quan';
 
   return (
     <MainLayout
@@ -30,7 +38,7 @@ export function ProjectMainLayout() {
         accountRoles,
         breadcrumbRootLabel: 'Trang chủ',
         breadcrumbRootPath: '/',
-        breadcrumbCurrent: 'Tổng quan',
+        breadcrumbCurrent,
       }}
     />
   );
