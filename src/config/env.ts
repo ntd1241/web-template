@@ -39,7 +39,10 @@ export const env = {
   apiTimeoutMs: toPositiveInt(import.meta.env.VITE_API_TIMEOUT_MS, 30_000),
   supabaseUrl,
   supabaseRestUrl: supabaseUrl ? `${supabaseUrl}/rest/v1` : '',
+  supabaseAuthUrl: supabaseUrl ? `${supabaseUrl}/auth/v1` : '',
   supabaseAnonKey,
+  supabaseLoginDomain:
+    getOptionalString(import.meta.env.VITE_SUPABASE_LOGIN_DOMAIN) || 'vacom.vn',
   supabaseSchema:
     getOptionalString(import.meta.env.VITE_SUPABASE_SCHEMA) || 'public',
   supabaseEnabled: Boolean(supabaseUrl && supabaseAnonKey),

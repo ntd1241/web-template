@@ -16,6 +16,16 @@ export const supabaseApi = createApiClient({
   },
 });
 
+/** Supabase Auth API, cũng gọi qua Axios để dùng chung timeout/error handling. */
+export const supabaseAuthApi = createApiClient({
+  baseURL: env.supabaseAuthUrl,
+  timeout: env.apiTimeoutMs,
+  headers: {
+    Accept: 'application/json',
+    apikey: env.supabaseAnonKey,
+  },
+});
+
 supabaseApi.interceptors.request.use((config) => {
   config.headers.set('apikey', env.supabaseAnonKey);
   config.headers.set(
@@ -30,6 +40,15 @@ supabaseApi.interceptors.request.use((config) => {
     }
   }
 
+  return config;
+});
+
+supabaseAuthApi.interceptors.request.use((config) => {
+  config.headers.set('apikey', env.supabaseAnonKey);
+  config.headers.set(
+    'Authorization',
+    `Bearer ${getConfiguredApiToken() ?? env.supabaseAnonKey}`,
+  );
   return config;
 });
 

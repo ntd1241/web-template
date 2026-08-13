@@ -1,4 +1,5 @@
 import { exampleRoutes } from '@/examples/example-routes';
+import { LoginPage } from '@/features/auth/pages/login-page';
 import { Layout1Page } from '@/pages/layout-1/page';
 import { Layout2Page } from '@/pages/layout-2/page';
 import { Layout3Page } from '@/pages/layout-3/page';
@@ -81,10 +82,12 @@ import { Layout37 } from '@/components/layouts/layout-37';
 import { Layout38 } from '@/components/layouts/layout-38';
 import { Layout39 } from '@/components/layouts/layout-39';
 import { MainLayout } from '@/components/layouts/main-layout';
+import { ProtectedRoute } from './protected-route';
 
 export function AppRoutingSetup() {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
       <Route element={<Layout1 />}>
         <Route path="/layout-1" element={<Layout1Page />} />
         <Route path="/layout-1/dark-sidebar" element={<Layout1Page />} />
@@ -203,22 +206,24 @@ export function AppRoutingSetup() {
       <Route element={<Layout39 />}>
         <Route path="/layout-39" element={<Layout39Page />} />
       </Route>
-      <Route
-        element={
-          <MainLayout
-            shell={{
-              menuGroups: PROJECT_MENU_GROUPS,
-              homePath: '/',
-              brandName: 'Project thật',
-              headerTitle: 'Project thật',
-              breadcrumbRootLabel: 'Trang chủ',
-              breadcrumbRootPath: '/',
-              breadcrumbCurrent: 'Tổng quan',
-            }}
-          />
-        }
-      >
-        <Route path="/" element={<ProjectMockPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route
+          element={
+            <MainLayout
+              shell={{
+                menuGroups: PROJECT_MENU_GROUPS,
+                homePath: '/',
+                brandName: 'Project thật',
+                headerTitle: 'Project thật',
+                breadcrumbRootLabel: 'Trang chủ',
+                breadcrumbRootPath: '/',
+                breadcrumbCurrent: 'Tổng quan',
+              }}
+            />
+          }
+        >
+          <Route path="/" element={<ProjectMockPage />} />
+        </Route>
       </Route>
       {/* Xóa dòng này + thư mục src/examples để gỡ toàn bộ trang example. */}
       {exampleRoutes}

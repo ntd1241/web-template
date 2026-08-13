@@ -17,7 +17,12 @@ export interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   token: string | null;
-  setAuth: (payload: { user: AuthUser; token: string }) => void;
+  refreshToken: string | null;
+  setAuth: (payload: {
+    user: AuthUser;
+    token: string;
+    refreshToken?: string | null;
+  }) => void;
   logout: () => void;
   hasPermission: (permission: string) => boolean;
 }
@@ -27,8 +32,10 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
-      setAuth: ({ user, token }) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      refreshToken: null,
+      setAuth: ({ user, token, refreshToken = null }) =>
+        set({ user, token, refreshToken }),
+      logout: () => set({ user: null, token: null, refreshToken: null }),
       hasPermission: (permission) =>
         get().user?.permissions.includes(permission) ?? false,
     }),

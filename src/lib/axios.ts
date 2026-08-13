@@ -38,7 +38,10 @@ function getPayloadMessage(payload: unknown): string | undefined {
 
   const data = payload as ApiErrorPayload;
   return (
-    getString(data.message) ?? getString(data.detail) ?? getString(data.title)
+    getString(data.message) ??
+    getString(data.detail) ??
+    getString(data.title) ??
+    getString(data.msg)
   );
 }
 

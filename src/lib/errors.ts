@@ -63,6 +63,7 @@ function getPayloadMessage(payload: unknown): string | undefined {
     (isNonEmptyString(payload.message) && payload.message.trim()) ||
     (isNonEmptyString(payload.detail) && payload.detail.trim()) ||
     (isNonEmptyString(payload.title) && payload.title.trim()) ||
+    (isNonEmptyString(payload.msg) && payload.msg.trim()) ||
     undefined
   );
 }

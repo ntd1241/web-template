@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { signOutFromSupabase } from '@/features/auth/api/auth.api';
+import { useAuthStore } from '@/stores/auth.store';
 import {
   Bell,
   Building2,
@@ -16,7 +18,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -143,7 +145,7 @@ const MOCK_NOTIFICATIONS = [
   },
 ] as const;
 
-function AccountMenuHeader() {
+function AccountMenuHeader({ name, email }: { name: string; email: string }) {
   return (
     <>
       <DropdownMenuLabel className="px-2 py-1.5">
@@ -155,10 +157,10 @@ function AccountMenuHeader() {
           </Avatar>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-foreground">
-              Thanh Hiếu
+              {name}
             </p>
             <p className="truncate text-xs font-normal text-muted-foreground">
-              thanh.hieu@admin.vn
+              {email}
             </p>
           </div>
         </div>
@@ -171,6 +173,9 @@ function AccountMenuHeader() {
 export function Header() {
   const { isMobile, isSidebarOpen, sidebarToggle, shell } = useLayout();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const { theme, setTheme } = useTheme();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [language, setLanguage] = useState('vi');
@@ -185,6 +190,18 @@ export function Header() {
   const unreadNotificationCount = notifications.filter(
     (notification) => notification.unread,
   ).length;
+  const accountName = authUser?.name ?? 'Thanh Hiếu';
+  const accountEmail = authUser?.email ?? 'thanh.hieu@admin.vn';
+  const accountInitial = accountName.trim().charAt(0).toUpperCase() || 'T';
+
+  const handleLogout = async () => {
+    try {
+      await signOutFromSupabase();
+    } finally {
+      logout();
+      navigate('/login', { replace: true });
+    }
+  };
 
   useEffect(() => {
     setIsSheetOpen(false);
@@ -352,7 +369,7 @@ export function Header() {
             >
               <span className="hidden text-right sm:block">
                 <span className="block text-sm font-semibold leading-tight text-admin-blue-darkest">
-                  Thanh Hiếu
+                  {accountName}
                 </span>
                 <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
                   Tổ chức
@@ -360,7 +377,7 @@ export function Header() {
               </span>
               <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
                 <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
-                  T
+                  {accountInitial}
                 </AvatarFallback>
               </Avatar>
             </button>
@@ -371,7 +388,7 @@ export function Header() {
             sideOffset={8}
             className="w-64 p-1.5"
           >
-            <AccountMenuHeader />
+            <AccountMenuHeader name={accountName} email={accountEmail} />
 
             <DropdownMenuGroup>
               <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
@@ -495,7 +512,10 @@ export function Header() {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => void handleLogout()}
+            >
               <LogOut />
               Đăng xuất
             </DropdownMenuItem>

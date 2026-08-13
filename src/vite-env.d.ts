@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY?: string;
   /** Schema PostgREST mặc định, thường là public. */
   readonly VITE_SUPABASE_SCHEMA?: string;
+  /** Domain dùng để map alias đăng nhập ngắn như `admin` thành email. */
+  readonly VITE_SUPABASE_LOGIN_DOMAIN?: string;
   /** Bật mock data thay vì gọi API thật. '1' | 'true' để bật. */
   readonly VITE_USE_MOCK: string;
   /** Tên app, dùng cho <title>, header. */
