@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardHeading,
@@ -221,7 +220,7 @@ export function RolePermissionsPage() {
       </Card>
 
       <Card className="min-h-0 w-full max-w-full min-w-0 flex-1 overflow-hidden">
-        <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
+        <CardHeader className="shrink-0 flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
           <CardHeading>
             <div className="flex flex-wrap items-center gap-2">
               <CardTitle className="text-[18px]">
@@ -231,12 +230,8 @@ export function RolePermissionsPage() {
                 {selectedPermissions}/{totalPermissions} quyền
               </Badge>
             </div>
-            <CardDescription>
-              {selectedRole.description}. Cột Xem bao gồm xuất file theo phạm vi
-              dữ liệu được phép xem.
-            </CardDescription>
           </CardHeading>
-          <CardToolbar className="justify-end">
+          <CardToolbar>
             <Button
               variant="outline"
               onClick={() => setEditingRole(selectedRole)}
@@ -249,16 +244,14 @@ export function RolePermissionsPage() {
 
         <CardContent className="min-h-0 min-w-0 overflow-hidden p-0">
           <ScrollArea className="h-full w-full max-w-full min-w-0">
-            <div className="min-w-[860px]">
-              <div className="sticky top-0 z-10 grid grid-cols-[minmax(240px,1fr)_repeat(4,104px)_86px_82px] border-b bg-muted text-[12px] font-semibold text-secondary-foreground">
+            <div className="min-w-[752px]">
+              <div className="sticky top-0 z-10 grid grid-cols-[minmax(240px,1fr)_repeat(4,128px)] border-b bg-muted text-[12px] font-semibold text-secondary-foreground">
                 <div className="border-r px-5 py-3">Module</div>
                 {PERMISSION_TAGS.map((tag) => (
                   <div key={tag} className="border-r px-3 py-3 text-center">
                     <TagHeader tag={tag} />
                   </div>
                 ))}
-                <div className="border-r px-3 py-3 text-center">Đã chọn</div>
-                <div className="px-3 py-3 text-center">Action</div>
               </div>
 
               {modules.map((module) => (
@@ -275,7 +268,7 @@ export function RolePermissionsPage() {
           </ScrollArea>
         </CardContent>
 
-        <CardFooter className="justify-between gap-3 bg-background">
+        <CardFooter className="shrink-0 justify-between gap-3 bg-background">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {changeCount > 0 ? (
               <>
@@ -329,11 +322,9 @@ function ModulePermissionSection({
   onToggle,
   onTogglePermission,
 }: ModulePermissionSectionProps) {
-  const counts = countPermissions(module);
-
   return (
     <div className="border-b">
-      <div className="grid grid-cols-[minmax(240px,1fr)_repeat(4,104px)_86px_82px] bg-background hover:bg-field">
+      <div className="grid grid-cols-[minmax(240px,1fr)_repeat(4,128px)] bg-background hover:bg-field">
         <div className="flex min-w-0 items-center gap-3 border-r px-5 py-3">
           <button
             type="button"
@@ -365,15 +356,6 @@ function ModulePermissionSection({
             <SummaryStatus state={getTagSummary(module, tag)} tag={tag} />
           </div>
         ))}
-
-        <div className="flex items-center justify-center border-r px-3 py-3 text-sm font-semibold tabular-nums">
-          {counts.selected}/{counts.total}
-        </div>
-        <div className="flex items-center justify-center px-3 py-3">
-          <Button variant="outline" size="sm" onClick={onToggle}>
-            {expanded ? 'Đóng' : 'Mở'}
-          </Button>
-        </div>
       </div>
 
       {expanded && (
@@ -535,9 +517,7 @@ function PermissionRow({ permission, onTogglePermission }: PermissionRowProps) {
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 hover:bg-field">
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium">{permission.name}</span>
-        </div>
+        <span className="text-sm font-medium">{permission.name}</span>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         {permission.tags.map((tag) => (
