@@ -6,7 +6,6 @@ const spec: FormSpec = {
   schemaName: 'tagGroupFormSchema',
   valuesType: 'TagGroupFormValues',
   title: 'Nhóm nhãn',
-  description: 'Tạo nhóm để quản lý các nhãn liên quan.',
   specPath: 'src/project/tags/forms/tag-group.form.fixture.ts',
   fields: [
     {

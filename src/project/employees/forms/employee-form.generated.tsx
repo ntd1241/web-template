@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -35,13 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  employeeFormSchema,
-  emptyEmployeeForm,
-  mapEmployeeToFormValues as mapEmployeeValues,
-  type Employee,
-  type EmployeeFormValues,
-} from '../model/employee';
+import { employeeFormSchema, type EmployeeFormValues } from '../model/employee';
 
 const statusOptions = [
   { value: 'active', label: 'Đang làm việc' },
@@ -49,11 +42,19 @@ const statusOptions = [
 ];
 
 export const employeeDefaultValues: EmployeeFormValues = {
-  ...emptyEmployeeForm,
+  employeeCode: '',
+  firstName: '',
+  lastName: '',
+  jobTitle: '',
+  department: '',
+  phone: '',
+  status: '',
+  joinedAt: undefined,
+  note: '',
 };
 
 // TODO(scaffold): replace with the real entity type used for edit-mode mapping.
-type EmployeeFormSource = Employee;
+type EmployeeFormSource = unknown;
 
 export function useEmployeeForm(
   options?: Omit<UseFormProps<EmployeeFormValues>, 'resolver'>,
@@ -68,7 +69,9 @@ export function useEmployeeForm(
 export function mapEmployeeToFormValues(
   entity: EmployeeFormSource,
 ): EmployeeFormValues {
-  return mapEmployeeValues(entity);
+  // TODO(scaffold): map entity → form values for edit mode.
+  void entity;
+  return employeeDefaultValues;
 }
 
 interface EmployeeFormProps {

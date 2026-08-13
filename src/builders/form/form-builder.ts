@@ -194,12 +194,16 @@ function emitImports(spec: FormSpec): string {
   if (needMessage) formParts.push('FormMessage');
   formParts.sort();
 
+  const dialogParts = ['Dialog', 'DialogContent'];
+  if (spec.description) dialogParts.push('DialogDescription');
+  dialogParts.push('DialogFooter', 'DialogHeader', 'DialogTitle');
+
   const lines = [
     "import { zodResolver } from '@hookform/resolvers/zod';",
     "import { useForm } from 'react-hook-form';",
     "import type { UseFormProps, UseFormReturn } from 'react-hook-form';",
     "import { Button } from '@/components/ui/button';",
-    "import {\n  Dialog,\n  DialogContent,\n  DialogDescription,\n  DialogFooter,\n  DialogHeader,\n  DialogTitle,\n} from '@/components/ui/dialog';",
+    `import {\n${dialogParts.map((part) => `  ${part},`).join('\n')}\n} from '@/components/ui/dialog';`,
     `import {\n${formParts.map((p) => `  ${p},`).join('\n')}\n} from '@/components/ui/form';`,
     "import { Separator } from '@/components/ui/separator';",
   ];

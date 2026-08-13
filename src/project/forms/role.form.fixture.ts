@@ -6,7 +6,6 @@ const spec: FormSpec = {
   schemaName: 'roleFormSchema',
   valuesType: 'RoleFormValues',
   title: 'Vai trò',
-  description: 'Cập nhật thông tin hiển thị của vai trò.',
   specPath: 'src/project/forms/role.form.fixture.ts',
   fields: [
     {

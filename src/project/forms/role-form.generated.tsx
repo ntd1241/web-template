@@ -12,7 +12,6 @@ import { ColorSelect } from '@/components/ui/color-select';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -185,9 +184,6 @@ export function RoleFormDialog({
       <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle>{title ?? 'Vai trò'}</DialogTitle>
-          <DialogDescription>
-            Cập nhật thông tin hiển thị của vai trò.
-          </DialogDescription>
         </DialogHeader>
 
         <Separator />

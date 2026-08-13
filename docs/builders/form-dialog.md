@@ -24,6 +24,10 @@ From one `FormSpec`, the builder emits one `*-form.generated.tsx` file with name
 - `map<Entity>ToFormValues(entity)` — edit-mode mapper scaffold. Replace the generated
   `unknown` source alias with the real entity type and fill the TODO body.
 
+The dialog header does not render a description by default. Add `description` to the `FormSpec`
+only when the dialog needs supporting guidance; otherwise the builder omits both the description
+element and its unused import.
+
 Static select-like options are emitted as module constants only when `optionsFrom` is omitted or
 `'static'`.
 

@@ -6,7 +6,6 @@ const spec: FormSpec = {
   schemaName: 'tagFormSchema',
   valuesType: 'TagFormValues',
   title: 'Nhãn',
-  description: 'Tạo nhãn để gắn cho nhiều loại đối tượng.',
   specPath: 'src/project/tags/forms/tag.form.fixture.ts',
   fields: [
     {
