@@ -1,5 +1,11 @@
 import { ROUTES } from '@/constants/routes';
-import { LayoutDashboard, Settings, ShieldCheck, Tags } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Settings,
+  ShieldCheck,
+  Tags,
+  Users,
+} from 'lucide-react';
 import type { MenuGroupConfig } from './menu.types';
 
 /** Menu riêng của project thật. Các menu nghiệp vụ sẽ được bổ sung dần tại đây. */
@@ -17,6 +23,11 @@ export const PROJECT_MENU_GROUPS: MenuGroupConfig[] = [
   {
     title: 'Quản trị',
     items: [
+      {
+        label: 'Nhân viên',
+        icon: Users,
+        path: ROUTES.PROJECT.EMPLOYEES,
+      },
       {
         label: 'Phân quyền',
         icon: ShieldCheck,

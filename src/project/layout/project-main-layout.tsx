@@ -22,13 +22,15 @@ export function ProjectMainLayout() {
   const tenantName = contextQuery.data?.tenantName ?? 'Đang tải tenant...';
   const accountRoles = contextQuery.data?.roleNames ?? [];
   const breadcrumbCurrent =
-    pathname === ROUTES.PROJECT.SETTINGS
-      ? 'Cài đặt'
-      : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
-        ? 'Phân quyền'
-        : pathname === ROUTES.PROJECT.TAGS
-          ? 'Nhãn'
-          : 'Tổng quan';
+    pathname === ROUTES.PROJECT.EMPLOYEES
+      ? 'Nhân viên'
+      : pathname === ROUTES.PROJECT.SETTINGS
+        ? 'Cài đặt'
+        : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
+          ? 'Phân quyền'
+          : pathname === ROUTES.PROJECT.TAGS
+            ? 'Nhãn'
+            : 'Tổng quan';
 
   return (
     <MainLayout
