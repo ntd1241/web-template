@@ -22,19 +22,19 @@ Use the table builder for paginated or data-table columns. The registry and comm
 
 ## Column Kinds
 
-| Kind | Field | Output |
-| --- | --- | --- |
-| `index` | no | 1-based row number |
-| `select` | no | row checkbox |
-| `text` | yes | string cell |
-| `number` | yes | Vietnamese number formatting |
-| `currency` | yes | VND formatting |
-| `percent` | yes | percentage formatting |
-| `date` | yes | date, datetime, or relative formatting |
-| `badge` | yes | generated `StatusBadge` config |
-| `editableSelect` | yes | compact Select cell, bound to the row value and committed on change |
-| `actions` | no | inline JSX stub |
-| `custom` | optional | inline JSX stub |
+| Kind             | Field    | Output                                                              |
+| ---------------- | -------- | ------------------------------------------------------------------- |
+| `index`          | no       | 1-based row number                                                  |
+| `select`         | no       | row checkbox                                                        |
+| `text`           | yes      | string cell                                                         |
+| `number`         | yes      | Vietnamese number formatting                                        |
+| `currency`       | yes      | VND formatting                                                      |
+| `percent`        | yes      | percentage formatting                                               |
+| `date`           | yes      | date, datetime, or relative formatting                              |
+| `badge`          | yes      | generated `StatusBadge` config                                      |
+| `editableSelect` | yes      | compact Select cell, bound to the row value and committed on change |
+| `actions`        | no       | inline JSX stub                                                     |
+| `custom`         | optional | inline JSX stub                                                     |
 
 Common options include `headerClassName`, `cellClassName`, `size`, `visibility`, and `enableSorting`.
 
@@ -91,6 +91,39 @@ For bulk edits over selected rows, compose the `DataGridActionBar` primitive
 (`@/components/ui/data-grid-action-bar`) inside `<DataGrid>`: it reads the table from context, floats
 while rows are selected, and hosts page-owned bulk controls (e.g. a status `Select` + Áp dụng). See
 `src/examples/employees/pages/employees-page.tsx`. Do not model bulk editing with `editableSelect`.
+
+### Group rows and children rows
+
+Add `grouping` to a `TableSpec` when the table renders synthetic group rows followed by child rows:
+
+```ts
+grouping: {
+  parentIdField: 'groupId',
+  isGroupField: 'isGroup',
+  expandedField: 'isExpanded',
+},
+```
+
+The generated module then includes `build<Entity>GroupedRows`, `toggle<Entity>Group`,
+`is<Entity>Group`, and `is<Entity>GroupExpanded`. The helper accepts a separate group collection and
+child collection, keeps children indexed by the configured parent id field, and omits children for
+collapsed groups. The page owns the group-row projection and collapsed-id state:
+
+```tsx
+const rows = buildTagGroupedRows(groups, tags, collapsedGroupIds, {
+  getGroupId: (group) => group.id,
+  toGroupRow: (group, isExpanded) => ({
+    ...toTagGroupRow(group),
+    isGroup: true,
+    isExpanded,
+  }),
+});
+
+setCollapsedGroupIds((current) => toggleTagGroup(current, groupId));
+```
+
+This keeps row composition and expand/collapse state in the feature while the builder owns the
+repeatable flattening and grouping contract.
 
 ## Ownership
 

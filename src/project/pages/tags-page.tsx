@@ -44,7 +44,11 @@ import {
   type TagGroup,
   type TagGroupFormValues,
 } from '../tags/model/tag';
-import { useTagColumns } from '../tags/table/tag.columns.generated';
+import {
+  buildTagGroupedRows,
+  toggleTagGroup,
+  useTagColumns,
+} from '../tags/table/tag.columns.generated';
 
 const EMPTY_GROUPS: TagGroup[] = [];
 const EMPTY_TAGS: Tag[] = [];
@@ -73,8 +77,9 @@ export function TagsPage() {
   const tags = workspace?.tags ?? EMPTY_TAGS;
   const tableRows = useMemo(
     () =>
-      groups.flatMap<Tag>((group) => [
-        {
+      buildTagGroupedRows(groups, tags, collapsedGroupIds, {
+        getGroupId: (group) => group.id,
+        toGroupRow: (group, isExpanded) => ({
           id: group.id,
           tenantId: group.tenantId,
           groupId: group.id,
@@ -87,12 +92,9 @@ export function TagsPage() {
           description: '',
           groupDescription: group.description,
           isGroup: true,
-          isExpanded: !collapsedGroupIds.has(group.id),
-        },
-        ...(collapsedGroupIds.has(group.id)
-          ? []
-          : tags.filter((tag) => tag.groupId === group.id)),
-      ]),
+          isExpanded,
+        }),
+      }),
     [collapsedGroupIds, groups, tags],
   );
 
@@ -172,12 +174,7 @@ export function TagsPage() {
       setTagDialogOpen(true);
     },
     onToggleGroup: (groupId) => {
-      setCollapsedGroupIds((current) => {
-        const next = new Set(current);
-        if (next.has(groupId)) next.delete(groupId);
-        else next.add(groupId);
-        return next;
-      });
+      setCollapsedGroupIds((current) => toggleTagGroup(current, groupId));
     },
     onDelete: (row) => {
       if (row.isGroup) {
@@ -256,16 +253,14 @@ export function TagsPage() {
         onRowClick={(row) => {
           if (row.isGroup) {
             setCollapsedGroupIds((current) => {
-              const next = new Set(current);
-              if (next.has(row.id)) next.delete(row.id);
-              else next.add(row.id);
-              return next;
+              return toggleTagGroup(current, row.id);
             });
           }
         }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="justify-end">
+          <CardHeader className="justify-between">
+            <CardTitle>Quản lý nhãn</CardTitle>
             <CardToolbar>
               <Tooltip>
                 <TooltipTrigger asChild>

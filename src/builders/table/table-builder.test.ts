@@ -144,7 +144,7 @@ describe('buildColumnsModule', () => {
     expect(out).toContain('col.editableSelect({');
     expect(out).toContain('options: statusSelectOptions,');
     expect(out).toContain('onEdit: params.onStatusSelectEdit,');
-    expect(out).toContain('placeholder: \'Chọn trạng thái\',');
+    expect(out).toContain("placeholder: 'Chọn trạng thái',");
     expect(out).toContain('}, [params.onStatusSelectEdit]);');
   });
 
@@ -171,6 +171,27 @@ describe('buildColumnsModule', () => {
     expect(out).toContain(
       '}, [params.onStatusSelectEdit, params.statusSelectOptions]);',
     );
+  });
+
+  it('emits reusable group-row and children-row helpers when configured', () => {
+    const out = buildColumnsModule({
+      entity: 'Tag',
+      modelImport: '../model/tag',
+      grouping: {
+        parentIdField: 'groupId',
+        isGroupField: 'isGroup',
+        expandedField: 'isExpanded',
+      },
+      columns: [{ kind: 'text', id: 'name', header: 'Tên', field: 'name' }],
+    });
+
+    expect(out).toContain('export function isTagGroup(row: Tag): boolean');
+    expect(out).toContain(
+      'export function isTagGroupExpanded(row: Tag): boolean',
+    );
+    expect(out).toContain('export function buildTagGroupedRows<TGroup>(');
+    expect(out).toContain('childrenByGroupId.get(parentId) ?? []');
+    expect(out).toContain('export function toggleTagGroup(');
   });
 
   it('keeps hooks without editable columns parameter-less for backward compatibility', () => {

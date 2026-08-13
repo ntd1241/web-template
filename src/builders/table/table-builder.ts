@@ -201,6 +201,73 @@ function emitEditableSelectOptions(columns: ColumnSpec[]): string {
   return blocks.join('\n\n');
 }
 
+function emitGroupingHelpers(spec: TableSpec): string {
+  if (!spec.grouping) return '';
+
+  const helperPrefix = pascalCase(spec.entity);
+  const parentField = quote(spec.grouping.parentIdField);
+  const groupField = quote(spec.grouping.isGroupField);
+  const expandedField = quote(spec.grouping.expandedField);
+
+  return `function read${helperPrefix}GroupingField(row: ${spec.entity}, path: string): unknown {
+  return path.split('.').reduce<unknown>((value, key) => {
+    if (value && typeof value === 'object' && key in value) {
+      return (value as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, row);
+}
+
+export function is${helperPrefix}Group(row: ${spec.entity}): boolean {
+  return Boolean(read${helperPrefix}GroupingField(row, ${groupField}));
+}
+
+export function is${helperPrefix}GroupExpanded(row: ${spec.entity}): boolean {
+  return Boolean(read${helperPrefix}GroupingField(row, ${expandedField}));
+}
+
+export interface ${helperPrefix}GroupedRowsOptions<TGroup> {
+  getGroupId: (group: TGroup) => string;
+  toGroupRow: (group: TGroup, isExpanded: boolean) => ${spec.entity};
+}
+
+export function build${helperPrefix}GroupedRows<TGroup>(
+  groups: TGroup[],
+  children: ${spec.entity}[],
+  collapsedGroupIds: ReadonlySet<string>,
+  options: ${helperPrefix}GroupedRowsOptions<TGroup>,
+): ${spec.entity}[] {
+  const childrenByGroupId = new Map<string, ${spec.entity}[]>();
+
+  for (const child of children) {
+    const parentId = read${helperPrefix}GroupingField(child, ${parentField});
+    if (typeof parentId !== 'string') continue;
+    const groupChildren = childrenByGroupId.get(parentId) ?? [];
+    groupChildren.push(child);
+    childrenByGroupId.set(parentId, groupChildren);
+  }
+
+  return groups.flatMap((group) => {
+    const groupId = options.getGroupId(group);
+    const isExpanded = !collapsedGroupIds.has(groupId);
+    return [
+      options.toGroupRow(group, isExpanded),
+      ...(isExpanded ? childrenByGroupId.get(groupId) ?? [] : []),
+    ];
+  });
+}
+
+export function toggle${helperPrefix}Group(
+  collapsedGroupIds: ReadonlySet<string>,
+  groupId: string,
+): Set<string> {
+  const next = new Set(collapsedGroupIds);
+  if (next.has(groupId)) next.delete(groupId);
+  else next.add(groupId);
+  return next;
+}`;
+}
+
 function editableSelectColumns(
   columns: ColumnSpec[],
 ): Extract<ColumnSpec, { kind: 'editableSelect' }>[] {
@@ -272,10 +339,12 @@ export function buildColumnsModule(input: TableSpec): string {
 
   const badgeConfigs = emitBadgeConfigs(spec.columns);
   const editableSelectOptions = emitEditableSelectOptions(spec.columns);
+  const groupingHelpers = emitGroupingHelpers(spec);
   const preambleParts = [
     badgeConfigs,
     editableSelectOptions,
     paramsInterface,
+    groupingHelpers,
   ].filter(Boolean);
   const preamble =
     preambleParts.length > 0 ? `${preambleParts.join('\n\n')}\n\n` : '';

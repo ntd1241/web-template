@@ -4,6 +4,11 @@ const spec: TableSpec = {
   entity: 'Tag',
   modelImport: '../model/tag',
   specPath: 'src/project/tags/table/tag.table.fixture.ts',
+  grouping: {
+    parentIdField: 'groupId',
+    isGroupField: 'isGroup',
+    expandedField: 'isExpanded',
+  },
   columns: [
     {
       kind: 'custom',

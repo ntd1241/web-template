@@ -105,6 +105,16 @@ const selectColumn = z.object({
   kind: z.literal('select'),
 });
 
+/** Configuration for tables that render parent group rows followed by children. */
+const groupingSpec = z.object({
+  /** Field on a child row that points to its parent group id. */
+  parentIdField: fieldPath,
+  /** Boolean field used to identify a synthetic group row. */
+  isGroupField: fieldPath.default('isGroup'),
+  /** Boolean field used by group-row renderers to expose expand state. */
+  expandedField: fieldPath.default('isExpanded'),
+});
+
 /**
  * `actions`/`custom` cells are JSX/handlers the builder cannot serialize. The
  * generated hook exposes a `render<Id>` callback the owned container supplies.
@@ -149,6 +159,8 @@ export const tableSpecSchema = z
     hookName: identifierSchema.optional(),
     /** Spec path recorded in the provenance banner of the generated file. */
     specPath: z.string().optional(),
+    /** Optional reusable group-row/children-row helpers. */
+    grouping: groupingSpec.optional(),
     columns: z.array(columnSpecSchema).min(1, 'cần ít nhất một cột'),
   })
   .superRefine((spec, ctx) => {

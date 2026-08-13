@@ -24,6 +24,64 @@ import {
 } from '@/components/ui/tooltip';
 import type { Tag } from '../model/tag';
 
+function readTagGroupingField(row: Tag, path: string): unknown {
+  return path.split('.').reduce<unknown>((value, key) => {
+    if (value && typeof value === 'object' && key in value) {
+      return (value as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, row);
+}
+
+export function isTagGroup(row: Tag): boolean {
+  return Boolean(readTagGroupingField(row, 'isGroup'));
+}
+
+export function isTagGroupExpanded(row: Tag): boolean {
+  return Boolean(readTagGroupingField(row, 'isExpanded'));
+}
+
+export interface TagGroupedRowsOptions<TGroup> {
+  getGroupId: (group: TGroup) => string;
+  toGroupRow: (group: TGroup, isExpanded: boolean) => Tag;
+}
+
+export function buildTagGroupedRows<TGroup>(
+  groups: TGroup[],
+  children: Tag[],
+  collapsedGroupIds: ReadonlySet<string>,
+  options: TagGroupedRowsOptions<TGroup>,
+): Tag[] {
+  const childrenByGroupId = new Map<string, Tag[]>();
+
+  for (const child of children) {
+    const parentId = readTagGroupingField(child, 'groupId');
+    if (typeof parentId !== 'string') continue;
+    const groupChildren = childrenByGroupId.get(parentId) ?? [];
+    groupChildren.push(child);
+    childrenByGroupId.set(parentId, groupChildren);
+  }
+
+  return groups.flatMap((group) => {
+    const groupId = options.getGroupId(group);
+    const isExpanded = !collapsedGroupIds.has(groupId);
+    return [
+      options.toGroupRow(group, isExpanded),
+      ...(isExpanded ? (childrenByGroupId.get(groupId) ?? []) : []),
+    ];
+  });
+}
+
+export function toggleTagGroup(
+  collapsedGroupIds: ReadonlySet<string>,
+  groupId: string,
+): Set<string> {
+  const next = new Set(collapsedGroupIds);
+  if (next.has(groupId)) next.delete(groupId);
+  else next.add(groupId);
+  return next;
+}
+
 export interface UseTagColumnsParams {
   onAddTag: (row: Tag) => void;
   onEdit: (row: Tag) => void;
