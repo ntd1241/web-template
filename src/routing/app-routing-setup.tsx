@@ -45,6 +45,7 @@ import { ProjectMainLayout } from '@/project/layout/project-main-layout';
 import { ProjectMockPage } from '@/project/pages/project-mock-page';
 import { RolePermissionsPage } from '@/project/pages/role-permissions-page';
 import { ProjectSettingsPage } from '@/project/pages/settings-page';
+import { TagsPage } from '@/project/pages/tags-page';
 import { Route, Routes } from 'react-router';
 import { Layout1 } from '@/components/layouts/layout-1';
 import { Layout2 } from '@/components/layouts/layout-2';
@@ -220,6 +221,7 @@ export function AppRoutingSetup() {
             path={ROUTES.PROJECT.ROLE_PERMISSIONS}
             element={<RolePermissionsPage />}
           />
+          <Route path={ROUTES.PROJECT.TAGS} element={<TagsPage />} />
         </Route>
       </Route>
       {/* Xóa dòng này + thư mục src/examples để gỡ toàn bộ trang example. */}

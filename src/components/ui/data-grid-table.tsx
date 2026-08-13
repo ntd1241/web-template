@@ -227,6 +227,7 @@ function DataGridTableBodyRowSkeleton({ children }: { children: ReactNode }) {
         props.tableLayout?.stripped &&
           'odd:bg-muted/90 hover:bg-transparent odd:hover:bg-muted',
         table.options.enableRowSelection && '[&_>:first-child]:relative',
+        props.getRowClassName?.(row.original),
         props.tableClassNames?.bodyRow,
       )}
     >
@@ -283,6 +284,8 @@ function DataGridTableBodyRow<TData>({
   dndStyle?: CSSProperties;
 }) {
   const { props, table } = useDataGrid();
+  const isRowClickable =
+    Boolean(props.onRowClick) && (props.isRowClickable?.(row.original) ?? true);
 
   return (
     <tr
@@ -293,10 +296,10 @@ function DataGridTableBodyRow<TData>({
           ? 'selected'
           : undefined
       }
-      onClick={() => props.onRowClick && props.onRowClick(row.original)}
+      onClick={() => isRowClickable && props.onRowClick?.(row.original)}
       className={cn(
         'hover:bg-field data-[state=selected]:bg-field',
-        props.onRowClick && 'cursor-pointer',
+        isRowClickable && 'cursor-pointer',
         !props.tableLayout?.stripped &&
           props.tableLayout?.rowBorder &&
           'border-b border-border [&:not(:last-child)>td]:border-b',

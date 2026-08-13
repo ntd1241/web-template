@@ -28,6 +28,7 @@ export const ROUTES = {
   PROJECT: {
     SETTINGS: '/settings',
     ROLE_PERMISSIONS: '/permissions',
+    TAGS: '/tags',
   },
 } as const;
 

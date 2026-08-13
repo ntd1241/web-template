@@ -26,7 +26,9 @@ export function ProjectMainLayout() {
       ? 'Cài đặt'
       : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
         ? 'Phân quyền'
-        : 'Tổng quan';
+        : pathname === ROUTES.PROJECT.TAGS
+          ? 'Nhãn'
+          : 'Tổng quan';
 
   return (
     <MainLayout

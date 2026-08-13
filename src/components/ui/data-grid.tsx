@@ -57,6 +57,8 @@ export interface DataGridProps<TData extends object> {
   recordCount: number;
   children?: ReactNode;
   onRowClick?: (row: TData) => void;
+  isRowClickable?: (row: TData) => boolean;
+  getRowClassName?: (row: TData) => string | undefined;
   isLoading?: boolean;
   loadingMode?: 'skeleton' | 'spinner';
   loadingMessage?: ReactNode | string;

@@ -112,7 +112,9 @@ const selectColumn = z.object({
 const actionsColumn = z.object({
   kind: z.literal('actions'),
   id: columnId.optional(),
-  header: z.string().min(1).optional(),
+  // An actions column can intentionally omit its label when the icon buttons
+  // are self-explanatory and the table does not need a header caption.
+  header: z.string().optional(),
   ...commonMeta,
 });
 

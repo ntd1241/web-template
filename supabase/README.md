@@ -81,3 +81,20 @@ override mới giữ khác biệt. Các RPC `get_effective_permissions` và
 `has_tenant_permission` là nguồn dùng chung cho kiểm tra quyền, còn RLS vẫn là
 lớp bảo vệ cuối cùng. `ensure_tenant_permission_defaults` khởi tạo bốn role mẫu
 cho tenant khi trang phân quyền được mở lần đầu.
+
+## Hệ thống nhãn dùng chung
+
+Migration `20260813100000_create_tagging_system.sql` tạo:
+
+- `tag_groups`: nhóm nhãn theo tenant.
+- `tags`: nhãn thuộc một nhóm, dùng chung cho nhiều loại đối tượng.
+- `tag_assignments`: liên kết polymorphic theo `subject_type` và `subject_id`,
+  nên một nhân viên, khách hàng hoặc đối tượng nghiệp vụ khác có thể có nhiều
+  nhãn mà không cần tạo bảng pivot riêng cho từng loại.
+- RPC `replace_tag_assignments`: thay toàn bộ nhãn của một đối tượng trong một
+  transaction và chỉ cho phép owner/admin của tenant thực hiện.
+
+Frontend dùng `src/project/tags/api/tags.api.ts` làm lớp API duy nhất cho nhóm
+nhãn, nhãn và assignment. Khi thêm loại đối tượng mới, chỉ cần dùng lại
+`replaceSubjectTags(tenantId, subjectType, subjectId, tagIds)` và giữ nguyên
+model database.

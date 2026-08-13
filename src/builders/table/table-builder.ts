@@ -103,7 +103,7 @@ function emitColumnCall(col: ColumnSpec): string {
   if (col.kind === 'index') {
     const lines: string[] = [];
     if (col.id) lines.push(`id: ${quote(col.id)},`);
-    if (col.header) lines.push(`header: ${quote(col.header)},`);
+    if (col.header !== undefined) lines.push(`header: ${quote(col.header)},`);
     lines.push(...commonMetaLines(col));
     return lines.length === 0
       ? 'col.index()'
@@ -113,7 +113,7 @@ function emitColumnCall(col: ColumnSpec): string {
   if (col.kind === 'actions' || col.kind === 'custom') {
     const lines: string[] = [];
     if (col.id) lines.push(`id: ${quote(col.id)},`);
-    if (col.header) lines.push(`header: ${quote(col.header)},`);
+    if (col.header !== undefined) lines.push(`header: ${quote(col.header)},`);
     lines.push(...commonMetaLines(col));
     // Inline stub the owner fills in place — keeps cell logic in this owned file.
     lines.push(
@@ -193,7 +193,8 @@ function emitEditableSelectOptions(columns: ColumnSpec[]): string {
     )
     .map((col) => {
       const rows = (col.options ?? []).map(
-        (opt) => `  { value: ${quote(opt.value)}, label: ${quote(opt.label)} },`,
+        (opt) =>
+          `  { value: ${quote(opt.value)}, label: ${quote(opt.label)} },`,
       );
       return `const ${col.id}Options = [\n${rows.join('\n')}\n];`;
     });
