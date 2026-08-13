@@ -58,7 +58,7 @@ export function LoginPage() {
       <Helmet>
         <title>Đăng nhập | Admin Template</title>
       </Helmet>
-      <main className="flex min-h-svh items-center justify-center bg-muted px-4 py-8">
+      <main className="flex min-h-svh w-full flex-1 items-center justify-center bg-muted px-4 py-8">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
