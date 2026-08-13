@@ -10,6 +10,7 @@ export interface LayoutShellConfig {
   homePath: string;
   brandName: string;
   headerTitle: string;
+  accountRoles: string[];
   breadcrumbRootLabel: string;
   breadcrumbRootPath: string;
   breadcrumbCurrent: string;
@@ -70,6 +71,7 @@ export function LayoutProvider({
     homePath: '/',
     brandName: 'Admin Template',
     headerTitle: 'Quản trị Tổ chức',
+    accountRoles: ['Tổ chức'],
     breadcrumbRootLabel: 'Tổ chức',
     breadcrumbRootPath: '/',
     breadcrumbCurrent: 'Nhân viên',

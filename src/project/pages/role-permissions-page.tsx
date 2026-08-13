@@ -12,6 +12,7 @@ import {
   Save,
   ShieldCheck,
   Trash2,
+  User,
   type LucideIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -366,7 +367,13 @@ export function RolePermissionsPage() {
                   {role.name}
                 </span>
               </span>
-              <Badge variant="secondary" appearance="light" size="sm">
+              <Badge
+                variant="secondary"
+                appearance="light"
+                size="sm"
+                className="gap-1"
+              >
+                <User />
                 {role.userCount}
               </Badge>
             </button>

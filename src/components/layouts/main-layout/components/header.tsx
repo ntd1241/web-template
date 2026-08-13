@@ -371,8 +371,18 @@ export function Header() {
                 <span className="block text-sm font-semibold leading-tight text-admin-blue-darkest">
                   {accountName}
                 </span>
-                <span className="mt-0.5 inline-flex rounded border border-admin-blue-light bg-secondary px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-secondary-foreground">
-                  Tổ chức
+                <span className="mt-0.5 flex max-w-56 items-center justify-end gap-1 overflow-hidden">
+                  {shell.accountRoles.map((role) => (
+                    <Badge
+                      key={role}
+                      variant="secondary"
+                      appearance="light"
+                      size="sm"
+                      className="max-w-28 truncate border border-admin-blue-light font-bold"
+                    >
+                      {role}
+                    </Badge>
+                  ))}
                 </span>
               </span>
               <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">

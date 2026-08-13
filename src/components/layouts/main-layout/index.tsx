@@ -11,7 +11,7 @@ export function MainLayout({ shell }: MainLayoutProps = {}) {
   return (
     <>
       <Helmet>
-        <title>Admin Template</title>
+        <title>{shell?.brandName ?? 'Admin Template'}</title>
       </Helmet>
 
       <LayoutProvider

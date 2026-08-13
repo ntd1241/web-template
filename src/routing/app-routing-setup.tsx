@@ -41,10 +41,10 @@ import { Layout37Page } from '@/pages/layout-37/page';
 import { Layout38Page } from '@/pages/layout-38/page';
 import { Layout39Page } from '@/pages/layout-39/page';
 import { NotFoundPage } from '@/pages/not-found/page';
+import { ProjectMainLayout } from '@/project/layout/project-main-layout';
 import { ProjectMockPage } from '@/project/pages/project-mock-page';
 import { RolePermissionsPage } from '@/project/pages/role-permissions-page';
 import { Route, Routes } from 'react-router';
-import { PROJECT_MENU_GROUPS } from '@/config/project-menu.config';
 import { Layout1 } from '@/components/layouts/layout-1';
 import { Layout2 } from '@/components/layouts/layout-2';
 import { Layout3 } from '@/components/layouts/layout-3';
@@ -84,7 +84,6 @@ import { Layout36 } from '@/components/layouts/layout-36';
 import { Layout37 } from '@/components/layouts/layout-37';
 import { Layout38 } from '@/components/layouts/layout-38';
 import { Layout39 } from '@/components/layouts/layout-39';
-import { MainLayout } from '@/components/layouts/main-layout';
 import { ProtectedRoute } from './protected-route';
 
 export function AppRoutingSetup() {
@@ -210,21 +209,7 @@ export function AppRoutingSetup() {
         <Route path="/layout-39" element={<Layout39Page />} />
       </Route>
       <Route element={<ProtectedRoute />}>
-        <Route
-          element={
-            <MainLayout
-              shell={{
-                menuGroups: PROJECT_MENU_GROUPS,
-                homePath: '/',
-                brandName: 'Project thật',
-                headerTitle: 'Project thật',
-                breadcrumbRootLabel: 'Trang chủ',
-                breadcrumbRootPath: '/',
-                breadcrumbCurrent: 'Tổng quan',
-              }}
-            />
-          }
-        >
+        <Route element={<ProjectMainLayout />}>
           <Route path="/" element={<ProjectMockPage />} />
           <Route
             path={ROUTES.PROJECT.ROLE_PERMISSIONS}
