@@ -12,7 +12,7 @@ const spec: FormSpec = {
       kind: 'text',
       name: 'name',
       label: 'Tên nhóm',
-      width: 'large',
+      width: 'full',
       required: true,
     },
     {

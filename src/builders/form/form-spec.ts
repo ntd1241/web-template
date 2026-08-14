@@ -19,7 +19,8 @@ import { identifierSchema } from '../shared/schema-primitives';
  * (react-hook-form + zodResolver + `src/components/ui` inputs) on a 12-col grid.
  *
  * Layout: each field has a width preset (`normal` = half row, `large` = 2/3,
- * `full` = whole row); on mobile every field stacks full-width.
+ * `full` = whole row); omitted widths default to `full`, and on mobile every
+ * field stacks full-width.
  */
 
 const fieldName = identifierSchema;

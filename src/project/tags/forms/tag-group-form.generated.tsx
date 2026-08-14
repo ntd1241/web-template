@@ -74,7 +74,7 @@ export function TagGroupForm({
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem className="md:col-span-8">
+              <FormItem className="md:col-span-12">
                 <FormLabel>
                   Tên nhóm<span className="text-destructive"> *</span>
                 </FormLabel>

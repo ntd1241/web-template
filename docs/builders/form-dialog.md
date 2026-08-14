@@ -73,7 +73,7 @@ Date fields may set `format: 'display' | 'iso'`; number fields may set
 `format: 'plain' | 'currency' | 'percent'`. These semantic presets are defined once by the shared
 field schema and mapped to runtime controls by the field renderer.
 
-Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` is 8, and `full` is 12. Fields stack on mobile.
+Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` is 8, and `full` is 12. Fields stack on mobile. If a field omits `width`, the builder defaults it to `full`; use `normal` or `large` only when a field is intentionally part of a split row.
 
 ## Create/Edit Wiring
 

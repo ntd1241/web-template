@@ -81,6 +81,7 @@ describe('buildFormModule', () => {
     expect(dateSource).toContain(
       '<DatePickerInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} calendarLabel="Chọn ngày vào làm" valueMode="iso-date" variant="md" />',
     );
+    expect(dateSource).toContain('className="md:col-span-12"');
   });
 
   it('maps semantic number formats to NumericInput', () => {

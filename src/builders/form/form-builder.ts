@@ -33,9 +33,7 @@ function str(value: string): string {
 }
 
 function span(field: FormFieldSpec): string {
-  return FORM_WIDTH_SPAN[
-    field.width ?? (field.kind === 'switch' ? 'full' : 'normal')
-  ];
+  return FORM_WIDTH_SPAN[field.width ?? 'full'];
 }
 
 const OPTION_KINDS = new Set(['select', 'combobox', 'multiselect']);
