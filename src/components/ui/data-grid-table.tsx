@@ -12,6 +12,7 @@ import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDataGrid } from '@/components/ui/data-grid';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const headerCellSpacingVariants = cva('', {
   variants: {
@@ -247,6 +248,18 @@ function DataGridTableBodyRowSkeletonCell<TData>({
     size: props.tableLayout?.dense ? 'dense' : 'default',
   });
 
+  const columnId = column.id.toLowerCase();
+  const skeletonClassName =
+    columnId === 'select'
+      ? 'h-4 w-4'
+      : columnId === 'index'
+        ? 'h-4 w-8'
+        : columnId.includes('action')
+          ? 'ms-auto h-8 w-24'
+          : column.columnDef.meta?.headerClassName?.includes('text-right')
+            ? 'ms-auto h-4 w-24'
+            : 'h-4 w-3/4';
+
   return (
     <td
       className={cn(
@@ -266,7 +279,9 @@ function DataGridTableBodyRowSkeletonCell<TData>({
           : '',
       )}
     >
-      {children}
+      {children ?? (
+        <Skeleton aria-hidden="true" className={skeletonClassName} />
+      )}
     </td>
   );
 }
