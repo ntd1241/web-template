@@ -46,6 +46,7 @@ import {
   CardToolbar,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PageLoading } from '@/components/ui/loading';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Tooltip,
@@ -388,9 +389,7 @@ export function RolePermissionsPage() {
 
   if (workspaceQuery.isPending) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
-        Đang tải cấu hình phân quyền...
-      </div>
+      <PageLoading label="Đang tải cấu hình phân quyền..." className="h-full" />
     );
   }
 

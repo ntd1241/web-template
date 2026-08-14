@@ -20,7 +20,8 @@ dot-circle indicator and reserves a bordered content area so the surrounding car
 ## SectionLoading
 
 Use for a smaller section or dialog body. It keeps the compact three-dot indicator that is useful when
-the surrounding component already provides most of the visual context.
+the surrounding component already provides most of the visual context. The dots use a staggered sync
+motion with the same 0.6-second rhythm as the reference loader.
 
 ```tsx
 <DialogBody>
@@ -34,8 +35,8 @@ the surrounding component already provides most of the visual context.
 
 ## PageLoading
 
-Use when the page's main content cannot render until its initial data is ready. It provides a larger
-centered ring indicator and expands to the available content area.
+Use when the page's main content cannot render until its initial data is ready. It displays the project
+logo as a borderless square loader that flips horizontally, then vertically, matching the app favicon.
 
 ```tsx
 return query.isPending ? (
@@ -47,3 +48,5 @@ return query.isPending ? (
 
 Both components expose `role="status"`, announce updates politely, and accept `className` plus normal
 `div` attributes for layout composition.
+
+`LogoSquareLoader` is also exported for full-screen suspense fallbacks or other shared loading surfaces.

@@ -1,6 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { CardLoading, PageLoading, SectionLoading } from './loading';
+import {
+  CardLoading,
+  LogoSquareLoader,
+  PageLoading,
+  SectionLoading,
+} from './loading';
 
 describe('loading components', () => {
   it('renders card loading with a large dot-circle indicator', () => {
@@ -23,7 +28,7 @@ describe('loading components', () => {
     ).toHaveLength(12);
   });
 
-  it('provides the previous compact loading style as section loading', () => {
+  it('renders section loading with staggered sync dots', () => {
     render(<SectionLoading label="Đang tải section..." />);
 
     expect(screen.getByRole('status')).toHaveAttribute(
@@ -31,10 +36,17 @@ describe('loading components', () => {
       'section-loading',
     );
     expect(screen.getByText('Đang tải section...')).toBeInTheDocument();
-    expect(screen.getByRole('status').querySelectorAll('span')).toHaveLength(5);
+    const dots = screen
+      .getByRole('status')
+      .querySelectorAll('[data-slot="section-loading-indicator"] > span');
+
+    expect(dots).toHaveLength(3);
+    expect(dots[0]).toHaveStyle({ animationDelay: '70ms' });
+    expect(dots[1]).toHaveStyle({ animationDelay: '140ms' });
+    expect(dots[2]).toHaveStyle({ animationDelay: '210ms' });
   });
 
-  it('renders full page loading with a distinct indicator', () => {
+  it('renders full page loading with the project logo in a square loader', () => {
     render(<PageLoading label="Đang tải trang quản trị..." />);
 
     expect(screen.getByRole('status')).toHaveAttribute(
@@ -42,8 +54,23 @@ describe('loading components', () => {
       'page-loading',
     );
     expect(screen.getByText('Đang tải trang quản trị...')).toBeInTheDocument();
-    expect(screen.getByRole('status').querySelector('svg')).toHaveClass(
-      'animate-spin',
-    );
+    expect(
+      screen
+        .getByRole('status')
+        .querySelector('[data-slot="logo-square-loader"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getByRole('status')
+        .querySelector('[data-slot="logo-square-loader"] img'),
+    ).toHaveAttribute('src', '/media/app/android-chrome-512x512.png');
+  });
+
+  it('exposes the logo square loader as a reusable indicator', () => {
+    render(<LogoSquareLoader />);
+
+    expect(
+      document.querySelector('[data-slot="logo-square-loader"] img'),
+    ).toHaveAttribute('src', '/media/app/android-chrome-512x512.png');
   });
 });

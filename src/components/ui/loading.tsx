@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { LoaderCircle } from 'lucide-react';
+import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 
 interface LoadingProps extends HTMLAttributes<HTMLDivElement> {
@@ -9,12 +9,36 @@ interface LoadingProps extends HTMLAttributes<HTMLDivElement> {
 function LoadingDots() {
   return (
     <span
+      data-slot="section-loading-indicator"
       aria-hidden="true"
-      className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-2"
+      className="flex items-center rounded-full bg-primary/10 px-2.5 py-2"
     >
-      <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-300ms]" />
-      <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-150ms]" />
-      <span className="size-1.5 animate-bounce rounded-full bg-primary" />
+      {[70, 140, 210].map((delay) => (
+        <span
+          key={delay}
+          className="m-0.5 size-[15px] animate-section-loading-dot rounded-full bg-primary motion-reduce:animate-none"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </span>
+  );
+}
+
+function LogoSquareLoader({ className }: { className?: string }) {
+  return (
+    <span
+      data-slot="logo-square-loader"
+      aria-hidden="true"
+      className={cn(
+        'inline-flex size-12 items-center justify-center',
+        className,
+      )}
+    >
+      <img
+        src={toAbsoluteUrl('/media/app/android-chrome-512x512.png')}
+        alt=""
+        className="size-full animate-logo-square-loader object-contain [animation-fill-mode:both] motion-reduce:animate-none"
+      />
     </span>
   );
 }
@@ -106,20 +130,11 @@ function PageLoading({
       {...props}
     >
       <div className="flex flex-col items-center gap-4 text-center">
-        <div className="relative flex size-16 items-center justify-center rounded-full bg-primary/10">
-          <span
-            aria-hidden="true"
-            className="absolute inset-1 rounded-full border-2 border-primary/20"
-          />
-          <LoaderCircle
-            aria-hidden="true"
-            className="relative size-7 animate-spin text-primary"
-          />
-        </div>
+        <LogoSquareLoader className="size-12" />
         <span className="text-sm font-medium text-foreground">{label}</span>
       </div>
     </div>
   );
 }
 
-export { CardLoading, PageLoading, SectionLoading };
+export { CardLoading, LogoSquareLoader, PageLoading, SectionLoading };
