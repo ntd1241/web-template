@@ -15,6 +15,11 @@ interface TenantMembershipRow {
   tenant_id: string;
 }
 
+interface PermissionModuleRow {
+  code: string;
+  name: string;
+}
+
 function queryParams(params: Record<string, string>) {
   return { params };
 }
@@ -45,13 +50,22 @@ async function getCurrentTenantId(userId: string): Promise<string> {
   return tenantId;
 }
 
-function mapGroup(row: TagGroupRow, tagCount: number): TagGroup {
+function mapGroup(
+  row: TagGroupRow,
+  tagCount: number,
+  moduleNameByCode: ReadonlyMap<string, string>,
+): TagGroup {
   return {
     id: row.id,
     tenantId: row.tenant_id,
     code: row.code,
     name: row.name,
     description: row.description,
+    moduleCode: row.module_code ?? null,
+    moduleName: row.module_code
+      ? (moduleNameByCode.get(row.module_code) ?? null)
+      : null,
+    isSystem: row.is_system ?? false,
     sortOrder: row.sort_order,
     isActive: row.is_active,
     tagCount,
@@ -78,7 +92,7 @@ export async function loadTagWorkspace(userId: string): Promise<TagWorkspace> {
   assertSupabaseConfigured();
 
   const tenantId = await getCurrentTenantId(userId);
-  const [groupRows, tagRows, assignmentRows] = await Promise.all([
+  const [groupRows, tagRows, assignmentRows, moduleRows] = await Promise.all([
     request<TagGroupRow[]>(
       supabaseApi.get(
         '/tag_groups',
@@ -109,7 +123,20 @@ export async function loadTagWorkspace(userId: string): Promise<TagWorkspace> {
         }),
       ),
     ),
+    request<PermissionModuleRow[]>(
+      supabaseApi.get(
+        '/permission_modules',
+        queryParams({
+          select: 'code,name',
+          is_active: 'eq.true',
+          order: 'sort_order.asc,code.asc',
+        }),
+      ),
+    ),
   ]);
+  const moduleNameByCode = new Map(
+    moduleRows.map((module) => [module.code, module.name]),
+  );
   const groupNameById = new Map(
     groupRows.map((group) => [group.id, group.name]),
   );
@@ -132,7 +159,7 @@ export async function loadTagWorkspace(userId: string): Promise<TagWorkspace> {
   return {
     tenantId,
     groups: groupRows.map((group) =>
-      mapGroup(group, tagCountByGroupId.get(group.id) ?? 0),
+      mapGroup(group, tagCountByGroupId.get(group.id) ?? 0, moduleNameByCode),
     ),
     tags: tagRows.map((tag) =>
       mapTag(

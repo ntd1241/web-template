@@ -27,8 +27,16 @@ import { DataGridTable } from '@/components/ui/data-grid-table';
 import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   createEmployee,
   deleteEmployee,
+  loadEmployeeTagFilter,
   loadEmployeeWorkspace,
   updateEmployee,
 } from '../api/employees.api';
@@ -48,6 +56,7 @@ export function EmployeesPage() {
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
+  const [employeeTagId, setEmployeeTagId] = useState('all');
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -65,12 +74,35 @@ export function EmployeesPage() {
     enabled: Boolean(userId),
   });
 
+  const employeeTagFilterQuery = useQuery({
+    queryKey: [
+      'project',
+      'employees',
+      'tag-filter',
+      userId,
+      workspaceQuery.data?.tenantId,
+    ],
+    queryFn: () => loadEmployeeTagFilter(workspaceQuery.data!.tenantId),
+    enabled: Boolean(workspaceQuery.data?.tenantId),
+  });
+
   const employees = useMemo(() => {
     const source = workspaceQuery.data?.employees ?? [];
     const normalized = keyword.trim().toLowerCase();
-    if (!normalized) return source;
-    return source.filter((employee) =>
-      [
+    const selectedEmployeeIds =
+      employeeTagId === 'all'
+        ? null
+        : new Set(
+            employeeTagFilterQuery.data?.employeeIdsByTagId[employeeTagId] ??
+              [],
+          );
+
+    return source.filter((employee) => {
+      if (selectedEmployeeIds && !selectedEmployeeIds.has(employee.id)) {
+        return false;
+      }
+      if (!normalized) return true;
+      return [
         employee.employeeCode,
         employee.displayName,
         employee.department,
@@ -78,9 +110,14 @@ export function EmployeesPage() {
       ]
         .join(' ')
         .toLowerCase()
-        .includes(normalized),
-    );
-  }, [keyword, workspaceQuery.data?.employees]);
+        .includes(normalized);
+    });
+  }, [
+    employeeTagFilterQuery.data?.employeeIdsByTagId,
+    employeeTagId,
+    keyword,
+    workspaceQuery.data?.employees,
+  ]);
 
   const invalidateEmployees = () =>
     queryClient.invalidateQueries({
@@ -187,6 +224,28 @@ export function EmployeesPage() {
                 debounceMs={0}
                 onSearch={setKeyword}
               />
+              <Select
+                value={employeeTagId}
+                onValueChange={(value) => {
+                  setEmployeeTagId(value);
+                  setPagination((current) => ({ ...current, pageIndex: 0 }));
+                }}
+                disabled={employeeTagFilterQuery.isLoading}
+              >
+                <SelectTrigger className="w-48" aria-label="Nhóm nhân viên">
+                  <SelectValue placeholder="Nhóm nhân viên" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả nhóm</SelectItem>
+                  {(employeeTagFilterQuery.data?.options ?? []).map(
+                    (option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
               <Button
                 variant="outline"
                 onClick={() => workspaceQuery.refetch()}

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const EMPLOYEE_TAG_GROUP_CODE = 'employees' as const;
+
 export const tagGroupFormSchema = z.object({
   name: z.string().trim().min(1, 'Vui lòng nhập tên nhóm nhãn.'),
   code: z
@@ -40,6 +42,9 @@ export interface TagGroup {
   code: string;
   name: string;
   description: string;
+  moduleCode: string | null;
+  moduleName: string | null;
+  isSystem: boolean;
   sortOrder: number;
   isActive: boolean;
   tagCount: number;
@@ -58,6 +63,8 @@ export interface Tag {
   assignmentCount: number;
   description: string;
   groupDescription?: string;
+  moduleCode?: string | null;
+  isSystem?: boolean;
   isGroup?: boolean;
   isExpanded?: boolean;
 }
@@ -97,6 +104,8 @@ export interface TagGroupRow {
   code: string;
   name: string;
   description: string;
+  module_code: string | null;
+  is_system: boolean;
   sort_order: number;
   is_active: boolean;
 }

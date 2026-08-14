@@ -84,6 +84,11 @@ cho tenant khi trang phân quyền được mở lần đầu.
 
 ## Hệ thống nhãn dùng chung
 
+> **Phạm vi demo:** Supabase trong repository này chỉ phục vụ demo/test nhanh. Không cần mở rộng
+> RLS, policy, trigger bảo mật hoặc permission enforcement cho các flow demo mới. Khi triển khai
+> production, phải thiết kế lại security boundary và thêm RLS ở một migration riêng; không suy luận
+> rằng schema demo hiện tại đã đủ an toàn.
+
 Migration `20260813100000_create_tagging_system.sql` tạo:
 
 - `tag_groups`: nhóm nhãn theo tenant.
@@ -93,6 +98,12 @@ Migration `20260813100000_create_tagging_system.sql` tạo:
   nhãn mà không cần tạo bảng pivot riêng cho từng loại.
 - RPC `replace_tag_assignments`: thay toàn bộ nhãn của một đối tượng trong một
   transaction và chỉ cho phép owner/admin của tenant thực hiện.
+
+Migration `20260814000000_add_system_tag_groups.sql` bổ sung `module_code` và
+`is_system` cho `tag_groups`, đồng thời seed nhóm hệ thống Nhân viên. Nhóm hệ
+thống chỉ được bảo vệ ở UI/domain contract trong demo; nhóm tùy chỉnh vẫn có
+thể tạo, sửa và xóa. Nhãn bên trong nhóm hệ thống vẫn được quản lý như các
+nhãn khác.
 
 Frontend dùng `src/project/tags/api/tags.api.ts` làm lớp API duy nhất cho nhóm
 nhãn, nhãn và assignment. Khi thêm loại đối tượng mới, chỉ cần dùng lại

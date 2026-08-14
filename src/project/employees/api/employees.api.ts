@@ -1,4 +1,5 @@
 import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
+import { EMPLOYEE_TAG_GROUP_CODE } from '../../tags/model/tag';
 import type {
   Employee,
   EmployeeAvatarRow,
@@ -35,6 +36,27 @@ async function request<T>(promise: Promise<unknown>): Promise<T> {
 export interface EmployeeWorkspace {
   tenantId: string;
   employees: Employee[];
+}
+
+interface EmployeeTagGroupRow {
+  id: string;
+}
+
+interface EmployeeTagRow {
+  id: string;
+  group_id: string;
+  name: string;
+  sort_order: number;
+}
+
+interface EmployeeTagAssignmentRow {
+  tag_id: string;
+  subject_id: string;
+}
+
+export interface EmployeeTagFilterData {
+  options: Array<{ value: string; label: string }>;
+  employeeIdsByTagId: Record<string, string[]>;
 }
 
 async function resolveTenantId(userId: string) {
@@ -116,6 +138,66 @@ export async function loadEmployeeWorkspace(
         row.user_id ? (roleNamesByUserId.get(row.user_id) ?? []) : [],
       ),
     ),
+  };
+}
+
+export async function loadEmployeeTagFilter(
+  tenantId: string,
+): Promise<EmployeeTagFilterData> {
+  assertSupabaseConfigured();
+
+  const [groupRows, tagRows, assignmentRows] = await Promise.all([
+    request<EmployeeTagGroupRow[]>(
+      supabaseApi.get(
+        '/tag_groups',
+        queryParams({
+          select: 'id',
+          tenant_id: `eq.${tenantId}`,
+          code: `eq.${EMPLOYEE_TAG_GROUP_CODE}`,
+          is_system: 'eq.true',
+          is_active: 'eq.true',
+          limit: '1',
+        }),
+      ),
+    ),
+    request<EmployeeTagRow[]>(
+      supabaseApi.get(
+        '/tags',
+        queryParams({
+          select: 'id,group_id,name,sort_order',
+          tenant_id: `eq.${tenantId}`,
+          is_active: 'eq.true',
+          order: 'sort_order.asc,name.asc',
+        }),
+      ),
+    ),
+    request<EmployeeTagAssignmentRow[]>(
+      supabaseApi.get(
+        '/tag_assignments',
+        queryParams({
+          select: 'tag_id,subject_id',
+          tenant_id: `eq.${tenantId}`,
+          subject_type: 'eq.employee',
+        }),
+      ),
+    ),
+  ]);
+
+  const groupId = groupRows[0]?.id;
+  const tags = groupId ? tagRows.filter((tag) => tag.group_id === groupId) : [];
+  const tagIds = new Set(tags.map((tag) => tag.id));
+  const employeeIdsByTagId: Record<string, string[]> = {};
+
+  for (const assignment of assignmentRows) {
+    if (!tagIds.has(assignment.tag_id)) continue;
+    const employeeIds = employeeIdsByTagId[assignment.tag_id] ?? [];
+    employeeIds.push(assignment.subject_id);
+    employeeIdsByTagId[assignment.tag_id] = employeeIds;
+  }
+
+  return {
+    options: tags.map((tag) => ({ value: tag.id, label: tag.name })),
+    employeeIdsByTagId,
   };
 }
 

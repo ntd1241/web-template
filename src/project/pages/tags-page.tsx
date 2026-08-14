@@ -91,6 +91,8 @@ export function TagsPage() {
           assignmentCount: group.tagCount,
           description: '',
           groupDescription: group.description,
+          moduleCode: group.moduleCode,
+          isSystem: group.isSystem,
           isGroup: true,
           isExpanded,
         }),
@@ -169,6 +171,10 @@ export function TagsPage() {
     onAddTag: (row) => openCreateTag(row.id),
     onEdit: (row) => {
       if (row.isGroup) {
+        if (row.isSystem) {
+          toast.error('Không thể sửa hoặc xóa nhóm nhãn hệ thống.');
+          return;
+        }
         const group = groups.find((item) => item.id === row.id);
         if (group) openEditGroup(group);
         return;
@@ -181,6 +187,10 @@ export function TagsPage() {
     },
     onDelete: (row) => {
       if (row.isGroup) {
+        if (row.isSystem) {
+          toast.error('Không thể sửa hoặc xóa nhóm nhãn hệ thống.');
+          return;
+        }
         if (row.assignmentCount > 0) {
           toast.error('Hãy xóa các nhãn con trước khi xóa nhóm.');
           return;
@@ -229,6 +239,10 @@ export function TagsPage() {
   }
 
   function openEditGroup(group: TagGroup) {
+    if (group.isSystem) {
+      toast.error('Không thể sửa hoặc xóa nhóm nhãn hệ thống.');
+      return;
+    }
     setEditingGroup(group);
     groupForm.reset({
       name: group.name,

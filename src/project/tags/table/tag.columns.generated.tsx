@@ -9,7 +9,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import {
   ChevronDown,
   ChevronRight,
-  Folder,
   Pencil,
   Plus,
   Tag as TagIcon,
@@ -22,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { TagGroupIcon } from '../components/tag-group-icon';
 import type { Tag } from '../model/tag';
 
 function readTagGroupingField(row: Tag, path: string): unknown {
@@ -131,7 +131,11 @@ export function useTagColumns(params: UseTagColumnsParams): ColumnDef<Tag>[] {
               />
             )}
             {row.isGroup ? (
-              <Folder className="size-4 shrink-0 text-muted-foreground" />
+              <TagGroupIcon
+                moduleCode={row.moduleCode}
+                isSystem={row.isSystem}
+                className="text-muted-foreground"
+              />
             ) : null}
             <div className="min-w-0">
               <div className="truncate text-foreground">{row.name}</div>
@@ -181,37 +185,41 @@ export function useTagColumns(params: UseTagColumnsParams): ColumnDef<Tag>[] {
                 <TooltipContent>Thêm nhãn</TooltipContent>
               </Tooltip>
             ) : null}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  mode="icon"
-                  size="sm"
-                  aria-label={`Sửa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
-                  onClick={() => params.onEdit(row)}
-                >
-                  <Pencil className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Sửa</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  mode="icon"
-                  size="sm"
-                  aria-label={`Xóa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => params.onDelete(row)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent variant="destructive">Xóa</TooltipContent>
-            </Tooltip>
+            {!row.isSystem ? (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      mode="icon"
+                      size="sm"
+                      aria-label={`Sửa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
+                      onClick={() => params.onEdit(row)}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Sửa</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      mode="icon"
+                      size="sm"
+                      aria-label={`Xóa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => params.onDelete(row)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent variant="destructive">Xóa</TooltipContent>
+                </Tooltip>
+              </>
+            ) : null}
           </div>
         ),
       }),
