@@ -41,6 +41,7 @@ import { Layout37Page } from '@/pages/layout-37/page';
 import { Layout38Page } from '@/pages/layout-38/page';
 import { Layout39Page } from '@/pages/layout-39/page';
 import { NotFoundPage } from '@/pages/not-found/page';
+import { CustomersPage } from '@/project/customers/pages/customers-page';
 import { EmployeesPage } from '@/project/employees/pages/employees-page';
 import { ProjectMainLayout } from '@/project/layout/project-main-layout';
 import { ProjectMockPage } from '@/project/pages/project-mock-page';
@@ -215,6 +216,7 @@ export function AppRoutingSetup() {
         <Route element={<ProjectMainLayout />}>
           <Route path="/" element={<ProjectMockPage />} />
           <Route path={ROUTES.PROJECT.EMPLOYEES} element={<EmployeesPage />} />
+          <Route path={ROUTES.PROJECT.CUSTOMERS} element={<CustomersPage />} />
           <Route
             path={ROUTES.PROJECT.SETTINGS}
             element={<ProjectSettingsPage />}

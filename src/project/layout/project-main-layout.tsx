@@ -24,13 +24,15 @@ export function ProjectMainLayout() {
   const breadcrumbCurrent =
     pathname === ROUTES.PROJECT.EMPLOYEES
       ? 'Nhân viên'
-      : pathname === ROUTES.PROJECT.SETTINGS
-        ? 'Cài đặt'
-        : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
-          ? 'Phân quyền'
-          : pathname === ROUTES.PROJECT.TAGS
-            ? 'Nhãn'
-            : 'Tổng quan';
+      : pathname === ROUTES.PROJECT.CUSTOMERS
+        ? 'Khách hàng'
+        : pathname === ROUTES.PROJECT.SETTINGS
+          ? 'Cài đặt'
+          : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
+            ? 'Phân quyền'
+            : pathname === ROUTES.PROJECT.TAGS
+              ? 'Nhãn'
+              : 'Tổng quan';
 
   return (
     <MainLayout

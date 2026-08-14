@@ -4,6 +4,7 @@ import {
   Settings,
   ShieldCheck,
   Tags,
+  UserRoundSearch,
   Users,
 } from 'lucide-react';
 import type { MenuGroupConfig } from './menu.types';
@@ -27,6 +28,11 @@ export const PROJECT_MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Nhân viên',
         icon: Users,
         path: ROUTES.PROJECT.EMPLOYEES,
+      },
+      {
+        label: 'Khách hàng',
+        icon: UserRoundSearch,
+        path: ROUTES.PROJECT.CUSTOMERS,
       },
       {
         label: 'Phân quyền',

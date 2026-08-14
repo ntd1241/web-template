@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const EMPLOYEE_TAG_GROUP_CODE = 'employees' as const;
+export const CUSTOMER_TAG_GROUP_CODE = 'customers' as const;
 
 export const tagGroupFormSchema = z.object({
   name: z.string().trim().min(1, 'Vui lòng nhập tên nhóm nhãn.'),
