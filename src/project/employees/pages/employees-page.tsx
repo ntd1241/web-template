@@ -175,12 +175,9 @@ export function EmployeesPage() {
         emptyMessage="Chưa có nhân viên"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
+          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
               <CardTitle>Quản lý nhân viên</CardTitle>
-              <CardDescription>
-                Quản lý hồ sơ nhân sự và liên kết tài khoản truy cập.
-              </CardDescription>
             </CardHeading>
             <CardToolbar className="flex-wrap">
               <SearchInput

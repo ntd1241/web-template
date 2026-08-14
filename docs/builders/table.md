@@ -27,7 +27,7 @@ sizes, card chrome, or pagination markup. Every generated table page should comp
 
 ```tsx
 <Card className="min-h-0 flex-1 overflow-hidden">
-  <CardHeader className="flex-col items-stretch gap-4 p-5 xl:flex-row xl:items-center xl:justify-between">
+  <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
     <CardHeading>...</CardHeading>
     <CardToolbar>...</CardToolbar>
   </CardHeader>
@@ -38,9 +38,9 @@ sizes, card chrome, or pagination markup. Every generated table page should comp
 </Card>
 ```
 
-The standard table page shell uses `p-5` on `CardHeader` to match the existing employee/example pages.
-Toolbar buttons should use the shared Button default size unless the design explicitly calls for an
-icon-only control. This keeps generated table
+`CardHeader` owns the standard `p-5` padding, so table pages should not repeat it in page-level
+classes. Toolbar buttons should use the shared Button default size unless the design explicitly calls
+for an icon-only control. This keeps generated table
 pages visually consistent; page-specific customization belongs in feature behavior and column cells,
 not in arbitrary shell spacing or button sizing.
 

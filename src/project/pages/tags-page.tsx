@@ -283,7 +283,6 @@ export function TagsPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
                     onClick={openCreateGroup}
                   >
                     <FolderPlus className="size-4" />
@@ -295,7 +294,6 @@ export function TagsPage() {
               <Button
                 type="button"
                 variant="primary"
-                size="sm"
                 disabled={groups.length === 0}
                 onClick={openCreateTag}
               >
