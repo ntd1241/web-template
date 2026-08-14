@@ -98,6 +98,7 @@ export function useTagColumns(params: UseTagColumnsParams): ColumnDef<Tag>[] {
         id: 'name',
         header: 'Nhãn',
         headerClassName: 'min-w-[220px]',
+        enableSorting: false,
         cell: (row) => (
           <div
             className={
@@ -158,12 +159,14 @@ export function useTagColumns(params: UseTagColumnsParams): ColumnDef<Tag>[] {
         header: 'Mô tả',
         get: (row) => row.description,
         headerClassName: 'min-w-[280px]',
+        enableSorting: false,
       }),
       col.actions({
         id: 'actions',
         header: '',
         headerClassName: 'w-[220px]',
         cellClassName: 'text-right',
+        enableSorting: false,
         cell: (row) => (
           <div
             className="flex justify-end gap-1"

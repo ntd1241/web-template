@@ -60,6 +60,26 @@ describe('buildColumnsModule', () => {
     expect(source).toContain('col.date({');
   });
 
+  it('disables sorting by default and preserves explicit opt-in', () => {
+    expect(source).toContain('enableSorting: false,');
+
+    const sortable = buildColumnsModule({
+      entity: 'Product',
+      modelImport: '../model/product',
+      columns: [
+        {
+          kind: 'text',
+          id: 'name',
+          header: 'Tên',
+          field: 'name',
+          enableSorting: true,
+        },
+      ],
+    });
+
+    expect(sortable).toContain('enableSorting: true,');
+  });
+
   it('emits a standalone badge config and references it', () => {
     expect(source).toContain(
       'const statusBadgeConfig: StatusBadgeConfig<string> = {',

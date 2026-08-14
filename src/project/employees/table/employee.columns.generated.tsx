@@ -67,12 +67,14 @@ export function useEmployeeColumns(
         id: 'name',
         header: 'Nhân viên',
         headerClassName: 'min-w-[220px]',
+        enableSorting: false,
         cell: (row) => <EmployeeCell employee={row} />,
       }),
       col.custom({
         id: 'roles',
         header: 'Vai trò',
         headerClassName: 'min-w-[200px]',
+        enableSorting: false,
         cell: (row) => <EmployeeRolesCell employee={row} />,
       }),
       col.badge({
@@ -80,18 +82,21 @@ export function useEmployeeColumns(
         header: 'Trạng thái',
         get: (row) => row.status,
         config: statusBadgeConfig,
+        enableSorting: false,
       }),
       col.badge({
         id: 'account',
         header: 'Tài khoản',
         get: (row) => row.accountLinked,
         config: accountBadgeConfig,
+        enableSorting: false,
       }),
       col.actions({
         id: 'actions',
         header: '',
         headerClassName: 'w-[110px]',
         cellClassName: 'text-right',
+        enableSorting: false,
         cell: (row) => (
           <div className="flex justify-end gap-1">
             <Tooltip>

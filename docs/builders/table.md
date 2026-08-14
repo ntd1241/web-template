@@ -61,6 +61,8 @@ not in arbitrary shell spacing or button sizing.
 | `custom`         | optional | inline JSX stub                                                     |
 
 Common options include `headerClassName`, `cellClassName`, `size`, `visibility`, and `enableSorting`.
+Generated columns have sorting disabled by default; set `enableSorting: true` only after the page
+connects sorting state and its data/API behavior.
 
 ### `editableSelect`
 

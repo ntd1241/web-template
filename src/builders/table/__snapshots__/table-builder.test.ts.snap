@@ -27,11 +27,13 @@ export function useEmployeeColumns(): ColumnDef<Employee>[] {
     return [
           col.index({
             header: 'STT',
+            enableSorting: false,
           }),
           col.custom({
             id: 'name',
             header: 'Nhân viên',
             headerClassName: 'min-w-[260px]',
+            enableSorting: false,
             // TODO(scaffold): điền nội dung cell — vd: (row) => <Button .../>.
             cell: () => null,
           }),
@@ -41,20 +43,24 @@ export function useEmployeeColumns(): ColumnDef<Employee>[] {
             get: (row) => row.status,
             config: statusBadgeConfig,
             headerClassName: 'w-[140px]',
+            enableSorting: false,
           }),
           col.currency({
             id: 'salary',
             header: 'Lương',
             get: (row) => row.salary,
+            enableSorting: false,
           }),
           col.date({
             id: 'startDate',
             header: 'Ngày vào',
             get: (row) => row.startDate,
+            enableSorting: false,
           }),
           col.actions({
             header: 'Thao tác',
             headerClassName: 'w-[120px]',
+            enableSorting: false,
             // TODO(scaffold): điền nội dung cell — vd: (row) => <Button .../>.
             cell: () => null,
           }),

@@ -87,8 +87,11 @@ function commonMetaLines(
   if (col.size !== undefined) lines.push(`size: ${col.size},`);
   if (col.visibility !== undefined)
     lines.push(`visibility: ${col.visibility},`);
-  if (col.enableSorting !== undefined)
-    lines.push(`enableSorting: ${col.enableSorting},`);
+  // Sorting is opt-in for generated tables. A generated page usually does not
+  // have a sorting state or API handler yet, so exposing the header control
+  // would suggest behavior that is not wired up. Set `enableSorting: true` in
+  // the spec when the generated column is ready for sorting.
+  lines.push(`enableSorting: ${col.enableSorting ?? false},`);
   return lines;
 }
 

@@ -33,17 +33,20 @@ export function useOrderColumns(
         id: 'code',
         header: 'Mã đơn',
         get: (row) => row.code,
+        enableSorting: false,
       }),
       col.text({
         id: 'customerName',
         header: 'Khách hàng',
         get: (row) => row.customerName,
         tooltipOnTruncate: true,
+        enableSorting: false,
       }),
       col.currency({
         id: 'total',
         header: 'Tổng tiền',
         get: (row) => row.total,
+        enableSorting: false,
       }),
       col.date({
         id: 'createdAt',
@@ -51,6 +54,7 @@ export function useOrderColumns(
         get: (row) => row.createdAt,
         mode: 'date',
         size: 120,
+        enableSorting: false,
       }),
       col.editableSelect({
         id: 'status',
@@ -59,6 +63,7 @@ export function useOrderColumns(
         options: statusOptions,
         onEdit: params.onStatusEdit,
         placeholder: 'Chọn trạng thái',
+        enableSorting: false,
       }),
     ];
   }, [params.onStatusEdit]);

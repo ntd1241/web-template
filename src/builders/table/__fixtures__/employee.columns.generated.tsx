@@ -39,11 +39,13 @@ export function useEmployeeColumns(
     return [
       col.index({
         header: 'STT',
+        enableSorting: false,
       }),
       col.custom({
         id: 'name',
         header: 'Nhân viên',
         headerClassName: 'min-w-[240px]',
+        enableSorting: false,
         // TODO(scaffold): điền nội dung cell — vd: (row) => <Button .../>.
         cell: () => null,
       }),
@@ -52,23 +54,27 @@ export function useEmployeeColumns(
         header: 'Email',
         get: (row) => row.email,
         tooltipOnTruncate: true,
+        enableSorting: false,
       }),
       col.currency({
         id: 'salary',
         header: 'Lương',
         get: (row) => row.salary,
+        enableSorting: false,
       }),
       col.percent({
         id: 'performance',
         header: 'Hiệu suất',
         get: (row) => row.performance,
         fractionDigits: 0,
+        enableSorting: false,
       }),
       col.date({
         id: 'startDate',
         header: 'Ngày vào',
         get: (row) => row.startDate,
         mode: 'date',
+        enableSorting: false,
       }),
       col.badge({
         id: 'status',
@@ -76,6 +82,7 @@ export function useEmployeeColumns(
         get: (row) => row.status,
         config: statusBadgeConfig,
         headerClassName: 'w-[140px]',
+        enableSorting: false,
       }),
       col.editableSelect({
         id: 'statusSelect',
@@ -84,11 +91,13 @@ export function useEmployeeColumns(
         options: statusSelectOptions,
         onEdit: params.onStatusSelectEdit,
         placeholder: 'Chọn trạng thái',
+        enableSorting: false,
       }),
       col.actions({
         header: 'Thao tác',
         headerClassName: 'w-[120px]',
         cellClassName: 'text-right',
+        enableSorting: false,
         // TODO(scaffold): điền nội dung cell — vd: (row) => <Button .../>.
         cell: () => null,
       }),
