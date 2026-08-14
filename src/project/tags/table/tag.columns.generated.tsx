@@ -132,6 +132,7 @@ export function useTagColumns(params: UseTagColumnsParams): ColumnDef<Tag>[] {
             )}
             {row.isGroup ? (
               <TagGroupIcon
+                groupCode={row.code}
                 moduleCode={row.moduleCode}
                 isSystem={row.isSystem}
                 className="text-muted-foreground"

@@ -5,7 +5,7 @@ import { getTagGroupIcon } from './tag-group-icon';
 describe('getTagGroupIcon', () => {
   it('uses module icons for system groups', () => {
     expect(getTagGroupIcon('organization', true)).toBe(Building2);
-    expect(getTagGroupIcon('employees', true)).toBe(Users);
+    expect(getTagGroupIcon('organization', true, 'employees')).toBe(Users);
   });
 
   it('keeps folder icon for custom groups', () => {

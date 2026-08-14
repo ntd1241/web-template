@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 
 const SYSTEM_MODULE_ICONS: Record<string, LucideIcon> = {
   customers: UsersRound,
-  employees: Users,
   organization: Building2,
   orders: ShoppingCart,
   reports: BarChart3,
@@ -22,7 +21,12 @@ const SYSTEM_MODULE_ICONS: Record<string, LucideIcon> = {
   warehouse: Warehouse,
 };
 
+const SYSTEM_GROUP_ICONS: Record<string, LucideIcon> = {
+  employees: Users,
+};
+
 export interface TagGroupIconProps {
+  groupCode?: string | null;
   moduleCode?: string | null;
   isSystem?: boolean;
   className?: string;
@@ -31,16 +35,24 @@ export interface TagGroupIconProps {
 export function getTagGroupIcon(
   moduleCode?: string | null,
   isSystem = false,
+  groupCode?: string | null,
 ): LucideIcon {
-  return isSystem ? (SYSTEM_MODULE_ICONS[moduleCode ?? ''] ?? Blocks) : Folder;
+  if (!isSystem) return Folder;
+
+  return (
+    SYSTEM_GROUP_ICONS[groupCode ?? ''] ??
+    SYSTEM_MODULE_ICONS[moduleCode ?? ''] ??
+    Blocks
+  );
 }
 
 export function TagGroupIcon({
+  groupCode,
   moduleCode,
   isSystem = false,
   className,
 }: TagGroupIconProps) {
-  const Icon = getTagGroupIcon(moduleCode, isSystem);
+  const Icon = getTagGroupIcon(moduleCode, isSystem, groupCode);
 
   return (
     <Icon className={cn('size-4 shrink-0', className)} aria-hidden="true" />
