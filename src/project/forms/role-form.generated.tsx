@@ -212,9 +212,10 @@ export function RoleFormDialog({
             type="submit"
             variant="primary"
             form="role-form"
-            disabled={isSaving}
+            loading={isSaving}
+            loadingText="Đang lưu..."
           >
-            {isSaving ? 'Đang lưu...' : 'Lưu thông tin'}
+            Lưu thông tin
           </Button>
         </DialogFooter>
       </DialogContent>

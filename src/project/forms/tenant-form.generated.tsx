@@ -228,6 +228,7 @@ interface TenantSettingsFormDialogProps {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<TenantSettingsValues>;
   onSubmit: (values: TenantSettingsValues) => void;
+  isSaving?: boolean;
   title?: string;
   onLogoUrlFileChange?: (file: File | null) => void;
 }
@@ -237,6 +238,7 @@ export function TenantSettingsFormDialog({
   onOpenChange,
   form,
   onSubmit,
+  isSaving = false,
   title,
   onLogoUrlFileChange,
 }: TenantSettingsFormDialogProps) {
@@ -268,10 +270,17 @@ export function TenantSettingsFormDialog({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={isSaving}
           >
             Hủy
           </Button>
-          <Button type="submit" variant="primary" form="tenantSettings-form">
+          <Button
+            type="submit"
+            variant="primary"
+            form="tenantSettings-form"
+            loading={isSaving}
+            loadingText="Đang lưu..."
+          >
             Lưu
           </Button>
         </DialogFooter>

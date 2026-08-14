@@ -61,10 +61,8 @@ export function ProjectSettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const tenantSettingsQuery = useQuery({
     queryKey: ['project', 'tenant-settings', userId],
-    queryFn: async () => {
+    queryFn: () => {
       if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      // Demo delay để kiểm tra trạng thái CardLoading trong tab Tổ chức.
-      await new Promise<void>((resolve) => setTimeout(resolve, 10_000));
       return loadCurrentTenantSettings(userId);
     },
     enabled: Boolean(userId),
@@ -347,10 +345,12 @@ function SettingsActions({
         type="submit"
         variant="primary"
         form={formId}
-        disabled={!isDirty || isPending}
+        disabled={!isDirty}
+        loading={isPending}
+        loadingText="Đang lưu..."
       >
         <Save />
-        {isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
+        Lưu thay đổi
       </Button>
     </div>
   );

@@ -296,6 +296,7 @@ export function EmployeesPage() {
         onOpenChange={setDialogOpen}
         form={form}
         onSubmit={(values) => saveMutation.mutate(values)}
+        isSaving={saveMutation.isPending}
         title={editingEmployee ? 'Sửa nhân viên' : 'Thêm nhân viên'}
       />
     </div>

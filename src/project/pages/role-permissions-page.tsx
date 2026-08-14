@@ -580,13 +580,13 @@ export function RolePermissionsPage() {
             </Button>
             <Button
               variant="primary"
-              disabled={changeCount === 0 || savePermissionsMutation.isPending}
+              disabled={changeCount === 0}
+              loading={savePermissionsMutation.isPending}
+              loadingText="Đang lưu..."
               onClick={() => savePermissionsMutation.mutate()}
             >
               <Save />
-              {savePermissionsMutation.isPending
-                ? 'Đang lưu...'
-                : 'Lưu thay đổi'}
+              Lưu thay đổi
             </Button>
           </div>
         </CardFooter>
@@ -867,10 +867,11 @@ function RoleDeleteDialog({
           <AlertDialogCancel disabled={isDeleting}>Hủy</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
-            disabled={isDeleting}
+            loading={isDeleting}
+            loadingText="Đang xóa..."
             onClick={onConfirm}
           >
-            {isDeleting ? 'Đang xóa...' : 'Xóa vai trò'}
+            Xóa vai trò
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

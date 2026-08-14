@@ -386,6 +386,7 @@ interface ${dialogComponent}Props {
   mode: 'create' | 'edit';
   form: UseFormReturn<${spec.valuesType}>;
   onSubmit: (values: ${spec.valuesType}) => void;
+  isSaving?: boolean;
   title?: string;${dialogPropsExtra}
 }
 
@@ -395,6 +396,7 @@ export function ${dialogComponent}({
   mode,
   form,
   onSubmit,
+  isSaving = false,
   title,${dialogParamsExtra}
 }: ${dialogComponent}Props) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
@@ -442,10 +444,17 @@ export function ${dialogComponent}({
             type="button"
             variant="outline"
             onClick={() => requestClose(false)}
+            disabled={isSaving}
           >
             Hủy
           </Button>
-          <Button type="submit" variant="primary" form="${lowerFirst(spec.entity)}-form">
+          <Button
+            type="submit"
+            variant="primary"
+            form="${lowerFirst(spec.entity)}-form"
+            loading={isSaving}
+            loadingText="Đang lưu..."
+          >
             Lưu
           </Button>
         </DialogFooter>

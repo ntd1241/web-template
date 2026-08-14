@@ -272,6 +272,7 @@ interface SupplierFormDialogProps {
   mode: 'create' | 'edit';
   form: UseFormReturn<CreateSupplierFormValues>;
   onSubmit: (values: CreateSupplierFormValues) => void;
+  isSaving?: boolean;
   title?: string;
   regionOptions: ComboboxOption[];
 }
@@ -282,6 +283,7 @@ export function SupplierFormDialog({
   mode,
   form,
   onSubmit,
+  isSaving = false,
   title,
   regionOptions,
 }: SupplierFormDialogProps) {
@@ -331,10 +333,17 @@ export function SupplierFormDialog({
             type="button"
             variant="outline"
             onClick={() => requestClose(false)}
+            disabled={isSaving}
           >
             Hủy
           </Button>
-          <Button type="submit" variant="primary" form="supplier-form">
+          <Button
+            type="submit"
+            variant="primary"
+            form="supplier-form"
+            loading={isSaving}
+            loadingText="Đang lưu..."
+          >
             Lưu
           </Button>
         </DialogFooter>

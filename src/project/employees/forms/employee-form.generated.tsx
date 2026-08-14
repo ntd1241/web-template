@@ -247,6 +247,7 @@ interface EmployeeFormDialogProps {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<EmployeeFormValues>;
   onSubmit: (values: EmployeeFormValues) => void;
+  isSaving?: boolean;
   title?: string;
 }
 
@@ -255,6 +256,7 @@ export function EmployeeFormDialog({
   onOpenChange,
   form,
   onSubmit,
+  isSaving = false,
   title,
 }: EmployeeFormDialogProps) {
   return (
@@ -277,10 +279,17 @@ export function EmployeeFormDialog({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={isSaving}
           >
             Hủy
           </Button>
-          <Button type="submit" variant="primary" form="employee-form">
+          <Button
+            type="submit"
+            variant="primary"
+            form="employee-form"
+            loading={isSaving}
+            loadingText="Đang lưu..."
+          >
             Lưu
           </Button>
         </DialogFooter>

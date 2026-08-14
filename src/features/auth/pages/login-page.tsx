@@ -81,12 +81,13 @@ export function LoginPage() {
               )}
               <Button
                 className="w-full"
-                disabled={isSubmitting}
                 form="login-form"
+                loading={isSubmitting}
+                loadingText="Đang đăng nhập..."
                 type="submit"
               >
                 <LogIn className="size-4" />
-                {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+                Đăng nhập
               </Button>
             </div>
           </CardContent>

@@ -192,6 +192,7 @@ interface TagFormDialogProps {
   mode: 'create' | 'edit';
   form: UseFormReturn<TagFormValues>;
   onSubmit: (values: TagFormValues) => void;
+  isSaving?: boolean;
   title?: string;
   groupIdOptions: { value: string; label: string }[];
 }
@@ -202,6 +203,7 @@ export function TagFormDialog({
   mode,
   form,
   onSubmit,
+  isSaving = false,
   title,
   groupIdOptions,
 }: TagFormDialogProps) {
@@ -251,10 +253,17 @@ export function TagFormDialog({
               type="button"
               variant="outline"
               onClick={() => requestClose(false)}
+              disabled={isSaving}
             >
               Hủy
             </Button>
-            <Button type="submit" variant="primary" form="tag-form">
+            <Button
+              type="submit"
+              variant="primary"
+              form="tag-form"
+              loading={isSaving}
+              loadingText="Đang lưu..."
+            >
               Lưu
             </Button>
           </DialogFooter>

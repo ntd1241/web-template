@@ -103,6 +103,7 @@ function openEdit(supplier: Supplier) {
   mode="create"
   form={createForm}
   onSubmit={handleSubmit}
+  isSaving={createMutation.isPending}
   title="Thêm nhà cung cấp"
   regionOptions={regionOptions}
 />;
@@ -113,6 +114,7 @@ function openEdit(supplier: Supplier) {
   mode="edit"
   form={editForm}
   onSubmit={handleEditSubmit}
+  isSaving={editMutation.isPending}
   title="Sửa nhà cung cấp"
   regionOptions={regionOptions}
 />;
@@ -122,6 +124,8 @@ function openEdit(supplier: Supplier) {
   `form.setValue` without resetting the form.
 - Opening edit assigns the selected entity first, then maps it into the edit form and resets it.
 - A pending mutation cannot submit twice.
+- Pass the mutation pending state through `isSaving`; the generated submit button forwards it to
+  the shared `Button` `loading` prop and the cancel button is disabled until the mutation settles.
 - Success invalidates affected queries, shows feedback, and then closes the dialog.
 - Failure keeps the dialog and entered values open and shows normalized feedback.
 - `mode="edit"` confirms overlay click, Escape, the close button, and Cancel before closing.

@@ -13,6 +13,9 @@ describe('buildFormModule', () => {
     expect(source).toContain('interface SupplierFormProps {');
     expect(source).toContain('interface SupplierFormDialogProps {');
     expect(source).toContain("mode: 'create' | 'edit';");
+    expect(source).toContain('isSaving?: boolean;');
+    expect(source).toContain('loading={isSaving}');
+    expect(source).toContain('loadingText="Đang lưu..."');
     expect(source).toContain(
       "import { ConfirmDialog } from '@/components/ui/confirm-dialog';",
     );

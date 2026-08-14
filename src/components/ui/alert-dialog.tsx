@@ -1,24 +1,38 @@
 'use client';
 
 import * as React from 'react';
+import { type VariantProps } from 'class-variance-authority';
+import { LoaderCircle } from 'lucide-react';
+import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
-import { VariantProps } from 'class-variance-authority';
-import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 
-function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
+function AlertDialog({
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
 }
 
-function AlertDialogTrigger({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
-  return <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />;
+function AlertDialogTrigger({
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
+  return (
+    <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />
+  );
 }
 
-function AlertDialogPortal({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
-  return <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />;
+function AlertDialogPortal({
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
+  return (
+    <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />
+  );
 }
 
-function AlertDialogOverlay({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Overlay>) {
+function AlertDialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Overlay>) {
   return (
     <AlertDialogPrimitive.Overlay
       data-slot="alert-dialog-overlay"
@@ -31,7 +45,10 @@ function AlertDialogOverlay({ className, ...props }: React.ComponentProps<typeof
   );
 }
 
-function AlertDialogContent({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
+function AlertDialogContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
@@ -47,23 +64,38 @@ function AlertDialogContent({ className, ...props }: React.ComponentProps<typeof
   );
 }
 
-const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+const AlertDialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     data-slot="alert-dialog-header"
-    className={cn('flex flex-col space-y-2 text-center sm:text-left', className)}
+    className={cn(
+      'flex flex-col space-y-2 text-center sm:text-left',
+      className,
+    )}
     {...props}
   />
 );
 
-const AlertDialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+const AlertDialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     data-slot="alert-dialog-footer"
-    className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2.5', className)}
+    className={cn(
+      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2.5',
+      className,
+    )}
     {...props}
   />
 );
 
-function AlertDialogTitle({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
+function AlertDialogTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
   return (
     <AlertDialogPrimitive.Title
       data-slot="alert-dialog-title"
@@ -89,22 +121,51 @@ function AlertDialogDescription({
 function AlertDialogAction({
   className,
   variant,
+  children,
+  disabled,
+  loading = false,
+  loadingText,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Action> & VariantProps<typeof buttonVariants>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Action> &
+  VariantProps<typeof buttonVariants> & {
+    loading?: boolean;
+    loadingText?: React.ReactNode;
+  }) {
+  const isDisabled = disabled || loading;
+
   return (
     <AlertDialogPrimitive.Action
       data-slot="alert-dialog-action"
+      data-loading={loading || undefined}
+      aria-busy={loading || undefined}
       className={cn(buttonVariants({ variant }), className)}
+      disabled={isDisabled}
       {...props}
-    />
+    >
+      {loading ? (
+        <>
+          <LoaderCircle className="animate-spin" />
+          {loadingText ?? children}
+        </>
+      ) : (
+        children
+      )}
+    </AlertDialogPrimitive.Action>
   );
 }
 
-function AlertDialogCancel({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
+function AlertDialogCancel({
+  className,
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
   return (
     <AlertDialogPrimitive.Cancel
       data-slot="alert-dialog-cancel"
-      className={cn(buttonVariants({ variant: 'outline' }), 'mt-2 sm:mt-0', className)}
+      className={cn(
+        buttonVariants({ variant: 'outline' }),
+        'mt-2 sm:mt-0',
+        className,
+      )}
       {...props}
     />
   );

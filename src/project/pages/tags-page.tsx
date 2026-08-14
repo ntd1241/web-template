@@ -330,6 +330,7 @@ export function TagsPage() {
         onOpenChange={setGroupDialogOpen}
         form={groupForm}
         onSubmit={(values) => groupMutation.mutate(values)}
+        isSaving={groupMutation.isPending}
         title={editingGroup ? 'Sửa nhóm nhãn' : 'Thêm nhóm nhãn'}
       />
       <TagFormDialog
@@ -338,6 +339,7 @@ export function TagsPage() {
         mode="create"
         form={tagCreateForm}
         onSubmit={(values) => tagMutation.mutate({ values, tag: null })}
+        isSaving={tagMutation.isPending}
         title="Thêm nhãn"
         groupIdOptions={groups.map((group) => ({
           value: group.id,
@@ -354,6 +356,7 @@ export function TagsPage() {
             tagMutation.mutate({ values, tag: editingTag });
           }
         }}
+        isSaving={tagMutation.isPending}
         title="Sửa nhãn"
         groupIdOptions={groups.map((group) => ({
           value: group.id,

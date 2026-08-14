@@ -158,7 +158,8 @@ export function OrdersExamplePage() {
             variant="primary"
             size="sm"
             onClick={handleBulkStatus}
-            disabled={isBulkPending}
+            loading={isBulkPending}
+            loadingText="Đang áp dụng..."
           >
             Áp dụng
           </Button>

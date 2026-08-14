@@ -126,6 +126,7 @@ interface TagGroupFormDialogProps {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<TagGroupFormValues>;
   onSubmit: (values: TagGroupFormValues) => void;
+  isSaving?: boolean;
   title?: string;
 }
 
@@ -134,6 +135,7 @@ export function TagGroupFormDialog({
   onOpenChange,
   form,
   onSubmit,
+  isSaving = false,
   title,
 }: TagGroupFormDialogProps) {
   return (
@@ -156,10 +158,17 @@ export function TagGroupFormDialog({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={isSaving}
           >
             Hủy
           </Button>
-          <Button type="submit" variant="primary" form="tagGroup-form">
+          <Button
+            type="submit"
+            variant="primary"
+            form="tagGroup-form"
+            loading={isSaving}
+            loadingText="Đang lưu..."
+          >
             Lưu
           </Button>
         </DialogFooter>
