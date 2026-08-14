@@ -40,8 +40,10 @@ files only to a scratch path, then reconcile manually.
 ## Create/Edit Dialog Checklist
 
 - [ ] The page owns `open`, selected entity, and create/edit mode.
-- [ ] Opening create resets clean defaults; opening edit resets mapped entity values.
-- [ ] Closing clears stale selection without racing the exit transition.
+- [ ] Create and edit have separate visibility/form state; create keeps its draft on reopen.
+- [ ] Opening edit assigns the entity before resetting mapped values.
+- [ ] Generated dialog receives an explicit `mode="create"` or `mode="edit"`.
+- [ ] Edit close confirmation is builder-provided and entity/form stay stable while closing.
 - [ ] Validation comes from the feature zod schema and uses Vietnamese messages.
 - [ ] Submit is disabled or guarded while the mutation is pending.
 - [ ] Success invalidates affected queries, shows feedback, then closes the dialog.

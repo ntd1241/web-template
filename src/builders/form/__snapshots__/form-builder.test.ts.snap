@@ -3,14 +3,19 @@
 exports[`buildFormModule > matches the snapshot 1`] = `
 "/**
  * Scaffolded by form-builder from \`src/builders/form/__fixtures__/supplier.form.fixture.ts\`. Run \`npm run gen:form\` — do NOT hand-write this file.
- * You own this file now — wire submit + edit reset behavior in the parent. To change fields,
- * widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
- * hand-edit this banner or the generated options consts — that's how review detects a bypassed builder.
+ * You own this file now — keep create and edit dialog state separate in the parent. Create forms
+ * keep their draft when closed; edit forms reset after the selected entity is assigned on the next
+ * open. Never clear the selected entity or reset the form while an edit dialog is closing. To change
+ * fields, widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits.
+ * Do not hand-edit this banner or the generated options consts — that's how review detects a
+ * bypassed builder.
  */
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Dialog,
   DialogContent,
@@ -264,6 +269,7 @@ export function SupplierForm({
 interface SupplierFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode: 'create' | 'edit';
   form: UseFormReturn<CreateSupplierFormValues>;
   onSubmit: (values: CreateSupplierFormValues) => void;
   title?: string;
@@ -273,13 +279,35 @@ interface SupplierFormDialogProps {
 export function SupplierFormDialog({
   open,
   onOpenChange,
+  mode,
   form,
   onSubmit,
   title,
   regionOptions,
 }: SupplierFormDialogProps) {
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const requestClose = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    if (mode === 'edit') {
+      setConfirmCloseOpen(true);
+      return;
+    }
+
+    onOpenChange(false);
+  };
+
+  const confirmClose = () => {
+    setConfirmCloseOpen(false);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={requestClose}>
       <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle>{title ?? 'Thêm nhà cung cấp'}</DialogTitle>
@@ -302,7 +330,7 @@ export function SupplierFormDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => requestClose(false)}
           >
             Hủy
           </Button>
@@ -311,7 +339,17 @@ export function SupplierFormDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      <ConfirmDialog
+        open={confirmCloseOpen}
+        onOpenChange={setConfirmCloseOpen}
+        title="Đóng chỉnh sửa?"
+        description="Bạn có thay đổi chưa lưu. Nếu đóng, các thay đổi hiện tại sẽ bị mất."
+        confirmLabel="Đóng"
+        confirmVariant="destructive"
+        onConfirm={confirmClose}
+      />
+    </>
   );
 }
 "

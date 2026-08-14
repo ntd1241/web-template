@@ -12,6 +12,11 @@ describe('buildFormModule', () => {
     expect(source).toContain('export function SupplierFormDialog({');
     expect(source).toContain('interface SupplierFormProps {');
     expect(source).toContain('interface SupplierFormDialogProps {');
+    expect(source).toContain("mode: 'create' | 'edit';");
+    expect(source).toContain(
+      "import { ConfirmDialog } from '@/components/ui/confirm-dialog';",
+    );
+    expect(source).toContain("if (mode === 'edit') {");
   });
 
   it('wires parent-owned react-hook-form + zodResolver from the schema', () => {
@@ -130,6 +135,13 @@ describe('buildFormModule', () => {
     expect(source).toContain(
       '// TODO(scaffold): map entity → form values for edit mode.',
     );
+  });
+
+  it('guards edit dialog close while leaving create close direct', () => {
+    expect(source).toContain('const requestClose = (nextOpen: boolean) => {');
+    expect(source).toContain('onClick={() => requestClose(false)}');
+    expect(source).toContain('onOpenChange={requestClose}');
+    expect(source).toContain('onConfirm={confirmClose}');
   });
 
   it('marks required fields and tree-shakes imports', () => {

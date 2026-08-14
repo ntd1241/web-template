@@ -51,8 +51,9 @@ Static select-like options are emitted as module constants only when `optionsFro
 
 4. Keep the provenance banner. Own the output and fill page-specific submit, edit mapping, pending,
    success, and failure behavior in the parent.
-5. Let the page own `open`, `onOpenChange`, selected entity, create/edit mode, fetched option data, and
-   the RHF instance.
+5. Let the page own dialog visibility, selected entity, fetched option data, and the RHF instances.
+   The generated dialog receives a required `mode="create" | "edit"`; edit mode automatically
+   confirms accidental close through the shared `ConfirmDialog`.
 6. Run focused form/dialog tests and `npm run build`.
 
 ## Field Kinds
@@ -76,49 +77,64 @@ Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` 
 
 ## Create/Edit Wiring
 
-Use one form instance and reset it whenever the page changes mode:
+Use separate create/edit dialog state and form instances:
 
 ```tsx
-const form = useSupplierForm();
+const [createOpen, setCreateOpen] = useState(false);
+const [editOpen, setEditOpen] = useState(false);
+const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
+const createForm = useSupplierForm();
+const editForm = useSupplierForm();
 
-useEffect(() => {
-  if (!open) return;
+function openCreate() {
+  // Keep the create draft. Do not reset it on open or close.
+  setCreateOpen(true);
+}
 
-  if (selectedSupplier) {
-    form.reset(mapSupplierToFormValues(selectedSupplier));
-    return;
-  }
-
-  form.reset(supplierDefaultValues);
-}, [form, open, selectedSupplier]);
+function openEdit(supplier: Supplier) {
+  setEditSupplier(supplier);
+  editForm.reset(mapSupplierToFormValues(supplier));
+  setEditOpen(true);
+}
 
 <SupplierFormDialog
-  open={open}
-  onOpenChange={setOpen}
-  form={form}
+  open={createOpen}
+  onOpenChange={setCreateOpen}
+  mode="create"
+  form={createForm}
   onSubmit={handleSubmit}
-  title={selectedSupplier ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp'}
+  title="Thêm nhà cung cấp"
+  regionOptions={regionOptions}
+/>;
+
+<SupplierFormDialog
+  open={editOpen}
+  onOpenChange={setEditOpen}
+  mode="edit"
+  form={editForm}
+  onSubmit={handleEditSubmit}
+  title="Sửa nhà cung cấp"
   regionOptions={regionOptions}
 />;
 ```
 
-- Opening create resets clean defaults.
-- Opening edit maps the selected entity into form values and resets the form.
+- The create dialog keeps its draft when closed and reopened; context-only defaults may use
+  `form.setValue` without resetting the form.
+- Opening edit assigns the selected entity first, then maps it into the edit form and resets it.
 - A pending mutation cannot submit twice.
 - Success invalidates affected queries, shows feedback, and then closes the dialog.
 - Failure keeps the dialog and entered values open and shows normalized feedback.
-- Closing clears stale selection at the page boundary.
+- `mode="edit"` confirms overlay click, Escape, the close button, and Cancel before closing.
 
 ### Dialog lifecycle pattern
 
 Keep dialog visibility and the entity being edited in separate state values:
 
-- `dialogOpen` controls whether the dialog is open.
-- `dialogEntity` keeps the create/edit mode and source entity stable during the close animation.
-- Reset the form when opening the dialog, after assigning `dialogEntity`.
-- On cancel or successful submit, set only `dialogOpen` to `false`.
-- Do not immediately clear `dialogEntity` or reset the form while the dialog is closing. The next
-  open action replaces the entity and resets the form with fresh values.
+- `createOpen` and `editOpen` control visibility independently.
+- `editSupplier` keeps the source entity stable during the edit close animation.
+- Do not immediately clear `editSupplier` or reset `editForm` while the edit dialog is closing. The
+  next edit action replaces the entity and resets the form with fresh values.
+- The generated edit dialog owns the confirmation boundary; the page only supplies `setEditOpen`.
 
 This prevents a closing dialog from switching mode mid-animation, such as briefly showing a
 create-only field while editing. It also prevents submitted values from appearing to change before

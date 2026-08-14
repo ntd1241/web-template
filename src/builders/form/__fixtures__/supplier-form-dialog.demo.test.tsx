@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import {
   SupplierForm,
   SupplierFormDialog,
@@ -14,13 +15,20 @@ import {
 describe('form-builder golden — render proof', () => {
   const regionOptions = [{ value: 'mien-bac', label: 'Miền Bắc' }];
 
-  function DialogHarness() {
+  function DialogHarness({
+    mode = 'create',
+    onOpenChange = () => {},
+  }: {
+    mode?: 'create' | 'edit';
+    onOpenChange?: (open: boolean) => void;
+  }) {
     const form = useSupplierForm();
 
     return (
       <SupplierFormDialog
         open
-        onOpenChange={() => {}}
+        onOpenChange={onOpenChange}
+        mode={mode}
         form={form}
         onSubmit={() => {}}
         regionOptions={regionOptions}
@@ -67,5 +75,35 @@ describe('form-builder golden — render proof', () => {
     fireEvent.click(screen.getAllByRole('combobox')[1]);
 
     expect(screen.getByText('Miền Bắc')).toBeInTheDocument();
+  });
+
+  it('confirms before closing an edit dialog', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+
+    render(<DialogHarness mode="edit" onOpenChange={onOpenChange} />);
+
+    await user.click(screen.getByRole('button', { name: 'Hủy' }));
+
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      'Bạn có thay đổi chưa lưu.',
+    );
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('closes a create dialog directly so its draft can be reopened', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+
+    render(<DialogHarness onOpenChange={onOpenChange} />);
+
+    await user.click(screen.getByRole('button', { name: 'Hủy' }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });

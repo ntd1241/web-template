@@ -37,7 +37,6 @@ import {
   useTagGroupForm,
 } from '../tags/forms/tag-group-form.generated';
 import {
-  emptyTagForm,
   emptyTagGroupForm,
   type Tag,
   type TagFormValues,
@@ -65,7 +64,8 @@ export function TagsPage() {
     enabled: Boolean(userId),
   });
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
-  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [tagCreateDialogOpen, setTagCreateDialogOpen] = useState(false);
+  const [tagEditDialogOpen, setTagEditDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<TagGroup | null>(null);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [collapsedGroupIds, setCollapsedGroupIds] = useState<Set<string>>(
@@ -102,7 +102,8 @@ export function TagsPage() {
     queryClient.invalidateQueries({ queryKey: ['project', 'tags', userId] });
 
   const groupForm = useTagGroupForm();
-  const tagForm = useTagForm();
+  const tagCreateForm = useTagForm();
+  const tagEditForm = useTagForm();
 
   const groupMutation = useMutation({
     mutationFn: async (values: TagGroupFormValues) => {
@@ -123,14 +124,24 @@ export function TagsPage() {
   });
 
   const tagMutation = useMutation({
-    mutationFn: async (values: TagFormValues) => {
+    mutationFn: async ({
+      values,
+      tag,
+    }: {
+      values: TagFormValues;
+      tag: Tag | null;
+    }) => {
       if (!workspace || !userId) throw new Error('Chưa xác định tenant.');
-      if (editingTag) return updateTag(editingTag.id, values);
+      if (tag) return updateTag(tag.id, values);
       return createTag(workspace.tenantId, userId, values);
     },
-    onSuccess: async () => {
-      toast.success(editingTag ? 'Đã cập nhật nhãn.' : 'Đã tạo nhãn.');
-      setTagDialogOpen(false);
+    onSuccess: async (_, variables) => {
+      toast.success(variables.tag ? 'Đã cập nhật nhãn.' : 'Đã tạo nhãn.');
+      if (variables.tag) {
+        setTagEditDialogOpen(false);
+      } else {
+        setTagCreateDialogOpen(false);
+      }
       await invalidateWorkspace();
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -163,15 +174,7 @@ export function TagsPage() {
         return;
       }
 
-      setEditingTag(row);
-      tagForm.reset({
-        groupId: row.groupId,
-        name: row.name,
-        description: row.description,
-        code: row.code,
-        color: row.color ?? '#2563eb',
-      });
-      setTagDialogOpen(true);
+      openEditTag(row);
     },
     onToggleGroup: (groupId) => {
       setCollapsedGroupIds((current) => toggleTagGroup(current, groupId));
@@ -235,10 +238,23 @@ export function TagsPage() {
     setGroupDialogOpen(true);
   }
 
-  function openCreateTag(groupId = groups[0]?.id ?? '') {
-    setEditingTag(null);
-    tagForm.reset({ ...emptyTagForm, groupId });
-    setTagDialogOpen(true);
+  function openCreateTag(groupId?: string) {
+    if (groupId && !tagCreateForm.getValues('groupId')) {
+      tagCreateForm.setValue('groupId', groupId);
+    }
+    setTagCreateDialogOpen(true);
+  }
+
+  function openEditTag(tag: Tag) {
+    setEditingTag(tag);
+    tagEditForm.reset({
+      groupId: tag.groupId,
+      name: tag.name,
+      description: tag.description,
+      code: tag.code,
+      color: tag.color ?? '#2563eb',
+    });
+    setTagEditDialogOpen(true);
   }
 
   return (
@@ -305,11 +321,28 @@ export function TagsPage() {
         title={editingGroup ? 'Sửa nhóm nhãn' : 'Thêm nhóm nhãn'}
       />
       <TagFormDialog
-        open={tagDialogOpen}
-        onOpenChange={setTagDialogOpen}
-        form={tagForm}
-        onSubmit={(values) => tagMutation.mutate(values)}
-        title={editingTag ? 'Sửa nhãn' : 'Thêm nhãn'}
+        open={tagCreateDialogOpen}
+        onOpenChange={setTagCreateDialogOpen}
+        mode="create"
+        form={tagCreateForm}
+        onSubmit={(values) => tagMutation.mutate({ values, tag: null })}
+        title="Thêm nhãn"
+        groupIdOptions={groups.map((group) => ({
+          value: group.id,
+          label: group.name,
+        }))}
+      />
+      <TagFormDialog
+        open={tagEditDialogOpen}
+        onOpenChange={setTagEditDialogOpen}
+        mode="edit"
+        form={tagEditForm}
+        onSubmit={(values) => {
+          if (editingTag) {
+            tagMutation.mutate({ values, tag: editingTag });
+          }
+        }}
+        title="Sửa nhãn"
         groupIdOptions={groups.map((group) => ({
           value: group.id,
           label: group.name,

@@ -49,7 +49,8 @@ Concrete APIs: [`components/data-grid.md`](./components/data-grid.md).
 - Default to a compact two-column desktop grid and one column on narrow screens.
 - Place destructive actions away from the primary submit action.
 - Disable duplicate submit while pending and keep user input on recoverable failure.
-- Create/edit dialogs reset values each time their mode or selected record changes.
+- Edit dialogs reset values when the selected record changes; create dialogs preserve their draft
+  across close/reopen and reset only through an explicit new-task action.
 
 Builder workflow: [`builders/form-dialog.md`](./builders/form-dialog.md). Control APIs:
 [`components/forms.md`](./components/forms.md).
