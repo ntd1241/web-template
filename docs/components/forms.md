@@ -129,5 +129,8 @@ import { NumericInput } from '@/components/ui/inputs/numeric-input';
 ## Select / Textarea / Checkbox / Switch
 
 - `Select` thô (`@/components/ui/select`) cho dropdown ngắn cố định, không cần tìm kiếm. Cần tìm → `Combobox`.
+- `SelectValue` hỗ trợ `label` cho select nằm trong toolbar, ví dụ
+  `<SelectValue label="Nhóm" />` hiển thị dạng `Nhóm: <giá trị>`. Bỏ qua prop này trong
+  form/dialog vì label của field đã nằm phía trên input.
 - `Textarea`, `Checkbox`, `Switch`, `RadioGroup`: dùng primitive cùng tên trong `@/components/ui/*`.
 - Validate form: ráp `Form*` (react-hook-form) + schema từ [`docs/07` validation factory](../07-lib-utilities.md#validation).

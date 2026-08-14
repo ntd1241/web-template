@@ -196,7 +196,7 @@ export function EmployeesExamplePage() {
               onValueChange={(value) => setBulkStatus(value as EmployeeStatus)}
             >
               <SelectTrigger size="sm" className="w-[150px]">
-                <SelectValue />
+                <SelectValue label="Trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">

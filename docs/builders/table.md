@@ -115,6 +115,9 @@ For bulk edits over selected rows, compose the `DataGridActionBar` primitive
 (`@/components/ui/data-grid-action-bar`) inside `<DataGrid>`: it reads the table from context, floats
 while rows are selected, and hosts page-owned bulk controls (e.g. a status `Select` + Áp dụng). See
 `src/examples/employees/pages/employees-page.tsx`. Do not model bulk editing with `editableSelect`.
+Toolbar selects should pass a context label to `SelectValue` (for example
+`<SelectValue label="Trạng thái" />`) so the compact control is self-describing. Form/dialog selects
+keep the default without a prefix because their field label is already rendered above the control.
 
 ### Group rows and children rows
 

@@ -28,6 +28,14 @@ describe('form-field builder', () => {
     ).toContain('{statusOptions.map');
     expect(
       buildFormFieldControl({
+        kind: 'select',
+        surface: 'cell',
+        optionsExpression: 'statusOptions',
+        selectLabel: 'Trạng thái',
+      }),
+    ).toContain('<SelectValue label="Trạng thái" />');
+    expect(
+      buildFormFieldControl({
         kind: 'combobox',
         surface: 'form',
         optionsExpression: 'regionOptions',

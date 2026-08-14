@@ -24,6 +24,7 @@ export interface FormFieldControlOptions {
   inputType?: string;
   rows?: number;
   optionsExpression?: string;
+  selectLabel?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
   calendarLabel?: string;
@@ -180,10 +181,11 @@ export function buildFormFieldControl(
     }
     case 'select': {
       const optionsExpression = options.optionsExpression ?? 'options';
+      const selectLabel = attribute('label', options.selectLabel);
       return `<Select value={${value}} onValueChange={${change}}>
   <FormControl>
     <SelectTrigger>
-      <SelectValue${placeholder} />
+      <SelectValue${placeholder}${selectLabel} />
     </SelectTrigger>
   </FormControl>
   <SelectContent>

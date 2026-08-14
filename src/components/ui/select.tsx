@@ -40,10 +40,35 @@ function SelectGroup({
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
+export interface SelectValueProps extends React.ComponentProps<
+  typeof SelectPrimitive.Value
+> {
+  label?: React.ReactNode;
+}
+
 function SelectValue({
+  label,
+  className,
+  children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
+}: SelectValueProps) {
+  const value = (
+    <SelectPrimitive.Value data-slot="select-value" {...props}>
+      {children}
+    </SelectPrimitive.Value>
+  );
+
+  if (!label) return value;
+
+  return (
+    <span
+      data-slot="select-value-with-label"
+      className={cn('flex min-w-0 items-center gap-1', className)}
+    >
+      <span className="shrink-0">{label}:</span>
+      <span className="min-w-0 truncate">{value}</span>
+    </span>
+  );
 }
 
 // Define size variants for SelectTrigger
@@ -51,7 +76,7 @@ const selectTriggerVariants = cva(
   `
     flex bg-field data-[state=open]:bg-background focus-visible:bg-background w-full items-center justify-between outline-none border border-input shadow-xs shadow-black/5 transition-[color,border-color,box-shadow,background-color] duration-200 ease-out
     text-foreground data-placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] 
-    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 
+    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>[data-slot=select-value]]:line-clamp-1
     data-[state=open]:border-ring data-[state=open]:ring-[3px] data-[state=open]:ring-ring/30
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 dark:aria-invalid:border-destructive dark:aria-invalid:ring-destructive/20
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10  dark:[[data-invalid=true]_&]:border-destructive dark:[[data-invalid=true]_&]:ring-destructive/20
@@ -267,4 +292,5 @@ export {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
+  type SelectValueProps,
 };

@@ -144,7 +144,7 @@ export function OrdersExamplePage() {
             onValueChange={(value) => setBulkStatus(value as OrderStatus)}
           >
             <SelectTrigger size="sm" className="w-[160px]">
-              <SelectValue />
+              <SelectValue label="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
               {ORDER_STATUSES.map((status) => (

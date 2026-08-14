@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tag as TagBadge } from '@/components/ui/tag';
 import {
   createEmployee,
   deleteEmployee,
@@ -118,6 +119,11 @@ export function EmployeesPage() {
     keyword,
     workspaceQuery.data?.employees,
   ]);
+
+  const employeeTagOptions = employeeTagFilterQuery.data?.options ?? [];
+  const selectedEmployeeTag = employeeTagOptions.find(
+    (option) => option.value === employeeTagId,
+  );
 
   const invalidateEmployees = () =>
     queryClient.invalidateQueries({
@@ -233,17 +239,31 @@ export function EmployeesPage() {
                 disabled={employeeTagFilterQuery.isLoading}
               >
                 <SelectTrigger className="w-48" aria-label="Nhóm nhân viên">
-                  <SelectValue placeholder="Nhóm nhân viên" />
+                  <SelectValue label="Nhóm" placeholder="Nhóm nhân viên">
+                    {employeeTagId === 'all' ? (
+                      'Tất cả'
+                    ) : selectedEmployeeTag ? (
+                      <TagBadge color={selectedEmployeeTag.color} size="sm">
+                        {selectedEmployeeTag.label}
+                      </TagBadge>
+                    ) : (
+                      'Nhóm nhân viên'
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả nhóm</SelectItem>
-                  {(employeeTagFilterQuery.data?.options ?? []).map(
-                    (option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                  {employeeTagOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      textValue={option.label}
+                    >
+                      <TagBadge color={option.color} size="sm">
                         {option.label}
-                      </SelectItem>
-                    ),
-                  )}
+                      </TagBadge>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button

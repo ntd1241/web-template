@@ -46,6 +46,7 @@ interface EmployeeTagRow {
   id: string;
   group_id: string;
   name: string;
+  color: string | null;
   sort_order: number;
 }
 
@@ -55,7 +56,7 @@ interface EmployeeTagAssignmentRow {
 }
 
 export interface EmployeeTagFilterData {
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; color: string | null }>;
   employeeIdsByTagId: Record<string, string[]>;
 }
 
@@ -164,7 +165,7 @@ export async function loadEmployeeTagFilter(
       supabaseApi.get(
         '/tags',
         queryParams({
-          select: 'id,group_id,name,sort_order',
+          select: 'id,group_id,name,color,sort_order',
           tenant_id: `eq.${tenantId}`,
           is_active: 'eq.true',
           order: 'sort_order.asc,name.asc',
@@ -196,7 +197,11 @@ export async function loadEmployeeTagFilter(
   }
 
   return {
-    options: tags.map((tag) => ({ value: tag.id, label: tag.name })),
+    options: tags.map((tag) => ({
+      value: tag.id,
+      label: tag.name,
+      color: tag.color,
+    })),
     employeeIdsByTagId,
   };
 }

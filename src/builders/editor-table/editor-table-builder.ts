@@ -462,7 +462,7 @@ function emitBulkActionBar() {
             }}
           >
             <SelectTrigger size="sm" className="w-[150px]">
-              <SelectValue />
+              <SelectValue label="Trường" />
             </SelectTrigger>
             <SelectContent>
               {bulkFields.map((field) => (
