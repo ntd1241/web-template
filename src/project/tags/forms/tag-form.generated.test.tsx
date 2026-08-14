@@ -24,6 +24,16 @@ function TagFormHarness() {
 }
 
 describe('TagForm color field', () => {
+  it('expands the tag name field to the same width as the group field', () => {
+    render(<TagFormHarness />);
+
+    expect(
+      screen
+        .getByRole('textbox', { name: /Tên nhãn/ })
+        .closest('[data-slot="form-item"]'),
+    ).toHaveClass('md:col-span-12');
+  });
+
   it('uses ColorInput and keeps preset selection in the RHF field', async () => {
     const user = userEvent.setup();
 

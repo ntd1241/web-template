@@ -21,7 +21,7 @@ const spec: FormSpec = {
       kind: 'text',
       name: 'name',
       label: 'Tên nhãn',
-      width: 'large',
+      width: 'full',
       required: true,
     },
     {
