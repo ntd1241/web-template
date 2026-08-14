@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { ColorInput } from '@/components/ui/color-input';
 import {
   Dialog,
   DialogContent,
@@ -161,7 +162,14 @@ export function TagForm({
                   Màu<span className="text-destructive"> *</span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="#2563eb" variant="md" {...field} />
+                  <ColorInput
+                    defaultValue="#2563eb"
+                    expanded
+                    variant="md"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
