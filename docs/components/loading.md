@@ -1,0 +1,49 @@
+# Loading states
+
+Use the shared loading components instead of adding a one-off spinner or loading text in a feature.
+
+## CardLoading
+
+Use inside `CardContent` when a card-sized content area is waiting for data. It uses a large rotating
+dot-circle indicator and reserves a bordered content area so the surrounding card chrome stays stable.
+
+```tsx
+<CardContent>
+  {query.isPending ? (
+    <CardLoading label="Đang tải thông tin tổ chức..." />
+  ) : (
+    <Form />
+  )}
+</CardContent>
+```
+
+## SectionLoading
+
+Use for a smaller section or dialog body. It keeps the compact three-dot indicator that is useful when
+the surrounding component already provides most of the visual context.
+
+```tsx
+<DialogBody>
+  {query.isPending ? (
+    <SectionLoading label="Đang tải chi tiết..." />
+  ) : (
+    <DialogContent />
+  )}
+</DialogBody>
+```
+
+## PageLoading
+
+Use when the page's main content cannot render until its initial data is ready. It provides a larger
+centered ring indicator and expands to the available content area.
+
+```tsx
+return query.isPending ? (
+  <PageLoading label="Đang tải dữ liệu..." />
+) : (
+  <PageContent />
+);
+```
+
+Both components expose `role="status"`, announce updates politely, and accept `className` plus normal
+`div` attributes for layout composition.

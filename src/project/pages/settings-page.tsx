@@ -25,6 +25,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { CardLoading } from '@/components/ui/loading';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -60,8 +61,10 @@ export function ProjectSettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const tenantSettingsQuery = useQuery({
     queryKey: ['project', 'tenant-settings', userId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
+      // Demo delay để kiểm tra trạng thái CardLoading trong tab Tổ chức.
+      await new Promise<void>((resolve) => setTimeout(resolve, 10_000));
       return loadCurrentTenantSettings(userId);
     },
     enabled: Boolean(userId),
@@ -240,9 +243,7 @@ export function ProjectSettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-5 p-5">
                   {tenantSettingsQuery.isPending ? (
-                    <p className="text-sm text-muted-foreground">
-                      Đang tải thông tin tổ chức...
-                    </p>
+                    <CardLoading label="Đang tải thông tin tổ chức..." />
                   ) : tenantSettingsQuery.isError ? (
                     <p className="text-sm text-destructive">
                       Không thể tải thông tin tổ chức.

@@ -19,6 +19,7 @@ ownership contract; detailed APIs live in [`docs/components/`](./components/).
 | Form controls | `Input`, `Select`, `Combobox`, `MultiSelect`, `NumericInput`, `Form*` | [`components/forms.md`](./components/forms.md) |
 | Paginated table | `DataGrid`, `DataGridTable`, `DataGridPagination` | [`components/data-grid.md`](./components/data-grid.md) |
 | Status and identity display | `Badge`, `StatusBadge`, `Avatar`, `RelativeTime` | [`components/display.md`](./components/display.md) |
+| Loading states | `CardLoading`, `SectionLoading`, `PageLoading` | [`components/loading.md`](./components/loading.md) |
 | Modal or confirmation | `Dialog`, `Sheet`, `Drawer`, `AlertDialog` | inspect matching `src/components/ui` source |
 | Shared formatting and validation | `src/lib/*` | [`07-lib-utilities.md`](./07-lib-utilities.md) |
 
