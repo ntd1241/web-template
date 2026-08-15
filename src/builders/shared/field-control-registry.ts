@@ -74,6 +74,13 @@ export const FORM_FIELD_CONTROL = {
     hasOptions: false,
     importName: 'CustomerSelect',
   },
+  inputSelect: {
+    binding: 'valueOnChange',
+    defaultLiteral: "''",
+    hasOptions: true,
+    optionType: '{ value: string; label: string }',
+    importName: 'InputSelect',
+  },
   multiselect: {
     binding: 'valueOnChange',
     defaultLiteral: '[]',

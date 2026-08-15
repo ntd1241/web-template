@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { optionSchema, optionsSourceSchema } from './schema-primitives';
+import {
+  identifierSchema,
+  optionSchema,
+  optionsSourceSchema,
+} from './schema-primitives';
 
 /**
  * Shared, control-level schemas. Higher-level builders extend these objects
@@ -69,6 +73,17 @@ export const customerSelectFieldControlSchema = z.object({
   kind: z.literal('customerSelect'),
 });
 
+export const inputSelectFieldControlSchema = z.object({
+  kind: z.literal('inputSelect'),
+  /** Secondary field bound to the trailing select. */
+  selectName: identifierSchema,
+  selectOptions: z.array(optionSchema).optional(),
+  selectOptionsFrom: optionsSourceSchema.optional(),
+  selectPlaceholder: z.string().optional(),
+  selectDefaultValue: z.string().optional(),
+  inputType: z.enum(['text', 'email', 'tel', 'url', 'number']).optional(),
+});
+
 export const multiselectFieldControlSchema = z.object({
   kind: z.literal('multiselect'),
   options: z.array(optionSchema).optional(),
@@ -92,6 +107,7 @@ export const formFieldControlSchemas = {
   searchSelect: searchSelectFieldControlSchema,
   apiSearchSelect: apiSearchSelectFieldControlSchema,
   customerSelect: customerSelectFieldControlSchema,
+  inputSelect: inputSelectFieldControlSchema,
   multiselect: multiselectFieldControlSchema,
   switch: switchFieldControlSchema,
 } as const;
@@ -107,6 +123,7 @@ export const formFieldControlSchema = z.discriminatedUnion('kind', [
   searchSelectFieldControlSchema,
   apiSearchSelectFieldControlSchema,
   customerSelectFieldControlSchema,
+  inputSelectFieldControlSchema,
   multiselectFieldControlSchema,
   switchFieldControlSchema,
 ]);
@@ -130,6 +147,9 @@ export type SharedApiSearchSelectFieldControl = z.infer<
 >;
 export type SharedCustomerSelectFieldControl = z.infer<
   typeof customerSelectFieldControlSchema
+>;
+export type SharedInputSelectFieldControl = z.infer<
+  typeof inputSelectFieldControlSchema
 >;
 export type SharedMultiselectFieldControl = z.infer<
   typeof multiselectFieldControlSchema

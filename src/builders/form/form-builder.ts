@@ -54,6 +54,8 @@ type OptionFieldSpec = Extract<
   { kind: 'select' | 'combobox' | 'searchSelect' | 'multiselect' }
 >;
 
+type InputSelectFieldSpec = Extract<FormFieldSpec, { kind: 'inputSelect' }>;
+
 function isOptionField(field: FormFieldSpec): field is OptionFieldSpec {
   return LOCAL_OPTION_KINDS.has(field.kind);
 }
@@ -69,6 +71,38 @@ function propOptionFields(fields: FormFieldSpec[]): OptionFieldSpec[] {
     (field): field is OptionFieldSpec =>
       isOptionField(field) && field.optionsFrom === 'prop',
   );
+}
+
+function inputSelectFields(fields: FormFieldSpec[]): InputSelectFieldSpec[] {
+  return fields.filter(
+    (field): field is InputSelectFieldSpec => field.kind === 'inputSelect',
+  );
+}
+
+function staticInputSelectFields(
+  fields: FormFieldSpec[],
+): (InputSelectFieldSpec & {
+  selectOptions: { value: string; label: string }[];
+})[] {
+  return inputSelectFields(fields).filter(
+    (
+      field,
+    ): field is InputSelectFieldSpec & {
+      selectOptions: { value: string; label: string }[];
+    } => field.selectOptionsFrom !== 'prop',
+  );
+}
+
+function propInputSelectFields(
+  fields: FormFieldSpec[],
+): InputSelectFieldSpec[] {
+  return inputSelectFields(fields).filter(
+    (field) => field.selectOptionsFrom === 'prop',
+  );
+}
+
+function inputSelectOptionsName(field: InputSelectFieldSpec): string {
+  return `${field.name}SelectOptions`;
 }
 
 type ApiSearchSelectFieldSpec = Extract<
@@ -112,26 +146,44 @@ function deriveInlineComponentName(
 
 /** Hoisted `const <name>Options = [...]` for local option fields. */
 function emitOptionConsts(fields: FormFieldSpec[]): string {
-  return fields
-    .filter(isStaticOptionField)
-    .map((f) => {
-      const isMulti = f.kind === 'multiselect';
-      const rows = f.options
-        .map((o) =>
-          isMulti
-            ? `  { value: ${str(o.value)}, label: ${str(o.label)}, searchableText: ${str(o.label)} },`
-            : `  { value: ${str(o.value)}, label: ${str(o.label)} },`,
-        )
-        .join('\n');
-      const annotation = isMulti ? ': MultiSelectOption[]' : '';
-      return `const ${f.name}Options${annotation} = [\n${rows}\n];`;
-    })
-    .join('\n\n');
+  const standardOptions = fields.filter(isStaticOptionField).map((f) => {
+    const isMulti = f.kind === 'multiselect';
+    const rows = f.options
+      .map((o) =>
+        isMulti
+          ? `  { value: ${str(o.value)}, label: ${str(o.label)}, searchableText: ${str(o.label)} },`
+          : `  { value: ${str(o.value)}, label: ${str(o.label)} },`,
+      )
+      .join('\n');
+    const annotation = isMulti ? ': MultiSelectOption[]' : '';
+    return `const ${f.name}Options${annotation} = [\n${rows}\n];`;
+  });
+  const inputSelectOptions = staticInputSelectFields(fields).map((f) => {
+    const rows = f.selectOptions
+      .map(
+        (option) =>
+          `  { value: ${str(option.value)}, label: ${str(option.label)} },`,
+      )
+      .join('\n');
+    return `const ${inputSelectOptionsName(f)} = [\n${rows}\n];`;
+  });
+
+  return [...standardOptions, ...inputSelectOptions].join('\n\n');
 }
 
 function emitDefaultValues(spec: FormSpec): string {
   const rows = spec.fields
-    .map((f) => `  ${f.name}: ${FORM_KIND_REGISTRY[f.kind].defaultLiteral},`)
+    .flatMap((field) => {
+      const rows = [
+        `  ${field.name}: ${FORM_KIND_REGISTRY[field.kind].defaultLiteral},`,
+      ];
+      if (field.kind === 'inputSelect') {
+        rows.push(
+          `  ${field.selectName}: ${str(field.selectDefaultValue ?? field.selectOptions?.[0]?.value ?? '')},`,
+        );
+      }
+      return rows;
+    })
     .join('\n');
   return `export const ${lowerFirst(spec.entity)}DefaultValues: ${spec.valuesType} = {\n${rows}\n};`;
 }
@@ -146,13 +198,17 @@ function labelJsx(field: FormFieldSpec): string {
 /** The control element(s) for a field (everything between label and message). */
 function controlJsx(field: FormFieldSpec): string {
   const apiSearchSelect = field.kind === 'apiSearchSelect' ? field : undefined;
+  const inputSelect = field.kind === 'inputSelect' ? field : undefined;
 
   return buildFormFieldControl({
     kind: field.kind,
     surface: 'form',
     variant: BUILDER_INPUT_VARIANTS.form,
     placeholder: field.placeholder,
-    inputType: field.kind === 'text' ? field.inputType : undefined,
+    inputType:
+      field.kind === 'text' || field.kind === 'inputSelect'
+        ? field.inputType
+        : undefined,
     format:
       field.kind === 'number' || field.kind === 'date'
         ? field.format
@@ -160,6 +216,14 @@ function controlJsx(field: FormFieldSpec): string {
     rows: field.kind === 'textarea' ? field.rows : undefined,
     optionsExpression: isOptionField(field)
       ? `${field.name}Options`
+      : undefined,
+    selectFieldExpression: inputSelect ? 'selectField' : undefined,
+    selectOptionsExpression: inputSelect
+      ? inputSelectOptionsName(inputSelect)
+      : undefined,
+    selectPlaceholder: inputSelect?.selectPlaceholder,
+    selectAriaInvalidExpression: inputSelect
+      ? '!!selectFieldState.error'
       : undefined,
     searchPlaceholder:
       field.kind === 'combobox' ||
@@ -194,30 +258,55 @@ function controlJsx(field: FormFieldSpec): string {
 }
 
 function emitField(field: FormFieldSpec): string {
-  const item =
-    field.kind === 'switch'
-      ? `<FormItem className="${itemClass(field)} flex-row items-center gap-2.5">
+  const formField =
+    field.kind === 'inputSelect'
+      ? `<FormField
+  control={form.control}
+  name="${field.name}"
+  render={({ field, fieldState }) => (
+    <FormItem className="${itemClass(field)}">
+      <FormLabel>${labelJsx(field)}</FormLabel>
+      <FormField
+        control={form.control}
+        name="${field.selectName}"
+        render={({ field: selectField, fieldState: selectFieldState }) => (
+          <>
+            ${controlJsx(field)}
+            <FormMessage>
+              {fieldState.error?.message ?? selectFieldState.error?.message}
+            </FormMessage>
+          </>
+        )}
+      />
+    </FormItem>
+  )}
+/>`
+      : (() => {
+          const item =
+            field.kind === 'switch'
+              ? `<FormItem className="${itemClass(field)} flex-row items-center gap-2.5">
   ${controlJsx(field)}
   <FormLabel className="font-normal text-foreground">${field.label}</FormLabel>
 </FormItem>`
-      : field.kind === 'image'
-        ? `<FormItem className="${itemClass(field)}">
+              : field.kind === 'image'
+                ? `<FormItem className="${itemClass(field)}">
   ${controlJsx(field)}
   <FormMessage />
 </FormItem>`
-        : `<FormItem className="${itemClass(field)}">
+                : `<FormItem className="${itemClass(field)}">
   <FormLabel>${labelJsx(field)}</FormLabel>
   ${controlJsx(field)}
   <FormMessage />
 </FormItem>`;
 
-  const formField = `<FormField
+          return `<FormField
   control={form.control}
   name="${field.name}"
   render={({ field }) => (
     ${item}
   )}
 />`;
+        })();
 
   if (!field.modes || field.modes.length === 2) return formField;
 
@@ -262,8 +351,14 @@ function emitImports(spec: FormSpec): string {
     "import { Separator } from '@/components/ui/separator';",
   ];
 
-  if (kinds.has('text') || (kinds.has('number') && !hasFormattedNumber))
+  if (
+    kinds.has('text') ||
+    kinds.has('inputSelect') ||
+    (kinds.has('number') && !hasFormattedNumber)
+  )
     lines.push("import { Input } from '@/components/ui/input';");
+  if (kinds.has('inputSelect'))
+    lines.push("import { InputSelect } from '@/components/ui/input-select';");
   if (kinds.has('image'))
     lines.push(
       "import { ImageUploadField } from '@/components/ui/image-upload-field';",
@@ -278,7 +373,7 @@ function emitImports(spec: FormSpec): string {
     );
   if (kinds.has('textarea'))
     lines.push("import { Textarea } from '@/components/ui/textarea';");
-  if (kinds.has('select'))
+  if (kinds.has('select') || kinds.has('inputSelect'))
     lines.push(
       "import {\n  Select,\n  SelectContent,\n  SelectItem,\n  SelectTrigger,\n  SelectValue,\n} from '@/components/ui/select';",
     );
@@ -343,6 +438,15 @@ function emitPropOptionRows(fields: OptionFieldSpec[]): string {
     .join('\n');
 }
 
+function emitInputSelectPropOptionRows(fields: InputSelectFieldSpec[]): string {
+  return fields
+    .map(
+      (field) =>
+        `  ${inputSelectOptionsName(field)}: { value: string; label: string }[];`,
+    )
+    .join('\n');
+}
+
 function cap(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
@@ -384,9 +488,28 @@ function emitPropOptionParams(fields: OptionFieldSpec[]): string {
   return fields.map((field) => `  ${field.name}Options,`).join('\n');
 }
 
+function emitInputSelectPropOptionParams(
+  fields: InputSelectFieldSpec[],
+): string {
+  return fields
+    .map((field) => `  ${inputSelectOptionsName(field)},`)
+    .join('\n');
+}
+
 function emitForwardedPropOptions(fields: OptionFieldSpec[]): string {
   return fields
     .map((field) => `${field.name}Options={${field.name}Options}`)
+    .join(' ');
+}
+
+function emitForwardedInputSelectPropOptions(
+  fields: InputSelectFieldSpec[],
+): string {
+  return fields
+    .map(
+      (field) =>
+        `${inputSelectOptionsName(field)}={${inputSelectOptionsName(field)}}`,
+    )
     .join(' ');
 }
 
@@ -423,6 +546,7 @@ export function buildFormModule(input: FormSpec): string {
   const mapperName = `map${spec.entity}ToFormValues`;
   const sourceTypeName = `${spec.entity}FormSource`;
   const propFields = propOptionFields(spec.fields);
+  const inputSelectPropFields = propInputSelectFields(spec.fields);
   const apiFields = apiSearchSelectFields(spec.fields);
   const imageFieldSpecs = imageFields(spec.fields);
   const hasFieldModes = spec.fields.some(
@@ -435,20 +559,35 @@ export function buildFormModule(input: FormSpec): string {
     ? `\n            <DialogDescription>${spec.description}</DialogDescription>`
     : '';
   const propOptionRows = emitPropOptionRows(propFields);
+  const inputSelectPropOptionRows = emitInputSelectPropOptionRows(
+    inputSelectPropFields,
+  );
   const apiSearchSelectPropRows = emitApiSearchSelectPropRows(apiFields);
   const propOptionParams = emitPropOptionParams(propFields);
+  const inputSelectPropOptionParams = emitInputSelectPropOptionParams(
+    inputSelectPropFields,
+  );
   const apiSearchSelectPropParams = emitApiSearchSelectPropParams(apiFields);
   const forwardedPropOptions = emitForwardedPropOptions(propFields);
+  const forwardedInputSelectPropOptions = emitForwardedInputSelectPropOptions(
+    inputSelectPropFields,
+  );
   const forwardedApiSearchSelectProps =
     emitForwardedApiSearchSelectProps(apiFields);
   const imagePropRows = emitImagePropRows(imageFieldSpecs);
   const imagePropParams = emitImagePropParams(imageFieldSpecs);
   const forwardedImageProps = emitForwardedImageProps(imageFieldSpecs);
-  const propRows = [propOptionRows, apiSearchSelectPropRows, imagePropRows]
+  const propRows = [
+    propOptionRows,
+    inputSelectPropOptionRows,
+    apiSearchSelectPropRows,
+    imagePropRows,
+  ]
     .filter(Boolean)
     .join('\n');
   const propParams = [
     propOptionParams,
+    inputSelectPropOptionParams,
     apiSearchSelectPropParams,
     imagePropParams,
   ]
@@ -456,6 +595,7 @@ export function buildFormModule(input: FormSpec): string {
     .join('\n');
   const forwardedProps = [
     forwardedPropOptions,
+    forwardedInputSelectPropOptions,
     forwardedApiSearchSelectProps,
     forwardedImageProps,
   ]

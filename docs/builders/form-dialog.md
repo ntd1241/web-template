@@ -69,6 +69,7 @@ Static select-like options are emitted as module constants only when `optionsFro
 | `searchSelect`    | `SelectSearch`        | `value` and `onChange`                                       |
 | `apiSearchSelect` | `ApiSelectSearch`     | `value` and `onChange`, plus a generated loader prop         |
 | `customerSelect`  | `CustomerSelect`      | `value` and `onChange`; the component owns customer fetching |
+| `inputSelect`     | `InputSelect`         | primary input field + secondary select field                 |
 | `multiselect`     | `MultiSelect`         | `value` and `onChange`                                       |
 | `switch`          | `Switch`              | `checked` and `onCheckedChange`                              |
 
@@ -79,6 +80,11 @@ field schema and mapped to runtime controls by the field renderer.
 Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` is 8, and `full` is 12. Fields stack on mobile. If a field omits `width`, the builder defaults it to `full`; use `normal` or `large` only when a field is intentionally part of a split row.
 
 Set `breakBefore: true` when a field should begin at the first desktop grid column, leaving the unused columns from the previous field on their own row.
+
+`inputSelect` binds the text/number input to `name` and the trailing select to `selectName`.
+Declare `selectOptions` for a static list or set `selectOptionsFrom: 'prop'` to receive
+`<name>SelectOptions` from the page. The secondary field is included in generated default values;
+its initial value uses `selectDefaultValue`, then the first static option, then an empty string.
 
 Use `modes: ['create']` or `modes: ['edit']` when a field belongs to only one
 dialog mode. The generated inline form receives the dialog's `mode` automatically;
@@ -161,7 +167,7 @@ The page may render `<Entity>Form` inline for a full page or drawer surface and 
 ## API-Fetched Options
 
 For `select`, `combobox`, `searchSelect`, and `multiselect`, set `optionsFrom: 'prop'` when options come from the
-page instead of a static list:
+page instead of a static list. For `inputSelect`, use `selectOptionsFrom: 'prop'` for the trailing select:
 
 ```ts
 {
@@ -178,6 +184,7 @@ The generated components require a `<fieldName>Options` prop. Types are:
 - `select` → `Array<{ value: string; label: string }>`
 - `combobox`/`searchSelect` → `SearchSelectOption[]`
 - `multiselect` → `MultiSelectOption[]`
+- `inputSelect` → `{ value: string; label: string }[]` exposed as `<name>SelectOptions`
 
 Fetch options at the page boundary and pass them down:
 

@@ -46,6 +46,9 @@ export const FORM_KIND_REGISTRY: Record<FormFieldKind, FormKindMeta> = {
   customerSelect: {
     ...FORM_FIELD_CONTROL.customerSelect,
   },
+  inputSelect: {
+    ...FORM_FIELD_CONTROL.inputSelect,
+  },
   multiselect: {
     ...FORM_FIELD_CONTROL.multiselect,
   },

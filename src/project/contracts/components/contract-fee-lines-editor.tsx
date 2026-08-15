@@ -2,7 +2,12 @@ import { forwardRef, useImperativeHandle } from 'react';
 import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import {
+  useController,
+  useFieldArray,
+  useForm,
+  type Control,
+} from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { InputSelect } from '@/components/ui/input-select';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
 import {
   Select,
@@ -79,6 +85,88 @@ function toApiLines(
   lines: ContractFeeLineFormValue[],
 ): ContractVersionLineValuesForApi[] {
   return lines.map(({ sortOrder: _sortOrder, ...line }) => line);
+}
+
+function BillingPeriodField({
+  control,
+  index,
+  onSync,
+}: {
+  control: Control<ContractFeeLinesFormValues>;
+  index: number;
+  onSync: () => void;
+}) {
+  const interval = useController({
+    control,
+    name: `lines.${index}.billingInterval`,
+  });
+  const unit = useController({
+    control,
+    name: `lines.${index}.billingUnit`,
+  });
+  const inputId = `billing-interval-${index}`;
+  const errorMessage =
+    interval.fieldState.error?.message ?? unit.fieldState.error?.message;
+
+  return (
+    <div className="flex flex-col gap-1 md:col-span-4">
+      <label
+        htmlFor={inputId}
+        className="text-xs font-medium text-muted-foreground"
+      >
+        Mỗi
+      </label>
+      <InputSelect
+        input={
+          <Input
+            id={inputId}
+            type="number"
+            min={1}
+            variant="md"
+            value={interval.field.value ?? ''}
+            onBlur={interval.field.onBlur}
+            onChange={(event) => {
+              interval.field.onChange(
+                event.target.value === '' ? null : Number(event.target.value),
+              );
+              onSync();
+            }}
+            ref={interval.field.ref}
+            aria-invalid={Boolean(interval.fieldState.error)}
+          />
+        }
+        select={
+          <Select
+            value={unit.field.value ?? 'month'}
+            onValueChange={(value: BillingUnit) => {
+              unit.field.onChange(value);
+              onSync();
+            }}
+          >
+            <SelectTrigger
+              size="sm"
+              aria-label="Chu kỳ"
+              aria-invalid={Boolean(unit.fieldState.error)}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(
+                Object.entries(BILLING_UNIT_LABELS) as [BillingUnit, string][]
+              ).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
+      />
+      {errorMessage ? (
+        <p className="text-xs font-normal text-destructive">{errorMessage}</p>
+      ) : null}
+    </div>
+  );
 }
 
 export const ContractFeeLinesEditor = forwardRef<
@@ -153,14 +241,14 @@ export const ContractFeeLinesEditor = forwardRef<
                   control={form.control}
                   name={`lines.${index}.name`}
                   render={({ field: inputField }) => (
-                    <FormItem variant="compact" className="md:col-span-4">
+                    <FormItem variant="compact" className="md:col-span-9">
                       <FormLabel>
                         Tên khoản phí
                         <span className="text-destructive"> *</span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          variant="md"
+                          variant="ghost"
                           placeholder="Ví dụ: Phí dịch vụ"
                           {...inputField}
                           onChange={(event) => {
@@ -174,11 +262,37 @@ export const ContractFeeLinesEditor = forwardRef<
                   )}
                 />
 
+                <div className="flex items-end justify-between gap-2 md:col-span-3">
+                  <div className="min-w-0 pb-1">
+                    <span className="block text-xs text-muted-foreground">
+                      Thành tiền
+                    </span>
+                    <span className="block truncate text-sm font-semibold tabular-nums">
+                      {new Intl.NumberFormat('vi-VN').format(amount)} VND
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    mode="icon"
+                    size="sm"
+                    className="shrink-0 text-destructive hover:text-destructive"
+                    aria-label={`Xóa khoản phí ${index + 1}`}
+                    disabled={fields.length === 1}
+                    onClick={() => removeLine(index)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+
                 <FormField
                   control={form.control}
                   name={`lines.${index}.quantity`}
                   render={({ field: inputField }) => (
-                    <FormItem variant="compact" className="md:col-span-2">
+                    <FormItem
+                      variant="compact"
+                      className="md:col-span-2 md:col-start-1"
+                    >
                       <FormLabel>Số lượng</FormLabel>
                       <FormControl>
                         <Input
@@ -230,34 +344,11 @@ export const ContractFeeLinesEditor = forwardRef<
                   )}
                 />
 
-                <div className="flex items-end justify-between gap-2 md:col-span-3">
-                  <div className="min-w-0 pb-1">
-                    <span className="block text-xs text-muted-foreground">
-                      Thành tiền
-                    </span>
-                    <span className="block truncate text-sm font-semibold tabular-nums">
-                      {new Intl.NumberFormat('vi-VN').format(amount)} VND
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    mode="icon"
-                    size="sm"
-                    className="shrink-0 text-destructive hover:text-destructive"
-                    aria-label={`Xóa khoản phí ${index + 1}`}
-                    disabled={fields.length === 1}
-                    onClick={() => removeLine(index)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-
                 <FormField
                   control={form.control}
                   name={`lines.${index}.billingType`}
                   render={({ field: selectField }) => (
-                    <FormItem variant="compact" className="md:col-span-4">
+                    <FormItem variant="compact" className="md:col-span-3">
                       <FormLabel>Loại phí</FormLabel>
                       <Select
                         value={selectField.value}
@@ -303,66 +394,10 @@ export const ContractFeeLinesEditor = forwardRef<
 
                 {line.billingType === 'recurring' ? (
                   <>
-                    <FormField
+                    <BillingPeriodField
                       control={form.control}
-                      name={`lines.${index}.billingInterval`}
-                      render={({ field: inputField }) => (
-                        <FormItem variant="compact" className="md:col-span-2">
-                          <FormLabel>Mỗi</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={1}
-                              variant="md"
-                              value={inputField.value ?? ''}
-                              onChange={(event) => {
-                                inputField.onChange(
-                                  event.target.value === ''
-                                    ? null
-                                    : Number(event.target.value),
-                                );
-                                syncParent();
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`lines.${index}.billingUnit`}
-                      render={({ field: selectField }) => (
-                        <FormItem variant="compact" className="md:col-span-2">
-                          <FormLabel>Chu kỳ</FormLabel>
-                          <Select
-                            value={selectField.value ?? 'month'}
-                            onValueChange={(value: BillingUnit) => {
-                              selectField.onChange(value);
-                              syncParent();
-                            }}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {(
-                                Object.entries(BILLING_UNIT_LABELS) as [
-                                  BillingUnit,
-                                  string,
-                                ][]
-                              ).map(([value, label]) => (
-                                <SelectItem key={value} value={value}>
-                                  {label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      index={index}
+                      onSync={syncParent}
                     />
                   </>
                 ) : (

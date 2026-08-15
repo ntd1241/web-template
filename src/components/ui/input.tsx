@@ -19,6 +19,8 @@ const inputVariants = cva(
         lg: 'h-10 px-4 text-sm rounded-md file:pe-4 file:me-4',
         md: 'h-8.5 px-3 text-[0.8125rem] leading-(--text-sm--line-height) rounded-md file:pe-3 file:me-3',
         sm: 'h-7 px-2.5 text-xs rounded-md file:pe-2.5 file:me-2.5',
+        ghost:
+          'h-8.5 rounded-md border-transparent bg-transparent px-2.5 text-[0.8125rem] leading-(--text-sm--line-height) shadow-none hover:bg-accent/60 focus-visible:bg-background file:pe-2.5 file:me-2.5',
       },
     },
     defaultVariants: {

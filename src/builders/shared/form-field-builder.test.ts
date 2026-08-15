@@ -105,6 +105,29 @@ describe('form-field builder', () => {
     expect(source).toContain('minSearchLength={2} debounceMs={250}');
   });
 
+  it('renders the compound input and trailing select bindings', () => {
+    const source = buildFormFieldControl({
+      kind: 'inputSelect',
+      surface: 'form',
+      inputType: 'number',
+      valueExpression: 'field.value',
+      onChangeExpression: 'field.onChange',
+      selectFieldExpression: 'selectField',
+      selectOptionsExpression: 'billingUnitOptions',
+      selectPlaceholder: 'Chu kỳ',
+      selectAriaInvalidExpression: '!!selectFieldState.error',
+    });
+
+    expect(source).toContain('<InputSelect input={');
+    expect(source).toContain('<Input type="number"');
+    expect(source).toContain('value={field.value}');
+    expect(source).toContain(
+      '<Select value={selectField.value} onValueChange={selectField.onChange}>',
+    );
+    expect(source).toContain('{billingUnitOptions.map');
+    expect(source).toContain('placeholder="Chu kỳ"');
+  });
+
   it('validates shared control options before higher-level builders extend them', () => {
     expect(
       dateFieldControlSchema.safeParse({

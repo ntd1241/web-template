@@ -5,6 +5,7 @@ import {
   customerSelectFieldControlSchema,
   dateFieldControlSchema,
   imageFieldControlSchema,
+  inputSelectFieldControlSchema,
   multiselectFieldControlSchema,
   numberFieldControlSchema,
   searchSelectFieldControlSchema,
@@ -69,6 +70,8 @@ const apiSearchSelectField = apiSearchSelectFieldControlSchema.extend(base);
 
 const customerSelectField = customerSelectFieldControlSchema.extend(base);
 
+const inputSelectField = inputSelectFieldControlSchema.extend(base);
+
 const multiselectField = multiselectFieldControlSchema.extend(base);
 
 const switchField = switchFieldControlSchema.extend(base);
@@ -84,6 +87,7 @@ export const formFieldSchema = z.discriminatedUnion('kind', [
   searchSelectField,
   apiSearchSelectField,
   customerSelectField,
+  inputSelectField,
   multiselectField,
   switchField,
 ]);
@@ -121,6 +125,34 @@ export const formSpecSchema = z
           code: z.ZodIssueCode.custom,
           message: 'Trường dùng options tĩnh cần khai báo ít nhất một lựa chọn',
           path: ['fields', index, 'options'],
+        });
+      }
+
+      if (
+        field.kind === 'inputSelect' &&
+        field.selectOptionsFrom !== 'prop' &&
+        (!field.selectOptions || field.selectOptions.length < 1)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            'Input ghép dùng options tĩnh cần khai báo ít nhất một lựa chọn',
+          path: ['fields', index, 'selectOptions'],
+        });
+      }
+
+      if (
+        field.kind === 'inputSelect' &&
+        (field.selectName === field.name ||
+          spec.fields.some(
+            (candidate, candidateIndex) =>
+              candidateIndex !== index && candidate.name === field.selectName,
+          ))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'selectName phải là một field phụ chưa được khai báo riêng',
+          path: ['fields', index, 'selectName'],
         });
       }
     });

@@ -109,6 +109,43 @@ describe('buildFormModule', () => {
     expect(dateSource).toContain('className="md:col-span-12"');
   });
 
+  it('generates a compound input with a separately bound select field', () => {
+    const compoundSource = buildFormModule({
+      entity: 'ContractFee',
+      schemaImport: './contract-fee.schema',
+      schemaName: 'contractFeeSchema',
+      valuesType: 'ContractFeeValues',
+      title: 'Thêm khoản phí',
+      fields: [
+        {
+          kind: 'inputSelect',
+          name: 'billingInterval',
+          selectName: 'billingUnit',
+          label: 'Mỗi',
+          inputType: 'number',
+          selectPlaceholder: 'Chu kỳ',
+          selectOptions: [
+            { value: 'month', label: 'Tháng' },
+            { value: 'quarter', label: 'Quý' },
+          ],
+          selectDefaultValue: 'month',
+        },
+      ],
+    });
+
+    expect(compoundSource).toContain(
+      "import { InputSelect } from '@/components/ui/input-select';",
+    );
+    expect(compoundSource).toContain('const billingIntervalSelectOptions = [');
+    expect(compoundSource).toContain("billingInterval: '',");
+    expect(compoundSource).toContain("billingUnit: 'month',");
+    expect(compoundSource).toContain('name="billingUnit"');
+    expect(compoundSource).toContain(
+      'fieldState.error?.message ?? selectFieldState.error?.message',
+    );
+    expect(compoundSource).toContain('selectField.value');
+  });
+
   it('maps semantic number formats to NumericInput', () => {
     const formattedSource = buildFormModule({
       entity: 'Invoice',

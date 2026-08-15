@@ -16,6 +16,12 @@ export interface FormFieldControlOptions {
   onChangeExpression?: string;
   onChangeHandlerExpression?: string;
   onBlurExpression?: string;
+  selectFieldExpression?: string;
+  selectValueExpression?: string;
+  selectChangeExpression?: string;
+  selectOptionsExpression?: string;
+  selectPlaceholder?: string;
+  selectAriaInvalidExpression?: string;
   variant?: string;
   placeholder?: string;
   inputType?: string;
@@ -235,6 +241,51 @@ export function buildFormFieldControl(
     }
     case 'customerSelect':
       return `${controlOpen(options)}<CustomerSelect value={${value}} onChange={${change}}${placeholder} />${controlClose(options)}`;
+    case 'inputSelect': {
+      const selectField = options.selectFieldExpression ?? 'selectField';
+      const selectValue =
+        options.selectValueExpression ?? `${selectField}.value`;
+      const selectChange =
+        options.selectChangeExpression ?? `${selectField}.onChange`;
+      const optionsExpression =
+        options.selectOptionsExpression ?? 'selectOptions';
+      const selectPlaceholder = attribute(
+        'placeholder',
+        options.selectPlaceholder,
+      );
+      const selectInvalid = expressionAttribute(
+        'aria-invalid',
+        options.selectAriaInvalidExpression,
+      );
+      const typeAttr =
+        options.inputType && options.inputType !== 'text'
+          ? ` type="${options.inputType}"`
+          : '';
+      const onChange =
+        options.inputType === 'number'
+          ? `${change}(\n            Number.isNaN(event.target.valueAsNumber)\n              ? 0\n              : event.target.valueAsNumber,\n          )`
+          : `${change}(event)`;
+      const input = `<Input${attrs}${typeAttr}${placeholder} value={${value}}${variant}
+        onBlur={${blur}}
+        onChange={(event) =>
+          ${onChange}
+        }
+      />`;
+      const select = `<Select value={${selectValue}} onValueChange={${selectChange}}>
+  <SelectTrigger size="sm"${selectInvalid}>
+    <SelectValue${selectPlaceholder} />
+  </SelectTrigger>
+  <SelectContent>
+    {${optionsExpression}.map((opt) => (
+      <SelectItem key={opt.value} value={opt.value}>
+        {opt.label}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>`;
+
+      return `${controlOpen(options)}<InputSelect input={${input}} select={${select}} />${controlClose(options)}`;
+    }
     case 'multiselect': {
       const optionsExpression = options.optionsExpression ?? 'options';
       const searchPlaceholder = attribute(
