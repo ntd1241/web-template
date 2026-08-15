@@ -235,13 +235,13 @@ export const ContractFeeLinesEditor = forwardRef<
             return (
               <div
                 key={field.id}
-                className="grid gap-3 rounded-lg border border-border bg-background p-3 md:grid-cols-12"
+                className="relative grid gap-3 rounded-lg border border-border bg-background p-3 pe-12 md:grid-cols-12"
               >
                 <FormField
                   control={form.control}
                   name={`lines.${index}.name`}
                   render={({ field: inputField }) => (
-                    <FormItem variant="compact" className="md:col-span-9">
+                    <FormItem variant="compact" className="md:col-span-4">
                       <FormLabel>
                         Tên khoản phí
                         <span className="text-destructive"> *</span>
@@ -262,87 +262,93 @@ export const ContractFeeLinesEditor = forwardRef<
                   )}
                 />
 
-                <div className="flex items-end justify-between gap-2 md:col-span-3">
-                  <div className="min-w-0 pb-1">
-                    <span className="block text-xs text-muted-foreground">
+                <div className="grid min-w-0 grid-cols-[4rem_auto_minmax(0,1fr)_auto_minmax(0,1.15fr)] items-end gap-1 md:col-span-8">
+                  <FormField
+                    control={form.control}
+                    name={`lines.${index}.quantity`}
+                    render={({ field: inputField }) => (
+                      <FormItem variant="compact" className="min-w-0">
+                        <FormLabel>Số lượng</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="any"
+                            variant="ghost"
+                            value={inputField.value}
+                            onChange={(event) => {
+                              inputField.onChange(
+                                event.target.value === ''
+                                  ? 0
+                                  : Number(event.target.value),
+                              );
+                              syncParent();
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <span className="shrink-0 pb-2 text-sm text-muted-foreground">
+                    ×
+                  </span>
+
+                  <FormField
+                    control={form.control}
+                    name={`lines.${index}.unitPrice`}
+                    render={({ field: inputField }) => (
+                      <FormItem variant="compact" className="min-w-0">
+                        <FormLabel>Đơn giá</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="any"
+                            variant="ghost"
+                            value={inputField.value}
+                            onChange={(event) => {
+                              inputField.onChange(
+                                event.target.value === ''
+                                  ? 0
+                                  : Number(event.target.value),
+                              );
+                              syncParent();
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <span className="shrink-0 pb-2 text-sm text-muted-foreground">
+                    =
+                  </span>
+
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="block text-xs font-medium text-muted-foreground">
                       Thành tiền
                     </span>
-                    <span className="block truncate text-sm font-semibold tabular-nums">
+                    <span className="flex h-8.5 min-w-0 items-center truncate px-2.5 text-sm font-semibold tabular-nums">
                       {new Intl.NumberFormat('vi-VN').format(amount)} VND
                     </span>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    mode="icon"
-                    size="sm"
-                    className="shrink-0 text-destructive hover:text-destructive"
-                    aria-label={`Xóa khoản phí ${index + 1}`}
-                    disabled={fields.length === 1}
-                    onClick={() => removeLine(index)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name={`lines.${index}.quantity`}
-                  render={({ field: inputField }) => (
-                    <FormItem
-                      variant="compact"
-                      className="md:col-span-2 md:col-start-1"
-                    >
-                      <FormLabel>Số lượng</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="any"
-                          variant="md"
-                          value={inputField.value}
-                          onChange={(event) => {
-                            inputField.onChange(
-                              event.target.value === ''
-                                ? 0
-                                : Number(event.target.value),
-                            );
-                            syncParent();
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name={`lines.${index}.unitPrice`}
-                  render={({ field: inputField }) => (
-                    <FormItem variant="compact" className="md:col-span-3">
-                      <FormLabel>Đơn giá</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="any"
-                          variant="md"
-                          value={inputField.value}
-                          onChange={(event) => {
-                            inputField.onChange(
-                              event.target.value === ''
-                                ? 0
-                                : Number(event.target.value),
-                            );
-                            syncParent();
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  mode="icon"
+                  size="sm"
+                  className="absolute end-2 top-2 text-destructive hover:text-destructive"
+                  aria-label={`Xóa khoản phí ${index + 1}`}
+                  disabled={fields.length === 1}
+                  onClick={() => removeLine(index)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
 
                 <FormField
                   control={form.control}
