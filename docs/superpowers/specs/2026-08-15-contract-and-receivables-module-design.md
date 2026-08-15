@@ -82,6 +82,46 @@ Theo quyết định hiện tại của project, môi trường Supabase demo ch
 
 Dù chưa có RLS, tất cả bảng mới vẫn phải có `tenant_id`; API luôn lọc theo tenant và kiểm tra permission ở application layer.
 
+### 3.6. Kiến trúc khi chưa có backend riêng
+
+Trong giai đoạn demo, Supabase PostgreSQL được dùng như một backend mỏng. Không đặt toàn bộ logic công nợ ở frontend.
+
+Frontend phụ trách:
+
+- Form, validation và trạng thái loading.
+- Tính preview phân bổ local để phản hồi nhanh.
+- Gọi API/RPC và hiển thị kết quả.
+
+Supabase PostgreSQL phụ trách:
+
+- Lưu contracts, versions, charges, payments và allocations.
+- Transaction ghi nhận payment cùng các allocation.
+- Kiểm tra tenant, customer, currency và số dư charge.
+- Publish version và ngăn chồng lấn thời gian hiệu lực.
+- Sinh charge định kỳ theo cơ chế idempotent.
+- Tổng hợp công nợ qua view hoặc query projection.
+
+Các nghiệp vụ nhiều bước phải được đóng gói thành database function và gọi qua RPC/REST:
+
+```text
+preview_payment_allocation(...)
+record_customer_payment(...)
+publish_contract_version(...)
+ensure_contract_charges(...)
+```
+
+Luồng ghi nhận thanh toán:
+
+1. Frontend gửi customer, amount và thông tin thanh toán.
+2. RPC kiểm tra lại các charge và tính hoặc xác nhận allocation.
+3. RPC tạo payment và allocations trong cùng một transaction.
+4. RPC cập nhật trạng thái charge.
+5. RPC trả về summary công nợ mới.
+
+Frontend không được tự ghi lần lượt payment rồi allocations vì request có thể lỗi giữa chừng, tạo dữ liệu không nhất quán.
+
+Trong demo, `ensure_contract_charges` có thể được gọi khi mở module hoặc khi xem công nợ đến một ngày cụ thể. Khi cần tự động hóa, dùng Supabase Cron hoặc Edge Function để gọi function này định kỳ. Khi backend riêng được bổ sung, chỉ thay lớp service RPC bằng API backend; model và contract của frontend được giữ nguyên.
+
 ## 4. Mô hình nghiệp vụ
 
 ```mermaid
