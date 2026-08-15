@@ -8,17 +8,16 @@ import {
   CardHeading,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Customer } from '../model/customer';
 
-type CustomerDetailTab = {
+export type CustomerDetailTab = {
   value: string;
   label: string;
   icon: LucideIcon;
   description: string;
 };
 
-const CUSTOMER_DETAIL_TABS: CustomerDetailTab[] = [
+export const CUSTOMER_DETAIL_TAB_CONTENT: CustomerDetailTab[] = [
   {
     value: 'contracts',
     label: 'Hợp đồng',
@@ -39,7 +38,7 @@ const CUSTOMER_DETAIL_TABS: CustomerDetailTab[] = [
   },
 ];
 
-function CustomerDetailTabPlaceholder({
+export function CustomerDetailTabContent({
   customer,
   tab,
 }: {
@@ -71,33 +70,5 @@ function CustomerDetailTabPlaceholder({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-export function CustomerDetailTabs({ customer }: { customer: Customer }) {
-  return (
-    <Tabs defaultValue={CUSTOMER_DETAIL_TABS[0].value} className="min-w-0">
-      <TabsList
-        variant="line"
-        size="md"
-        className="w-full min-w-0 justify-start overflow-x-auto"
-      >
-        {CUSTOMER_DETAIL_TABS.map((tab) => {
-          const Icon = tab.icon;
-
-          return (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              <Icon className="size-4" />
-              {tab.label}
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-      {CUSTOMER_DETAIL_TABS.map((tab) => (
-        <TabsContent key={tab.value} value={tab.value}>
-          <CustomerDetailTabPlaceholder customer={customer} tab={tab} />
-        </TabsContent>
-      ))}
-    </Tabs>
   );
 }

@@ -24,9 +24,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  EntityDetailInformationCard,
+  EntityDetailProfileCard,
+} from '@/components/layouts/entity-detail-layout';
 import { deleteCustomer, loadCustomerDetail } from '../api/customers.api';
 import { CustomerAvatar } from '../components/customer-avatar';
-import { CustomerDetailTabs } from '../components/customer-detail-tabs';
+import { CustomerDetailLayout } from '../components/customer-detail-layout.generated';
+import {
+  CUSTOMER_DETAIL_TAB_CONTENT,
+  CustomerDetailTabContent,
+} from '../components/customer-detail-tab-content';
 import {
   BUSINESS_TYPE_LABELS,
   CUSTOMER_STATUS_LABELS,
@@ -46,47 +54,40 @@ function DetailValue({ label, value }: { label: string; value: string }) {
 
 function CustomerProfileCard({ customer }: { customer: Customer }) {
   return (
-    <Card className="h-full">
-      <CardContent className="flex flex-col items-center p-6 text-center">
+    <EntityDetailProfileCard
+      avatar={
         <CustomerAvatar
           customer={customer}
           className="size-24 rounded-2xl text-2xl"
         />
-        <h1 className="mt-4 text-xl font-semibold text-foreground">
-          {customer.name}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {customer.customerCode}
-        </p>
-        <div className="mt-6 w-full space-y-3 border-t border-border pt-5 text-left">
-          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-            <Phone className="size-4 shrink-0" />
-            <span className="truncate">
-              {customer.phone || 'Chưa có số điện thoại'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-            <Mail className="size-4 shrink-0" />
-            <span className="truncate">
-              {customer.email || 'Chưa có email'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-            <Building2 className="size-4 shrink-0" />
-            <span className="truncate">
-              {BUSINESS_TYPE_LABELS[customer.businessType]}
-            </span>
-          </div>
-          <Tag
-            size="sm"
-            shape="circle"
-            color={customer.status === 'active' ? '#16a34a' : '#64748b'}
-          >
-            {CUSTOMER_STATUS_LABELS[customer.status]}
-          </Tag>
-        </div>
-      </CardContent>
-    </Card>
+      }
+      title={customer.name}
+      subtitle={customer.customerCode}
+    >
+      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+        <Phone className="size-4 shrink-0" />
+        <span className="truncate">
+          {customer.phone || 'Chưa có số điện thoại'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+        <Mail className="size-4 shrink-0" />
+        <span className="truncate">{customer.email || 'Chưa có email'}</span>
+      </div>
+      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+        <Building2 className="size-4 shrink-0" />
+        <span className="truncate">
+          {BUSINESS_TYPE_LABELS[customer.businessType]}
+        </span>
+      </div>
+      <Tag
+        size="sm"
+        shape="circle"
+        color={customer.status === 'active' ? '#16a34a' : '#64748b'}
+      >
+        {CUSTOMER_STATUS_LABELS[customer.status]}
+      </Tag>
+    </EntityDetailProfileCard>
   );
 }
 
@@ -104,39 +105,9 @@ function CustomerInformationCard({
   );
 
   return (
-    <Card className="h-full">
-      <CardContent className="flex h-full flex-col">
-        <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
-          <DetailValue label="Mã khách hàng" value={customer.customerCode} />
-          <DetailValue
-            label="Loại hình đơn vị"
-            value={BUSINESS_TYPE_LABELS[customer.businessType]}
-          />
-          <DetailValue
-            label="Mã số thuế / QHNS / ĐKKD"
-            value={customer.businessRegistrationCode}
-          />
-          <DetailValue
-            label="Quốc gia"
-            value={country?.label ?? customer.countryCode}
-          />
-          <DetailValue label="Tỉnh/Thành phố" value={customer.regionName} />
-          <DetailValue
-            label="Địa chỉ chi tiết"
-            value={customer.addressDetail}
-          />
-          <DetailValue label="Số điện thoại" value={customer.phone} />
-          <DetailValue label="Email" value={customer.email} />
-        </dl>
-        {customer.note ? (
-          <div className="mt-6 flex gap-2.5 border-t border-border pt-5 text-sm">
-            <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-            <p className="whitespace-pre-wrap text-muted-foreground">
-              {customer.note}
-            </p>
-          </div>
-        ) : null}
-        <div className="mt-auto flex justify-end gap-1 pt-6">
+    <EntityDetailInformationCard
+      actions={
+        <>
           <Button type="button" variant="ghost" onClick={onEdit}>
             <Pencil />
             Sửa thông tin
@@ -156,9 +127,37 @@ function CustomerInformationCard({
             </TooltipTrigger>
             <TooltipContent>Xóa khách hàng</TooltipContent>
           </Tooltip>
+        </>
+      }
+    >
+      <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+        <DetailValue label="Mã khách hàng" value={customer.customerCode} />
+        <DetailValue
+          label="Loại hình đơn vị"
+          value={BUSINESS_TYPE_LABELS[customer.businessType]}
+        />
+        <DetailValue
+          label="Mã số thuế / QHNS / ĐKKD"
+          value={customer.businessRegistrationCode}
+        />
+        <DetailValue
+          label="Quốc gia"
+          value={country?.label ?? customer.countryCode}
+        />
+        <DetailValue label="Tỉnh/Thành phố" value={customer.regionName} />
+        <DetailValue label="Địa chỉ chi tiết" value={customer.addressDetail} />
+        <DetailValue label="Số điện thoại" value={customer.phone} />
+        <DetailValue label="Email" value={customer.email} />
+      </dl>
+      {customer.note ? (
+        <div className="mt-6 flex gap-2.5 border-t border-border pt-5 text-sm">
+          <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <p className="whitespace-pre-wrap text-muted-foreground">
+            {customer.note}
+          </p>
         </div>
-      </CardContent>
-    </Card>
+      ) : null}
+    </EntityDetailInformationCard>
   );
 }
 
@@ -230,20 +229,39 @@ export function CustomerDetailPage() {
   const customer = customerQuery.data;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto p-6">
-      <div className="grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <CustomerProfileCard customer={customer} />
-        <CustomerInformationCard
-          customer={customer}
-          onEdit={() =>
-            navigate(ROUTES.PROJECT.CUSTOMERS, {
-              state: { editCustomerId: customer.id },
-            })
-          }
-          onDelete={() => setDeleteDialogOpen(true)}
-        />
-      </div>
-      <CustomerDetailTabs customer={customer} />
+    <>
+      <CustomerDetailLayout
+        profile={<CustomerProfileCard customer={customer} />}
+        information={
+          <CustomerInformationCard
+            customer={customer}
+            onEdit={() =>
+              navigate(ROUTES.PROJECT.CUSTOMERS, {
+                state: { editCustomerId: customer.id },
+              })
+            }
+            onDelete={() => setDeleteDialogOpen(true)}
+          />
+        }
+        contractsContent={
+          <CustomerDetailTabContent
+            customer={customer}
+            tab={CUSTOMER_DETAIL_TAB_CONTENT[0]}
+          />
+        }
+        employeesContent={
+          <CustomerDetailTabContent
+            customer={customer}
+            tab={CUSTOMER_DETAIL_TAB_CONTENT[1]}
+          />
+        }
+        reportsContent={
+          <CustomerDetailTabContent
+            customer={customer}
+            tab={CUSTOMER_DETAIL_TAB_CONTENT[2]}
+          />
+        }
+      />
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
@@ -253,6 +271,6 @@ export function CustomerDetailPage() {
         confirmVariant="destructive"
         onConfirm={() => deleteMutation.mutate(customer.id)}
       />
-    </div>
+    </>
   );
 }

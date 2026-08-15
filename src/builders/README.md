@@ -23,6 +23,7 @@ and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 | `account-menu` | Dropdown menu content with groups, items, badges, switches, values, and radio submenus                    | `AccountMenuSpec` (`@/builders/account-menu`) | `npm run gen:account-menu -- <spec> <out>` | building reusable account/user menus                    | [`docs/builders/account-menu.md`](../../docs/builders/account-menu.md) |
 
 | `layout` | `<Component>` wrapper with navigation/content slots, width presets, height modes, and resize config | `LayoutSpec` (`@/builders/layout`) | `npm run gen:layout -- <spec> <out>` | building reusable two-area content layouts | [`docs/builders/layout.md`](../../docs/builders/layout.md) |
+| `detail` | Entity detail shell with profile/information slots and generated line tabs | `DetailSpec` (`@/builders/detail`) | `npm run gen:detail -- <spec> <out>` | building reusable entity detail pages | [`docs/builders/detail.md`](../../docs/builders/detail.md) |
 | `chart` | Recharts chart component with series, axes, legend, tooltip, and optional point callbacks | `ChartSpec` (`@/builders/chart`) | `npm run gen:chart -- <spec> <out>` | building repeatable chart variants | [`docs/builders/chart.md`](../../docs/builders/chart.md) |
 | `tooltip` | Chart tooltip wrapper and optional shared style provider | `TooltipSpec` (`@/builders/tooltip`) | `npm run gen:tooltip -- <spec> <out>` | standardizing tooltip presentation across charts | [`docs/builders/tooltip.md`](../../docs/builders/tooltip.md) |
 
