@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 import {
   SelectSearch,
   type SearchSelectOption,
@@ -46,6 +47,7 @@ export function CustomerSelect({
   searchPlaceholder = 'Tìm khách hàng...',
   emptyMessage = 'Không tìm thấy khách hàng',
   disabled = false,
+  className,
   onSelect,
   ...props
 }: CustomerSelectProps) {
@@ -80,6 +82,10 @@ export function CustomerSelect({
       loadingMessage="Đang tải danh sách khách hàng..."
       disabled={disabled || !userId}
       renderOption={(option) => option.label}
+      className={cn(
+        'h-auto min-h-14 border-transparent bg-transparent py-2 shadow-none hover:bg-accent data-[state=open]:bg-accent',
+        className,
+      )}
       onSelect={(option) => onSelect?.(option?.data)}
     />
   );

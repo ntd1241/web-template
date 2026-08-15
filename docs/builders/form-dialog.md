@@ -78,6 +78,8 @@ field schema and mapped to runtime controls by the field renderer.
 
 Width presets use the responsive 12-column grid: `normal` is 6 columns, `large` is 8, and `full` is 12. Fields stack on mobile. If a field omits `width`, the builder defaults it to `full`; use `normal` or `large` only when a field is intentionally part of a split row.
 
+Set `breakBefore: true` when a field should begin at the first desktop grid column, leaving the unused columns from the previous field on their own row.
+
 Use `modes: ['create']` or `modes: ['edit']` when a field belongs to only one
 dialog mode. The generated inline form receives the dialog's `mode` automatically;
 fields without `modes` remain visible in both modes. Keep the field in the shared

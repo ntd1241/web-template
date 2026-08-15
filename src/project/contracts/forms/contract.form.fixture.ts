@@ -12,7 +12,7 @@ const spec: FormSpec = {
       kind: 'customerSelect',
       name: 'customerId',
       label: 'Khách hàng',
-      width: 'full',
+      width: 'normal',
       placeholder: 'Chọn khách hàng',
       required: true,
     },
@@ -21,6 +21,7 @@ const spec: FormSpec = {
       name: 'contractCode',
       label: 'Mã hợp đồng',
       width: 'normal',
+      breakBefore: true,
       required: true,
     },
     {
@@ -29,13 +30,6 @@ const spec: FormSpec = {
       label: 'Tên hợp đồng',
       width: 'normal',
       required: true,
-    },
-    {
-      kind: 'select',
-      name: 'currencyCode',
-      label: 'Loại tiền',
-      width: 'normal',
-      options: [{ value: 'VND', label: 'VND - Việt Nam đồng' }],
     },
     {
       kind: 'date',

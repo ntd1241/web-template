@@ -39,6 +39,28 @@ describe('buildFormModule', () => {
     expect(source).toContain('className="md:col-span-12"'); // full
   });
 
+  it('can start a field on a new desktop grid row', () => {
+    const source = buildFormModule({
+      entity: 'Employee',
+      schemaImport: './employee-form.schema',
+      schemaName: 'employeeFormSchema',
+      valuesType: 'EmployeeFormValues',
+      title: 'Tạo nhân viên',
+      fields: [
+        { kind: 'text', name: 'name', label: 'Tên', width: 'normal' },
+        {
+          kind: 'text',
+          name: 'code',
+          label: 'Mã',
+          width: 'normal',
+          breakBefore: true,
+        },
+      ],
+    });
+
+    expect(source).toContain('className="md:col-span-6 md:col-start-1"');
+  });
+
   it('binds each kind correctly', () => {
     expect(source).toContain(
       '<Input placeholder="vd: NCC-001" variant="md" {...field} />',

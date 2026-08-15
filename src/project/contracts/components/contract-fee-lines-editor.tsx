@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle } from 'react';
+import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -71,6 +72,7 @@ export interface ContractFeeLinesEditorRef {
 interface ContractFeeLinesEditorProps {
   lines: ContractVersionLineValuesForApi[];
   onChange: (lines: ContractVersionLineValuesForApi[]) => void;
+  currencyField?: ReactNode;
 }
 
 function toApiLines(
@@ -82,7 +84,7 @@ function toApiLines(
 export const ContractFeeLinesEditor = forwardRef<
   ContractFeeLinesEditorRef,
   ContractFeeLinesEditorProps
->(function ContractFeeLinesEditor({ lines, onChange }, ref) {
+>(function ContractFeeLinesEditor({ lines, onChange, currencyField }, ref) {
   const form = useForm<ContractFeeLinesFormValues>({
     resolver: zodResolver(contractFeeLinesFormSchema),
     mode: 'onChange',
@@ -129,13 +131,14 @@ export const ContractFeeLinesEditor = forwardRef<
 
   return (
     <Form {...form}>
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            Các khoản phí
-          </h3>
-        </div>
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <h3 className="text-sm font-semibold text-foreground">Các khoản phí</h3>
+        {currencyField ? (
+          <div className="w-full max-w-48">{currencyField}</div>
+        ) : null}
+      </div>
 
+      <section className="mt-3 space-y-3">
         <div className="space-y-3">
           {fields.map((field, index) => {
             const line = watchedLines[index] ?? field;

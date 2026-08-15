@@ -37,6 +37,7 @@ import {
   updateContract,
   type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
+import { ContractCurrencyField } from '../components/contract-currency-field';
 import {
   ContractFeeLinesEditor,
   createDefaultContractFeeLine,
@@ -296,7 +297,11 @@ export function ContractsPage() {
         form={form}
         onSubmit={handleSubmit}
         lineEditor={
-          <ContractFeeLinesEditor lines={feeLines} onChange={setFeeLines} />
+          <ContractFeeLinesEditor
+            lines={feeLines}
+            onChange={setFeeLines}
+            currencyField={<ContractCurrencyField form={form} />}
+          />
         }
         isSaving={saveMutation.isPending || editDetailQuery.isFetching}
         title={editingContract ? 'Sửa hợp đồng' : 'Thêm hợp đồng'}

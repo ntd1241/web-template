@@ -36,6 +36,12 @@ function span(field: FormFieldSpec): string {
   return FORM_WIDTH_SPAN[field.width ?? 'full'];
 }
 
+function itemClass(field: FormFieldSpec): string {
+  return [span(field), field.breakBefore ? 'md:col-start-1' : undefined]
+    .filter(Boolean)
+    .join(' ');
+}
+
 const LOCAL_OPTION_KINDS = new Set([
   'select',
   'combobox',
@@ -190,16 +196,16 @@ function controlJsx(field: FormFieldSpec): string {
 function emitField(field: FormFieldSpec): string {
   const item =
     field.kind === 'switch'
-      ? `<FormItem className="${span(field)} flex-row items-center gap-2.5">
+      ? `<FormItem className="${itemClass(field)} flex-row items-center gap-2.5">
   ${controlJsx(field)}
   <FormLabel className="font-normal text-foreground">${field.label}</FormLabel>
 </FormItem>`
       : field.kind === 'image'
-        ? `<FormItem className="${span(field)}">
+        ? `<FormItem className="${itemClass(field)}">
   ${controlJsx(field)}
   <FormMessage />
 </FormItem>`
-        : `<FormItem className="${span(field)}">
+        : `<FormItem className="${itemClass(field)}">
   <FormLabel>${labelJsx(field)}</FormLabel>
   ${controlJsx(field)}
   <FormMessage />

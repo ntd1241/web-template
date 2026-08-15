@@ -41,6 +41,8 @@ const base = {
   name: fieldName,
   label: z.string().min(1),
   width,
+  /** Start this field at the first desktop grid column, leaving the previous row's remainder empty. */
+  breakBefore: z.boolean().optional(),
   required: z.boolean().optional(),
   placeholder: z.string().optional(),
   /** Restrict this field to one dialog mode; omitted means both modes. */

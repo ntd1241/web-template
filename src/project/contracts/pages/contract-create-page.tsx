@@ -48,6 +48,7 @@ import {
   loadContractCreationWorkspace,
   type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
+import { ContractCurrencyField } from '../components/contract-currency-field';
 import {
   ContractFeeLinesEditor,
   createDefaultContractFeeLine,
@@ -285,6 +286,7 @@ export function ContractCreatePage() {
                     ref={feeLinesEditorRef}
                     lines={feeLines}
                     onChange={setFeeLines}
+                    currencyField={<ContractCurrencyField form={form} />}
                   />
                 </div>
               </StepperContent>

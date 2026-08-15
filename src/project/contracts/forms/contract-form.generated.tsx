@@ -32,13 +32,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -48,8 +41,6 @@ import {
   type Contract,
   type ContractFormValues,
 } from '../model/contract';
-
-const currencyCodeOptions = [{ value: 'VND', label: 'VND - Việt Nam đồng' }];
 
 export const contractDefaultValues: ContractFormValues = {
   customerId: '',
@@ -112,7 +103,7 @@ export function ContractForm({
             control={form.control}
             name="customerId"
             render={({ field }) => (
-              <FormItem className="md:col-span-12">
+              <FormItem className="md:col-span-6">
                 <FormLabel>
                   Khách hàng<span className="text-destructive"> *</span>
                 </FormLabel>
@@ -133,7 +124,7 @@ export function ContractForm({
             control={form.control}
             name="contractCode"
             render={({ field }) => (
-              <FormItem className="md:col-span-6">
+              <FormItem className="md:col-span-6 md:col-start-1">
                 <FormLabel>
                   Mã hợp đồng<span className="text-destructive"> *</span>
                 </FormLabel>
@@ -156,31 +147,6 @@ export function ContractForm({
                 <FormControl>
                   <Input variant="md" {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="currencyCode"
-            render={({ field }) => (
-              <FormItem className="md:col-span-6">
-                <FormLabel>Loại tiền</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {currencyCodeOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
