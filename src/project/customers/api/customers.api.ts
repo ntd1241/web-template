@@ -70,6 +70,43 @@ export interface CustomerWorkspace {
   customers: Customer[];
 }
 
+export type CustomerSelectOption = Pick<
+  Customer,
+  'id' | 'customerCode' | 'name' | 'imageUrl'
+>;
+
+interface CustomerSelectRow {
+  id: string;
+  customer_code: string;
+  name: string;
+  image_url: string | null;
+}
+
+export async function loadCustomerSelectOptions(
+  userId: string,
+): Promise<CustomerSelectOption[]> {
+  assertSupabaseConfigured();
+  const tenantId = await resolveTenantId(userId);
+  const rows = await request<CustomerSelectRow[]>(
+    supabaseApi.get(
+      '/customers',
+      queryParams({
+        select: 'id,customer_code,name,image_url',
+        tenant_id: `eq.${tenantId}`,
+        status: 'eq.active',
+        order: 'name.asc',
+      }),
+    ),
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    customerCode: row.customer_code,
+    name: row.name,
+    imageUrl: row.image_url,
+  }));
+}
+
 export async function loadCustomerRegionOptions() {
   assertSupabaseConfigured();
   const rows = await request<RegionRow[]>(

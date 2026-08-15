@@ -38,7 +38,17 @@ interface CustomerOptionRow {
 export interface ContractWorkspace {
   tenantId: string;
   contracts: Contract[];
-  customerOptions: { value: string; label: string }[];
+}
+
+export interface ContractCreationWorkspace {
+  tenantId: string;
+}
+
+export async function loadContractCreationWorkspace(
+  userId: string,
+): Promise<ContractCreationWorkspace> {
+  assertSupabaseConfigured();
+  return { tenantId: await resolveTenantId(userId) };
 }
 
 export interface ContractDetail extends Contract {
@@ -179,10 +189,6 @@ export async function loadContractWorkspace(
   return {
     tenantId,
     contracts,
-    customerOptions: customerRows.map((row) => ({
-      value: row.id,
-      label: `${row.name} · ${row.customer_code}`,
-    })),
   };
 }
 

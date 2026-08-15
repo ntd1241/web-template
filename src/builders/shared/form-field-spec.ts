@@ -65,6 +65,10 @@ export const apiSearchSelectFieldControlSchema = z.object({
   debounceMs: z.number().int().nonnegative().optional(),
 });
 
+export const customerSelectFieldControlSchema = z.object({
+  kind: z.literal('customerSelect'),
+});
+
 export const multiselectFieldControlSchema = z.object({
   kind: z.literal('multiselect'),
   options: z.array(optionSchema).optional(),
@@ -87,6 +91,7 @@ export const formFieldControlSchemas = {
   combobox: comboboxFieldControlSchema,
   searchSelect: searchSelectFieldControlSchema,
   apiSearchSelect: apiSearchSelectFieldControlSchema,
+  customerSelect: customerSelectFieldControlSchema,
   multiselect: multiselectFieldControlSchema,
   switch: switchFieldControlSchema,
 } as const;
@@ -101,6 +106,7 @@ export const formFieldControlSchema = z.discriminatedUnion('kind', [
   comboboxFieldControlSchema,
   searchSelectFieldControlSchema,
   apiSearchSelectFieldControlSchema,
+  customerSelectFieldControlSchema,
   multiselectFieldControlSchema,
   switchFieldControlSchema,
 ]);
@@ -121,6 +127,9 @@ export type SharedSearchSelectFieldControl = z.infer<
 >;
 export type SharedApiSearchSelectFieldControl = z.infer<
   typeof apiSearchSelectFieldControlSchema
+>;
+export type SharedCustomerSelectFieldControl = z.infer<
+  typeof customerSelectFieldControlSchema
 >;
 export type SharedMultiselectFieldControl = z.infer<
   typeof multiselectFieldControlSchema

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   apiSearchSelectFieldControlSchema,
   comboboxFieldControlSchema,
+  customerSelectFieldControlSchema,
   dateFieldControlSchema,
   imageFieldControlSchema,
   multiselectFieldControlSchema,
@@ -64,6 +65,8 @@ const searchSelectField = searchSelectFieldControlSchema.extend(base);
 
 const apiSearchSelectField = apiSearchSelectFieldControlSchema.extend(base);
 
+const customerSelectField = customerSelectFieldControlSchema.extend(base);
+
 const multiselectField = multiselectFieldControlSchema.extend(base);
 
 const switchField = switchFieldControlSchema.extend(base);
@@ -78,6 +81,7 @@ export const formFieldSchema = z.discriminatedUnion('kind', [
   comboboxField,
   searchSelectField,
   apiSearchSelectField,
+  customerSelectField,
   multiselectField,
   switchField,
 ]);

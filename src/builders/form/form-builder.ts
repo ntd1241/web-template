@@ -308,6 +308,11 @@ function emitImports(spec: FormSpec): string {
       );
     }
   }
+  if (kinds.has('customerSelect')) {
+    lines.push(
+      "import { CustomerSelect } from '@/project/customers/components/customer-select';",
+    );
+  }
   if (kinds.has('multiselect')) {
     lines.push("import { MultiSelect } from '@/components/ui/multi-select';");
     lines.push(

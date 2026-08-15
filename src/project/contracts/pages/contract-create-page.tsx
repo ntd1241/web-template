@@ -1,5 +1,6 @@
 import { Fragment, useRef, useState } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
+import type { CustomerSelectOption } from '@/project/customers/components/customer-select';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -44,7 +45,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   createContract,
-  loadContractWorkspace,
+  loadContractCreationWorkspace,
   type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
 import {
@@ -85,6 +86,8 @@ export function ContractCreatePage() {
   const userId = useAuthStore((state) => state.user?.id);
   const [step, setStep] = useState(1);
   const [maxStep, setMaxStep] = useState(1);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<CustomerSelectOption>();
   const feeLinesEditorRef = useRef<ContractFeeLinesEditorRef>(null);
   const form = useContractForm();
   const [feeLines, setFeeLines] = useState<ContractVersionLineValuesForApi[]>([
@@ -95,7 +98,7 @@ export function ContractCreatePage() {
     queryKey: ['project', 'contracts', 'create-options', userId],
     queryFn: () => {
       if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadContractWorkspace(userId);
+      return loadContractCreationWorkspace(userId);
     },
     enabled: Boolean(userId),
   });
@@ -126,9 +129,11 @@ export function ContractCreatePage() {
   });
 
   const values = form.watch();
-  const customerLabel = workspaceQuery.data?.customerOptions.find(
-    (option) => option.value === values.customerId,
-  )?.label;
+  const customerLabel = selectedCustomer
+    ? `${selectedCustomer.name} · ${selectedCustomer.customerCode}`
+    : values.customerId
+      ? 'Đã chọn khách hàng'
+      : 'Chưa chọn';
   const totalAmount = feeLines.reduce(
     (total, line) => total + line.quantity * line.unitPrice,
     0,
@@ -269,7 +274,7 @@ export function ContractCreatePage() {
                   <ContractForm
                     form={form}
                     onSubmit={() => undefined}
-                    customerIdOptions={workspaceQuery.data.customerOptions}
+                    onCustomerSelect={setSelectedCustomer}
                   />
                 </div>
               </StepperContent>
@@ -287,10 +292,7 @@ export function ContractCreatePage() {
               <StepperContent value={3} className="px-6 pb-6">
                 <div className="mx-auto max-w-5xl space-y-5">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <ReviewValue
-                      label="Khách hàng"
-                      value={customerLabel ?? 'Chưa chọn'}
-                    />
+                    <ReviewValue label="Khách hàng" value={customerLabel} />
                     <ReviewValue
                       label="Mã hợp đồng"
                       value={values.contractCode}

@@ -385,12 +385,6 @@ export function ContractDetailPage() {
         mode="edit"
         form={form}
         onSubmit={handleSubmit}
-        customerIdOptions={[
-          {
-            value: contract.customerId,
-            label: `${contract.customer.name} · ${contract.customer.customerCode}`,
-          },
-        ]}
         lineEditor={
           <ContractFeeLinesEditor lines={feeLines} onChange={setFeeLines} />
         }

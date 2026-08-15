@@ -8,6 +8,8 @@
  * bypassed builder.
  */
 import { useState, type KeyboardEvent, type ReactNode } from 'react';
+import { CustomerSelect } from '@/project/customers/components/customer-select';
+import type { CustomerSelectOption } from '@/project/customers/components/customer-select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
@@ -37,8 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SelectSearch } from '@/components/ui/select-search';
-import type { SearchSelectOption } from '@/components/ui/select-search';
 import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -93,16 +93,16 @@ interface ContractFormProps {
   form: UseFormReturn<ContractFormValues>;
   onSubmit: (values: ContractFormValues) => void;
   id?: string;
-  customerIdOptions: SearchSelectOption[];
   lineEditor?: ReactNode;
+  onCustomerSelect?: (customer: CustomerSelectOption | undefined) => void;
 }
 
 export function ContractForm({
   form,
   onSubmit,
   id = 'contract-form',
-  customerIdOptions,
   lineEditor,
+  onCustomerSelect,
 }: ContractFormProps) {
   return (
     <Form {...form}>
@@ -117,10 +117,10 @@ export function ContractForm({
                   Khách hàng<span className="text-destructive"> *</span>
                 </FormLabel>
                 <FormControl>
-                  <SelectSearch
+                  <CustomerSelect
                     value={field.value}
                     onChange={field.onChange}
-                    options={customerIdOptions}
+                    onSelect={onCustomerSelect}
                     placeholder="Chọn khách hàng"
                   />
                 </FormControl>
@@ -323,8 +323,8 @@ interface ContractFormDialogProps {
   onSubmit: (values: ContractFormValues) => void;
   isSaving?: boolean;
   title?: string;
-  customerIdOptions: SearchSelectOption[];
   lineEditor?: ReactNode;
+  onCustomerSelect?: (customer: CustomerSelectOption | undefined) => void;
 }
 
 export function ContractFormDialog({
@@ -335,8 +335,8 @@ export function ContractFormDialog({
   onSubmit,
   isSaving = false,
   title,
-  customerIdOptions,
   lineEditor,
+  onCustomerSelect,
 }: ContractFormDialogProps) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -385,8 +385,8 @@ export function ContractFormDialog({
               form={form}
               onSubmit={onSubmit}
               id="contract-form"
-              customerIdOptions={customerIdOptions}
               lineEditor={lineEditor}
+              onCustomerSelect={onCustomerSelect}
             />
           </div>
 

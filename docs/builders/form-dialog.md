@@ -68,6 +68,7 @@ Static select-like options are emitted as module constants only when `optionsFro
 | `combobox`        | `SelectSearch`        | `value` and `onChange` (legacy alias)                        |
 | `searchSelect`    | `SelectSearch`        | `value` and `onChange`                                       |
 | `apiSearchSelect` | `ApiSelectSearch`     | `value` and `onChange`, plus a generated loader prop         |
+| `customerSelect`  | `CustomerSelect`      | `value` and `onChange`; the component owns customer fetching |
 | `multiselect`     | `MultiSelect`         | `value` and `onChange`                                       |
 | `switch`          | `Switch`              | `checked` and `onCheckedChange`                              |
 

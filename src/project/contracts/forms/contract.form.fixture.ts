@@ -9,11 +9,10 @@ const spec: FormSpec = {
   specPath: 'src/project/contracts/forms/contract.form.fixture.ts',
   fields: [
     {
-      kind: 'searchSelect',
+      kind: 'customerSelect',
       name: 'customerId',
       label: 'Khách hàng',
       width: 'full',
-      optionsFrom: 'prop',
       placeholder: 'Chọn khách hàng',
       required: true,
     },

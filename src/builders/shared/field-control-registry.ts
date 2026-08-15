@@ -68,6 +68,12 @@ export const FORM_FIELD_CONTROL = {
     optionType: 'SearchSelectOption',
     importName: 'ApiSelectSearch',
   },
+  customerSelect: {
+    binding: 'valueOnChange',
+    defaultLiteral: "''",
+    hasOptions: false,
+    importName: 'CustomerSelect',
+  },
   multiselect: {
     binding: 'valueOnChange',
     defaultLiteral: '[]',

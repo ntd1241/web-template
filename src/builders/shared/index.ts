@@ -13,6 +13,7 @@ export {
 export {
   dateFieldControlSchema,
   apiSearchSelectFieldControlSchema,
+  customerSelectFieldControlSchema,
   comboboxFieldControlSchema,
   formFieldControlSchema,
   formFieldControlSchemas,
@@ -26,6 +27,7 @@ export {
   type SharedDateFieldControl,
   type SharedComboboxFieldControl,
   type SharedApiSearchSelectFieldControl,
+  type SharedCustomerSelectFieldControl,
   type SharedSearchSelectFieldControl,
   type SharedMultiselectFieldControl,
   type SharedNumberFieldControl,

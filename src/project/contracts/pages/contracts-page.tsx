@@ -295,7 +295,6 @@ export function ContractsPage() {
         mode={editingContract ? 'edit' : 'create'}
         form={form}
         onSubmit={handleSubmit}
-        customerIdOptions={workspaceQuery.data?.customerOptions ?? []}
         lineEditor={
           <ContractFeeLinesEditor lines={feeLines} onChange={setFeeLines} />
         }

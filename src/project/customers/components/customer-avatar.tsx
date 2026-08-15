@@ -6,7 +6,9 @@ import {
 } from '@/components/common/gradient-avatar';
 import type { Customer } from '../model/customer';
 
-export function getCustomerInitials(customer: Customer) {
+type CustomerAvatarData = Pick<Customer, 'name' | 'imageUrl'>;
+
+export function getCustomerInitials(customer: CustomerAvatarData) {
   return customer.name
     .split(/\s+/)
     .filter(Boolean)
@@ -15,7 +17,9 @@ export function getCustomerInitials(customer: Customer) {
     .join('');
 }
 
-export function getCustomerAvatarTone(customer: Customer): GradientAvatarTone {
+export function getCustomerAvatarTone(
+  customer: CustomerAvatarData,
+): GradientAvatarTone {
   const score = customer.name
     .split('')
     .reduce((total, character) => total + character.charCodeAt(0), 0);
@@ -26,7 +30,7 @@ export function CustomerAvatar({
   customer,
   className,
 }: {
-  customer: Customer;
+  customer: Pick<Customer, 'name' | 'imageUrl'>;
   className?: string;
 }) {
   const fallback = getCustomerInitials(customer);

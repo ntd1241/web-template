@@ -51,6 +51,9 @@ describe('form-field builder', () => {
     expect(
       buildFormFieldControl({ kind: 'switch', surface: 'form' }),
     ).toContain('<Switch');
+    expect(
+      buildFormFieldControl({ kind: 'customerSelect', surface: 'form' }),
+    ).toContain('<CustomerSelect');
   });
 
   it('supports a controller-owned table cell without duplicating control markup', () => {
