@@ -83,8 +83,6 @@ export const contractFormSchema = z
     startDate: isoDate,
     endDate: isoDate.nullable(),
     autoRenew: z.boolean(),
-    renewalNoticeDays: z.number().int().min(0).nullable(),
-    paymentPriority: z.number().int().min(0),
     note: z.string().trim().max(1000, 'Ghi chú không được quá 1000 ký tự.'),
   })
   .superRefine((values, context) => {
@@ -93,14 +91,6 @@ export const contractFormSchema = z
         code: 'custom',
         path: ['endDate'],
         message: 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.',
-      });
-    }
-
-    if (values.autoRenew && values.renewalNoticeDays === null) {
-      context.addIssue({
-        code: 'custom',
-        path: ['renewalNoticeDays'],
-        message: 'Vui lòng nhập số ngày nhắc gia hạn.',
       });
     }
   });
@@ -204,8 +194,6 @@ export interface Contract {
   startDate: string;
   endDate: string | null;
   autoRenew: boolean;
-  renewalNoticeDays: number | null;
-  paymentPriority: number;
   note: string;
   createdAt: string;
   updatedAt: string;
@@ -261,8 +249,6 @@ export interface ContractRow {
   start_date: string;
   end_date: string | null;
   auto_renew: boolean;
-  renewal_notice_days: number | null;
-  payment_priority: number;
   note: string;
   created_at: string;
   updated_at: string;
@@ -319,8 +305,6 @@ export function mapContractRow(row: ContractRow): Contract {
     startDate: row.start_date,
     endDate: row.end_date,
     autoRenew: row.auto_renew,
-    renewalNoticeDays: row.renewal_notice_days,
-    paymentPriority: row.payment_priority,
     note: row.note,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

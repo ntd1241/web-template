@@ -79,8 +79,6 @@ create table public.contracts (
   start_date date not null,
   end_date date,
   auto_renew boolean not null default false,
-  renewal_notice_days integer,
-  payment_priority integer not null default 0,
   note text not null default '',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
@@ -88,14 +86,7 @@ create table public.contracts (
   constraint contracts_code_not_blank check (length(btrim(contract_code)) > 0),
   constraint contracts_name_not_blank check (length(btrim(name)) > 0),
   constraint contracts_currency_code_format check (currency_code ~ '^[A-Z]{3}$'),
-  constraint contracts_date_range_check check (end_date is null or end_date >= start_date),
-  constraint contracts_renewal_notice_days_check check (
-    renewal_notice_days is null or renewal_notice_days >= 0
-  ),
-  constraint contracts_payment_priority_check check (payment_priority >= 0),
-  constraint contracts_auto_renew_notice_check check (
-    auto_renew = false or renewal_notice_days is not null
-  )
+  constraint contracts_date_range_check check (end_date is null or end_date >= start_date)
 );
 
 create index contracts_tenant_customer_idx
@@ -661,10 +652,8 @@ begin
         0
       )::numeric(18, 2) as outstanding_amount,
       charge.due_date,
-      charge.period_start,
-      contract.payment_priority
+      charge.period_start
     from public.contract_charges charge
-    join public.contracts contract on contract.id = charge.contract_id
     left join public.customer_payment_allocations allocation
       on allocation.charge_id = charge.id
     left join public.customer_payments payment
@@ -673,14 +662,13 @@ begin
       and charge.customer_id = p_customer_id
       and charge.currency_code = p_currency_code
       and charge.status <> 'voided'
-    group by charge.id, charge.amount, charge.due_date, charge.period_start, contract.payment_priority
+    group by charge.id, charge.amount, charge.due_date, charge.period_start
     having charge.amount - coalesce(sum(
       case when payment.status = 'posted' then allocation.allocated_amount else 0 end
     ), 0) > 0
     order by
       (charge.due_date < coalesce(p_received_at::date, current_date)) desc,
       charge.due_date asc,
-      contract.payment_priority desc,
       charge.period_start asc,
       charge.id
     for update of charge

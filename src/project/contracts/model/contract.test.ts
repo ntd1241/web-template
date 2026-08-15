@@ -19,8 +19,6 @@ describe('contract model', () => {
         start_date: '2026-01-01',
         end_date: null,
         auto_renew: true,
-        renewal_notice_days: 30,
-        payment_priority: 2,
         note: '',
         created_at: '2026-01-01T00:00:00Z',
         updated_at: '2026-01-01T00:00:00Z',

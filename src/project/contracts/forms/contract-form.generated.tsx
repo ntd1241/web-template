@@ -50,8 +50,6 @@ export const contractDefaultValues: ContractFormValues = {
   startDate: new Date().toISOString().slice(0, 10),
   endDate: null,
   autoRenew: false,
-  renewalNoticeDays: null,
-  paymentPriority: 0,
   note: '',
 };
 
@@ -74,8 +72,6 @@ export function mapContractToFormValues(entity: Contract): ContractFormValues {
     startDate: entity.startDate,
     endDate: entity.endDate,
     autoRenew: entity.autoRenew,
-    renewalNoticeDays: entity.renewalNoticeDays,
-    paymentPriority: entity.paymentPriority,
     note: entity.note,
   };
 }
@@ -210,53 +206,6 @@ export function ContractForm({
                 <FormLabel className="font-normal text-foreground">
                   Tự động gia hạn
                 </FormLabel>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="renewalNoticeDays"
-            render={({ field }) => (
-              <FormItem className="md:col-span-6">
-                <FormLabel>Nhắc gia hạn trước (ngày)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Không áp dụng"
-                    variant="md"
-                    value={field.value ?? ''}
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value === ''
-                          ? null
-                          : Number(event.target.value),
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="paymentPriority"
-            render={({ field }) => (
-              <FormItem className="md:col-span-6">
-                <FormLabel>Thứ tự ưu tiên thanh toán</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    variant="md"
-                    value={field.value}
-                    onChange={(event) =>
-                      field.onChange(Number(event.target.value))
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />

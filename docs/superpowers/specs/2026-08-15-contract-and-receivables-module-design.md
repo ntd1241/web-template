@@ -58,11 +58,11 @@ Tham khảo: [Stripe partial payments](https://docs.stripe.com/invoicing/partial
 
 Không dùng một trường “kỳ hạn” cho tất cả các ý nghĩa sau:
 
-| Khái niệm | Ý nghĩa | Ví dụ |
-|---|---|---|
-| Chu kỳ tính phí | Bao lâu sinh một khoản phải thu | Mỗi tháng, mỗi quý, mỗi năm |
-| Hạn thanh toán | Khi nào khoản phải thu đến hạn | Ngay khi phát sinh, sau 7 ngày, sau 30 ngày |
-| Thời hạn/gia hạn hợp đồng | Hợp đồng có hiệu lực đến khi nào và có tự gia hạn không | 01/01/2026–31/12/2026, tự gia hạn |
+| Khái niệm                 | Ý nghĩa                                                 | Ví dụ                                       |
+| ------------------------- | ------------------------------------------------------- | ------------------------------------------- |
+| Chu kỳ tính phí           | Bao lâu sinh một khoản phải thu                         | Mỗi tháng, mỗi quý, mỗi năm                 |
+| Hạn thanh toán            | Khi nào khoản phải thu đến hạn                          | Ngay khi phát sinh, sau 7 ngày, sau 30 ngày |
+| Thời hạn/gia hạn hợp đồng | Hợp đồng có hiệu lực đến khi nào và có tự gia hạn không | 01/01/2026–31/12/2026, tự gia hạn           |
 
 ### 3.2. Hợp đồng là định danh lâu dài
 
@@ -146,11 +146,7 @@ Các trường chính:
 
 ```ts
 type ContractStatus =
-  | 'draft'
-  | 'active'
-  | 'suspended'
-  | 'expired'
-  | 'terminated';
+  'draft' | 'active' | 'suspended' | 'expired' | 'terminated';
 
 interface Contract {
   id: string;
@@ -163,8 +159,6 @@ interface Contract {
   startDate: string;
   endDate: string | null;
   autoRenew: boolean;
-  renewalNoticeDays: number | null;
-  paymentPriority: number;
   note: string;
 }
 ```
@@ -180,11 +174,7 @@ Ràng buộc:
 Lưu từng snapshot chính sách của hợp đồng.
 
 ```ts
-type ContractVersionStatus =
-  | 'draft'
-  | 'effective'
-  | 'superseded'
-  | 'cancelled';
+type ContractVersionStatus = 'draft' | 'effective' | 'superseded' | 'cancelled';
 
 interface ContractVersion {
   id: string;
@@ -257,12 +247,7 @@ Một dòng là một nghĩa vụ phải thu của một kỳ hoặc một kho�
 thêm charge sau `chargeDate`.
 
 ```ts
-type ChargeStatus =
-  | 'open'
-  | 'partially_paid'
-  | 'paid'
-  | 'overdue'
-  | 'voided';
+type ChargeStatus = 'open' | 'partially_paid' | 'paid' | 'overdue' | 'voided';
 
 interface ContractCharge {
   id: string;
@@ -356,8 +341,8 @@ Khi user nhập một khoản thanh toán:
 1. Lọc các charge chưa thanh toán của khách hàng, cùng currency.
 2. Ưu tiên charge quá hạn.
 3. Ưu tiên `due_date` sớm hơn.
-4. Nếu cùng ngày, ưu tiên `payment_priority` của hợp đồng.
-5. Nếu vẫn bằng nhau, ưu tiên `period_start` sớm hơn.
+4. Nếu vẫn bằng nhau, ưu tiên `period_start` sớm hơn.
+5. Nếu vẫn bằng nhau, ưu tiên `charge.id` để kết quả ổn định.
 6. Phần tiền còn lại phân bổ tuần tự vào các charge tiếp theo.
 
 Thuật toán phải trả về preview trước khi ghi dữ liệu.
@@ -368,12 +353,12 @@ Ví dụ A = 10 triệu, B = 5 triệu, C = 15 triệu, khách trả 25 triệu 
 
 Vì vậy dialog có phần `Tùy chỉnh phân bổ` để user sửa số tiền từng dòng. Khi xác nhận, lưu allocation thực tế chứ không chỉ lưu strategy.
 
-Nếu nghiệp vụ muốn luôn ưu tiên B + C, phải có một trong hai cơ chế:
+Nếu nghiệp vụ muốn luôn ưu tiên B + C, user cần sắp xếp hoặc chỉnh số tiền từng dòng trong
+dialog preview trước khi xác nhận. Không hard-code quy tắc “số tiền lớn trước” hoặc “số tiền nhỏ
+trước” vì sẽ tạo kết quả khó đoán ở các tổ hợp khác.
 
-- cấu hình `payment_priority` trên từng hợp đồng;
-- user sắp xếp lại thứ tự trong dialog.
-
-Không hard-code quy tắc “số tiền lớn trước” hoặc “số tiền nhỏ trước” vì sẽ tạo kết quả khó đoán ở các tổ hợp khác.
+Nhắc gia hạn chưa thuộc phạm vi cấu hình từng hợp đồng. Sẽ bổ sung một setting toàn cục áp dụng
+cho tất cả hợp đồng ở phase sau.
 
 ### 7.3. Thanh toán một phần và trả thừa
 

@@ -302,8 +302,6 @@ function toContractPayload(values: ContractFormValues) {
     start_date: values.startDate,
     end_date: values.endDate,
     auto_renew: values.autoRenew,
-    renewal_notice_days: values.renewalNoticeDays,
-    payment_priority: values.paymentPriority,
     note: values.note,
   };
 }

@@ -183,18 +183,6 @@ function ContractInformationCard({
           label="Tự động gia hạn"
           value={contract.autoRenew ? 'Có' : 'Không'}
         />
-        <DetailValue
-          label="Nhắc gia hạn"
-          value={
-            contract.renewalNoticeDays === null
-              ? 'Không áp dụng'
-              : `${contract.renewalNoticeDays} ngày trước`
-          }
-        />
-        <DetailValue
-          label="Ưu tiên thanh toán"
-          value={String(contract.paymentPriority)}
-        />
       </dl>
       {contract.note ? (
         <div className="mt-6 border-t border-border pt-5 text-sm text-muted-foreground">

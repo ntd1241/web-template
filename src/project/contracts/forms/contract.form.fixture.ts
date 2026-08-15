@@ -51,19 +51,6 @@ const spec: FormSpec = {
       width: 'normal',
     },
     {
-      kind: 'number',
-      name: 'renewalNoticeDays',
-      label: 'Nhắc gia hạn trước (ngày)',
-      width: 'normal',
-      placeholder: 'Không áp dụng',
-    },
-    {
-      kind: 'number',
-      name: 'paymentPriority',
-      label: 'Thứ tự ưu tiên thanh toán',
-      width: 'normal',
-    },
-    {
       kind: 'textarea',
       name: 'note',
       label: 'Ghi chú',
