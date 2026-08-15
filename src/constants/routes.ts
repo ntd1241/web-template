@@ -30,6 +30,8 @@ export const ROUTES = {
     EMPLOYEES: '/employees',
     CUSTOMERS: '/customers',
     CUSTOMER_DETAIL: '/customers/:id',
+    CONTRACTS: '/contracts',
+    CONTRACT_DETAIL: '/contracts/:id',
     ROLE_PERMISSIONS: '/permissions',
     TAGS: '/tags',
   },

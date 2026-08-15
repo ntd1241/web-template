@@ -1,5 +1,6 @@
 import { ROUTES } from '@/constants/routes';
 import {
+  FileText,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -33,6 +34,11 @@ export const PROJECT_MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Khách hàng',
         icon: UserRoundSearch,
         path: ROUTES.PROJECT.CUSTOMERS,
+      },
+      {
+        label: 'Hợp đồng',
+        icon: FileText,
+        path: ROUTES.PROJECT.CONTRACTS,
       },
       {
         label: 'Phân quyền',

@@ -209,6 +209,10 @@ export interface Contract {
   note: string;
   createdAt: string;
   updatedAt: string;
+  customerName?: string;
+  customerCode?: string;
+  totalOutstanding?: number;
+  nextDueDate?: string | null;
 }
 
 export interface ContractVersion {
