@@ -1,4 +1,5 @@
 import type { FormSpec } from '@/builders/form';
+import { CUSTOMER_COUNTRY_OPTIONS } from '../model/customer';
 
 const spec: FormSpec = {
   entity: 'Customer',
@@ -33,6 +34,43 @@ const spec: FormSpec = {
       ],
     },
     {
+      kind: 'text',
+      name: 'businessRegistrationCode',
+      label: 'Mã số thuế / QHNS / ĐKKD',
+      width: 'normal',
+    },
+    {
+      kind: 'image',
+      name: 'imageUrl',
+      label: 'Ảnh khách hàng',
+      width: 'full',
+      accept: 'image/png,image/jpeg,image/webp',
+      maxSizeMb: 5,
+      fallbackText: 'K',
+    },
+    {
+      kind: 'select',
+      name: 'countryCode',
+      label: 'Quốc gia',
+      width: 'normal',
+      options: [...CUSTOMER_COUNTRY_OPTIONS],
+    },
+    {
+      kind: 'select',
+      name: 'regionCode',
+      label: 'Tỉnh/Thành phố',
+      width: 'normal',
+      optionsFrom: 'prop',
+      placeholder: 'Chọn tỉnh/thành phố',
+    },
+    {
+      kind: 'text',
+      name: 'regionName',
+      label: 'Tỉnh/Bang/Khu vực',
+      width: 'normal',
+      placeholder: 'Nhập khu vực hành chính',
+    },
+    {
       kind: 'select',
       name: 'status',
       label: 'Trạng thái',
@@ -41,6 +79,7 @@ const spec: FormSpec = {
         { value: 'active', label: 'Đang hoạt động' },
         { value: 'inactive', label: 'Ngừng hoạt động' },
       ],
+      modes: ['edit'],
     },
     {
       kind: 'text',
@@ -58,8 +97,8 @@ const spec: FormSpec = {
     },
     {
       kind: 'text',
-      name: 'address',
-      label: 'Địa chỉ',
+      name: 'addressDetail',
+      label: 'Địa chỉ chi tiết',
       width: 'full',
     },
     {

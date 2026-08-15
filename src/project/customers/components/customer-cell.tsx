@@ -1,3 +1,4 @@
+import { ImageAvatar } from '@/components/ui/image-avatar';
 import {
   GRADIENT_AVATAR_TONES,
   GradientAvatar,
@@ -24,11 +25,20 @@ function getAvatarTone(customer: Customer): GradientAvatarTone {
 export function CustomerCell({ customer }: { customer: Customer }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <GradientAvatar
-        fallback={getInitials(customer)}
-        tone={getAvatarTone(customer)}
-        className="shrink-0"
-      />
+      {customer.imageUrl ? (
+        <ImageAvatar
+          src={customer.imageUrl}
+          alt={customer.name}
+          fallback={getInitials(customer)}
+          className="size-9 rounded-lg text-sm"
+        />
+      ) : (
+        <GradientAvatar
+          fallback={getInitials(customer)}
+          tone={getAvatarTone(customer)}
+          className="shrink-0"
+        />
+      )}
       <div className="min-w-0">
         <div className="truncate text-sm font-semibold leading-5 text-foreground">
           {customer.name}

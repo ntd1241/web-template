@@ -24,6 +24,11 @@ import { identifierSchema } from '../shared/schema-primitives';
  */
 
 const fieldName = identifierSchema;
+const formModes = z
+  .array(z.enum(['create', 'edit']))
+  .min(1)
+  .max(2)
+  .optional();
 
 /** Width presets → column span on the desktop 12-col grid. */
 export const FORM_WIDTHS = ['normal', 'large', 'full'] as const;
@@ -35,6 +40,8 @@ const base = {
   width,
   required: z.boolean().optional(),
   placeholder: z.string().optional(),
+  /** Restrict this field to one dialog mode; omitted means both modes. */
+  modes: formModes,
 };
 
 const textField = textFieldControlSchema.extend(base);

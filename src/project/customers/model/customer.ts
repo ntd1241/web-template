@@ -17,6 +17,35 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   organization: 'Doanh nghiệp',
 };
 
+export const CUSTOMER_COUNTRY_OPTIONS = [
+  { value: 'VN', label: 'Việt Nam' },
+  { value: 'US', label: 'Hoa Kỳ' },
+  { value: 'JP', label: 'Nhật Bản' },
+  { value: 'KR', label: 'Hàn Quốc' },
+  { value: 'CN', label: 'Trung Quốc' },
+  { value: 'SG', label: 'Singapore' },
+  { value: 'TH', label: 'Thái Lan' },
+  { value: 'MY', label: 'Malaysia' },
+  { value: 'AU', label: 'Úc' },
+  { value: 'GB', label: 'Vương quốc Anh' },
+  { value: 'DE', label: 'Đức' },
+  { value: 'FR', label: 'Pháp' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'IN', label: 'Ấn Độ' },
+  { value: 'ID', label: 'Indonesia' },
+  { value: 'PH', label: 'Philippines' },
+  { value: 'TW', label: 'Đài Loan' },
+  { value: 'HK', label: 'Hồng Kông' },
+  { value: 'AE', label: 'Các Tiểu vương quốc Ả Rập Thống nhất' },
+  { value: 'IT', label: 'Ý' },
+  { value: 'ES', label: 'Tây Ban Nha' },
+  { value: 'RU', label: 'Nga' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'CH', label: 'Thụy Sĩ' },
+  { value: 'SE', label: 'Thụy Điển' },
+  { value: 'NZ', label: 'New Zealand' },
+] as const;
+
 export const customerFormSchema = z.object({
   customerCode: z
     .string()
@@ -25,9 +54,17 @@ export const customerFormSchema = z.object({
     .regex(/^[A-Za-z0-9-]+$/, 'Mã chỉ gồm chữ, số và dấu gạch ngang.'),
   name: z.string().trim().min(1, 'Vui lòng nhập tên khách hàng.'),
   businessType: z.enum(BUSINESS_TYPES),
+  businessRegistrationCode: z.string().trim(),
+  imageUrl: z.string().trim(),
+  countryCode: z
+    .string()
+    .trim()
+    .regex(/^[A-Z]{2}$/, 'Mã quốc gia phải gồm 2 chữ cái viết hoa.'),
+  regionCode: z.string().trim(),
+  regionName: z.string().trim(),
   phone: z.string().trim(),
   email: z.string().trim().email('Email không hợp lệ.').or(z.literal('')),
-  address: z.string().trim(),
+  addressDetail: z.string().trim(),
   status: z.enum(CUSTOMER_STATUSES),
   note: z.string().trim().max(500, 'Ghi chú không được quá 500 ký tự.'),
 });
@@ -40,9 +77,14 @@ export interface Customer {
   customerCode: string;
   name: string;
   businessType: BusinessType;
+  businessRegistrationCode: string;
+  imageUrl: string | null;
+  countryCode: string;
+  regionCode: string | null;
+  regionName: string;
   phone: string;
   email: string;
-  address: string;
+  addressDetail: string;
   status: CustomerStatus;
   note: string;
 }
@@ -53,9 +95,14 @@ export interface CustomerRow {
   customer_code: string;
   name: string;
   business_type: BusinessType;
+  business_registration_code: string;
+  image_url: string | null;
+  country_code: string;
+  region_code: string | null;
+  region_name: string;
   phone: string;
   email: string;
-  address: string;
+  address_detail: string;
   status: CustomerStatus;
   note: string;
 }
@@ -69,9 +116,14 @@ export const emptyCustomerForm: CustomerFormValues = {
   customerCode: '',
   name: '',
   businessType: 'individual',
+  businessRegistrationCode: '',
+  imageUrl: '',
+  countryCode: 'VN',
+  regionCode: '',
+  regionName: '',
   phone: '',
   email: '',
-  address: '',
+  addressDetail: '',
   status: 'active',
   note: '',
 };
@@ -83,9 +135,14 @@ export function mapCustomerRow(row: CustomerRow): Customer {
     customerCode: row.customer_code,
     name: row.name,
     businessType: row.business_type,
+    businessRegistrationCode: row.business_registration_code ?? '',
+    imageUrl: row.image_url,
+    countryCode: row.country_code ?? 'VN',
+    regionCode: row.region_code,
+    regionName: row.region_name ?? '',
     phone: row.phone,
     email: row.email,
-    address: row.address,
+    addressDetail: row.address_detail,
     status: row.status,
     note: row.note,
   };
@@ -98,9 +155,14 @@ export function mapCustomerToFormValues(
     customerCode: customer.customerCode,
     name: customer.name,
     businessType: customer.businessType,
+    businessRegistrationCode: customer.businessRegistrationCode,
+    imageUrl: customer.imageUrl ?? '',
+    countryCode: customer.countryCode,
+    regionCode: customer.regionCode ?? '',
+    regionName: customer.regionName,
     phone: customer.phone,
     email: customer.email,
-    address: customer.address,
+    addressDetail: customer.addressDetail,
     status: customer.status,
     note: customer.note,
   };

@@ -1,4 +1,9 @@
-import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
+import { env } from '@/config/env';
+import {
+  assertSupabaseConfigured,
+  supabaseApi,
+  supabaseStorageApi,
+} from '@/lib/supabase';
 import { CUSTOMER_TAG_GROUP_CODE } from '../../tags/model/tag';
 import type {
   Customer,
@@ -27,6 +32,11 @@ interface CustomerTagRow {
 interface CustomerTagAssignmentRow {
   tag_id: string;
   subject_id: string;
+}
+
+interface RegionRow {
+  code: string;
+  name: string;
 }
 
 function queryParams(params: Record<string, string>) {
@@ -58,6 +68,24 @@ async function resolveTenantId(userId: string) {
 export interface CustomerWorkspace {
   tenantId: string;
   customers: Customer[];
+}
+
+export async function loadCustomerRegionOptions() {
+  assertSupabaseConfigured();
+  const rows = await request<RegionRow[]>(
+    supabaseApi.get(
+      '/regions',
+      queryParams({
+        select: 'code,name',
+        country_code: 'eq.VN',
+        level: 'eq.province',
+        is_active: 'eq.true',
+        order: 'name.asc',
+      }),
+    ),
+  );
+
+  return rows.map((row) => ({ value: row.code, label: row.name }));
 }
 
 export async function loadCustomerWorkspace(
@@ -148,12 +176,50 @@ function toPayload(values: CustomerFormValues) {
     customer_code: values.customerCode,
     name: values.name,
     business_type: values.businessType,
+    business_registration_code: values.businessRegistrationCode,
+    image_url: values.imageUrl || null,
+    country_code: values.countryCode,
+    region_code: values.regionCode || null,
+    region_name: values.regionName,
     phone: values.phone,
     email: values.email,
-    address: values.address,
+    address_detail: values.addressDetail,
     status: values.status,
     note: values.note,
   };
+}
+
+const CUSTOMER_ASSETS_BUCKET = 'tenant-assets';
+
+function fileExtension(file: File): string {
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  if (extension && /^[a-z0-9]+$/.test(extension)) return extension;
+
+  return file.type === 'image/png'
+    ? 'png'
+    : file.type === 'image/webp'
+      ? 'webp'
+      : 'jpg';
+}
+
+export async function uploadCustomerImage(
+  tenantId: string,
+  customerId: string,
+  file: File,
+): Promise<string> {
+  assertSupabaseConfigured();
+
+  const path = `${tenantId}/customers/${customerId}/image.${fileExtension(file)}`;
+  await request<unknown>(
+    supabaseStorageApi.post(`/object/${CUSTOMER_ASSETS_BUCKET}/${path}`, file, {
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true',
+      },
+    }),
+  );
+
+  return `${env.supabaseUrl}/storage/v1/object/public/${CUSTOMER_ASSETS_BUCKET}/${path}`;
 }
 
 export async function createCustomer(

@@ -168,13 +168,19 @@ function emitField(field: FormFieldSpec): string {
   <FormMessage />
 </FormItem>`;
 
-  return `<FormField
+  const formField = `<FormField
   control={form.control}
   name="${field.name}"
   render={({ field }) => (
     ${item}
   )}
 />`;
+
+  if (!field.modes || field.modes.length === 2) return formField;
+
+  return `{mode === ${str(field.modes[0])} && (
+  ${formField}
+)}`;
 }
 
 function emitImports(spec: FormSpec): string {
@@ -311,6 +317,9 @@ export function buildFormModule(input: FormSpec): string {
   const sourceTypeName = `${spec.entity}FormSource`;
   const propFields = propOptionFields(spec.fields);
   const imageFieldSpecs = imageFields(spec.fields);
+  const hasFieldModes = spec.fields.some(
+    (field) => field.modes && field.modes.length < 2,
+  );
 
   const fields = spec.fields.map(emitField).join('\n\n');
   const options = emitOptionConsts(spec.fields);
@@ -332,7 +341,9 @@ export function buildFormModule(input: FormSpec): string {
     .join(' ');
   const formPropsExtra = propRows ? `\n${propRows}` : '';
   const dialogPropsExtra = propRows ? `\n${propRows}` : '';
-  const formParamsExtra = propParams ? `\n${propParams}` : '';
+  const formModeProp = hasFieldModes ? `\n  mode: 'create' | 'edit';` : '';
+  const formModeParam = hasFieldModes ? '\n  mode,' : '';
+  const formParamsExtra = `${formModeParam}${propParams ? `\n${propParams}` : ''}`;
   const dialogParamsExtra = propParams ? `\n${propParams}` : '';
   const forwardPropsAttr = forwardedProps ? ` ${forwardedProps}` : '';
 
@@ -358,7 +369,7 @@ export function ${mapperName}(entity: ${sourceTypeName}): ${spec.valuesType} {
 interface ${formComponent}Props {
   form: UseFormReturn<${spec.valuesType}>;
   onSubmit: (values: ${spec.valuesType}) => void;
-  id?: string;${formPropsExtra}
+  id?: string;${formModeProp}${formPropsExtra}
 }
 
 export function ${formComponent}({
@@ -433,7 +444,7 @@ export function ${dialogComponent}({
           <${formComponent}
             form={form}
             onSubmit={onSubmit}
-            id="${lowerFirst(spec.entity)}-form"${forwardPropsAttr}
+            id="${lowerFirst(spec.entity)}-form"${hasFieldModes ? ' mode={mode}' : ''}${forwardPropsAttr}
           />
         </div>
 

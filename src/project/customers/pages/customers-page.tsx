@@ -37,9 +37,11 @@ import { Tag as TagBadge } from '@/components/ui/tag';
 import {
   createCustomer,
   deleteCustomer,
+  loadCustomerRegionOptions,
   loadCustomerTagFilter,
   loadCustomerWorkspace,
   updateCustomer,
+  uploadCustomerImage,
 } from '../api/customers.api';
 import {
   CustomerFormDialog,
@@ -66,6 +68,7 @@ export function CustomersPage() {
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [customerImageFile, setCustomerImageFile] = useState<File | null>(null);
   const form = useCustomerForm();
 
   const workspaceQuery = useQuery({
@@ -89,6 +92,11 @@ export function CustomersPage() {
     enabled: Boolean(workspaceQuery.data?.tenantId),
   });
 
+  const customerRegionQuery = useQuery({
+    queryKey: ['project', 'customers', 'regions'],
+    queryFn: loadCustomerRegionOptions,
+  });
+
   const customers = useMemo(() => {
     const source = workspaceQuery.data?.customers ?? EMPTY_CUSTOMERS;
     const normalized = keyword.trim().toLowerCase();
@@ -110,7 +118,7 @@ export function CustomersPage() {
         customer.name,
         customer.phone,
         customer.email,
-        customer.address,
+        customer.addressDetail,
       ]
         .join(' ')
         .toLowerCase()
@@ -134,17 +142,40 @@ export function CustomersPage() {
     });
 
   const saveMutation = useMutation({
-    mutationFn: (values: CustomerFormValues) => {
-      if (editingCustomer) return updateCustomer(editingCustomer.id, values);
+    mutationFn: async (values: CustomerFormValues) => {
       const tenantId = workspaceQuery.data?.tenantId;
       if (!tenantId) throw new Error('Chưa xác định tenant.');
-      return createCustomer(tenantId, values);
+
+      if (editingCustomer) {
+        const imageUrl = customerImageFile
+          ? await uploadCustomerImage(
+              tenantId,
+              editingCustomer.id,
+              customerImageFile,
+            )
+          : values.imageUrl;
+
+        return updateCustomer(editingCustomer.id, { ...values, imageUrl });
+      }
+
+      const createdCustomer = await createCustomer(tenantId, values);
+      if (customerImageFile) {
+        const imageUrl = await uploadCustomerImage(
+          tenantId,
+          createdCustomer.id,
+          customerImageFile,
+        );
+        return updateCustomer(createdCustomer.id, { ...values, imageUrl });
+      }
+
+      return createdCustomer;
     },
     onSuccess: async () => {
       toast.success(
         editingCustomer ? 'Đã cập nhật khách hàng.' : 'Đã tạo khách hàng.',
       );
       setDialogOpen(false);
+      setCustomerImageFile(null);
       await invalidateCustomers();
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -161,12 +192,14 @@ export function CustomersPage() {
 
   function openCreate() {
     setEditingCustomer(null);
+    setCustomerImageFile(null);
     form.reset(emptyCustomerForm);
     setDialogOpen(true);
   }
 
   function openEdit(customer: Customer) {
     setEditingCustomer(customer);
+    setCustomerImageFile(null);
     form.reset(mapCustomerToFormValues(customer));
     setDialogOpen(true);
   }
@@ -298,6 +331,8 @@ export function CustomersPage() {
         mode={editingCustomer ? 'edit' : 'create'}
         form={form}
         onSubmit={(values) => saveMutation.mutate(values)}
+        onImageUrlFileChange={setCustomerImageFile}
+        regionCodeOptions={customerRegionQuery.data ?? []}
         isSaving={saveMutation.isPending}
         title={editingCustomer ? 'Sửa khách hàng' : 'Thêm khách hàng'}
       />
