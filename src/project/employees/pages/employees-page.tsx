@@ -21,6 +21,7 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Tag as TagBadge } from '@/components/ui/tag';
 import {
   createEmployee,
@@ -64,6 +66,9 @@ export function EmployeesPage() {
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(
+    null,
+  );
   const form = useEmployeeForm();
 
   const workspaceQuery = useQuery({
@@ -170,15 +175,7 @@ export function EmployeesPage() {
 
   const columns = useEmployeeColumns({
     onEdit: openEdit,
-    onDelete: (employee) => {
-      if (
-        window.confirm(
-          `Bạn có chắc muốn xóa nhân viên "${employee.displayName}"?`,
-        )
-      ) {
-        deleteMutation.mutate(employee.id);
-      }
-    },
+    onDelete: setDeletingEmployee,
   });
   const table = useReactTable({
     data: employees,
@@ -273,10 +270,16 @@ export function EmployeesPage() {
                 <RefreshCw />
                 Làm mới
               </Button>
-              <Button variant="primary" onClick={openCreate}>
-                <Plus />
-                Thêm nhân viên
-              </Button>
+              <ShortcutTooltip label="Thêm nhân viên" shortcut="Alt + N">
+                <Button
+                  variant="primary"
+                  onClick={openCreate}
+                  data-shortcut-action="create"
+                >
+                  <Plus />
+                  Thêm nhân viên
+                </Button>
+              </ShortcutTooltip>
             </CardToolbar>
           </CardHeader>
           <CardTable className="min-h-0 flex-1">
@@ -298,6 +301,23 @@ export function EmployeesPage() {
         onSubmit={(values) => saveMutation.mutate(values)}
         isSaving={saveMutation.isPending}
         title={editingEmployee ? 'Sửa nhân viên' : 'Thêm nhân viên'}
+      />
+      <ConfirmDialog
+        open={Boolean(deletingEmployee)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingEmployee(null);
+        }}
+        title="Xóa nhân viên?"
+        description={
+          deletingEmployee
+            ? `Bạn có chắc muốn xóa nhân viên "${deletingEmployee.displayName}"?`
+            : ''
+        }
+        confirmLabel="Xóa nhân viên"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (deletingEmployee) deleteMutation.mutate(deletingEmployee.id);
+        }}
       />
     </div>
   );

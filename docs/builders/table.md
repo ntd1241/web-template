@@ -57,7 +57,7 @@ not in arbitrary shell spacing or button sizing.
 | `date`           | yes      | date, datetime, or relative formatting                              |
 | `badge`          | yes      | generated `StatusBadge` config                                      |
 | `editableSelect` | yes      | compact Select cell, bound to the row value and committed on change |
-| `actions`        | no       | inline JSX stub                                                     |
+| `actions`        | no       | inline JSX stub; action behavior stays with the page                |
 | `custom`         | optional | inline JSX stub                                                     |
 
 Common options include `headerClassName`, `cellClassName`, `size`, `visibility`, and `enableSorting`.
@@ -158,5 +158,8 @@ repeatable flattening and grouping contract.
 
 - The spec owns columns, order, sizes, and generated serializable config.
 - Generated output is scaffold-and-own. Fill stubs in place.
+- The table builder does not prescribe add/edit/delete actions and does not own confirmation or
+  mutation state. Pages own those callbacks; destructive actions should use the shared
+  `ConfirmDialog` instead of `window.confirm`.
 - Never regenerate over customized output. Generate to a scratch path and reconcile manually.
 - Never hand-write a generated-looking columns file or edit generated badge config directly.

@@ -14,9 +14,11 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import {
   Tooltip,
   TooltipContent,
@@ -52,6 +54,12 @@ import {
 const EMPTY_GROUPS: TagGroup[] = [];
 const EMPTY_TAGS: Tag[] = [];
 
+type PendingDelete = {
+  kind: 'group' | 'tag';
+  id: string;
+  name: string;
+};
+
 export function TagsPage() {
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
@@ -68,6 +76,9 @@ export function TagsPage() {
   const [tagEditDialogOpen, setTagEditDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<TagGroup | null>(null);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
+    null,
+  );
   const [collapsedGroupIds, setCollapsedGroupIds] = useState<Set<string>>(
     new Set(),
   );
@@ -195,15 +206,11 @@ export function TagsPage() {
           toast.error('Hãy xóa các nhãn con trước khi xóa nhóm.');
           return;
         }
-        if (window.confirm(`Bạn có chắc muốn xóa nhóm "${row.name}"?`)) {
-          deleteGroupMutation.mutate(row.id);
-        }
+        setPendingDelete({ kind: 'group', id: row.id, name: row.name });
         return;
       }
 
-      if (window.confirm(`Bạn có chắc muốn xóa nhãn "${row.name}"?`)) {
-        deleteTagMutation.mutate(row.id);
-      }
+      setPendingDelete({ kind: 'tag', id: row.id, name: row.name });
     },
   });
   const table = useReactTable({
@@ -305,15 +312,18 @@ export function TagsPage() {
                 </TooltipTrigger>
                 <TooltipContent>Thêm nhóm nhãn</TooltipContent>
               </Tooltip>
-              <Button
-                type="button"
-                variant="primary"
-                disabled={groups.length === 0}
-                onClick={openCreateTag}
-              >
-                <Plus className="size-4" />
-                Thêm nhãn
-              </Button>
+              <ShortcutTooltip label="Thêm nhãn" shortcut="Alt + N">
+                <Button
+                  type="button"
+                  variant="primary"
+                  disabled={groups.length === 0}
+                  onClick={openCreateTag}
+                  data-shortcut-action="create"
+                >
+                  <Plus className="size-4" />
+                  Thêm nhãn
+                </Button>
+              </ShortcutTooltip>
             </CardToolbar>
           </CardHeader>
           <CardTable className="min-h-0 flex-1">
@@ -362,6 +372,32 @@ export function TagsPage() {
           value: group.id,
           label: group.name,
         }))}
+      />
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        title={pendingDelete?.kind === 'group' ? 'Xóa nhóm nhãn?' : 'Xóa nhãn?'}
+        description={
+          pendingDelete
+            ? `Bạn có chắc muốn xóa ${
+                pendingDelete.kind === 'group' ? 'nhóm nhãn' : 'nhãn'
+              } "${pendingDelete.name}"?`
+            : ''
+        }
+        confirmLabel={
+          pendingDelete?.kind === 'group' ? 'Xóa nhóm nhãn' : 'Xóa nhãn'
+        }
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          if (pendingDelete.kind === 'group') {
+            deleteGroupMutation.mutate(pendingDelete.id);
+          } else {
+            deleteTagMutation.mutate(pendingDelete.id);
+          }
+        }}
       />
     </div>
   );

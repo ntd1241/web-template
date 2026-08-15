@@ -80,6 +80,7 @@ export function SearchInput({
       <Search className="text-muted-foreground" aria-hidden="true" />
       <Input
         {...props}
+        data-shortcut-target="page-search"
         type="search"
         value={inputValue}
         placeholder={placeholder}

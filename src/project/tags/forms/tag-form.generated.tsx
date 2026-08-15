@@ -8,6 +8,7 @@
  * bypassed builder.
  */
 import { useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
@@ -38,6 +39,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { tagFormSchema, type TagFormValues } from '../model/tag';
 
@@ -208,6 +210,15 @@ export function TagFormDialog({
   groupIdOptions,
 }: TagFormDialogProps) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isSaving || !(event.ctrlKey || event.metaKey)) return;
+
+    const key = event.key.toLowerCase();
+    if (key !== 's' && key !== 'enter') return;
+
+    event.preventDefault();
+    void form.handleSubmit(onSubmit)();
+  };
   const requestClose = (nextOpen: boolean) => {
     if (nextOpen) {
       onOpenChange(true);
@@ -230,7 +241,10 @@ export function TagFormDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={requestClose}>
-        <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
+        <DialogContent
+          className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0"
+          onKeyDown={handleDialogKeyDown}
+        >
           <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
             <DialogTitle>{title ?? 'Nhãn'}</DialogTitle>
           </DialogHeader>
@@ -249,23 +263,27 @@ export function TagFormDialog({
           <Separator />
 
           <DialogFooter className="shrink-0 px-6 py-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => requestClose(false)}
-              disabled={isSaving}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              form="tag-form"
-              loading={isSaving}
-              loadingText="Đang lưu..."
-            >
-              Lưu
-            </Button>
+            <ShortcutTooltip label="Hủy" shortcut="Esc">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => requestClose(false)}
+                disabled={isSaving}
+              >
+                Hủy
+              </Button>
+            </ShortcutTooltip>
+            <ShortcutTooltip label="Lưu" shortcut="Ctrl/Cmd + S">
+              <Button
+                type="submit"
+                variant="primary"
+                form="tag-form"
+                loading={isSaving}
+                loadingText="Đang lưu..."
+              >
+                Lưu
+              </Button>
+            </ShortcutTooltip>
           </DialogFooter>
         </DialogContent>
       </Dialog>

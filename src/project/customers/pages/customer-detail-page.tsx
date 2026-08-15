@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageLoading } from '@/components/ui/loading';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Tag } from '@/components/ui/tag';
 import {
   Tooltip,
@@ -109,10 +110,17 @@ function CustomerInformationCard({
     <EntityDetailInformationCard
       actions={
         <>
-          <Button type="button" variant="ghost" onClick={onEdit}>
-            <Pencil />
-            Sửa thông tin
-          </Button>
+          <ShortcutTooltip label="Sửa thông tin" shortcut="Alt + E">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onEdit}
+              data-shortcut-action="edit"
+            >
+              <Pencil />
+              Sửa thông tin
+            </Button>
+          </ShortcutTooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

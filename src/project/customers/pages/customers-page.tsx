@@ -21,6 +21,7 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Tag as TagBadge } from '@/components/ui/tag';
 import {
   createCustomer,
@@ -68,6 +70,9 @@ export function CustomersPage() {
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(
+    null,
+  );
   const [customerImageFile, setCustomerImageFile] = useState<File | null>(null);
   const form = useCustomerForm();
 
@@ -209,13 +214,7 @@ export function CustomersPage() {
 
   const columns = useCustomerColumns({
     onEdit: openEdit,
-    onDelete: (customer) => {
-      if (
-        window.confirm(`Bạn có chắc muốn xóa khách hàng "${customer.name}"?`)
-      ) {
-        deleteMutation.mutate(customer.id);
-      }
-    },
+    onDelete: setDeletingCustomer,
   });
   const table = useReactTable({
     data: customers,
@@ -310,10 +309,16 @@ export function CustomersPage() {
                 <RefreshCw />
                 Làm mới
               </Button>
-              <Button variant="primary" onClick={openCreate}>
-                <Plus />
-                Thêm khách hàng
-              </Button>
+              <ShortcutTooltip label="Thêm khách hàng" shortcut="Alt + N">
+                <Button
+                  variant="primary"
+                  onClick={openCreate}
+                  data-shortcut-action="create"
+                >
+                  <Plus />
+                  Thêm khách hàng
+                </Button>
+              </ShortcutTooltip>
             </CardToolbar>
           </CardHeader>
           <CardTable className="min-h-0 flex-1">
@@ -338,6 +343,23 @@ export function CustomersPage() {
         regionCodeOptions={customerRegionQuery.data ?? []}
         isSaving={saveMutation.isPending}
         title={editingCustomer ? 'Sửa khách hàng' : 'Thêm khách hàng'}
+      />
+      <ConfirmDialog
+        open={Boolean(deletingCustomer)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingCustomer(null);
+        }}
+        title="Xóa khách hàng?"
+        description={
+          deletingCustomer
+            ? `Bạn có chắc muốn xóa khách hàng "${deletingCustomer.name}"?`
+            : ''
+        }
+        confirmLabel="Xóa khách hàng"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (deletingCustomer) deleteMutation.mutate(deletingCustomer.id);
+        }}
       />
     </div>
   );

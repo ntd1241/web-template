@@ -4,6 +4,7 @@
  * widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
  * hand-edit this banner or the generated options consts — that's how review detects a bypassed builder.
  */
+import type { KeyboardEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
@@ -33,6 +34,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { employeeFormSchema, type EmployeeFormValues } from '../model/employee';
 
@@ -259,9 +261,22 @@ export function EmployeeFormDialog({
   isSaving = false,
   title,
 }: EmployeeFormDialogProps) {
+  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isSaving || !(event.ctrlKey || event.metaKey)) return;
+
+    const key = event.key.toLowerCase();
+    if (key !== 's' && key !== 'enter') return;
+
+    event.preventDefault();
+    void form.handleSubmit(onSubmit)();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
+      <DialogContent
+        className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0"
+        onKeyDown={handleDialogKeyDown}
+      >
         <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle>{title ?? 'Thêm nhân viên'}</DialogTitle>
         </DialogHeader>
@@ -275,23 +290,27 @@ export function EmployeeFormDialog({
         <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSaving}
-          >
-            Hủy
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            form="employee-form"
-            loading={isSaving}
-            loadingText="Đang lưu..."
-          >
-            Lưu
-          </Button>
+          <ShortcutTooltip label="Hủy" shortcut="Esc">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSaving}
+            >
+              Hủy
+            </Button>
+          </ShortcutTooltip>
+          <ShortcutTooltip label="Lưu" shortcut="Ctrl/Cmd + S">
+            <Button
+              type="submit"
+              variant="primary"
+              form="employee-form"
+              loading={isSaving}
+              loadingText="Đang lưu..."
+            >
+              Lưu
+            </Button>
+          </ShortcutTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
