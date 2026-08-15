@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -8,6 +9,7 @@ import {
   type PaginationState,
 } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/button';
@@ -29,7 +31,6 @@ import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import {
-  createContract,
   deleteContract,
   loadContractDetail,
   loadContractWorkspace,
@@ -41,7 +42,6 @@ import {
   createDefaultContractFeeLine,
 } from '../components/contract-fee-lines-editor';
 import {
-  contractDefaultValues,
   ContractFormDialog,
   mapContractToFormValues,
   useContractForm,
@@ -52,6 +52,7 @@ import { useContractColumns } from '../table/contract.columns.generated';
 const EMPTY_CONTRACTS: Contract[] = [];
 
 export function ContractsPage() {
+  const navigate = useNavigate();
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
@@ -140,15 +141,14 @@ export function ContractsPage() {
       values,
       lines,
     }: {
-      values: Parameters<typeof createContract>[2];
+      values: Parameters<typeof updateContract>[2];
       lines: ContractVersionLineValuesForApi[];
     }) => {
       if (!userId || !workspaceQuery.data?.tenantId) {
         throw new Error('Chưa xác định tài khoản hoặc tenant.');
       }
-      return editingContract
-        ? updateContract(editingContract.id, userId, values, lines)
-        : createContract(workspaceQuery.data.tenantId, userId, values, lines);
+      if (!editingContract) throw new Error('Chưa chọn hợp đồng để cập nhật.');
+      return updateContract(editingContract.id, userId, values, lines);
     },
     onSuccess: async () => {
       toast.success(
@@ -175,11 +175,7 @@ export function ContractsPage() {
   });
 
   function openCreate() {
-    setEditingContract(null);
-    form.reset(contractDefaultValues);
-    const startDate = contractDefaultValues.startDate;
-    setFeeLines([createDefaultContractFeeLine(startDate)]);
-    setDialogOpen(true);
+    navigate(ROUTES.PROJECT.CONTRACT_CREATE);
   }
 
   function openEdit(contract: Contract) {
@@ -189,7 +185,7 @@ export function ContractsPage() {
     setDialogOpen(true);
   }
 
-  function handleSubmit(values: Parameters<typeof createContract>[2]) {
+  function handleSubmit(values: Parameters<typeof updateContract>[2]) {
     for (const [index, line] of feeLines.entries()) {
       const result = contractVersionLineSchema.safeParse({
         ...line,

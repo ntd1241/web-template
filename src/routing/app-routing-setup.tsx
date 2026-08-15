@@ -41,6 +41,7 @@ import { Layout37Page } from '@/pages/layout-37/page';
 import { Layout38Page } from '@/pages/layout-38/page';
 import { Layout39Page } from '@/pages/layout-39/page';
 import { NotFoundPage } from '@/pages/not-found/page';
+import { ContractCreatePage } from '@/project/contracts/pages/contract-create-page';
 import { ContractDetailPage } from '@/project/contracts/pages/contract-detail-page';
 import { ContractsPage } from '@/project/contracts/pages/contracts-page';
 import { CustomerDetailPage } from '@/project/customers/pages/customer-detail-page';
@@ -221,6 +222,10 @@ export function AppRoutingSetup() {
           <Route path={ROUTES.PROJECT.EMPLOYEES} element={<EmployeesPage />} />
           <Route path={ROUTES.PROJECT.CUSTOMERS} element={<CustomersPage />} />
           <Route path={ROUTES.PROJECT.CONTRACTS} element={<ContractsPage />} />
+          <Route
+            path={ROUTES.PROJECT.CONTRACT_CREATE}
+            element={<ContractCreatePage />}
+          />
           <Route
             path={ROUTES.PROJECT.CUSTOMER_DETAIL}
             element={<CustomerDetailPage />}

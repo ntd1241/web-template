@@ -1,11 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import type { Label as LabelPrimitive } from 'radix-ui';
+import { Controller, FormProvider, useFormContext } from 'react-hook-form';
+import type { ControllerProps, FieldPath, FieldValues } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { Slot } from '@radix-ui/react-slot';
-import { Label as LabelPrimitive } from 'radix-ui';
-import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from 'react-hook-form';
 
 const Form = FormProvider;
 
@@ -16,7 +18,35 @@ type FormFieldContextValue<
   name: TName;
 };
 
-const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue);
+const FormFieldContext = React.createContext<FormFieldContextValue>(
+  {} as FormFieldContextValue,
+);
+
+type FormLabelVariant = 'default' | 'compact';
+
+const formItemVariants = cva('flex flex-col', {
+  variants: {
+    variant: {
+      default: 'gap-2.5',
+      compact: 'gap-1',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+const formLabelVariants = cva('font-medium text-foreground', {
+  variants: {
+    variant: {
+      default: '',
+      compact: 'text-xs text-muted-foreground',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
 
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
@@ -42,7 +72,7 @@ const useFormField = () => {
     throw new Error('useFormField should be used within <FormField>');
   }
 
-  const { id } = itemContext;
+  const { id, variant: itemVariant } = itemContext;
 
   return {
     id,
@@ -50,34 +80,56 @@ const useFormField = () => {
     formItemId: `${id}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
+    itemVariant,
     ...fieldState,
   };
 };
 
 type FormItemContextValue = {
   id: string;
+  variant: FormLabelVariant;
 };
 
-const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue);
+const FormItemContext = React.createContext<FormItemContextValue>({
+  id: '',
+  variant: 'default',
+});
 
-function FormItem({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function FormItem({
+  className,
+  variant = 'default',
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { variant?: FormLabelVariant }) {
   const id = React.useId();
   const { error } = useFormField();
 
   return (
-    <FormItemContext.Provider value={{ id }}>
-      <div data-slot="form-item" className={cn('flex flex-col gap-2.5', className)} data-invalid={!!error} {...props} />
+    <FormItemContext.Provider value={{ id, variant }}>
+      <div
+        data-slot="form-item"
+        className={cn(formItemVariants({ variant }), className)}
+        data-invalid={!!error}
+        {...props}
+      />
     </FormItemContext.Provider>
   );
 }
 
-function FormLabel({ className, ...props }: React.ComponentProps<typeof LabelPrimitive.Root>) {
-  const { formItemId } = useFormField();
+function FormLabel({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<typeof LabelPrimitive.Root> &
+  VariantProps<typeof formLabelVariants>) {
+  const { formItemId, itemVariant } = useFormField();
 
   return (
     <Label
       data-slot="form-label"
-      className={cn('font-medium text-foreground', className)}
+      className={cn(
+        formLabelVariants({ variant: variant ?? itemVariant }),
+        className,
+      )}
       htmlFor={formItemId}
       {...props}
     />
@@ -85,20 +137,28 @@ function FormLabel({ className, ...props }: React.ComponentProps<typeof LabelPri
 }
 
 function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
-  const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
+  const { error, formItemId, formDescriptionId, formMessageId } =
+    useFormField();
 
   return (
     <Slot
       data-slot="form-control"
       id={formItemId}
-      aria-describedby={!error ? `${formDescriptionId}` : `${formDescriptionId} ${formMessageId}`}
+      aria-describedby={
+        !error
+          ? `${formDescriptionId}`
+          : `${formDescriptionId} ${formMessageId}`
+      }
       aria-invalid={!!error}
       {...props}
     />
   );
 }
 
-function FormDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+function FormDescription({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   const { formDescriptionId, error } = useFormField();
 
   if (error) {
@@ -115,7 +175,11 @@ function FormDescription({ className, ...props }: React.HTMLAttributes<HTMLParag
   );
 }
 
-function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+function FormMessage({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message) : children;
 
@@ -135,4 +199,15 @@ function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTM
   );
 }
 
-export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, useFormField };
+export {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  formItemVariants,
+  formLabelVariants,
+  useFormField,
+};

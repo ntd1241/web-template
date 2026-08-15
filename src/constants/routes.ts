@@ -31,6 +31,7 @@ export const ROUTES = {
     CUSTOMERS: '/customers',
     CUSTOMER_DETAIL: '/customers/:id',
     CONTRACTS: '/contracts',
+    CONTRACT_CREATE: '/contracts/new',
     CONTRACT_DETAIL: '/contracts/:id',
     ROLE_PERMISSIONS: '/permissions',
     TAGS: '/tags',
