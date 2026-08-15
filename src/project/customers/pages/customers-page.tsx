@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -8,7 +8,6 @@ import {
   type PaginationState,
 } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/button';
@@ -58,14 +57,8 @@ import { useCustomerColumns } from '../table/customer.columns.generated';
 
 const EMPTY_CUSTOMERS: Customer[] = [];
 
-type CustomerListNavigationState = {
-  editCustomerId?: string;
-};
-
 export function CustomersPage() {
   const userId = useAuthStore((state) => state.user?.id);
-  const location = useLocation();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [customerTagId, setCustomerTagId] = useState('all');
@@ -213,25 +206,6 @@ export function CustomersPage() {
     },
     [form],
   );
-
-  useEffect(() => {
-    const state = location.state as CustomerListNavigationState | null;
-    if (!state?.editCustomerId || !workspaceQuery.data) return;
-
-    const customer = workspaceQuery.data.customers.find(
-      (item) => item.id === state.editCustomerId,
-    );
-    if (!customer) return;
-
-    openEdit(customer);
-    navigate(location.pathname, { replace: true, state: null });
-  }, [
-    location.pathname,
-    location.state,
-    navigate,
-    openEdit,
-    workspaceQuery.data,
-  ]);
 
   const columns = useCustomerColumns({
     onEdit: openEdit,

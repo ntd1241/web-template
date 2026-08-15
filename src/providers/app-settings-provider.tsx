@@ -23,6 +23,7 @@ export type AppAppearanceSettings = {
   theme: AppTheme;
   density: AppDensity;
   sidebarCollapsed: boolean;
+  autoCollapseSidebarOnDetail: boolean;
 };
 
 type AppSettingsContextValue = {
@@ -34,6 +35,7 @@ const defaultAppearance: AppAppearanceSettings = {
   theme: 'system',
   density: 'large',
   sidebarCollapsed: false,
+  autoCollapseSidebarOnDetail: true,
 };
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
@@ -63,6 +65,9 @@ function readAppearanceSettings(): AppAppearanceSettings {
     sidebarCollapsed: isBoolean(stored?.sidebarCollapsed)
       ? stored.sidebarCollapsed
       : defaultAppearance.sidebarCollapsed,
+    autoCollapseSidebarOnDetail: isBoolean(stored?.autoCollapseSidebarOnDetail)
+      ? stored.autoCollapseSidebarOnDetail
+      : defaultAppearance.autoCollapseSidebarOnDetail,
   };
 }
 

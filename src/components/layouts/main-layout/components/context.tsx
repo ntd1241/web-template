@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import type { MenuGroupConfig } from '@/config/menu.types';
+import { useUiStore } from '@/stores/ui.store';
+import { useLocation } from 'react-router-dom';
+import { resolveMenuTarget, type MenuGroupConfig } from '@/config/menu.types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppSettings } from '@/providers/app-settings-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -48,13 +50,48 @@ export function LayoutProvider({
 }: LayoutProviderProps) {
   const isMobile = useIsMobile();
   const { appearance } = useAppSettings();
+  const { pathname } = useLocation();
+  const wireframeMode = useUiStore((state) => state.wireframeMode);
+  const shell: LayoutShellConfig = {
+    menuGroups: [],
+    homePath: '/',
+    brandName: 'Admin Template',
+    headerTitle: 'Quản trị Tổ chức',
+    accountRoles: ['Tổ chức'],
+    breadcrumbRootLabel: 'Tổ chức',
+    breadcrumbRootPath: '/',
+    breadcrumbCurrent: 'Nhân viên',
+    ...customShell,
+  };
+  const isSidebarMenuRoute = shell.menuGroups.some((group) =>
+    group.items.some((item) => {
+      const target = resolveMenuTarget(item, wireframeMode);
+      return target?.to === pathname;
+    }),
+  );
+  const shouldAutoCollapseSidebar =
+    appearance.autoCollapseSidebarOnDetail &&
+    shell.menuGroups.length > 0 &&
+    !isSidebarMenuRoute;
+  const wasAutoCollapsedRef = useRef(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     !appearance.sidebarCollapsed,
   );
 
   useEffect(() => {
+    if (shouldAutoCollapseSidebar) {
+      wasAutoCollapsedRef.current = true;
+      setIsSidebarOpen(false);
+      return;
+    }
+
+    if (wasAutoCollapsedRef.current) {
+      wasAutoCollapsedRef.current = false;
+      return;
+    }
+
     setIsSidebarOpen(!appearance.sidebarCollapsed);
-  }, [appearance.sidebarCollapsed]);
+  }, [appearance.sidebarCollapsed, shouldAutoCollapseSidebar]);
 
   const sidebarCurrentWidth = isSidebarOpen
     ? 'var(--sidebar-width)'
@@ -71,18 +108,6 @@ export function LayoutProvider({
   } as CSSProperties;
 
   const sidebarToggle = () => setIsSidebarOpen((open) => !open);
-
-  const shell: LayoutShellConfig = {
-    menuGroups: [],
-    homePath: '/',
-    brandName: 'Admin Template',
-    headerTitle: 'Quản trị Tổ chức',
-    accountRoles: ['Tổ chức'],
-    breadcrumbRootLabel: 'Tổ chức',
-    breadcrumbRootPath: '/',
-    breadcrumbCurrent: 'Nhân viên',
-    ...customShell,
-  };
 
   useEffect(() => {
     if (!bodyClassName) return;

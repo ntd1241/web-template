@@ -17,10 +17,14 @@ function SettingsProbe() {
           theme: 'dark',
           density: 'medium',
           sidebarCollapsed: false,
+          autoCollapseSidebarOnDetail: true,
         })
       }
     >
       {appearance.density}
+      <span data-testid="auto-collapse-sidebar">
+        {String(appearance.autoCollapseSidebarOnDetail)}
+      </span>
     </button>
   );
 }
@@ -38,6 +42,7 @@ describe('AppSettingsProvider', () => {
         theme: 'dark',
         density: 'small',
         sidebarCollapsed: false,
+        autoCollapseSidebarOnDetail: true,
       }),
     );
 
@@ -53,6 +58,27 @@ describe('AppSettingsProvider', () => {
         document.documentElement.style.getPropertyValue('--app-root-font-size'),
       ).toBe('14.4px');
     });
+  });
+
+  it('defaults auto-hide sidebar to true for older saved settings', () => {
+    localStorage.setItem(
+      APP_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        theme: 'dark',
+        density: 'small',
+        sidebarCollapsed: false,
+      }),
+    );
+
+    render(
+      <AppSettingsProvider>
+        <SettingsProbe />
+      </AppSettingsProvider>,
+    );
+
+    expect(screen.getByTestId('auto-collapse-sidebar')).toHaveTextContent(
+      'true',
+    );
   });
 
   it('persists and applies a new density when appearance is saved', async () => {
@@ -71,6 +97,7 @@ describe('AppSettingsProvider', () => {
         theme: 'dark',
         density: 'medium',
         sidebarCollapsed: false,
+        autoCollapseSidebarOnDetail: true,
       });
       expect(
         document.documentElement.style.getPropertyValue('--app-root-font-size'),

@@ -20,6 +20,7 @@ import {
 import { useTheme } from 'next-themes';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -212,7 +213,12 @@ export function Header() {
   }, [pathname]);
 
   return (
-    <header className="fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-5 transition-[inset-inline-start] duration-200 ease-out lg:start-[var(--sidebar-current-width)] lg:h-(--header-height) lg:px-8">
+    <header
+      className={cn(
+        'fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-5 transition-[inset-inline-start] duration-200 ease-out lg:h-(--header-height) lg:px-8',
+        'lg:start-[var(--sidebar-current-width)]',
+      )}
+    >
       <div className="flex min-w-0 items-center gap-3">
         {isMobile && (
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

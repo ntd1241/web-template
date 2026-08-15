@@ -35,6 +35,7 @@ import {
   CUSTOMER_DETAIL_TAB_CONTENT,
   CustomerDetailTabContent,
 } from '../components/customer-detail-tab-content';
+import { CustomerEditDialog } from '../components/customer-edit-dialog';
 import {
   BUSINESS_TYPE_LABELS,
   CUSTOMER_STATUS_LABELS,
@@ -179,6 +180,7 @@ export function CustomerDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const customerQuery = useCustomerQuery();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const deleteMutation = useMutation({
     mutationFn: deleteCustomer,
@@ -235,11 +237,7 @@ export function CustomerDetailPage() {
         information={
           <CustomerInformationCard
             customer={customer}
-            onEdit={() =>
-              navigate(ROUTES.PROJECT.CUSTOMERS, {
-                state: { editCustomerId: customer.id },
-              })
-            }
+            onEdit={() => setEditDialogOpen(true)}
             onDelete={() => setDeleteDialogOpen(true)}
           />
         }
@@ -261,6 +259,11 @@ export function CustomerDetailPage() {
             tab={CUSTOMER_DETAIL_TAB_CONTENT[2]}
           />
         }
+      />
+      <CustomerEditDialog
+        customer={customer}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
       />
       <ConfirmDialog
         open={deleteDialogOpen}

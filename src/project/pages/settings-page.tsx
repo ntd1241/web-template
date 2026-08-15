@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   loadCurrentTenantSettings,
@@ -320,6 +321,29 @@ export function ProjectSettingsPage() {
                       </SelectContent>
                     </Select>
                   </SettingsField>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
+                  <label className="flex items-center justify-between gap-4">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-foreground">
+                        Tự động thu gọn sidebar ở trang chi tiết
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        Các route không có trong sidebar sẽ thu gọn menu về
+                        thanh icon.
+                      </span>
+                    </span>
+                    <Switch
+                      checked={appearance.autoCollapseSidebarOnDetail}
+                      onCheckedChange={(checked) =>
+                        saveAppearance({
+                          ...appearance,
+                          autoCollapseSidebarOnDetail: checked,
+                        })
+                      }
+                      aria-label="Tự động thu gọn sidebar ở trang chi tiết"
+                    />
+                  </label>
                 </div>
               </SettingsSection>
             </TabsContent>
