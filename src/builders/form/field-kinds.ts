@@ -37,6 +37,12 @@ export const FORM_KIND_REGISTRY: Record<FormFieldKind, FormKindMeta> = {
   combobox: {
     ...FORM_FIELD_CONTROL.combobox,
   },
+  searchSelect: {
+    ...FORM_FIELD_CONTROL.searchSelect,
+  },
+  apiSearchSelect: {
+    ...FORM_FIELD_CONTROL.apiSearchSelect,
+  },
   multiselect: {
     ...FORM_FIELD_CONTROL.multiselect,
   },

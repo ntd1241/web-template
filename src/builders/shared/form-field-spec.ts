@@ -49,6 +49,22 @@ export const comboboxFieldControlSchema = z.object({
   searchPlaceholder: z.string().optional(),
 });
 
+export const searchSelectFieldControlSchema = z.object({
+  kind: z.literal('searchSelect'),
+  options: z.array(optionSchema).optional(),
+  optionsFrom: optionsSourceSchema.optional(),
+  searchPlaceholder: z.string().optional(),
+  emptyMessage: z.string().optional(),
+});
+
+export const apiSearchSelectFieldControlSchema = z.object({
+  kind: z.literal('apiSearchSelect'),
+  searchPlaceholder: z.string().optional(),
+  emptyMessage: z.string().optional(),
+  minSearchLength: z.number().int().nonnegative().optional(),
+  debounceMs: z.number().int().nonnegative().optional(),
+});
+
 export const multiselectFieldControlSchema = z.object({
   kind: z.literal('multiselect'),
   options: z.array(optionSchema).optional(),
@@ -69,6 +85,8 @@ export const formFieldControlSchemas = {
   textarea: textareaFieldControlSchema,
   select: selectFieldControlSchema,
   combobox: comboboxFieldControlSchema,
+  searchSelect: searchSelectFieldControlSchema,
+  apiSearchSelect: apiSearchSelectFieldControlSchema,
   multiselect: multiselectFieldControlSchema,
   switch: switchFieldControlSchema,
 } as const;
@@ -81,6 +99,8 @@ export const formFieldControlSchema = z.discriminatedUnion('kind', [
   textareaFieldControlSchema,
   selectFieldControlSchema,
   comboboxFieldControlSchema,
+  searchSelectFieldControlSchema,
+  apiSearchSelectFieldControlSchema,
   multiselectFieldControlSchema,
   switchFieldControlSchema,
 ]);
@@ -95,6 +115,12 @@ export type SharedTextareaFieldControl = z.infer<
 export type SharedSelectFieldControl = z.infer<typeof selectFieldControlSchema>;
 export type SharedComboboxFieldControl = z.infer<
   typeof comboboxFieldControlSchema
+>;
+export type SharedSearchSelectFieldControl = z.infer<
+  typeof searchSelectFieldControlSchema
+>;
+export type SharedApiSearchSelectFieldControl = z.infer<
+  typeof apiSearchSelectFieldControlSchema
 >;
 export type SharedMultiselectFieldControl = z.infer<
   typeof multiselectFieldControlSchema

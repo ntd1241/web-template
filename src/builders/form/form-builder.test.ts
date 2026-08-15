@@ -49,8 +49,8 @@ describe('buildFormModule', () => {
       'value={field.value} onValueChange={field.onChange}',
     ); // select
     expect(source).toContain(
-      '<Combobox value={field.value} onChange={field.onChange} options={regionOptions}',
-    ); // combobox
+      '<SelectSearch value={field.value} onChange={field.onChange} options={regionOptions}',
+    ); // local search select
     expect(source).toContain(
       '<MultiSelect value={field.value} onChange={field.onChange} options={tagsOptions}',
     ); // multiselect
@@ -118,7 +118,7 @@ describe('buildFormModule', () => {
     expect(source).toContain('const groupOptions = [');
     expect(source).toContain('const tagsOptions: MultiSelectOption[] = [');
     expect(source).not.toContain('const regionOptions = [');
-    expect(source).toContain('regionOptions: ComboboxOption[];');
+    expect(source).toContain('regionOptions: SearchSelectOption[];');
     expect(source).toContain("searchableText: 'Ưu tiên'");
   });
 
@@ -154,8 +154,43 @@ describe('buildFormModule', () => {
       "import { Switch } from '@/components/ui/switch';",
     );
     expect(source).toContain(
-      "import { Combobox } from '@/components/ui/combobox';",
+      "import { SelectSearch } from '@/components/ui/select-search';",
     );
+  });
+
+  it('emits an API search select loader contract and selected option prop', () => {
+    const apiSource = buildFormModule({
+      entity: 'Invoice',
+      schemaImport: './invoice.schema',
+      schemaName: 'invoiceSchema',
+      valuesType: 'InvoiceValues',
+      title: 'Tạo hóa đơn',
+      fields: [
+        {
+          kind: 'apiSearchSelect',
+          name: 'customer',
+          label: 'Khách hàng',
+          searchPlaceholder: 'Tìm khách hàng...',
+          minSearchLength: 2,
+          debounceMs: 250,
+        },
+      ],
+    });
+
+    expect(apiSource).toContain(
+      "import { ApiSelectSearch } from '@/components/ui/select-search';",
+    );
+    expect(apiSource).toContain(
+      'import type { ApiSelectSearchLoadOptions, SearchSelectOption }',
+    );
+    expect(apiSource).toContain(
+      'loadCustomerOptions: ApiSelectSearchLoadOptions;',
+    );
+    expect(apiSource).toContain('customerSelectedOption?: SearchSelectOption;');
+    expect(apiSource).toContain(
+      'loadOptions={loadCustomerOptions} selectedOption={customerSelectedOption}',
+    );
+    expect(apiSource).toContain('minSearchLength={2} debounceMs={250}');
   });
 
   it('records the spec path in the banner', () => {

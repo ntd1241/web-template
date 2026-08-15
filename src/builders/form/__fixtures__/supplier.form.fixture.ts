@@ -54,7 +54,7 @@ const spec: FormSpec = {
       ],
     },
     {
-      kind: 'combobox',
+      kind: 'searchSelect',
       name: 'region',
       label: 'Khu vực',
       width: 'normal',

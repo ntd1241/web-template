@@ -36,15 +36,20 @@ function span(field: FormFieldSpec): string {
   return FORM_WIDTH_SPAN[field.width ?? 'full'];
 }
 
-const OPTION_KINDS = new Set(['select', 'combobox', 'multiselect']);
+const LOCAL_OPTION_KINDS = new Set([
+  'select',
+  'combobox',
+  'searchSelect',
+  'multiselect',
+]);
 
 type OptionFieldSpec = Extract<
   FormFieldSpec,
-  { kind: 'select' | 'combobox' | 'multiselect' }
+  { kind: 'select' | 'combobox' | 'searchSelect' | 'multiselect' }
 >;
 
 function isOptionField(field: FormFieldSpec): field is OptionFieldSpec {
-  return OPTION_KINDS.has(field.kind);
+  return LOCAL_OPTION_KINDS.has(field.kind);
 }
 
 function isStaticOptionField(
@@ -57,6 +62,20 @@ function propOptionFields(fields: FormFieldSpec[]): OptionFieldSpec[] {
   return fields.filter(
     (field): field is OptionFieldSpec =>
       isOptionField(field) && field.optionsFrom === 'prop',
+  );
+}
+
+type ApiSearchSelectFieldSpec = Extract<
+  FormFieldSpec,
+  { kind: 'apiSearchSelect' }
+>;
+
+function apiSearchSelectFields(
+  fields: FormFieldSpec[],
+): ApiSearchSelectFieldSpec[] {
+  return fields.filter(
+    (field): field is ApiSearchSelectFieldSpec =>
+      field.kind === 'apiSearchSelect',
   );
 }
 
@@ -85,7 +104,7 @@ function deriveInlineComponentName(
   return `${stripped || spec.entity}Form`;
 }
 
-/** Hoisted `const <name>Options = [...]` for select/combobox/multiselect. */
+/** Hoisted `const <name>Options = [...]` for local option fields. */
 function emitOptionConsts(fields: FormFieldSpec[]): string {
   return fields
     .filter(isStaticOptionField)
@@ -120,6 +139,8 @@ function labelJsx(field: FormFieldSpec): string {
 
 /** The control element(s) for a field (everything between label and message). */
 function controlJsx(field: FormFieldSpec): string {
+  const apiSearchSelect = field.kind === 'apiSearchSelect' ? field : undefined;
+
   return buildFormFieldControl({
     kind: field.kind,
     surface: 'form',
@@ -135,10 +156,26 @@ function controlJsx(field: FormFieldSpec): string {
       ? `${field.name}Options`
       : undefined,
     searchPlaceholder:
-      field.kind === 'combobox' || field.kind === 'multiselect'
+      field.kind === 'combobox' ||
+      field.kind === 'searchSelect' ||
+      field.kind === 'apiSearchSelect' ||
+      field.kind === 'multiselect'
         ? field.searchPlaceholder
         : undefined,
-    emptyMessage: field.kind === 'multiselect' ? field.emptyMessage : undefined,
+    emptyMessage:
+      field.kind === 'searchSelect' ||
+      field.kind === 'apiSearchSelect' ||
+      field.kind === 'multiselect'
+        ? field.emptyMessage
+        : undefined,
+    loadOptionsExpression: apiSearchSelect
+      ? `load${field.name.charAt(0).toUpperCase()}${field.name.slice(1)}Options`
+      : undefined,
+    selectedOptionExpression: apiSearchSelect
+      ? `${field.name}SelectedOption`
+      : undefined,
+    minSearchLength: apiSearchSelect?.minSearchLength,
+    debounceMs: apiSearchSelect?.debounceMs,
     calendarLabel:
       field.kind === 'date' ? `Chọn ${field.label.toLowerCase()}` : undefined,
     accept: field.kind === 'image' ? field.accept : undefined,
@@ -238,14 +275,35 @@ function emitImports(spec: FormSpec): string {
     lines.push(
       "import {\n  Select,\n  SelectContent,\n  SelectItem,\n  SelectTrigger,\n  SelectValue,\n} from '@/components/ui/select';",
     );
-  if (kinds.has('combobox')) {
-    const needsComboboxType = propFields.some(
-      (field) => field.kind === 'combobox',
+  const hasLocalSearchSelect =
+    kinds.has('combobox') || kinds.has('searchSelect');
+  const hasApiSearchSelect = kinds.has('apiSearchSelect');
+  if (hasLocalSearchSelect || hasApiSearchSelect) {
+    const searchSelectImports = [
+      hasLocalSearchSelect ? 'SelectSearch' : '',
+      hasApiSearchSelect ? 'ApiSelectSearch' : '',
+    ].filter(Boolean);
+    lines.push(
+      `import { ${searchSelectImports.join(', ')} } from '@/components/ui/select-search';`,
     );
-    lines.push("import { Combobox } from '@/components/ui/combobox';");
-    if (needsComboboxType) {
+
+    const searchSelectTypeImports = [
+      propFields.some(
+        (field) => field.kind === 'combobox' || field.kind === 'searchSelect',
+      )
+        ? 'SearchSelectOption'
+        : '',
+      hasApiSearchSelect ? 'ApiSelectSearchLoadOptions' : '',
+      hasApiSearchSelect &&
+      !propFields.some(
+        (field) => field.kind === 'combobox' || field.kind === 'searchSelect',
+      )
+        ? 'SearchSelectOption'
+        : '',
+    ].filter(Boolean);
+    if (searchSelectTypeImports.length > 0) {
       lines.push(
-        "import type { ComboboxOption } from '@/components/ui/combobox';",
+        `import type { ${searchSelectTypeImports.join(', ')} } from '@/components/ui/select-search';`,
       );
     }
   }
@@ -271,6 +329,43 @@ function emitPropOptionRows(fields: OptionFieldSpec[]): string {
       return `  ${field.name}Options: ${optionType}[];`;
     })
     .join('\n');
+}
+
+function cap(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function emitApiSearchSelectPropRows(
+  fields: ApiSearchSelectFieldSpec[],
+): string {
+  return fields
+    .map(
+      (field) =>
+        `  load${cap(field.name)}Options: ApiSelectSearchLoadOptions;\n  ${field.name}SelectedOption?: SearchSelectOption;`,
+    )
+    .join('\n');
+}
+
+function emitApiSearchSelectPropParams(
+  fields: ApiSearchSelectFieldSpec[],
+): string {
+  return fields
+    .flatMap((field) => [
+      `  load${cap(field.name)}Options,`,
+      `  ${field.name}SelectedOption,`,
+    ])
+    .join('\n');
+}
+
+function emitForwardedApiSearchSelectProps(
+  fields: ApiSearchSelectFieldSpec[],
+): string {
+  return fields
+    .flatMap((field) => [
+      `load${cap(field.name)}Options={load${cap(field.name)}Options}`,
+      `${field.name}SelectedOption={${field.name}SelectedOption}`,
+    ])
+    .join(' ');
 }
 
 function emitPropOptionParams(fields: OptionFieldSpec[]): string {
@@ -316,6 +411,7 @@ export function buildFormModule(input: FormSpec): string {
   const mapperName = `map${spec.entity}ToFormValues`;
   const sourceTypeName = `${spec.entity}FormSource`;
   const propFields = propOptionFields(spec.fields);
+  const apiFields = apiSearchSelectFields(spec.fields);
   const imageFieldSpecs = imageFields(spec.fields);
   const hasFieldModes = spec.fields.some(
     (field) => field.modes && field.modes.length < 2,
@@ -327,16 +423,30 @@ export function buildFormModule(input: FormSpec): string {
     ? `\n            <DialogDescription>${spec.description}</DialogDescription>`
     : '';
   const propOptionRows = emitPropOptionRows(propFields);
+  const apiSearchSelectPropRows = emitApiSearchSelectPropRows(apiFields);
   const propOptionParams = emitPropOptionParams(propFields);
+  const apiSearchSelectPropParams = emitApiSearchSelectPropParams(apiFields);
   const forwardedPropOptions = emitForwardedPropOptions(propFields);
+  const forwardedApiSearchSelectProps =
+    emitForwardedApiSearchSelectProps(apiFields);
   const imagePropRows = emitImagePropRows(imageFieldSpecs);
   const imagePropParams = emitImagePropParams(imageFieldSpecs);
   const forwardedImageProps = emitForwardedImageProps(imageFieldSpecs);
-  const propRows = [propOptionRows, imagePropRows].filter(Boolean).join('\n');
-  const propParams = [propOptionParams, imagePropParams]
+  const propRows = [propOptionRows, apiSearchSelectPropRows, imagePropRows]
     .filter(Boolean)
     .join('\n');
-  const forwardedProps = [forwardedPropOptions, forwardedImageProps]
+  const propParams = [
+    propOptionParams,
+    apiSearchSelectPropParams,
+    imagePropParams,
+  ]
+    .filter(Boolean)
+    .join('\n');
+  const forwardedProps = [
+    forwardedPropOptions,
+    forwardedApiSearchSelectProps,
+    forwardedImageProps,
+  ]
     .filter(Boolean)
     .join(' ');
   const formPropsExtra = propRows ? `\n${propRows}` : '';

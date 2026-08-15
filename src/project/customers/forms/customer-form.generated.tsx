@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/form';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
+import { VietnamRegionSelect } from '@/components/ui/region-select';
 import {
   Select,
   SelectContent,
@@ -271,24 +272,14 @@ export function CustomerForm({
             render={({ field }) => (
               <FormItem className="md:col-span-6">
                 <FormLabel>Tỉnh/Thành phố</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={countryCode !== 'VN'}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn tỉnh/thành phố" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {regionCodeOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <VietnamRegionSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    options={regionCodeOptions}
+                    disabled={countryCode !== 'VN'}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

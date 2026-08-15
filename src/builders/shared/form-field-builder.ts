@@ -4,10 +4,7 @@ import {
 } from './field-control-registry';
 
 export type FormFieldBinding =
-  | 'spread'
-  | 'select'
-  | 'valueOnChange'
-  | 'checked';
+  'spread' | 'select' | 'valueOnChange' | 'checked';
 
 export interface FormFieldControlOptions {
   kind: FormFieldControlKind;
@@ -27,6 +24,10 @@ export interface FormFieldControlOptions {
   selectLabel?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
+  loadOptionsExpression?: string;
+  selectedOptionExpression?: string;
+  minSearchLength?: number;
+  debounceMs?: number;
   calendarLabel?: string;
   calendarLabelExpression?: string;
   format?: 'plain' | 'currency' | 'percent' | 'display' | 'iso';
@@ -197,9 +198,40 @@ export function buildFormFieldControl(
   </SelectContent>
 </Select>`;
     }
-    case 'combobox': {
+    case 'combobox':
+    case 'searchSelect': {
       const optionsExpression = options.optionsExpression ?? 'options';
-      return `${controlOpen(options)}<Combobox value={${value}} onChange={${change}} options={${optionsExpression}}${placeholder} />${controlClose(options)}`;
+      const searchPlaceholder = attribute(
+        'searchPlaceholder',
+        options.searchPlaceholder,
+      );
+      const emptyMessage = attribute('emptyMessage', options.emptyMessage);
+      return `${controlOpen(options)}<SelectSearch value={${value}} onChange={${change}} options={${optionsExpression}}${placeholder}${searchPlaceholder}${emptyMessage} />${controlClose(options)}`;
+    }
+    case 'apiSearchSelect': {
+      const searchPlaceholder = attribute(
+        'searchPlaceholder',
+        options.searchPlaceholder,
+      );
+      const emptyMessage = attribute('emptyMessage', options.emptyMessage);
+      const loadOptions = expressionAttribute(
+        'loadOptions',
+        options.loadOptionsExpression,
+      );
+      const selectedOption = expressionAttribute(
+        'selectedOption',
+        options.selectedOptionExpression,
+      );
+      const minSearchLength =
+        options.minSearchLength === undefined
+          ? ''
+          : ` minSearchLength={${options.minSearchLength}}`;
+      const debounceMs =
+        options.debounceMs === undefined
+          ? ''
+          : ` debounceMs={${options.debounceMs}}`;
+
+      return `${controlOpen(options)}<ApiSelectSearch value={${value}} onChange={${change}}${loadOptions}${selectedOption}${placeholder}${searchPlaceholder}${emptyMessage}${minSearchLength}${debounceMs} />${controlClose(options)}`;
     }
     case 'multiselect': {
       const optionsExpression = options.optionsExpression ?? 'options';

@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import {
+  apiSearchSelectFieldControlSchema,
   comboboxFieldControlSchema,
   dateFieldControlSchema,
   imageFieldControlSchema,
   multiselectFieldControlSchema,
   numberFieldControlSchema,
+  searchSelectFieldControlSchema,
   selectFieldControlSchema,
   switchFieldControlSchema,
   textareaFieldControlSchema,
@@ -58,6 +60,10 @@ const selectField = selectFieldControlSchema.extend(base);
 
 const comboboxField = comboboxFieldControlSchema.extend(base);
 
+const searchSelectField = searchSelectFieldControlSchema.extend(base);
+
+const apiSearchSelectField = apiSearchSelectFieldControlSchema.extend(base);
+
 const multiselectField = multiselectFieldControlSchema.extend(base);
 
 const switchField = switchFieldControlSchema.extend(base);
@@ -70,6 +76,8 @@ export const formFieldSchema = z.discriminatedUnion('kind', [
   textareaField,
   selectField,
   comboboxField,
+  searchSelectField,
+  apiSearchSelectField,
   multiselectField,
   switchField,
 ]);
@@ -98,6 +106,7 @@ export const formSpecSchema = z
       if (
         (field.kind === 'select' ||
           field.kind === 'combobox' ||
+          field.kind === 'searchSelect' ||
           field.kind === 'multiselect') &&
         field.optionsFrom !== 'prop' &&
         (!field.options || field.options.length < 1)

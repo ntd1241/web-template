@@ -1,14 +1,8 @@
+import { useMemo } from 'react';
 import type { CountryOption } from '@/lib/countries';
 import { COUNTRY_OPTIONS, getCountryFlagName } from '@/lib/countries';
 import { toAbsoluteUrl } from '@/lib/helpers';
-import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select';
+import { SelectSearch } from './select-search';
 
 interface CountrySelectProps {
   value: string;
@@ -43,28 +37,26 @@ export function CountrySelect({
   disabled,
   className,
 }: CountrySelectProps) {
-  const selectedOption = options.find((option) => option.value === value);
+  const searchOptions = useMemo(
+    () =>
+      options.map((option) => ({
+        value: option.value,
+        label: <CountryOptionContent option={option} />,
+        searchableText: option.label,
+        data: option,
+      })),
+    [options],
+  );
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className={cn('w-full', className)}>
-        <SelectValue placeholder={placeholder}>
-          {selectedOption ? (
-            <CountryOptionContent option={selectedOption} />
-          ) : null}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            textValue={option.label}
-          >
-            <CountryOptionContent option={option} />
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <SelectSearch
+      value={value}
+      options={searchOptions}
+      onChange={onValueChange}
+      placeholder={placeholder}
+      searchPlaceholder="Tìm quốc gia..."
+      disabled={disabled}
+      className={className}
+    />
   );
 }

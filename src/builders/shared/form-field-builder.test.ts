@@ -83,6 +83,25 @@ describe('form-field builder', () => {
     );
   });
 
+  it('renders the API search select with its loader contract', () => {
+    const source = buildFormFieldControl({
+      kind: 'apiSearchSelect',
+      surface: 'form',
+      valueExpression: 'field.value',
+      onChangeExpression: 'field.onChange',
+      loadOptionsExpression: 'loadCustomerOptions',
+      selectedOptionExpression: 'customerSelectedOption',
+      searchPlaceholder: 'Tìm khách hàng...',
+      minSearchLength: 2,
+      debounceMs: 250,
+    });
+
+    expect(source).toContain('<ApiSelectSearch');
+    expect(source).toContain('loadOptions={loadCustomerOptions}');
+    expect(source).toContain('selectedOption={customerSelectedOption}');
+    expect(source).toContain('minSearchLength={2} debounceMs={250}');
+  });
+
   it('validates shared control options before higher-level builders extend them', () => {
     expect(
       dateFieldControlSchema.safeParse({

@@ -58,16 +58,18 @@ Static select-like options are emitted as module constants only when `optionsFro
 
 ## Field Kinds
 
-| Kind          | Project control       | Binding                                                      |
-| ------------- | --------------------- | ------------------------------------------------------------ |
-| `text`        | `Input`               | `{...field}`                                                 |
-| `number`      | `Input type="number"` | `{...field}`; prefer `z.coerce.number()` for numeric schemas |
-| `date`        | `DatePickerInput`     | `value`, `onChange`, and `onBlur`                            |
-| `textarea`    | `Textarea`            | `{...field}`                                                 |
-| `select`      | `Select`              | `value` and `onValueChange`                                  |
-| `combobox`    | `Combobox`            | `value` and `onChange`                                       |
-| `multiselect` | `MultiSelect`         | `value` and `onChange`                                       |
-| `switch`      | `Switch`              | `checked` and `onCheckedChange`                              |
+| Kind              | Project control       | Binding                                                      |
+| ----------------- | --------------------- | ------------------------------------------------------------ |
+| `text`            | `Input`               | `{...field}`                                                 |
+| `number`          | `Input type="number"` | `{...field}`; prefer `z.coerce.number()` for numeric schemas |
+| `date`            | `DatePickerInput`     | `value`, `onChange`, and `onBlur`                            |
+| `textarea`        | `Textarea`            | `{...field}`                                                 |
+| `select`          | `Select`              | `value` and `onValueChange`                                  |
+| `combobox`        | `SelectSearch`        | `value` and `onChange` (legacy alias)                        |
+| `searchSelect`    | `SelectSearch`        | `value` and `onChange`                                       |
+| `apiSearchSelect` | `ApiSelectSearch`     | `value` and `onChange`, plus a generated loader prop         |
+| `multiselect`     | `MultiSelect`         | `value` and `onChange`                                       |
+| `switch`          | `Switch`              | `checked` and `onCheckedChange`                              |
 
 Date fields may set `format: 'display' | 'iso'`; number fields may set
 `format: 'plain' | 'currency' | 'percent'`. These semantic presets are defined once by the shared
@@ -155,7 +157,7 @@ The page may render `<Entity>Form` inline for a full page or drawer surface and 
 
 ## API-Fetched Options
 
-For `select`, `combobox`, and `multiselect`, set `optionsFrom: 'prop'` when options come from the
+For `select`, `combobox`, `searchSelect`, and `multiselect`, set `optionsFrom: 'prop'` when options come from the
 page instead of a static list:
 
 ```ts
@@ -171,7 +173,7 @@ page instead of a static list:
 The generated components require a `<fieldName>Options` prop. Types are:
 
 - `select` → `Array<{ value: string; label: string }>`
-- `combobox` → `ComboboxOption[]`
+- `combobox`/`searchSelect` → `SearchSelectOption[]`
 - `multiselect` → `MultiSelectOption[]`
 
 Fetch options at the page boundary and pass them down:
@@ -198,6 +200,24 @@ const regionOptions = (regionsQuery.data ?? []).map((region) => ({
 
 Do not move server calls into the generated artifact. Keep server state in React Query at the page or
 feature boundary, then pass serializable option arrays to the generated form.
+
+For API-backed search, use `apiSearchSelect`. The generated form receives a loader and an optional
+selected option so edit forms can display the current label even before a search result is loaded:
+
+```ts
+{
+  kind: 'apiSearchSelect',
+  name: 'customer',
+  label: 'Khách hàng',
+  searchPlaceholder: 'Tìm khách hàng...',
+  minSearchLength: 2,
+  debounceMs: 300,
+}
+```
+
+The parent implements `loadCustomerOptions({ search, signal })`; the component owns debounce,
+request cancellation, loading, empty, and stale-response handling. The builder never embeds an API
+URL or query hook in generated output.
 
 ## Ownership
 

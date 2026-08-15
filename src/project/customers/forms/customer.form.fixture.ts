@@ -49,14 +49,14 @@ const spec: FormSpec = {
       fallbackText: 'K',
     },
     {
-      kind: 'select',
+      kind: 'searchSelect',
       name: 'countryCode',
       label: 'Quốc gia',
       width: 'normal',
       options: [...CUSTOMER_COUNTRY_OPTIONS],
     },
     {
-      kind: 'select',
+      kind: 'searchSelect',
       name: 'regionCode',
       label: 'Tỉnh/Thành phố',
       width: 'normal',

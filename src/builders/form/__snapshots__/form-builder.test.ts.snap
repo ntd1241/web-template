@@ -42,8 +42,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Combobox } from '@/components/ui/combobox';
-import type { ComboboxOption } from '@/components/ui/combobox';
+import { SelectSearch } from '@/components/ui/select-search';
+import type { SearchSelectOption } from '@/components/ui/select-search';
 import { MultiSelect } from '@/components/ui/multi-select';
 import type { MultiSelectOption } from '@/components/ui/multi-select';
 import { Switch } from '@/components/ui/switch';
@@ -98,7 +98,7 @@ interface SupplierFormProps {
   form: UseFormReturn<CreateSupplierFormValues>;
   onSubmit: (values: CreateSupplierFormValues) => void;
   id?: string;
-  regionOptions: ComboboxOption[];
+  regionOptions: SearchSelectOption[];
 }
 
 export function SupplierForm({
@@ -213,7 +213,7 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
             <FormLabel>Khu vực</FormLabel>
             <FormControl>
-            <Combobox value={field.value} onChange={field.onChange} options={regionOptions} placeholder="Chọn khu vực" />
+            <SelectSearch value={field.value} onChange={field.onChange} options={regionOptions} placeholder="Chọn khu vực" />
           </FormControl>
             <FormMessage />
           </FormItem>
@@ -274,7 +274,7 @@ interface SupplierFormDialogProps {
   onSubmit: (values: CreateSupplierFormValues) => void;
   isSaving?: boolean;
   title?: string;
-  regionOptions: ComboboxOption[];
+  regionOptions: SearchSelectOption[];
 }
 
 export function SupplierFormDialog({

@@ -12,8 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Combobox } from '@/components/ui/combobox';
-import type { ComboboxOption } from '@/components/ui/combobox';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Dialog,
@@ -41,6 +39,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SelectSearch } from '@/components/ui/select-search';
+import type { SearchSelectOption } from '@/components/ui/select-search';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -97,7 +97,7 @@ interface SupplierFormProps {
   form: UseFormReturn<CreateSupplierFormValues>;
   onSubmit: (values: CreateSupplierFormValues) => void;
   id?: string;
-  regionOptions: ComboboxOption[];
+  regionOptions: SearchSelectOption[];
 }
 
 export function SupplierForm({
@@ -218,7 +218,7 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
                 <FormLabel>Khu vực</FormLabel>
                 <FormControl>
-                  <Combobox
+                  <SelectSearch
                     value={field.value}
                     onChange={field.onChange}
                     options={regionOptions}
@@ -296,7 +296,7 @@ interface SupplierFormDialogProps {
   onSubmit: (values: CreateSupplierFormValues) => void;
   isSaving?: boolean;
   title?: string;
-  regionOptions: ComboboxOption[];
+  regionOptions: SearchSelectOption[];
 }
 
 export function SupplierFormDialog({
