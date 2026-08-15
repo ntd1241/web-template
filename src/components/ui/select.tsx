@@ -178,9 +178,9 @@ function SelectContent({
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
           className={cn(
-            'p-1.5',
+            'max-h-72 overflow-y-auto p-1.5',
             position === 'popper' &&
-              'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]',
+              'max-h-72 w-full min-w-[var(--radix-select-trigger-width)]',
           )}
         >
           {children}

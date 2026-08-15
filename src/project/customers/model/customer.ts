@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { COUNTRY_OPTIONS } from '@/lib/countries';
 import type { TagFilterOption } from '../../shared/tag-filter';
 
 export const CUSTOMER_STATUSES = ['active', 'inactive'] as const;
@@ -17,34 +18,9 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   organization: 'Doanh nghiệp',
 };
 
-export const CUSTOMER_COUNTRY_OPTIONS = [
-  { value: 'VN', label: 'Việt Nam' },
-  { value: 'US', label: 'Hoa Kỳ' },
-  { value: 'JP', label: 'Nhật Bản' },
-  { value: 'KR', label: 'Hàn Quốc' },
-  { value: 'CN', label: 'Trung Quốc' },
-  { value: 'SG', label: 'Singapore' },
-  { value: 'TH', label: 'Thái Lan' },
-  { value: 'MY', label: 'Malaysia' },
-  { value: 'AU', label: 'Úc' },
-  { value: 'GB', label: 'Vương quốc Anh' },
-  { value: 'DE', label: 'Đức' },
-  { value: 'FR', label: 'Pháp' },
-  { value: 'CA', label: 'Canada' },
-  { value: 'IN', label: 'Ấn Độ' },
-  { value: 'ID', label: 'Indonesia' },
-  { value: 'PH', label: 'Philippines' },
-  { value: 'TW', label: 'Đài Loan' },
-  { value: 'HK', label: 'Hồng Kông' },
-  { value: 'AE', label: 'Các Tiểu vương quốc Ả Rập Thống nhất' },
-  { value: 'IT', label: 'Ý' },
-  { value: 'ES', label: 'Tây Ban Nha' },
-  { value: 'RU', label: 'Nga' },
-  { value: 'BR', label: 'Brazil' },
-  { value: 'CH', label: 'Thụy Sĩ' },
-  { value: 'SE', label: 'Thụy Điển' },
-  { value: 'NZ', label: 'New Zealand' },
-] as const;
+export const CUSTOMER_COUNTRY_OPTIONS = COUNTRY_OPTIONS.map(
+  ({ value, label }) => ({ value, label }),
+);
 
 export const customerFormSchema = z.object({
   customerCode: z

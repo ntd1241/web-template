@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { CountrySelect } from '@/components/ui/country-select';
 import {
   Dialog,
   DialogContent,
@@ -248,27 +249,17 @@ export function CustomerForm({
             render={({ field }) => (
               <FormItem className="md:col-span-6">
                 <FormLabel>Quốc gia</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    form.setValue('regionCode', '');
-                    form.setValue('regionName', '');
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {countryCodeOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <CountrySelect
+                    value={field.value}
+                    options={countryCodeOptions}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue('regionCode', '');
+                      form.setValue('regionName', '');
+                    }}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
