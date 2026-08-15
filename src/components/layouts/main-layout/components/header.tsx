@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { signOutFromSupabase } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
 import {
@@ -193,6 +193,10 @@ export function Header() {
   const accountName = authUser?.name ?? 'Thanh Hiếu';
   const accountEmail = authUser?.email ?? 'thanh.hieu@admin.vn';
   const accountInitial = accountName.trim().charAt(0).toUpperCase() || 'T';
+  const breadcrumbItems = shell.breadcrumbItems ?? [
+    { label: shell.breadcrumbRootLabel, path: shell.breadcrumbRootPath },
+    { label: shell.breadcrumbCurrent },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -257,14 +261,18 @@ export function Header() {
             {shell.headerTitle}
           </h1>
           <nav className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Link
-              to={shell.breadcrumbRootPath}
-              className="hover:text-admin-neutral-700"
-            >
-              {shell.breadcrumbRootLabel}
-            </Link>
-            <span className="text-admin-neutral-300">/</span>
-            <span className="text-[#0e5cd6]">{shell.breadcrumbCurrent}</span>
+            {breadcrumbItems.map((item, index) => (
+              <Fragment key={`${item.label}-${index}`}>
+                {index > 0 && <span className="text-admin-neutral-300">/</span>}
+                {item.path ? (
+                  <Link to={item.path} className="hover:text-admin-neutral-700">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span className="text-[#0e5cd6]">{item.label}</span>
+                )}
+              </Fragment>
+            ))}
           </nav>
         </div>
       </div>

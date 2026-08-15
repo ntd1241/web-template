@@ -107,6 +107,29 @@ export async function loadCustomerWorkspace(
   return { tenantId, customers: rows.map(mapCustomerRow) };
 }
 
+export async function loadCustomerDetail(
+  userId: string,
+  customerId: string,
+): Promise<Customer> {
+  assertSupabaseConfigured();
+  const tenantId = await resolveTenantId(userId);
+  const rows = await request<CustomerRow[]>(
+    supabaseApi.get(
+      '/customers',
+      queryParams({
+        select: '*',
+        tenant_id: `eq.${tenantId}`,
+        id: `eq.${customerId}`,
+        limit: '1',
+      }),
+    ),
+  );
+
+  const customer = rows[0];
+  if (!customer) throw new Error('Không tìm thấy khách hàng.');
+  return mapCustomerRow(customer);
+}
+
 export async function loadCustomerTagFilter(
   tenantId: string,
 ): Promise<CustomerTagFilterData> {

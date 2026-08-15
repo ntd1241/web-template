@@ -5,10 +5,15 @@ import { useLocation } from 'react-router-dom';
 import { PROJECT_MENU_GROUPS } from '@/config/project-menu.config';
 import { MainLayout } from '@/components/layouts/main-layout';
 import { loadProjectContext } from '../api/project-context.api';
+import { loadCustomerDetail } from '../customers/api/customers.api';
 
 export function ProjectMainLayout() {
   const { pathname } = useLocation();
   const userId = useAuthStore((state) => state.user?.id);
+  const isCustomerDetail = pathname.startsWith(`${ROUTES.PROJECT.CUSTOMERS}/`);
+  const customerId = isCustomerDetail
+    ? pathname.slice(`${ROUTES.PROJECT.CUSTOMERS}/`.length).split('/')[0]
+    : undefined;
   const contextQuery = useQuery({
     queryKey: ['project', 'context', userId],
     queryFn: () => {
@@ -18,11 +23,21 @@ export function ProjectMainLayout() {
     enabled: Boolean(userId),
     staleTime: 5 * 60 * 1000,
   });
+  const customerDetailQuery = useQuery({
+    queryKey: ['project', 'customers', 'detail', userId, customerId],
+    queryFn: () => {
+      if (!userId || !customerId)
+        throw new Error('Thiếu thông tin khách hàng.');
+      return loadCustomerDetail(userId, customerId);
+    },
+    enabled: Boolean(userId && customerId),
+  });
 
   const tenantName = contextQuery.data?.tenantName ?? 'Đang tải tenant...';
   const accountRoles = contextQuery.data?.roleNames ?? [];
-  const breadcrumbCurrent =
-    pathname === ROUTES.PROJECT.EMPLOYEES
+  const breadcrumbCurrent = isCustomerDetail
+    ? (customerDetailQuery.data?.name ?? 'Chi tiết khách hàng')
+    : pathname === ROUTES.PROJECT.EMPLOYEES
       ? 'Nhân viên'
       : pathname === ROUTES.PROJECT.CUSTOMERS
         ? 'Khách hàng'
@@ -45,6 +60,15 @@ export function ProjectMainLayout() {
         breadcrumbRootLabel: 'Trang chủ',
         breadcrumbRootPath: '/',
         breadcrumbCurrent,
+        ...(isCustomerDetail
+          ? {
+              breadcrumbItems: [
+                { label: 'Trang chủ', path: '/' },
+                { label: 'Khách hàng', path: ROUTES.PROJECT.CUSTOMERS },
+                { label: breadcrumbCurrent },
+              ],
+            }
+          : {}),
       }}
     />
   );

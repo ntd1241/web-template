@@ -14,6 +14,12 @@ export interface LayoutShellConfig {
   breadcrumbRootLabel: string;
   breadcrumbRootPath: string;
   breadcrumbCurrent: string;
+  breadcrumbItems?: LayoutBreadcrumbItem[];
+}
+
+export interface LayoutBreadcrumbItem {
+  label: string;
+  path?: string;
 }
 
 interface LayoutState {

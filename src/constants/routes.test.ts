@@ -8,6 +8,12 @@ describe('buildPath', () => {
     );
   });
 
+  it('thay thế param cho trang chi tiết khách hàng', () => {
+    expect(
+      buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, { id: 'customer-1' }),
+    ).toBe('/customers/customer-1');
+  });
+
   it('giữ nguyên path không có param', () => {
     expect(buildPath(ROUTES.EXAMPLE.EMPLOYEES, {})).toBe('/example/employees');
   });

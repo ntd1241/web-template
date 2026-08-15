@@ -29,6 +29,7 @@ export const ROUTES = {
     SETTINGS: '/settings',
     EMPLOYEES: '/employees',
     CUSTOMERS: '/customers',
+    CUSTOMER_DETAIL: '/customers/:id',
     ROLE_PERMISSIONS: '/permissions',
     TAGS: '/tags',
   },
