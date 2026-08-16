@@ -5,7 +5,7 @@ import {
   useReactTable,
   type PaginationState,
 } from '@tanstack/react-table';
-import { FileText, WalletCards } from 'lucide-react';
+import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -41,6 +41,13 @@ import { ContractStatusBadge } from './contract-status-badge';
 function formatDate(value: string | null | undefined) {
   if (!value) return 'Chưa cập nhật';
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function FeeLine({ line }: { line: ContractVersionLine }) {
@@ -265,6 +272,83 @@ export function ContractPaymentsContent({
                 </td>
                 <td className="px-5 py-3 text-right font-semibold tabular-nums">
                   {formatContractAmount(payment.amount, currencyCode)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardTable>
+    </Card>
+  );
+}
+
+export function ContractAttachmentsContent({
+  contract,
+}: {
+  contract: ContractDetail;
+}) {
+  if (contract.attachments.length === 0) {
+    return (
+      <CardEmptyState
+        icon={Paperclip}
+        title="Chưa có tài liệu"
+        description="Tài liệu đính kèm của hợp đồng sẽ hiển thị tại đây."
+      />
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardHeading>
+          <CardTitle>Tài liệu đính kèm</CardTitle>
+        </CardHeading>
+      </CardHeader>
+      <CardTable>
+        <table className="w-full min-w-[620px] text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="px-5 py-3 font-medium">Tài liệu</th>
+              <th className="px-5 py-3 font-medium">Dung lượng</th>
+              <th className="px-5 py-3 font-medium">Ngày tải lên</th>
+              <th className="px-5 py-3 text-right font-medium">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contract.attachments.map((attachment) => (
+              <tr
+                key={attachment.id}
+                className="border-b border-border last:border-0"
+              >
+                <td className="px-5 py-3">
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex min-w-0 items-center gap-3 hover:text-primary"
+                  >
+                    <FileText className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 truncate font-medium">
+                      {attachment.fileName}
+                    </span>
+                  </a>
+                </td>
+                <td className="px-5 py-3 text-muted-foreground">
+                  {formatFileSize(attachment.sizeBytes)}
+                </td>
+                <td className="px-5 py-3 text-muted-foreground">
+                  {formatDate(attachment.createdAt.slice(0, 10))}
+                </td>
+                <td className="px-5 py-3 text-right">
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                  >
+                    <ExternalLink className="size-4" />
+                    Mở file
+                  </a>
                 </td>
               </tr>
             ))}

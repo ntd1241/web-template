@@ -1,7 +1,8 @@
 import { useUiStore } from '@/stores/ui.store';
-import { Blocks, BookOpen, CircleHelp } from 'lucide-react';
+import { BookOpen, CircleHelp } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getMenuItemKey, resolveMenuTarget } from '@/config/menu.types';
+import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -46,7 +47,11 @@ export function SidebarPrimary() {
         className="flex size-8 items-center justify-center rounded-lg bg-white text-primary shadow-sm"
         aria-label="Trang chủ"
       >
-        <Blocks className="size-5" />
+        <img
+          src={toAbsoluteUrl('/media/app/android-chrome-512x512.png')}
+          alt=""
+          className="size-6 object-contain"
+        />
       </Link>
 
       <div className="flex flex-1 flex-col items-center">

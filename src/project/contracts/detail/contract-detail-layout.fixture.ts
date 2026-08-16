@@ -12,6 +12,7 @@ const spec = {
     },
     { value: 'versions', label: 'Phiên bản', icon: 'History' },
     { value: 'payments', label: 'Thanh toán', icon: 'WalletCards' },
+    { value: 'attachments', label: 'Tài liệu', icon: 'Paperclip' },
   ],
 } as const;
 

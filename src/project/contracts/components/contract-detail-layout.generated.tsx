@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import {
   History,
   LayoutDashboard,
+  Paperclip,
   ReceiptText,
   WalletCards,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ export interface ContractDetailLayoutProps {
   receivablesContent: ReactNode;
   versionsContent: ReactNode;
   paymentsContent: ReactNode;
+  attachmentsContent: ReactNode;
   receivablesBadge?: ReactNode;
   className?: string;
 }
@@ -33,6 +35,7 @@ export function ContractDetailLayout({
   receivablesContent,
   versionsContent,
   paymentsContent,
+  attachmentsContent,
   receivablesBadge,
   className,
 }: ContractDetailLayoutProps) {
@@ -61,6 +64,12 @@ export function ContractDetailLayout({
       label: 'Thanh toán',
       icon: WalletCards,
       content: paymentsContent,
+    },
+    {
+      value: 'attachments',
+      label: 'Tài liệu',
+      icon: Paperclip,
+      content: attachmentsContent,
     },
   ];
 

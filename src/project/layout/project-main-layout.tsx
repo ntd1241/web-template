@@ -80,7 +80,7 @@ export function ProjectMainLayout() {
       shell={{
         menuGroups: PROJECT_MENU_GROUPS,
         homePath: '/',
-        brandName: 'Vacom CRM',
+        brandName: 'VACOM | KẾ TOÁN DỊCH VỤ',
         headerTitle: tenantName,
         accountRoles,
         breadcrumbRootLabel: 'Trang chủ',
