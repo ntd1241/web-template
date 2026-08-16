@@ -165,7 +165,7 @@ export function ContractForm({
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     calendarLabel="Chọn ngày bắt đầu"
-                    valueMode="date"
+                    valueMode="iso-date"
                     variant="md"
                   />
                 </FormControl>
@@ -186,7 +186,7 @@ export function ContractForm({
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     calendarLabel="Chọn ngày kết thúc"
-                    valueMode="date"
+                    valueMode="iso-date"
                     variant="md"
                   />
                 </FormControl>

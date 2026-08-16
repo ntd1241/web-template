@@ -56,6 +56,15 @@ describe('form-field builder', () => {
     ).toContain('<CustomerSelect');
   });
 
+  it('uses ISO strings for form dates by default', () => {
+    const source = buildFormFieldControl({
+      kind: 'date',
+      surface: 'form',
+    });
+
+    expect(source).toContain('valueMode="iso-date"');
+  });
+
   it('supports a controller-owned table cell without duplicating control markup', () => {
     const source = buildFormFieldControl({
       kind: 'number',

@@ -97,7 +97,7 @@ function inputAttributes(options: FormFieldControlOptions): string {
 function dateValueMode(options: FormFieldControlOptions): 'date' | 'iso-date' {
   if (options.format === 'display') return 'date';
   if (options.format === 'iso') return 'iso-date';
-  return options.surface === 'cell' ? 'iso-date' : 'date';
+  return 'iso-date';
 }
 
 function numberFormatSuffix(
