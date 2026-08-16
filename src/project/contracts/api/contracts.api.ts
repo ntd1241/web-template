@@ -1,6 +1,7 @@
 import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
 import { loadCustomerDetail } from '../../customers/api/customers.api';
 import type { Customer } from '../../customers/model/customer';
+import { getPaymentReminderDays } from '../../model/tenant-settings';
 import {
   mapContractRow,
   mapContractVersionLineRow,
@@ -35,6 +36,10 @@ interface CustomerOptionRow {
   name: string;
 }
 
+interface TenantSettingsRow {
+  settings: Record<string, unknown>;
+}
+
 export interface ContractWorkspace {
   tenantId: string;
   contracts: Contract[];
@@ -52,6 +57,7 @@ export async function loadContractCreationWorkspace(
 }
 
 export interface ContractDetail extends Contract {
+  paymentReminderDays: number;
   customer: Customer;
   versions: ContractVersion[];
   lines: ContractVersionLine[];
@@ -216,52 +222,68 @@ export async function loadContractDetail(
   const contract = contractRows[0];
   if (!contract) throw new Error('Không tìm thấy hợp đồng.');
 
-  const [customer, versionRows, balanceRows, paymentRows, summaryRows] =
-    await Promise.all([
-      loadCustomerDetail(userId, contract.customer_id),
-      request<ContractVersionRow[]>(
-        supabaseApi.get(
-          '/contract_versions',
-          queryParams({
-            select: '*',
-            contract_id: `eq.${contractId}`,
-            order: 'version_no.desc',
-          }),
-        ),
+  const [
+    customer,
+    versionRows,
+    balanceRows,
+    paymentRows,
+    summaryRows,
+    tenantSettingsRows,
+  ] = await Promise.all([
+    loadCustomerDetail(userId, contract.customer_id),
+    request<ContractVersionRow[]>(
+      supabaseApi.get(
+        '/contract_versions',
+        queryParams({
+          select: '*',
+          contract_id: `eq.${contractId}`,
+          order: 'version_no.desc',
+        }),
       ),
-      request<ContractChargeBalanceRow[]>(
-        supabaseApi.get(
-          '/contract_charge_balances',
-          queryParams({
-            select: '*',
-            tenant_id: `eq.${tenantId}`,
-            contract_id: `eq.${contractId}`,
-            order: 'due_date.asc,period_start.asc',
-          }),
-        ),
+    ),
+    request<ContractChargeBalanceRow[]>(
+      supabaseApi.get(
+        '/contract_charge_balances',
+        queryParams({
+          select: '*',
+          tenant_id: `eq.${tenantId}`,
+          contract_id: `eq.${contractId}`,
+          order: 'due_date.asc,period_start.asc',
+        }),
       ),
-      request<CustomerPaymentRow[]>(
-        supabaseApi.get(
-          '/customer_payments',
-          queryParams({
-            select: '*',
-            tenant_id: `eq.${tenantId}`,
-            customer_id: `eq.${contract.customer_id}`,
-            order: 'received_at.desc',
-          }),
-        ),
+    ),
+    request<CustomerPaymentRow[]>(
+      supabaseApi.get(
+        '/customer_payments',
+        queryParams({
+          select: '*',
+          tenant_id: `eq.${tenantId}`,
+          customer_id: `eq.${contract.customer_id}`,
+          order: 'received_at.desc',
+        }),
       ),
-      request<CustomerReceivableSummaryRow[]>(
-        supabaseApi.get(
-          '/customer_receivable_summary',
-          queryParams({
-            select: '*',
-            tenant_id: `eq.${tenantId}`,
-            customer_id: `eq.${contract.customer_id}`,
-          }),
-        ),
+    ),
+    request<CustomerReceivableSummaryRow[]>(
+      supabaseApi.get(
+        '/customer_receivable_summary',
+        queryParams({
+          select: '*',
+          tenant_id: `eq.${tenantId}`,
+          customer_id: `eq.${contract.customer_id}`,
+        }),
       ),
-    ]);
+    ),
+    request<TenantSettingsRow[]>(
+      supabaseApi.get(
+        '/tenants',
+        queryParams({
+          select: 'settings',
+          id: `eq.${tenantId}`,
+          limit: '1',
+        }),
+      ),
+    ),
+  ]);
 
   const versions = versionRows.map(mapContractVersionRow);
   const versionIds = versions.map((version) => version.id);
@@ -281,6 +303,9 @@ export async function loadContractDetail(
 
   return {
     ...mapContractRow(contract),
+    paymentReminderDays: getPaymentReminderDays(
+      tenantSettingsRows[0]?.settings,
+    ),
     customerName: customer.name,
     customerCode: customer.customerCode,
     customer,

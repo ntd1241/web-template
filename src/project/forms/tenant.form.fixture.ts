@@ -72,6 +72,13 @@ const spec: FormSpec = {
       width: 'normal',
       placeholder: 'https://...',
     },
+    {
+      kind: 'number',
+      name: 'paymentReminderDays',
+      label: 'Nhắc hạn thanh toán trước (ngày)',
+      width: 'normal',
+      format: 'plain',
+    },
   ],
 };
 

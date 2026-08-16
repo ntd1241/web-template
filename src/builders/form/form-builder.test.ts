@@ -65,7 +65,8 @@ describe('buildFormModule', () => {
     expect(source).toContain(
       '<Input placeholder="vd: NCC-001" variant="md" {...field} />',
     ); // text spread
-    expect(source).toContain('<Input type="number" variant="md" {...field} />'); // number
+    expect(source).toContain('<Input type="number" variant="md"'); // number
+    expect(source).toContain('Number.isNaN(event.target.valueAsNumber)');
     expect(source).toContain('<Textarea rows={3} {...field} />'); // textarea
     expect(source).toContain(
       'value={field.value} onValueChange={field.onChange}',

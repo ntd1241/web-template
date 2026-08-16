@@ -26,6 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
   upcoming: '#2563eb',
   open: '#64748b',
   unpaid: '#64748b',
+  not_due: '#64748b',
   draft: '#64748b',
   superseded: '#64748b',
   partially_paid: '#d97706',

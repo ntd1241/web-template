@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const DEFAULT_PAYMENT_REMINDER_DAYS = 7;
+export const MAX_PAYMENT_REMINDER_DAYS = 365;
+
 export const tenantSettingsSchema = z.object({
   name: z.string().trim().min(1, 'Vui lòng nhập tên tổ chức.'),
   legalName: z.string().trim(),
@@ -13,6 +16,14 @@ export const tenantSettingsSchema = z.object({
   phone: z.string().trim(),
   taxCode: z.string().trim(),
   website: z.string().trim(),
+  paymentReminderDays: z
+    .number()
+    .int('Số ngày phải là số nguyên.')
+    .min(0, 'Số ngày không được âm.')
+    .max(
+      MAX_PAYMENT_REMINDER_DAYS,
+      `Số ngày không được lớn hơn ${MAX_PAYMENT_REMINDER_DAYS}.`,
+    ),
 });
 
 export type TenantSettingsValues = z.infer<typeof tenantSettingsSchema>;
@@ -35,6 +46,7 @@ export const emptyTenantSettings: TenantSettingsValues = {
   phone: '',
   taxCode: '',
   website: '',
+  paymentReminderDays: DEFAULT_PAYMENT_REMINDER_DAYS,
 };
 
 export function mapTenantSettingsRow(
@@ -50,10 +62,23 @@ export function mapTenantSettingsRow(
     phone: getStringSetting(row.settings, 'phone'),
     taxCode: getStringSetting(row.settings, 'taxCode'),
     website: getStringSetting(row.settings, 'website'),
+    paymentReminderDays: getPaymentReminderDays(row.settings),
   };
 }
 
 function getStringSetting(settings: Record<string, unknown>, key: string) {
   const value = settings[key];
   return typeof value === 'string' ? value : '';
+}
+
+export function getPaymentReminderDays(
+  settings: Record<string, unknown> | null | undefined,
+) {
+  const value = settings?.paymentReminderDays;
+  return typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= MAX_PAYMENT_REMINDER_DAYS
+    ? value
+    : DEFAULT_PAYMENT_REMINDER_DAYS;
 }

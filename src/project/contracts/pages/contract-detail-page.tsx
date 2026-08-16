@@ -49,6 +49,7 @@ import {
   ContractReceivablesContent,
   ContractVersionsContent,
 } from '../components/contract-detail-tab-content';
+import { getContractReceivableStats } from '../model/receivable';
 
 function formatDate(value: string | null) {
   if (!value) return 'Không giới hạn';
@@ -112,6 +113,8 @@ function ContractInformationCard({
   onActivate: () => void;
   isActivating: boolean;
 }) {
+  const stats = getContractReceivableStats(contract.charges);
+
   return (
     <EntityDetailInformationCard
       actions={
@@ -177,34 +180,35 @@ function ContractInformationCard({
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             icon={FileText}
+            iconTone="info"
             label="Tổng đã lập"
             value={formatContractAmount(
-              contract.receivableSummary?.totalBilled ?? 0,
+              stats.totalBilled,
               contract.currencyCode,
             )}
           />
           <StatCard
             icon={CircleCheck}
+            iconTone="success"
             label="Đã thanh toán"
-            value={formatContractAmount(
-              contract.receivableSummary?.totalPaid ?? 0,
-              contract.currencyCode,
-            )}
+            value={formatContractAmount(stats.totalPaid, contract.currencyCode)}
           />
           <StatCard
             icon={WalletCards}
+            iconTone="warning"
             label="Còn phải thu"
             value={formatContractAmount(
-              contract.receivableSummary?.totalOutstanding ?? 0,
+              stats.totalOutstanding,
               contract.currencyCode,
             )}
             emphasis
           />
           <StatCard
             icon={TriangleAlert}
+            iconTone="danger"
             label="Quá hạn"
             value={formatContractAmount(
-              contract.receivableSummary?.overdueOutstanding ?? 0,
+              stats.overdueOutstanding,
               contract.currencyCode,
             )}
           />
@@ -318,6 +322,7 @@ export function ContractDetailPage() {
           <ContractReceivablesContent
             charges={contract.charges}
             currencyCode={contract.currencyCode}
+            dueSoonDays={contract.paymentReminderDays}
           />
         }
         versionsContent={<ContractVersionsContent contract={contract} />}

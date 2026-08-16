@@ -3,6 +3,7 @@ import { contractVersionLineSchema, mapContractRow } from './contract';
 import {
   customerPaymentSchema,
   getContractChargeDisplayStatus,
+  getContractReceivableStats,
   mapCustomerReceivableSummaryRow,
 } from './receivable';
 
@@ -132,13 +133,19 @@ describe('contract model', () => {
         { ...baseCharge, dueDate: '2026-08-16' },
         today,
       ),
+    ).toBe('unpaid');
+    expect(
+      getContractChargeDisplayStatus(
+        { ...baseCharge, dueDate: '2026-08-23' },
+        today,
+      ),
     ).toBe('upcoming');
     expect(
       getContractChargeDisplayStatus(
         { ...baseCharge, dueDate: '2026-08-24' },
         today,
       ),
-    ).toBe('unpaid');
+    ).toBe('not_due');
     expect(
       getContractChargeDisplayStatus(
         { ...baseCharge, dueDate: '2026-08-15' },
@@ -157,6 +164,53 @@ describe('contract model', () => {
         today,
       ),
     ).toBe('voided');
+  });
+
+  it('counts only due receivables in contract outstanding stats', () => {
+    const stats = getContractReceivableStats(
+      [
+        {
+          direction: 'receivable',
+          status: 'open',
+          amount: 10_000_000,
+          paidAmount: 0,
+          outstandingAmount: 10_000_000,
+          dueDate: '2026-08-16',
+        },
+        {
+          direction: 'receivable',
+          status: 'open',
+          amount: 20_000_000,
+          paidAmount: 0,
+          outstandingAmount: 20_000_000,
+          dueDate: '2026-08-23',
+        },
+        {
+          direction: 'receivable',
+          status: 'partially_paid',
+          amount: 15_000_000,
+          paidAmount: 5_000_000,
+          outstandingAmount: 10_000_000,
+          dueDate: '2026-08-15',
+        },
+        {
+          direction: 'payable',
+          status: 'open',
+          amount: 50_000_000,
+          paidAmount: 0,
+          outstandingAmount: 50_000_000,
+          dueDate: '2026-08-15',
+        },
+      ],
+      new Date('2026-08-16T12:00:00Z'),
+    );
+
+    expect(stats).toEqual({
+      totalBilled: 45_000_000,
+      totalPaid: 5_000_000,
+      totalOutstanding: 20_000_000,
+      overdueOutstanding: 10_000_000,
+    });
   });
 
   it('validates payment amount and currency before API submission', () => {

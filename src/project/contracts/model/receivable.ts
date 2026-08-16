@@ -18,6 +18,7 @@ export type ContractChargeStatus = (typeof CONTRACT_CHARGE_STATUSES)[number];
 export const CONTRACT_CHARGE_DISPLAY_STATUSES = [
   'upcoming',
   'unpaid',
+  'not_due',
   'paid',
   'overdue',
   'voided',
@@ -50,6 +51,7 @@ export const CONTRACT_CHARGE_DISPLAY_STATUS_LABELS: Record<
 > = {
   upcoming: 'Sắp tới hạn',
   unpaid: 'Chưa thu',
+  not_due: 'Chưa tới hạn',
   paid: 'Đã thu',
   overdue: 'Quá hạn',
   voided: 'Đã hủy',
@@ -132,8 +134,64 @@ export function getContractChargeDisplayStatus(
 
   const todayIso = dateOnly(today);
   if (charge.dueDate < todayIso) return 'overdue';
-  if (charge.dueDate <= addDays(todayIso, dueSoonDays)) return 'upcoming';
+  if (
+    charge.dueDate > todayIso &&
+    charge.dueDate <= addDays(todayIso, dueSoonDays)
+  ) {
+    return 'upcoming';
+  }
+  if (charge.dueDate > todayIso) return 'not_due';
   return 'unpaid';
+}
+
+export interface ContractReceivableStats {
+  totalBilled: number;
+  totalPaid: number;
+  totalOutstanding: number;
+  overdueOutstanding: number;
+}
+
+export function getContractReceivableStats(
+  charges: Array<
+    Pick<
+      ContractChargeBalance,
+      | 'direction'
+      | 'status'
+      | 'amount'
+      | 'paidAmount'
+      | 'outstandingAmount'
+      | 'dueDate'
+    >
+  >,
+  today = new Date(),
+): ContractReceivableStats {
+  const todayIso = dateOnly(today);
+  const receivableCharges = charges.filter(
+    (charge) => charge.direction === 'receivable' && charge.status !== 'voided',
+  );
+
+  return receivableCharges.reduce<ContractReceivableStats>(
+    (stats, charge) => {
+      stats.totalBilled += charge.amount;
+      stats.totalPaid += charge.paidAmount;
+
+      if (charge.outstandingAmount > 0 && charge.dueDate <= todayIso) {
+        stats.totalOutstanding += charge.outstandingAmount;
+      }
+
+      if (charge.outstandingAmount > 0 && charge.dueDate < todayIso) {
+        stats.overdueOutstanding += charge.outstandingAmount;
+      }
+
+      return stats;
+    },
+    {
+      totalBilled: 0,
+      totalPaid: 0,
+      totalOutstanding: 0,
+      overdueOutstanding: 0,
+    },
+  );
 }
 
 export interface CustomerPayment {

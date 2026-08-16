@@ -22,7 +22,7 @@ export const FORM_FIELD_CONTROL = {
     importName: 'ImageUploadField',
   },
   number: {
-    binding: 'spread',
+    binding: 'valueOnChange',
     defaultLiteral: '0',
     hasOptions: false,
     importName: 'Input',

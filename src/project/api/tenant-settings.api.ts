@@ -101,6 +101,7 @@ export async function updateTenantSettings(
           phone: values.phone,
           taxCode: values.taxCode,
           website: values.website,
+          paymentReminderDays: values.paymentReminderDays,
         },
       },
       {

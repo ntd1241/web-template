@@ -111,6 +111,7 @@ export function ProjectSettingsPage() {
         phone: values.phone,
         taxCode: values.taxCode,
         website: values.website,
+        paymentReminderDays: values.paymentReminderDays,
       };
       form.reset(values);
       setLogoFile(null);

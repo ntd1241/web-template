@@ -88,9 +88,11 @@ export function ContractOverviewContent({
 export function ContractReceivablesContent({
   charges,
   currencyCode,
+  dueSoonDays,
 }: {
   charges: ContractChargeBalance[];
   currencyCode: string;
+  dueSoonDays: number;
 }) {
   if (charges.length === 0) {
     return (
@@ -143,7 +145,11 @@ export function ContractReceivablesContent({
                 </td>
                 <td className="px-5 py-3">
                   <ContractStatusBadge
-                    status={getContractChargeDisplayStatus(charge)}
+                    status={getContractChargeDisplayStatus(
+                      charge,
+                      new Date(),
+                      dueSoonDays,
+                    )}
                   />
                 </td>
               </tr>
