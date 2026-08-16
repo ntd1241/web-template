@@ -62,94 +62,26 @@ export function ContractOverviewContent({
     (line) => line.contractVersionId === latestVersion?.id,
   );
   return (
-    <div className="grid gap-5 xl:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardHeading>
-            <CardTitle>Khoản phí phiên bản hiện tại</CardTitle>
-            <CardDescription>
-              Phiên bản {latestVersion?.versionNo ?? '—'} ·{' '}
-              {latestVersion
-                ? CONTRACT_VERSION_STATUS_LABELS[latestVersion.status]
-                : 'Chưa có'}
-            </CardDescription>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {latestLines.length > 0 ? (
-            latestLines.map((line) => <FeeLine key={line.id} line={line} />)
-          ) : (
-            <p className="text-sm text-muted-foreground">Chưa có khoản phí.</p>
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardHeading>
-            <CardTitle>Tóm tắt công nợ khách hàng</CardTitle>
-            <CardDescription>
-              Tổng hợp trên tất cả hợp đồng cùng loại tiền.
-            </CardDescription>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <SummaryValue
-            label="Tổng đã lập"
-            value={formatContractAmount(
-              contract.receivableSummary?.totalBilled ?? 0,
-              contract.currencyCode,
-            )}
-          />
-          <SummaryValue
-            label="Đã thanh toán"
-            value={formatContractAmount(
-              contract.receivableSummary?.totalPaid ?? 0,
-              contract.currencyCode,
-            )}
-          />
-          <SummaryValue
-            label="Còn phải thu"
-            value={formatContractAmount(
-              contract.receivableSummary?.totalOutstanding ?? 0,
-              contract.currencyCode,
-            )}
-            emphasis
-          />
-          <SummaryValue
-            label="Quá hạn"
-            value={formatContractAmount(
-              contract.receivableSummary?.overdueOutstanding ?? 0,
-              contract.currencyCode,
-            )}
-          />
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function SummaryValue({
-  label,
-  value,
-  emphasis = false,
-}: {
-  label: string;
-  value: string;
-  emphasis?: boolean;
-}) {
-  return (
-    <div className="rounded-lg border border-border px-4 py-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p
-        className={
-          emphasis
-            ? 'mt-1 text-base font-bold text-primary'
-            : 'mt-1 text-base font-semibold'
-        }
-      >
-        {value}
-      </p>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardHeading>
+          <CardTitle>Khoản phí phiên bản hiện tại</CardTitle>
+          <CardDescription>
+            Phiên bản {latestVersion?.versionNo ?? '—'} ·{' '}
+            {latestVersion
+              ? CONTRACT_VERSION_STATUS_LABELS[latestVersion.status]
+              : 'Chưa có'}
+          </CardDescription>
+        </CardHeading>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {latestLines.length > 0 ? (
+          latestLines.map((line) => <FeeLine key={line.id} line={line} />)
+        ) : (
+          <p className="text-sm text-muted-foreground">Chưa có khoản phí.</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

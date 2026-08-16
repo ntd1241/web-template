@@ -81,6 +81,7 @@ interface ContractFormProps {
   onSubmit: (values: ContractFormValues) => void;
   id?: string;
   lineEditor?: ReactNode;
+  selectedCustomer?: CustomerSelectOption;
   onCustomerSelect?: (customer: CustomerSelectOption | undefined) => void;
 }
 
@@ -89,6 +90,7 @@ export function ContractForm({
   onSubmit,
   id = 'contract-form',
   lineEditor,
+  selectedCustomer,
   onCustomerSelect,
 }: ContractFormProps) {
   return (
@@ -106,6 +108,7 @@ export function ContractForm({
                 <FormControl>
                   <CustomerSelect
                     value={field.value}
+                    selectedCustomer={selectedCustomer}
                     onChange={field.onChange}
                     onSelect={onCustomerSelect}
                     placeholder="Chọn khách hàng"
@@ -239,6 +242,7 @@ interface ContractFormDialogProps {
   isSaving?: boolean;
   title?: string;
   lineEditor?: ReactNode;
+  selectedCustomer?: CustomerSelectOption;
   onCustomerSelect?: (customer: CustomerSelectOption | undefined) => void;
 }
 
@@ -251,6 +255,7 @@ export function ContractFormDialog({
   isSaving = false,
   title,
   lineEditor,
+  selectedCustomer,
   onCustomerSelect,
 }: ContractFormDialogProps) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
@@ -301,6 +306,7 @@ export function ContractFormDialog({
               onSubmit={onSubmit}
               id="contract-form"
               lineEditor={lineEditor}
+              selectedCustomer={selectedCustomer}
               onCustomerSelect={onCustomerSelect}
             />
           </div>

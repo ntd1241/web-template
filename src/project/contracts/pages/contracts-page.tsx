@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -30,25 +30,8 @@ import { DataGridTable } from '@/components/ui/data-grid-table';
 import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
-import {
-  deleteContract,
-  loadContractDetail,
-  loadContractWorkspace,
-  normalizeContractVersionLineForSubmit,
-  updateContract,
-  type ContractVersionLineValuesForApi,
-} from '../api/contracts.api';
-import { ContractCurrencyField } from '../components/contract-currency-field';
-import {
-  ContractFeeLinesEditor,
-  createDefaultContractFeeLine,
-} from '../components/contract-fee-lines-editor';
-import {
-  ContractFormDialog,
-  mapContractToFormValues,
-  useContractForm,
-} from '../forms/contract-form.generated';
-import { contractVersionLineSchema, type Contract } from '../model/contract';
+import { deleteContract, loadContractWorkspace } from '../api/contracts.api';
+import type { Contract } from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
 
 const EMPTY_CONTRACTS: Contract[] = [];
@@ -62,15 +45,9 @@ export function ContractsPage() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const [deletingContract, setDeletingContract] = useState<Contract | null>(
     null,
   );
-  const [feeLines, setFeeLines] = useState<ContractVersionLineValuesForApi[]>(
-    [],
-  );
-  const form = useContractForm();
 
   const workspaceQuery = useQuery({
     queryKey: ['project', 'contracts', userId],
@@ -80,47 +57,6 @@ export function ContractsPage() {
     },
     enabled: Boolean(userId),
   });
-
-  const editDetailQuery = useQuery({
-    queryKey: [
-      'project',
-      'contracts',
-      'edit-detail',
-      userId,
-      editingContract?.id,
-    ],
-    queryFn: () => {
-      if (!userId || !editingContract)
-        throw new Error('Thiếu thông tin hợp đồng.');
-      return loadContractDetail(userId, editingContract.id);
-    },
-    enabled: Boolean(userId && dialogOpen && editingContract),
-  });
-
-  useEffect(() => {
-    if (!dialogOpen || !editingContract || !editDetailQuery.data) return;
-    const detail = editDetailQuery.data;
-    const latestVersion = detail.versions[0];
-    form.reset(mapContractToFormValues(detail));
-    setFeeLines(
-      detail.lines
-        .filter((line) => line.contractVersionId === latestVersion?.id)
-        .map((line) => ({
-          direction: line.direction,
-          name: line.name,
-          quantity: line.quantity,
-          unitPrice: line.unitPrice,
-          billingType: line.billingType,
-          billingUnit: line.billingUnit,
-          billingInterval: line.billingInterval,
-          chargeDate: line.chargeDate,
-          dueRule: line.dueRule,
-          dueDays: line.dueDays,
-          startDate: line.startDate,
-          endDate: line.endDate,
-        })),
-    );
-  }, [dialogOpen, editDetailQuery.data, editingContract, form]);
 
   const contracts = useMemo(() => {
     const normalized = keyword.trim().toLowerCase();
@@ -139,32 +75,6 @@ export function ContractsPage() {
     );
   }, [keyword, workspaceQuery.data?.contracts]);
 
-  const saveMutation = useMutation({
-    mutationFn: async ({
-      values,
-      lines,
-    }: {
-      values: Parameters<typeof updateContract>[2];
-      lines: ContractVersionLineValuesForApi[];
-    }) => {
-      if (!userId || !workspaceQuery.data?.tenantId) {
-        throw new Error('Chưa xác định tài khoản hoặc tenant.');
-      }
-      if (!editingContract) throw new Error('Chưa chọn hợp đồng để cập nhật.');
-      return updateContract(editingContract.id, userId, values, lines);
-    },
-    onSuccess: async () => {
-      toast.success(
-        editingContract ? 'Đã cập nhật hợp đồng.' : 'Đã tạo hợp đồng nháp.',
-      );
-      setDialogOpen(false);
-      await queryClient.invalidateQueries({
-        queryKey: ['project', 'contracts'],
-      });
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
-  });
-
   const deleteMutation = useMutation({
     mutationFn: deleteContract,
     onSuccess: async () => {
@@ -182,26 +92,9 @@ export function ContractsPage() {
   }
 
   function openEdit(contract: Contract) {
-    setEditingContract(contract);
-    form.reset(mapContractToFormValues(contract));
-    setFeeLines([createDefaultContractFeeLine(contract.startDate)]);
-    setDialogOpen(true);
-  }
-
-  function handleSubmit(values: Parameters<typeof updateContract>[2]) {
-    for (const [index, line] of feeLines.entries()) {
-      const result = contractVersionLineSchema.safeParse({
-        ...normalizeContractVersionLineForSubmit(line),
-        sortOrder: index,
-      });
-      if (!result.success) {
-        toast.error(
-          result.error.issues[0]?.message ?? 'Khoản phí chưa hợp lệ.',
-        );
-        return;
-      }
-    }
-    saveMutation.mutate({ values, lines: feeLines });
+    navigate(
+      `${ROUTES.PROJECT.CONTRACT_CREATE}?edit=${encodeURIComponent(contract.id)}`,
+    );
   }
 
   const columns = useContractColumns({
@@ -292,22 +185,6 @@ export function ContractsPage() {
         </Card>
       </DataGrid>
 
-      <ContractFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        mode={editingContract ? 'edit' : 'create'}
-        form={form}
-        onSubmit={handleSubmit}
-        lineEditor={
-          <ContractFeeLinesEditor
-            lines={feeLines}
-            onChange={setFeeLines}
-            currencyField={<ContractCurrencyField form={form} />}
-          />
-        }
-        isSaving={saveMutation.isPending || editDetailQuery.isFetching}
-        title={editingContract ? 'Sửa hợp đồng' : 'Thêm hợp đồng'}
-      />
       <ConfirmDialog
         open={Boolean(deletingContract)}
         onOpenChange={(open) => {

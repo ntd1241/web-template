@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import type { CustomerSelectOption } from '@/project/customers/components/customer-select';
 import { useAuthStore } from '@/stores/auth.store';
@@ -12,7 +12,7 @@ import {
   Save,
   type LucideIcon,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
@@ -46,8 +46,11 @@ import {
 import {
   createContract,
   loadContractCreationWorkspace,
+  loadContractDetail,
+  updateContract,
   type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
+import type { ContractDetail } from '../api/contracts.api';
 import { ContractCurrencyField } from '../components/contract-currency-field';
 import {
   ContractFeeLinesEditor,
@@ -57,6 +60,7 @@ import {
 import {
   contractDefaultValues,
   ContractForm,
+  mapContractToFormValues,
   useContractForm,
 } from '../forms/contract-form.generated';
 
@@ -82,9 +86,34 @@ function formatAmount(amount: number) {
   return `${new Intl.NumberFormat('vi-VN').format(amount)} VND`;
 }
 
+function toEditableLines(
+  contract: ContractDetail,
+): ContractVersionLineValuesForApi[] {
+  const latestVersion = contract.versions[0];
+  return contract.lines
+    .filter((line) => line.contractVersionId === latestVersion?.id)
+    .map((line) => ({
+      direction: line.direction,
+      name: line.name,
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+      billingType: line.billingType,
+      billingUnit: line.billingUnit,
+      billingInterval: line.billingInterval,
+      chargeDate: line.chargeDate,
+      dueRule: line.dueRule,
+      dueDays: line.dueDays,
+      startDate: line.startDate,
+      endDate: line.endDate,
+    }));
+}
+
 export function ContractCreatePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const userId = useAuthStore((state) => state.user?.id);
+  const editingContractId = searchParams.get('edit');
+  const isEditMode = Boolean(editingContractId);
   const [step, setStep] = useState(1);
   const [maxStep, setMaxStep] = useState(1);
   const [selectedCustomer, setSelectedCustomer] =
@@ -94,6 +123,8 @@ export function ContractCreatePage() {
   const [feeLines, setFeeLines] = useState<ContractVersionLineValuesForApi[]>([
     createDefaultContractFeeLine(contractDefaultValues.startDate),
   ]);
+  const [feeEditorKey, setFeeEditorKey] = useState('create');
+  const mappedEditIdRef = useRef<string | null>(null);
 
   const workspaceQuery = useQuery({
     queryKey: ['project', 'contracts', 'create-options', userId],
@@ -103,6 +134,62 @@ export function ContractCreatePage() {
     },
     enabled: Boolean(userId),
   });
+
+  const editDetailQuery = useQuery({
+    queryKey: ['project', 'contracts', 'detail', userId, editingContractId],
+    queryFn: () => {
+      if (!userId || !editingContractId) {
+        throw new Error('Thiếu thông tin hợp đồng cần chỉnh sửa.');
+      }
+      return loadContractDetail(userId, editingContractId);
+    },
+    enabled: Boolean(userId && editingContractId),
+  });
+
+  useEffect(() => {
+    const detail = editDetailQuery.data;
+    if (
+      !detail ||
+      !editingContractId ||
+      mappedEditIdRef.current === editingContractId
+    ) {
+      return;
+    }
+
+    form.reset(mapContractToFormValues(detail));
+    setSelectedCustomer({
+      id: detail.customer.id,
+      customerCode: detail.customer.customerCode,
+      name: detail.customer.name,
+      imageUrl: detail.customer.imageUrl,
+    });
+    const nextLines = toEditableLines(detail);
+    setFeeLines(
+      nextLines.length > 0
+        ? nextLines
+        : [createDefaultContractFeeLine(detail.startDate)],
+    );
+    setFeeEditorKey(
+      `${editingContractId}:${detail.versions[0]?.id ?? 'no-version'}`,
+    );
+    setStep(1);
+    setMaxStep(1);
+    mappedEditIdRef.current = editingContractId;
+  }, [editDetailQuery.data, editingContractId, form]);
+
+  useEffect(() => {
+    if (editingContractId) return;
+
+    mappedEditIdRef.current = null;
+    form.reset(contractDefaultValues);
+    setSelectedCustomer(undefined);
+    setFeeLines([
+      createDefaultContractFeeLine(contractDefaultValues.startDate),
+    ]);
+    setFeeEditorKey('create');
+    setStep(1);
+    setMaxStep(1);
+  }, [editingContractId, form]);
 
   const saveMutation = useMutation({
     mutationFn: async ({
@@ -115,6 +202,9 @@ export function ContractCreatePage() {
       if (!userId || !workspaceQuery.data?.tenantId) {
         throw new Error('Chưa xác định tài khoản hoặc tenant.');
       }
+      if (isEditMode && editingContractId) {
+        return updateContract(editingContractId, userId, values, lines);
+      }
       return createContract(
         workspaceQuery.data.tenantId,
         userId,
@@ -123,7 +213,9 @@ export function ContractCreatePage() {
       );
     },
     onSuccess: (contract) => {
-      toast.success('Đã tạo hợp đồng nháp.');
+      toast.success(
+        isEditMode ? 'Đã cập nhật hợp đồng.' : 'Đã tạo hợp đồng nháp.',
+      );
       navigate(buildPath(ROUTES.PROJECT.CONTRACT_DETAIL, { id: contract.id }));
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -173,24 +265,33 @@ export function ContractCreatePage() {
     saveMutation.mutate({ values: form.getValues(), lines: feeLines });
   }
 
-  if (workspaceQuery.isPending) {
+  const isLoadingEditData = isEditMode && editDetailQuery.isPending;
+  if (workspaceQuery.isPending || isLoadingEditData) {
     return (
       <PageLoading
-        label="Đang tải dữ liệu tạo hợp đồng..."
+        label={
+          isEditMode
+            ? 'Đang tải dữ liệu hợp đồng...'
+            : 'Đang tải dữ liệu tạo hợp đồng...'
+        }
         className="h-full"
       />
     );
   }
 
-  if (workspaceQuery.isError) {
+  const pageError = workspaceQuery.error ?? editDetailQuery.error;
+  if (workspaceQuery.isError || editDetailQuery.isError) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <Card className="max-w-lg text-center">
           <CardHeader>
             <CardHeading>
-              <CardTitle>Không tải được dữ liệu tạo hợp đồng</CardTitle>
+              <CardTitle>
+                Không tải được dữ liệu{' '}
+                {isEditMode ? 'hợp đồng' : 'tạo hợp đồng'}
+              </CardTitle>
               <CardDescription className="mt-2">
-                {getApiErrorMessage(workspaceQuery.error)}
+                {getApiErrorMessage(pageError)}
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -201,7 +302,14 @@ export function ContractCreatePage() {
             >
               Danh sách hợp đồng
             </Button>
-            <Button variant="primary" onClick={() => workspaceQuery.refetch()}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                void (isEditMode
+                  ? editDetailQuery.refetch()
+                  : workspaceQuery.refetch());
+              }}
+            >
               Thử lại
             </Button>
           </CardContent>
@@ -275,6 +383,7 @@ export function ContractCreatePage() {
                   <ContractForm
                     form={form}
                     onSubmit={() => undefined}
+                    selectedCustomer={selectedCustomer}
                     onCustomerSelect={setSelectedCustomer}
                   />
                 </div>
@@ -283,6 +392,7 @@ export function ContractCreatePage() {
               <StepperContent value={2} className="px-6 pb-6">
                 <div className="mx-auto max-w-6xl">
                   <ContractFeeLinesEditor
+                    key={feeEditorKey}
                     ref={feeLinesEditorRef}
                     lines={feeLines}
                     onChange={setFeeLines}

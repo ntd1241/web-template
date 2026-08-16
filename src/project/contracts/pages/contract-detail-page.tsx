@@ -4,12 +4,15 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CalendarDays,
+  CircleCheck,
   FileText,
   Pencil,
   ReceiptText,
   RefreshCw,
   Trash2,
+  TriangleAlert,
   UserRound,
+  WalletCards,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -26,6 +29,7 @@ import {
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageLoading } from '@/components/ui/loading';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
+import { StatCard } from '@/components/ui/stat-card';
 import { Tag } from '@/components/ui/tag';
 import {
   EntityDetailInformationCard,
@@ -36,12 +40,8 @@ import {
   deleteContract,
   formatContractAmount,
   loadContractDetail,
-  normalizeContractVersionLineForSubmit,
-  updateContract,
   type ContractDetail,
-  type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
-import { ContractCurrencyField } from '../components/contract-currency-field';
 import { ContractDetailLayout } from '../components/contract-detail-layout.generated';
 import {
   ContractOverviewContent,
@@ -49,16 +49,6 @@ import {
   ContractReceivablesContent,
   ContractVersionsContent,
 } from '../components/contract-detail-tab-content';
-import {
-  ContractFeeLinesEditor,
-  createDefaultContractFeeLine,
-} from '../components/contract-fee-lines-editor';
-import {
-  ContractFormDialog,
-  mapContractToFormValues,
-  useContractForm,
-} from '../forms/contract-form.generated';
-import { contractVersionLineSchema } from '../model/contract';
 
 function formatDate(value: string | null) {
   if (!value) return 'Không giới hạn';
@@ -166,13 +156,6 @@ function ContractInformationCard({
         <DetailValue label="Mã hợp đồng" value={contract.contractCode} />
         <DetailValue label="Khách hàng" value={contract.customer.name} />
         <DetailValue
-          label="Còn phải thu"
-          value={formatContractAmount(
-            contract.receivableSummary?.totalOutstanding ?? 0,
-            contract.currencyCode,
-          )}
-        />
-        <DetailValue
           label="Ngày bắt đầu"
           value={formatDate(contract.startDate)}
         />
@@ -190,30 +173,45 @@ function ContractInformationCard({
           {contract.note}
         </div>
       ) : null}
+      <div className="mt-6">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            icon={FileText}
+            label="Tổng đã lập"
+            value={formatContractAmount(
+              contract.receivableSummary?.totalBilled ?? 0,
+              contract.currencyCode,
+            )}
+          />
+          <StatCard
+            icon={CircleCheck}
+            label="Đã thanh toán"
+            value={formatContractAmount(
+              contract.receivableSummary?.totalPaid ?? 0,
+              contract.currencyCode,
+            )}
+          />
+          <StatCard
+            icon={WalletCards}
+            label="Còn phải thu"
+            value={formatContractAmount(
+              contract.receivableSummary?.totalOutstanding ?? 0,
+              contract.currencyCode,
+            )}
+            emphasis
+          />
+          <StatCard
+            icon={TriangleAlert}
+            label="Quá hạn"
+            value={formatContractAmount(
+              contract.receivableSummary?.overdueOutstanding ?? 0,
+              contract.currencyCode,
+            )}
+          />
+        </div>
+      </div>
     </EntityDetailInformationCard>
   );
-}
-
-function toEditableLines(
-  contract: ContractDetail,
-): ContractVersionLineValuesForApi[] {
-  const latestVersion = contract.versions[0];
-  return contract.lines
-    .filter((line) => line.contractVersionId === latestVersion?.id)
-    .map((line) => ({
-      direction: line.direction,
-      name: line.name,
-      quantity: line.quantity,
-      unitPrice: line.unitPrice,
-      billingType: line.billingType,
-      billingUnit: line.billingUnit,
-      billingInterval: line.billingInterval,
-      chargeDate: line.chargeDate,
-      dueRule: line.dueRule,
-      dueDays: line.dueDays,
-      startDate: line.startDate,
-      endDate: line.endDate,
-    }));
 }
 
 export function ContractDetailPage() {
@@ -221,12 +219,7 @@ export function ContractDetailPage() {
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.user?.id);
   const { id } = useParams<{ id: string }>();
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [feeLines, setFeeLines] = useState<ContractVersionLineValuesForApi[]>(
-    [],
-  );
-  const form = useContractForm();
 
   const contractQuery = useQuery({
     queryKey: ['project', 'contracts', 'detail', userId, id],
@@ -239,21 +232,6 @@ export function ContractDetailPage() {
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ['project', 'contracts'] });
-
-  const saveMutation = useMutation({
-    mutationFn: (values: Parameters<typeof updateContract>[2]) => {
-      if (!userId || !contractQuery.data)
-        throw new Error('Thiếu thông tin cập nhật hợp đồng.');
-      return updateContract(contractQuery.data.id, userId, values, feeLines);
-    },
-    onSuccess: async () => {
-      toast.success('Đã cập nhật hợp đồng.');
-      setEditDialogOpen(false);
-      await invalidate();
-      await contractQuery.refetch();
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
-  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteContract,
@@ -280,29 +258,9 @@ export function ContractDetailPage() {
   });
 
   function openEdit(contract: ContractDetail) {
-    form.reset(mapContractToFormValues(contract));
-    setFeeLines(
-      toEditableLines(contract).length > 0
-        ? toEditableLines(contract)
-        : [createDefaultContractFeeLine(contract.startDate)],
+    navigate(
+      `${ROUTES.PROJECT.CONTRACT_CREATE}?edit=${encodeURIComponent(contract.id)}`,
     );
-    setEditDialogOpen(true);
-  }
-
-  function handleSubmit(values: Parameters<typeof updateContract>[2]) {
-    for (const [index, line] of feeLines.entries()) {
-      const result = contractVersionLineSchema.safeParse({
-        ...normalizeContractVersionLineForSubmit(line),
-        sortOrder: index,
-      });
-      if (!result.success) {
-        toast.error(
-          result.error.issues[0]?.message ?? 'Khoản phí chưa hợp lệ.',
-        );
-        return;
-      }
-    }
-    saveMutation.mutate(values);
   }
 
   if (contractQuery.isPending) {
@@ -369,22 +327,6 @@ export function ContractDetailPage() {
             currencyCode={contract.currencyCode}
           />
         }
-      />
-      <ContractFormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        mode="edit"
-        form={form}
-        onSubmit={handleSubmit}
-        lineEditor={
-          <ContractFeeLinesEditor
-            lines={feeLines}
-            onChange={setFeeLines}
-            currencyField={<ContractCurrencyField form={form} />}
-          />
-        }
-        isSaving={saveMutation.isPending}
-        title="Sửa hợp đồng"
       />
       <ConfirmDialog
         open={deleteDialogOpen}
