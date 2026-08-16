@@ -38,4 +38,9 @@ Use the shared components directly when a generated wrapper is unnecessary:
 - `EntityDetailLayout`: responsive profile/information/tabs page shell.
 - `EntityDetailProfileCard`: avatar, title, subtitle, and profile metadata card.
 - `EntityDetailInformationCard`: flexible information card with status and bottom actions.
+- `EntityDetailInformationGrid`: shared field grid; it uses two columns from `sm` and four columns
+  at `xl` so information cards align with four-column stat rows.
 - `EntityDetailTabs`: line-style tabs with icon and content slots.
+
+When composing the `information` slot, put detail fields inside `EntityDetailInformationGrid`
+instead of defining a page-specific grid class. This keeps generated detail pages consistent.

@@ -34,6 +34,7 @@ interface CustomerOptionRow {
   id: string;
   customer_code: string;
   name: string;
+  image_url: string | null;
 }
 
 interface TenantSettingsRow {
@@ -139,6 +140,7 @@ function attachListSummary(
     ...contract,
     customerName: customer?.name,
     customerCode: customer?.customer_code,
+    customerImageUrl: customer?.image_url,
     totalOutstanding: outstanding,
     nextDueDate: nextDueDate ?? null,
   };
@@ -166,7 +168,7 @@ export async function loadContractWorkspace(
       supabaseApi.get(
         '/customers',
         queryParams({
-          select: 'id,customer_code,name',
+          select: 'id,customer_code,name,image_url',
           tenant_id: `eq.${tenantId}`,
           status: 'eq.active',
           order: 'name.asc',

@@ -232,6 +232,18 @@ export function ContractCreatePage() {
     0,
   );
 
+  function handleCancel() {
+    if (isEditMode && editingContractId) {
+      navigate(
+        buildPath(ROUTES.PROJECT.CONTRACT_DETAIL, {
+          id: editingContractId,
+        }),
+      );
+      return;
+    }
+    navigate(ROUTES.PROJECT.CONTRACTS);
+  }
+
   async function handleNext() {
     if (step === 1) {
       if (await form.trigger()) {
@@ -453,11 +465,7 @@ export function ContractCreatePage() {
           </Stepper>
 
           <div className="flex shrink-0 items-center justify-between px-6 pb-6 pt-5">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate(ROUTES.PROJECT.CONTRACTS)}
-            >
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Hủy
             </Button>
             <div className="flex items-center gap-2">

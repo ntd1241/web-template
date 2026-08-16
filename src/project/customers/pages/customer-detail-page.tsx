@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   EntityDetailInformationCard,
+  EntityDetailInformationGrid,
   EntityDetailProfileCard,
 } from '@/components/layouts/entity-detail-layout';
 import { deleteCustomer, loadCustomerDetail } from '../api/customers.api';
@@ -139,7 +140,7 @@ function CustomerInformationCard({
         </>
       }
     >
-      <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+      <EntityDetailInformationGrid>
         <DetailValue label="Mã khách hàng" value={customer.customerCode} />
         <DetailValue
           label="Loại hình đơn vị"
@@ -157,7 +158,7 @@ function CustomerInformationCard({
         <DetailValue label="Địa chỉ chi tiết" value={customer.addressDetail} />
         <DetailValue label="Số điện thoại" value={customer.phone} />
         <DetailValue label="Email" value={customer.email} />
-      </dl>
+      </EntityDetailInformationGrid>
       {customer.note ? (
         <div className="mt-6 flex gap-2.5 border-t border-border pt-5 text-sm">
           <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

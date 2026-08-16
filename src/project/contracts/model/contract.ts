@@ -220,6 +220,7 @@ export interface Contract {
   updatedAt: string;
   customerName?: string;
   customerCode?: string;
+  customerImageUrl?: string | null;
   totalOutstanding?: number;
   nextDueDate?: string | null;
 }

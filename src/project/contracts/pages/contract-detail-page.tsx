@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ROUTES } from '@/constants/routes';
+import { useState, type ReactNode } from 'react';
+import { buildPath, ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -14,7 +14,7 @@ import {
   UserRound,
   WalletCards,
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { Badge } from '@/components/ui/badge';
@@ -33,9 +33,16 @@ import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { StatCard } from '@/components/ui/stat-card';
 import { Tag } from '@/components/ui/tag';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   EntityDetailInformationCard,
+  EntityDetailInformationGrid,
   EntityDetailProfileCard,
 } from '@/components/layouts/entity-detail-layout';
+import { CustomerIdentity } from '../../customers/components/customer-identity';
 import {
   activateContract,
   deleteContract,
@@ -58,11 +65,11 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
 }
 
-function DetailValue({ label, value }: { label: string; value: string }) {
+function DetailValue({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0 space-y-1">
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="truncate text-sm font-semibold text-foreground">
+      <dd className="min-w-0 text-sm font-semibold text-foreground">
         {value || 'Chưa cập nhật'}
       </dd>
     </div>
@@ -157,9 +164,24 @@ function ContractInformationCard({
         </>
       }
     >
-      <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+      <EntityDetailInformationGrid>
         <DetailValue label="Mã hợp đồng" value={contract.contractCode} />
-        <DetailValue label="Khách hàng" value={contract.customer.name} />
+        <DetailValue
+          label="Khách hàng"
+          value={
+            <Link
+              to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
+                id: contract.customer.id,
+              })}
+              target="_blank"
+              rel="noreferrer"
+              className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
+            >
+              <CustomerIdentity customer={contract.customer} />
+            </Link>
+          }
+        />
         <DetailValue
           label="Ngày bắt đầu"
           value={formatDate(contract.startDate)}
@@ -172,7 +194,7 @@ function ContractInformationCard({
           label="Tự động gia hạn"
           value={contract.autoRenew ? 'Có' : 'Không'}
         />
-      </dl>
+      </EntityDetailInformationGrid>
       {contract.note ? (
         <div className="mt-6 border-t border-border pt-5 text-sm text-muted-foreground">
           {contract.note}
@@ -331,14 +353,21 @@ export function ContractDetailPage() {
         }
         receivablesBadge={
           paymentPeriodCount > 0 ? (
-            <Badge
-              size="sm"
-              shape="circle"
-              variant="secondary"
-              appearance="light"
-            >
-              {paymentPeriodCount}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  size="sm"
+                  shape="circle"
+                  variant="destructive"
+                  aria-label={`${paymentPeriodCount} kỳ thanh toán cần xử lý`}
+                >
+                  {paymentPeriodCount}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                {paymentPeriodCount} kỳ thanh toán cần xử lý
+              </TooltipContent>
+            </Tooltip>
           ) : undefined
         }
         overviewContent={<ContractOverviewContent contract={contract} />}

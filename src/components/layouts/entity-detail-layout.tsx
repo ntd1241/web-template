@@ -67,6 +67,25 @@ export function EntityDetailInformationCard({
   );
 }
 
+export function EntityDetailInformationGrid({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <dl
+      className={cn(
+        'grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-4',
+        className,
+      )}
+    >
+      {children}
+    </dl>
+  );
+}
+
 export function EntityDetailTabs({
   tabs,
   defaultValue,

@@ -5,8 +5,10 @@
  * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */
 import { useMemo } from 'react';
+import { buildPath, ROUTES } from '@/constants/routes';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   createColumnHelpers,
@@ -17,6 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { ContractCell } from '../components/contract-cell';
 import type { Contract } from '../model/contract';
 
@@ -75,14 +78,23 @@ export function useContractColumns(
         headerClassName: 'min-w-[220px]',
         enableSorting: false,
         cell: (row) => (
-          <div className="min-w-0">
-            <div className="truncate text-sm text-foreground">
-              {row.customerName ?? 'Chưa có khách hàng'}
-            </div>
-            <div className="truncate text-xs text-muted-foreground">
-              {row.customerCode ?? ''}
-            </div>
-          </div>
+          <Link
+            to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
+              id: row.customerId,
+            })}
+            target="_blank"
+            rel="noreferrer"
+            className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label={`Xem chi tiết khách hàng ${row.customerName ?? ''}`}
+          >
+            <CustomerIdentity
+              customer={{
+                name: row.customerName ?? 'Chưa có khách hàng',
+                customerCode: row.customerCode ?? '',
+                imageUrl: row.customerImageUrl,
+              }}
+            />
+          </Link>
         ),
       }),
       col.badge({
