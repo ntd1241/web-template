@@ -8,6 +8,7 @@ import {
   CardTable,
   CardTitle,
 } from '@/components/ui/card';
+import { CardEmptyState } from '@/components/ui/card-empty-state';
 import { Tag } from '@/components/ui/tag';
 import { formatContractAmount } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
@@ -46,30 +47,6 @@ function StatusTag({ status }: { status: string }) {
         ] ??
         status}
     </Tag>
-  );
-}
-
-function EmptyTab({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: typeof FileText;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex min-h-56 flex-col items-center justify-center gap-3 text-center">
-        <span className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Icon className="size-5" />
-        </span>
-        <div>
-          <p className="font-medium text-foreground">{title}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -205,7 +182,7 @@ export function ContractReceivablesContent({
 }) {
   if (charges.length === 0) {
     return (
-      <EmptyTab
+      <CardEmptyState
         icon={ReceiptText}
         title="Chưa có kỳ phải thu"
         description="Các kỳ thanh toán sẽ xuất hiện sau khi phiên bản hợp đồng được kích hoạt."
@@ -271,7 +248,7 @@ export function ContractVersionsContent({
 }) {
   if (contract.versions.length === 0) {
     return (
-      <EmptyTab
+      <CardEmptyState
         icon={FileText}
         title="Chưa có phiên bản"
         description="Hợp đồng chưa có phiên bản chính sách."
@@ -335,7 +312,7 @@ export function ContractPaymentsContent({
 }) {
   if (payments.length === 0) {
     return (
-      <EmptyTab
+      <CardEmptyState
         icon={WalletCards}
         title="Chưa có thanh toán"
         description="Các khoản khách hàng đã thanh toán sẽ hiển thị tại đây."
