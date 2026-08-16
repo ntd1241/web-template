@@ -8,7 +8,6 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/command';
 import type { MultiSelectOption } from './multi-select';
 
@@ -23,8 +22,6 @@ interface MultiSelectListProps<T> {
   query: string;
   emptyMessage: string;
   onToggle: (option: MultiSelectOption<T>) => void;
-  onSelectAll: (values: string[]) => void;
-  onClearAll: () => void;
 }
 
 export function nodeToString(node: ReactNode): string {
@@ -75,8 +72,6 @@ export function MultiSelectList<T>({
   query,
   emptyMessage,
   onToggle,
-  onSelectAll,
-  onClearAll,
 }: MultiSelectListProps<T>) {
   const filteredOptions = useMemo(
     () => filterMultiSelectOptions(options, query),
@@ -86,74 +81,49 @@ export function MultiSelectList<T>({
     () => groupOptions(filteredOptions),
     [filteredOptions],
   );
-  const enabledVisibleValues = filteredOptions
-    .filter((option) => !option.disabled)
-    .map((option) => option.value);
-  const hasSelectedValues = selectedValues.length > 0;
-
   return (
     <CommandList>
       {filteredOptions.length === 0 ? (
         <CommandEmpty>{emptyMessage}</CommandEmpty>
       ) : (
-        <>
-          <CommandGroup>
-            <CommandItem
-              value="__select_all__"
-              onSelect={() => onSelectAll(enabledVisibleValues)}
-              className="min-h-8 text-foreground"
-            >
-              <span className="min-w-0 flex-1 truncate">Chọn tất cả</span>
-            </CommandItem>
-            <CommandItem
-              value="__clear_all__"
-              disabled={!hasSelectedValues}
-              onSelect={onClearAll}
-              className="min-h-8 text-foreground"
-            >
-              <span className="min-w-0 flex-1 truncate">Bỏ chọn tất cả</span>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          {groupedOptions.map((group) => (
-            <CommandGroup
-              key={group.group ?? '__ungrouped__'}
-              heading={group.group}
-            >
-              {group.options.map((option) => {
-                const isSelected = selectedValues.includes(option.value);
+        groupedOptions.map((group) => (
+          <CommandGroup
+            key={group.group ?? '__ungrouped__'}
+            heading={group.group}
+          >
+            {group.options.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
 
-                return (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    disabled={option.disabled}
-                    onSelect={() => onToggle(option)}
+              return (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.disabled}
+                  onSelect={() => onToggle(option)}
+                  className={cn(
+                    'min-h-8 text-foreground',
+                    option.disabled && 'text-muted-foreground',
+                  )}
+                >
+                  <Check
                     className={cn(
-                      'min-h-8 text-foreground',
-                      option.disabled && 'text-muted-foreground',
+                      'size-4 text-primary',
+                      isSelected ? 'opacity-100' : 'opacity-0',
                     )}
-                  >
-                    <Check
-                      className={cn(
-                        'size-4 text-primary',
-                        isSelected ? 'opacity-100' : 'opacity-0',
-                      )}
-                    />
-                    <span className="min-w-0 flex-1 truncate">
-                      {option.label}
+                  />
+                  <span className="min-w-0 flex-1 truncate">
+                    {option.label}
+                  </span>
+                  {option.count !== undefined ? (
+                    <span className="ms-auto shrink-0 tabular-nums text-muted-foreground">
+                      {option.count}
                     </span>
-                    {option.count !== undefined ? (
-                      <span className="ms-auto shrink-0 tabular-nums text-muted-foreground">
-                        {option.count}
-                      </span>
-                    ) : null}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          ))}
-        </>
+                  ) : null}
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+        ))
       )}
     </CommandList>
   );

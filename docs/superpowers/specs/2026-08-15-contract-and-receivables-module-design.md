@@ -186,6 +186,7 @@ interface Contract {
   id: string;
   tenantId: string;
   customerId: string;
+  createdBy: string | null;
   contractCode: string;
   name: string;
   status: ContractStatus;
@@ -202,6 +203,21 @@ Ràng buộc:
 - `contract_code` duy nhất trong tenant.
 - Không xóa cứng hợp đồng đã có version hoặc charge; chỉ chuyển trạng thái.
 - Hợp đồng `active` phải có ít nhất một version `effective`.
+
+Metadata quản lý hợp đồng được tách khỏi version tài chính:
+
+- `created_by` lưu tài khoản tạo hợp đồng và không thay đổi khi chỉnh sửa.
+- `contract_responsibles` là quan hệ nhiều-nhiều tới `employees`; khi tạo mới,
+  mặc định gán nhân viên đang tạo nếu tài khoản đã liên kết với hồ sơ nhân viên.
+- `contract_attachments` lưu metadata file và `storage_path`; nội dung file nằm
+  trong bucket `tenant-assets`.
+- Nhãn dùng lại `tag_assignments` với `subject_type = 'contract'`. Input nhãn
+  dùng chung nhận cấu hình `moduleCodes` và `allowCustomGroups` (mặc định `true`);
+  hợp đồng truyền module `contracts`, nên hiển thị cả `Nhóm hợp đồng` và các
+  nhóm nhãn tự tạo.
+
+Trong form, người tạo chỉ hiển thị readonly; nhân viên phụ trách và nhãn có thể
+chỉnh sửa. File mới được upload sau khi hợp đồng được tạo/cập nhật.
 
 ### 5.2. `contract_versions`
 
@@ -565,7 +581,9 @@ contracts:reverse-payment
 
 `record-payment` và `reverse-payment` nên là permission nhạy cảm vì ảnh hưởng trực tiếp đến công nợ.
 
-Nếu cần gắn nhãn cho hợp đồng ở phase sau, tạo system tag group `Nhóm hợp đồng`, icon theo module Hợp đồng; không đưa tag vào MVP nếu chưa có yêu cầu lọc thực tế.
+Hợp đồng dùng system tag group `Nhóm hợp đồng`, icon theo module Hợp đồng. Các
+nhãn này dùng chung cơ chế quản lý nhãn nhưng không trộn với nhóm nhân viên hoặc
+nhóm khách hàng.
 
 ## 11. API và xử lý backend dự kiến
 

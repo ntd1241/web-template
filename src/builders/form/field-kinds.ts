@@ -52,6 +52,9 @@ export const FORM_KIND_REGISTRY: Record<FormFieldKind, FormKindMeta> = {
   multiselect: {
     ...FORM_FIELD_CONTROL.multiselect,
   },
+  tagSelect: {
+    ...FORM_FIELD_CONTROL.tagSelect,
+  },
   switch: FORM_FIELD_CONTROL.switch,
 };
 

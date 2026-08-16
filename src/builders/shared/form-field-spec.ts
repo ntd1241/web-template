@@ -92,6 +92,14 @@ export const multiselectFieldControlSchema = z.object({
   emptyMessage: z.string().optional(),
 });
 
+export const tagSelectFieldControlSchema = z.object({
+  kind: z.literal('tagSelect'),
+  moduleCodes: z.array(z.string().min(1)).optional(),
+  allowCustomGroups: z.boolean().optional(),
+  searchPlaceholder: z.string().optional(),
+  emptyMessage: z.string().optional(),
+});
+
 export const switchFieldControlSchema = z.object({
   kind: z.literal('switch'),
 });
@@ -109,6 +117,7 @@ export const formFieldControlSchemas = {
   customerSelect: customerSelectFieldControlSchema,
   inputSelect: inputSelectFieldControlSchema,
   multiselect: multiselectFieldControlSchema,
+  tagSelect: tagSelectFieldControlSchema,
   switch: switchFieldControlSchema,
 } as const;
 
@@ -125,6 +134,7 @@ export const formFieldControlSchema = z.discriminatedUnion('kind', [
   customerSelectFieldControlSchema,
   inputSelectFieldControlSchema,
   multiselectFieldControlSchema,
+  tagSelectFieldControlSchema,
   switchFieldControlSchema,
 ]);
 
@@ -153,6 +163,9 @@ export type SharedInputSelectFieldControl = z.infer<
 >;
 export type SharedMultiselectFieldControl = z.infer<
   typeof multiselectFieldControlSchema
+>;
+export type SharedTagSelectFieldControl = z.infer<
+  typeof tagSelectFieldControlSchema
 >;
 export type SharedSwitchFieldControl = z.infer<typeof switchFieldControlSchema>;
 export type FormFieldControlSpec = z.infer<typeof formFieldControlSchema>;

@@ -14,6 +14,7 @@ describe('contract model', () => {
         id: 'contract-1',
         tenant_id: 'tenant-1',
         customer_id: 'customer-1',
+        created_by: null,
         contract_code: 'HD-001',
         name: 'Hợp đồng dịch vụ',
         status: 'active',

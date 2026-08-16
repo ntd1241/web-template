@@ -43,6 +43,7 @@ import {
   EntityDetailProfileCard,
 } from '@/components/layouts/entity-detail-layout';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
+import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import {
   activateContract,
   deleteContract,
@@ -63,6 +64,13 @@ import { getContractReceivableStats } from '../model/receivable';
 function formatDate(value: string | null) {
   if (!value) return 'Không giới hạn';
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function DetailValue({ label, value }: { label: string; value: ReactNode }) {
@@ -194,6 +202,40 @@ function ContractInformationCard({
           label="Tự động gia hạn"
           value={contract.autoRenew ? 'Có' : 'Không'}
         />
+        <DetailValue
+          label="Người tạo hợp đồng"
+          value={
+            contract.createdByEmployee ? (
+              <EmployeeIdentity employee={contract.createdByEmployee} />
+            ) : undefined
+          }
+        />
+        <DetailValue
+          label="Nhân viên phụ trách"
+          value={
+            contract.responsibleEmployees.length > 0 ? (
+              <div className="space-y-2">
+                {contract.responsibleEmployees.map((employee) => (
+                  <EmployeeIdentity key={employee.id} employee={employee} />
+                ))}
+              </div>
+            ) : undefined
+          }
+        />
+        <DetailValue
+          label="Nhãn"
+          value={
+            contract.tags.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {contract.tags.map((tag) => (
+                  <Tag key={tag.id} color={tag.color}>
+                    {tag.name}
+                  </Tag>
+                ))}
+              </div>
+            ) : undefined
+          }
+        />
       </EntityDetailInformationGrid>
       {contract.note ? (
         <div className="mt-6 border-t border-border pt-5 text-sm text-muted-foreground">
@@ -237,6 +279,34 @@ function ContractInformationCard({
             )}
           />
         </div>
+      </div>
+      <div className="mt-6 border-t border-border pt-5">
+        <p className="text-sm font-medium text-foreground">Tài liệu đính kèm</p>
+        {contract.attachments.length > 0 ? (
+          <div className="mt-3 divide-y divide-border rounded-lg border border-border">
+            {contract.attachments.map((attachment) => (
+              <a
+                key={attachment.id}
+                href={attachment.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent"
+              >
+                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate">
+                  {attachment.fileName}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {formatFileSize(attachment.sizeBytes)}
+                </span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Chưa có tài liệu đính kèm.
+          </p>
+        )}
       </div>
     </EntityDetailInformationCard>
   );

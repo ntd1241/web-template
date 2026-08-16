@@ -10,7 +10,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { MultiSelectList, nodeToString } from './multi-select-list';
+import {
+  filterMultiSelectOptions,
+  MultiSelectList,
+  nodeToString,
+} from './multi-select-list';
 
 export type MultiSelectOption<T = unknown> = {
   value: string;
@@ -28,7 +32,14 @@ export interface MultiSelectProps<T = unknown> {
   options: Array<MultiSelectOption<T>>;
   placeholder?: string;
   searchPlaceholder?: string;
+  searchMode?: 'popover' | 'inline';
   emptyMessage?: string;
+  loading?: boolean;
+  loadingMessage?: string;
+  renderSelectedOption?: (
+    option: MultiSelectOption<T>,
+    onRemove: () => void,
+  ) => ReactNode;
   disabled?: boolean;
   maxChips?: number;
   className?: string;
@@ -40,7 +51,11 @@ export function MultiSelect<T = unknown>({
   options,
   placeholder = 'Chọn...',
   searchPlaceholder = 'Tìm...',
+  searchMode = 'popover',
   emptyMessage = 'Không có kết quả',
+  loading = false,
+  loadingMessage = 'Đang tải...',
+  renderSelectedOption,
   disabled = false,
   maxChips = 2,
   className,
@@ -74,101 +89,189 @@ export function MultiSelect<T = unknown>({
       : [...value, option.value];
 
     onChange?.(nextValues);
+    setQuery('');
   };
 
   const handleRemove = (nextValue: string) => {
     onChange?.(value.filter((item) => item !== nextValue));
   };
 
-  const handleSelectAll = (visibleValues: string[]) => {
-    onChange?.(Array.from(new Set([...value, ...visibleValues])));
+  const handleSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key !== 'Enter' || !query.trim()) return;
+
+    const firstMatch = filterMultiSelectOptions(options, query).find(
+      (option) => !option.disabled,
+    );
+    if (!firstMatch) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    handleToggle(firstMatch);
   };
 
-  const handleClearAll = () => {
-    onChange?.([]);
+  const handleInlineSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    const inputQuery = event.currentTarget.value;
+
+    if (event.key === 'Backspace' && !inputQuery && value.length > 0) {
+      handleRemove(value[value.length - 1]);
+      return;
+    }
+
+    if (event.key !== 'Enter' || !inputQuery.trim()) return;
+
+    const firstMatch = filterMultiSelectOptions(options, inputQuery).find(
+      (option) => !option.disabled,
+    );
+    if (!firstMatch) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    handleToggle(firstMatch);
   };
+
+  const triggerContent = (
+    <>
+      <span className="flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-hidden text-start">
+        {visibleChips.map((option) => {
+          const labelText = nodeToString(option.label) || option.value;
+
+          if (renderSelectedOption) {
+            return (
+              <span key={option.value} className="inline-flex max-w-32 min-w-0">
+                {renderSelectedOption(option, () => handleRemove(option.value))}
+              </span>
+            );
+          }
+
+          return (
+            <Badge
+              key={option.value}
+              variant="secondary"
+              appearance="light"
+              className="max-w-32 justify-start"
+            >
+              <span className="min-w-0 truncate">{option.label}</span>
+              <BadgeButton
+                aria-label={`Bỏ ${labelText}`}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  handleRemove(option.value);
+                }}
+              >
+                <X />
+              </BadgeButton>
+            </Badge>
+          );
+        })}
+        {overflowCount > 0 ? (
+          <Badge variant="outline" className="text-muted-foreground">
+            +{overflowCount}
+          </Badge>
+        ) : null}
+        {searchMode === 'inline' ? (
+          <input
+            aria-label={searchPlaceholder}
+            className="min-w-20 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            disabled={disabled}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onFocus={() => setIsOpen(true)}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (!disabled) setIsOpen(true);
+            }}
+            onKeyDown={handleInlineSearchKeyDown}
+            placeholder={hasSelection ? searchPlaceholder : placeholder}
+          />
+        ) : null}
+        {searchMode !== 'inline' && !hasSelection ? (
+          <span className="truncate text-muted-foreground">{placeholder}</span>
+        ) : null}
+      </span>
+      <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+    </>
+  );
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          type="button"
-          role="combobox"
-          aria-expanded={isOpen}
-          disabled={disabled}
-          variant="outline"
-          mode="input"
-          placeholder={!hasSelection}
-          className={cn(
-            'h-8.5 w-full justify-between border-border bg-field text-foreground',
-            className,
-          )}
-        >
-          <span className="flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-hidden text-start">
-            {hasSelection ? (
-              <>
-                {visibleChips.map((option) => {
-                  const labelText = nodeToString(option.label) || option.value;
-
-                  return (
-                    <Badge
-                      key={option.value}
-                      variant="secondary"
-                      appearance="light"
-                      className="max-w-32 justify-start"
-                    >
-                      <span className="min-w-0 truncate">{option.label}</span>
-                      <BadgeButton
-                        aria-label={`Bỏ ${labelText}`}
-                        onMouseDown={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                        }}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          handleRemove(option.value);
-                        }}
-                      >
-                        <X />
-                      </BadgeButton>
-                    </Badge>
-                  );
-                })}
-                {overflowCount > 0 ? (
-                  <Badge variant="outline" className="text-muted-foreground">
-                    +{overflowCount}
-                  </Badge>
-                ) : null}
-              </>
-            ) : (
-              <span className="truncate text-muted-foreground">
-                {placeholder}
-              </span>
+        {searchMode === 'inline' ? (
+          <div
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-busy={loading}
+            className={cn(
+              'flex min-h-8.5 w-full items-center justify-between gap-2 rounded-md border border-border bg-field px-3 py-1.5 text-foreground',
+              disabled && 'cursor-not-allowed opacity-50',
+              className,
             )}
-          </span>
-          <ChevronsUpDown className="size-4 text-muted-foreground" />
-        </Button>
+            onClick={() => {
+              if (!disabled) setIsOpen(true);
+            }}
+          >
+            {triggerContent}
+          </div>
+        ) : (
+          <Button
+            type="button"
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-busy={loading}
+            disabled={disabled}
+            variant="outline"
+            mode="input"
+            placeholder={!hasSelection}
+            className={cn(
+              'h-8.5 w-full justify-between border-border bg-field text-foreground',
+              className,
+            )}
+          >
+            {triggerContent}
+          </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent
         className="w-(--radix-popover-trigger-width) border-border bg-popover p-0 text-foreground"
         align="start"
+        onOpenAutoFocus={(event) => {
+          if (searchMode === 'inline') event.preventDefault();
+        }}
       >
         <Command shouldFilter={false} className="bg-popover text-foreground">
-          <CommandInput
-            value={query}
-            onValueChange={setQuery}
-            placeholder={searchPlaceholder}
-          />
-          <MultiSelectList
-            options={options}
-            selectedValues={value}
-            query={query}
-            emptyMessage={emptyMessage}
-            onToggle={handleToggle}
-            onSelectAll={handleSelectAll}
-            onClearAll={handleClearAll}
-          />
+          {searchMode === 'popover' ? (
+            <CommandInput
+              autoFocus
+              value={query}
+              onValueChange={setQuery}
+              onKeyDown={handleSearchKeyDown}
+              placeholder={searchPlaceholder}
+            />
+          ) : null}
+          {loading ? (
+            <div
+              role="status"
+              className="px-3 py-6 text-center text-sm text-muted-foreground"
+            >
+              {loadingMessage}
+            </div>
+          ) : (
+            <MultiSelectList
+              options={options}
+              selectedValues={value}
+              query={query}
+              emptyMessage={emptyMessage}
+              onToggle={handleToggle}
+            />
+          )}
         </Command>
       </PopoverContent>
     </Popover>

@@ -30,6 +30,8 @@ export interface FormFieldControlOptions {
   selectLabel?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
+  moduleCodes?: string[];
+  allowCustomGroups?: boolean;
   loadOptionsExpression?: string;
   selectedOptionExpression?: string;
   minSearchLength?: number;
@@ -294,6 +296,19 @@ export function buildFormFieldControl(
       );
       const emptyMessage = attribute('emptyMessage', options.emptyMessage);
       return `${controlOpen(options)}<MultiSelect value={${value}} onChange={${change}} options={${optionsExpression}}${placeholder}${searchPlaceholder}${emptyMessage} />${controlClose(options)}`;
+    }
+    case 'tagSelect': {
+      const moduleCodes = options.moduleCodes?.length
+        ? ` moduleCodes={${JSON.stringify(options.moduleCodes)}}`
+        : '';
+      const allowCustomGroups =
+        options.allowCustomGroups === false ? ' allowCustomGroups={false}' : '';
+      const searchPlaceholder = attribute(
+        'searchPlaceholder',
+        options.searchPlaceholder,
+      );
+      const emptyMessage = attribute('emptyMessage', options.emptyMessage);
+      return `${controlOpen(options)}<TagSelect value={${value}} onChange={${change}}${moduleCodes}${allowCustomGroups}${placeholder}${searchPlaceholder}${emptyMessage} />${controlClose(options)}`;
     }
     case 'switch':
       return `${controlOpen(options)}<Switch checked={${value}} onCheckedChange={${change}} />${controlClose(options)}`;

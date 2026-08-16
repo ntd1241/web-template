@@ -43,6 +43,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import {
   createContract,
   loadContractCreationWorkspace,
@@ -51,6 +52,7 @@ import {
   type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
+import { ContractAttachmentsField } from '../components/contract-attachments-field';
 import { ContractCurrencyField } from '../components/contract-currency-field';
 import {
   ContractFeeLinesEditor,
@@ -124,13 +126,15 @@ export function ContractCreatePage() {
     createDefaultContractFeeLine(contractDefaultValues.startDate),
   ]);
   const [feeEditorKey, setFeeEditorKey] = useState('create');
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const mappedEditIdRef = useRef<string | null>(null);
+  const initializedCreateResponsibleRef = useRef(false);
 
   const workspaceQuery = useQuery({
-    queryKey: ['project', 'contracts', 'create-options', userId],
+    queryKey: ['project', 'contracts', 'create-options', userId, isEditMode],
     queryFn: () => {
       if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadContractCreationWorkspace(userId);
+      return loadContractCreationWorkspace(userId, isEditMode);
     },
     enabled: Boolean(userId),
   });
@@ -156,7 +160,13 @@ export function ContractCreatePage() {
       return;
     }
 
-    form.reset(mapContractToFormValues(detail));
+    form.reset({
+      ...mapContractToFormValues(detail),
+      responsibleEmployeeIds: detail.responsibleEmployees.map(
+        (employee) => employee.id,
+      ),
+      tagIds: detail.tags.map((tag) => tag.id),
+    });
     setSelectedCustomer({
       id: detail.customer.id,
       customerCode: detail.customer.customerCode,
@@ -172,6 +182,8 @@ export function ContractCreatePage() {
     setFeeEditorKey(
       `${editingContractId}:${detail.versions[0]?.id ?? 'no-version'}`,
     );
+    setAttachmentFiles([]);
+    initializedCreateResponsibleRef.current = false;
     setStep(1);
     setMaxStep(1);
     mappedEditIdRef.current = editingContractId;
@@ -187,29 +199,63 @@ export function ContractCreatePage() {
       createDefaultContractFeeLine(contractDefaultValues.startDate),
     ]);
     setFeeEditorKey('create');
+    setAttachmentFiles([]);
     setStep(1);
     setMaxStep(1);
   }, [editingContractId, form]);
 
+  useEffect(() => {
+    if (
+      isEditMode ||
+      initializedCreateResponsibleRef.current ||
+      !workspaceQuery.data
+    ) {
+      return;
+    }
+
+    initializedCreateResponsibleRef.current = true;
+    const employeeId = workspaceQuery.data.defaultResponsibleEmployeeId;
+    if (employeeId) {
+      form.setValue('responsibleEmployeeIds', [employeeId], {
+        shouldDirty: false,
+      });
+    }
+  }, [form, isEditMode, workspaceQuery.data]);
+
+  const responsibleEmployeeIdsOptions =
+    workspaceQuery.data?.employees.map((employee) => ({
+      value: employee.id,
+      label: <EmployeeIdentity employee={employee} />,
+      searchableText: `${employee.displayName} ${employee.employeeCode}`,
+    })) ?? [];
   const saveMutation = useMutation({
     mutationFn: async ({
       values,
       lines,
+      metadata,
     }: {
       values: Parameters<typeof createContract>[2];
       lines: ContractVersionLineValuesForApi[];
+      metadata: Parameters<typeof createContract>[4];
     }) => {
       if (!userId || !workspaceQuery.data?.tenantId) {
         throw new Error('Chưa xác định tài khoản hoặc tenant.');
       }
       if (isEditMode && editingContractId) {
-        return updateContract(editingContractId, userId, values, lines);
+        return updateContract(
+          editingContractId,
+          userId,
+          values,
+          lines,
+          metadata,
+        );
       }
       return createContract(
         workspaceQuery.data.tenantId,
         userId,
         values,
         lines,
+        metadata,
       );
     },
     onSuccess: (contract) => {
@@ -274,7 +320,16 @@ export function ContractCreatePage() {
       setStep(2);
       return;
     }
-    saveMutation.mutate({ values: form.getValues(), lines: feeLines });
+    const values = form.getValues();
+    saveMutation.mutate({
+      values,
+      lines: feeLines,
+      metadata: {
+        responsibleEmployeeIds: values.responsibleEmployeeIds,
+        tagIds: values.tagIds,
+        attachments: attachmentFiles,
+      },
+    });
   }
 
   const isLoadingEditData = isEditMode && editDetailQuery.isPending;
@@ -397,6 +452,44 @@ export function ContractCreatePage() {
                     onSubmit={() => undefined}
                     selectedCustomer={selectedCustomer}
                     onCustomerSelect={setSelectedCustomer}
+                    responsibleEmployeeIdsOptions={
+                      responsibleEmployeeIdsOptions
+                    }
+                  />
+                  <div className="mt-6 space-y-2">
+                    <p className="text-sm font-medium text-foreground">
+                      Người tạo hợp đồng
+                    </p>
+                    {(
+                      isEditMode
+                        ? editDetailQuery.data?.createdByEmployee
+                        : workspaceQuery.data?.employees.find(
+                            (employee) => employee.userId === userId,
+                          )
+                    ) ? (
+                      <EmployeeIdentity
+                        employee={
+                          (isEditMode
+                            ? editDetailQuery.data?.createdByEmployee
+                            : workspaceQuery.data?.employees.find(
+                                (employee) => employee.userId === userId,
+                              ))!
+                        }
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Chưa xác định
+                      </p>
+                    )}
+                  </div>
+                  <ContractAttachmentsField
+                    className="mt-6"
+                    files={attachmentFiles}
+                    onChange={setAttachmentFiles}
+                    existingAttachments={
+                      isEditMode ? editDetailQuery.data?.attachments : []
+                    }
+                    disabled={saveMutation.isPending}
                   />
                 </div>
               </StepperContent>

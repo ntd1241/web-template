@@ -90,6 +90,10 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ
 export const contractFormSchema = z
   .object({
     customerId: z.string().uuid('Khách hàng không hợp lệ.'),
+    responsibleEmployeeIds: z.array(
+      z.string().uuid('Nhân viên phụ trách không hợp lệ.'),
+    ),
+    tagIds: z.array(z.string().uuid('Nhãn hợp đồng không hợp lệ.')),
     contractCode: z
       .string()
       .trim()
@@ -208,6 +212,7 @@ export interface Contract {
   id: string;
   tenantId: string;
   customerId: string;
+  createdBy: string | null;
   contractCode: string;
   name: string;
   status: ContractStatus;
@@ -223,6 +228,31 @@ export interface Contract {
   customerImageUrl?: string | null;
   totalOutstanding?: number;
   nextDueDate?: string | null;
+}
+
+export interface ContractEmployeeOption {
+  id: string;
+  userId: string | null;
+  employeeCode: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface ContractTagOption {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+export interface ContractAttachment {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  storagePath: string;
+  url: string;
+  uploadedBy: string | null;
+  createdAt: string;
 }
 
 export interface ContractVersion {
@@ -265,6 +295,7 @@ export interface ContractRow {
   id: string;
   tenant_id: string;
   customer_id: string;
+  created_by: string | null;
   contract_code: string;
   name: string;
   status: ContractStatus;
@@ -322,6 +353,7 @@ export function mapContractRow(row: ContractRow): Contract {
     id: row.id,
     tenantId: row.tenant_id,
     customerId: row.customer_id,
+    createdBy: row.created_by,
     contractCode: row.contract_code,
     name: row.name,
     status: row.status,

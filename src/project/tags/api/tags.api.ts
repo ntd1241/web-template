@@ -8,6 +8,7 @@ import type {
   TagGroupFormValues,
   TagGroupRow,
   TagRow,
+  TagSelectOption,
   TagWorkspace,
 } from '../model/tag';
 
@@ -176,6 +177,79 @@ export async function loadTagWorkspace(userId: string): Promise<TagWorkspace> {
       subjectId: assignment.subject_id,
     })),
   };
+}
+
+export interface TagSelectConfig {
+  moduleCodes?: string[];
+  allowCustomGroups?: boolean;
+}
+
+export async function loadTagSelectOptions(
+  userId: string,
+  config: TagSelectConfig = {},
+): Promise<TagSelectOption[]> {
+  assertSupabaseConfigured();
+
+  const tenantId = await getCurrentTenantId(userId);
+  const moduleCodes = Array.from(
+    new Set(
+      (config.moduleCodes ?? []).map((code) => code.trim()).filter(Boolean),
+    ),
+  );
+  const allowCustomGroups = config.allowCustomGroups ?? true;
+
+  if (!allowCustomGroups && moduleCodes.length === 0) return [];
+
+  const groupFilter = allowCustomGroups
+    ? moduleCodes.length > 0
+      ? `(module_code.is.null,module_code.in.(${moduleCodes.join(',')}))`
+      : 'module_code.is.null'
+    : `module_code.in.(${moduleCodes.join(',')})`;
+
+  const groups = await request<TagGroupRow[]>(
+    supabaseApi.get(
+      '/tag_groups',
+      queryParams({
+        select: 'id,name,module_code,is_system,is_active',
+        tenant_id: `eq.${tenantId}`,
+        is_active: 'eq.true',
+        or: groupFilter,
+        order: 'sort_order.asc,name.asc',
+      }),
+    ),
+  );
+  const groupIds = groups.map((group) => group.id);
+  if (groupIds.length === 0) return [];
+
+  const tags = await request<TagRow[]>(
+    supabaseApi.get(
+      '/tags',
+      queryParams({
+        select: 'id,group_id,name,color,is_active,sort_order',
+        tenant_id: `eq.${tenantId}`,
+        group_id: `in.(${groupIds.join(',')})`,
+        order: 'sort_order.asc,name.asc',
+      }),
+    ),
+  );
+  const groupById = new Map(groups.map((group) => [group.id, group]));
+
+  return tags.flatMap((tag) => {
+    const group = groupById.get(tag.group_id);
+    if (!group) return [];
+    return [
+      {
+        id: tag.id,
+        name: tag.name,
+        color: tag.color,
+        groupId: tag.group_id,
+        groupName: group.name,
+        moduleCode: group.module_code,
+        isSystem: group.is_system,
+        isActive: tag.is_active,
+      },
+    ];
+  });
 }
 
 export async function createTagGroup(

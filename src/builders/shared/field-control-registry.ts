@@ -88,6 +88,12 @@ export const FORM_FIELD_CONTROL = {
     optionType: 'MultiSelectOption',
     importName: 'MultiSelect',
   },
+  tagSelect: {
+    binding: 'valueOnChange',
+    defaultLiteral: '[]',
+    hasOptions: false,
+    importName: 'TagSelect',
+  },
   switch: {
     binding: 'checked',
     defaultLiteral: 'false',

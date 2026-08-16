@@ -1,14 +1,24 @@
-import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
+import { env } from '@/config/env';
+import {
+  assertSupabaseConfigured,
+  supabaseApi,
+  supabaseStorageApi,
+} from '@/lib/supabase';
 import { loadCustomerDetail } from '../../customers/api/customers.api';
 import type { Customer } from '../../customers/model/customer';
 import { getPaymentReminderDays } from '../../model/tenant-settings';
+import { replaceSubjectTags } from '../../tags/api/tags.api';
+import { CONTRACT_TAG_GROUP_CODE } from '../../tags/model/tag';
 import {
   mapContractRow,
   mapContractVersionLineRow,
   mapContractVersionRow,
   type Contract,
+  type ContractAttachment,
+  type ContractEmployeeOption,
   type ContractFormValues,
   type ContractRow,
+  type ContractTagOption,
   type ContractVersion,
   type ContractVersionLine,
   type ContractVersionLineRow,
@@ -37,6 +47,47 @@ interface CustomerOptionRow {
   image_url: string | null;
 }
 
+interface ContractEmployeeRow {
+  id: string;
+  user_id: string | null;
+  employee_code: string;
+  first_name: string;
+  last_name: string;
+}
+
+interface EmployeeAvatarRow {
+  id: string;
+  avatar_url: string | null;
+}
+
+interface ContractResponsibleRow {
+  employee_id: string;
+}
+
+interface ContractAttachmentRow {
+  id: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number | string;
+  storage_path: string;
+  uploaded_by: string | null;
+  created_at: string;
+}
+
+interface ContractTagRow {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+interface ContractTagGroupRow {
+  id: string;
+}
+
+interface ContractTagAssignmentRow {
+  tag_id: string;
+}
+
 interface TenantSettingsRow {
   settings: Record<string, unknown>;
 }
@@ -48,13 +99,32 @@ export interface ContractWorkspace {
 
 export interface ContractCreationWorkspace {
   tenantId: string;
+  employees: ContractEmployeeOption[];
+  defaultResponsibleEmployeeId: string | null;
+}
+
+export interface ContractMetadataInput {
+  responsibleEmployeeIds: string[];
+  tagIds: string[];
+  attachments: File[];
 }
 
 export async function loadContractCreationWorkspace(
   userId: string,
+  includeInactiveEmployees = false,
 ): Promise<ContractCreationWorkspace> {
   assertSupabaseConfigured();
-  return { tenantId: await resolveTenantId(userId) };
+  const tenantId = await resolveTenantId(userId);
+  const employees = await loadContractEmployeeOptions(
+    tenantId,
+    includeInactiveEmployees,
+  );
+  return {
+    tenantId,
+    employees,
+    defaultResponsibleEmployeeId:
+      employees.find((employee) => employee.userId === userId)?.id ?? null,
+  };
 }
 
 export interface ContractDetail extends Contract {
@@ -65,6 +135,10 @@ export interface ContractDetail extends Contract {
   charges: ContractChargeBalance[];
   payments: CustomerPayment[];
   receivableSummary: CustomerReceivableSummary | null;
+  createdByEmployee: ContractEmployeeOption | null;
+  responsibleEmployees: ContractEmployeeOption[];
+  attachments: ContractAttachment[];
+  tags: ContractTagOption[];
 }
 
 function queryParams(params: Record<string, string>) {
@@ -91,6 +165,105 @@ async function resolveTenantId(userId: string): Promise<string> {
   const tenantId = rows[0]?.tenant_id;
   if (!tenantId) throw new Error('Tài khoản chưa thuộc tenant đang hoạt động.');
   return tenantId;
+}
+
+function mapContractEmployee(
+  row: ContractEmployeeRow,
+  avatarUrl: string | null,
+): ContractEmployeeOption {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    employeeCode: row.employee_code,
+    displayName:
+      [row.last_name, row.first_name].filter(Boolean).join(' ').trim() ||
+      row.employee_code,
+    avatarUrl,
+  };
+}
+
+async function loadContractEmployeeOptions(
+  tenantId: string,
+  includeInactive = false,
+): Promise<ContractEmployeeOption[]> {
+  const [rows, profiles] = await Promise.all([
+    request<ContractEmployeeRow[]>(
+      supabaseApi.get(
+        '/employees',
+        queryParams({
+          select: 'id,user_id,employee_code,first_name,last_name',
+          tenant_id: `eq.${tenantId}`,
+          ...(includeInactive ? {} : { status: 'eq.active' }),
+          order: 'last_name.asc,first_name.asc',
+        }),
+      ),
+    ),
+    request<EmployeeAvatarRow[]>(
+      supabaseApi.get(
+        '/user_profiles',
+        queryParams({ select: 'id,avatar_url' }),
+      ),
+    ),
+  ]);
+  const avatarByUserId = new Map(
+    profiles.map((profile) => [profile.id, profile.avatar_url]),
+  );
+  return rows.map((row) =>
+    mapContractEmployee(
+      row,
+      row.user_id ? (avatarByUserId.get(row.user_id) ?? null) : null,
+    ),
+  );
+}
+
+async function loadContractTagOptions(
+  tenantId: string,
+  includeInactive = false,
+): Promise<ContractTagOption[]> {
+  const groupRows = await request<ContractTagGroupRow[]>(
+    supabaseApi.get(
+      '/tag_groups',
+      queryParams({
+        select: 'id',
+        tenant_id: `eq.${tenantId}`,
+        is_active: 'eq.true',
+        or: `(module_code.is.null,module_code.eq.${CONTRACT_TAG_GROUP_CODE})`,
+      }),
+    ),
+  );
+  const groupIds = groupRows.map((group) => group.id);
+  if (groupIds.length === 0) return [];
+
+  const rows = await request<ContractTagRow[]>(
+    supabaseApi.get(
+      '/tags',
+      queryParams({
+        select: 'id,name,color',
+        tenant_id: `eq.${tenantId}`,
+        group_id: `in.(${groupIds.join(',')})`,
+        ...(includeInactive ? {} : { is_active: 'eq.true' }),
+        order: 'sort_order.asc,name.asc',
+      }),
+    ),
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    color: row.color,
+  }));
+}
+
+function mapContractAttachment(row: ContractAttachmentRow): ContractAttachment {
+  return {
+    id: row.id,
+    fileName: row.file_name,
+    mimeType: row.mime_type,
+    sizeBytes: numberValue(row.size_bytes),
+    storagePath: row.storage_path,
+    url: `${env.supabaseUrl}/storage/v1/object/public/tenant-assets/${row.storage_path}`,
+    uploadedBy: row.uploaded_by,
+    createdAt: row.created_at,
+  };
 }
 
 function todayIso() {
@@ -231,6 +404,11 @@ export async function loadContractDetail(
     paymentRows,
     summaryRows,
     tenantSettingsRows,
+    employeeOptions,
+    responsibleRows,
+    attachmentRows,
+    tagAssignmentRows,
+    contractTagOptions,
   ] = await Promise.all([
     loadCustomerDetail(userId, contract.customer_id),
     request<ContractVersionRow[]>(
@@ -285,7 +463,47 @@ export async function loadContractDetail(
         }),
       ),
     ),
+    loadContractEmployeeOptions(tenantId, true),
+    request<ContractResponsibleRow[]>(
+      supabaseApi.get(
+        '/contract_responsibles',
+        queryParams({
+          select: 'employee_id',
+          tenant_id: `eq.${tenantId}`,
+          contract_id: `eq.${contractId}`,
+        }),
+      ),
+    ),
+    request<ContractAttachmentRow[]>(
+      supabaseApi.get(
+        '/contract_attachments',
+        queryParams({
+          select: '*',
+          tenant_id: `eq.${tenantId}`,
+          contract_id: `eq.${contractId}`,
+          order: 'created_at.desc',
+        }),
+      ),
+    ),
+    request<ContractTagAssignmentRow[]>(
+      supabaseApi.get(
+        '/tag_assignments',
+        queryParams({
+          select: 'tag_id',
+          tenant_id: `eq.${tenantId}`,
+          subject_type: 'eq.contract',
+          subject_id: `eq.${contractId}`,
+        }),
+      ),
+    ),
+    loadContractTagOptions(tenantId, true),
   ]);
+
+  const responsibleEmployeeIds = new Set(
+    responsibleRows.map((row) => row.employee_id),
+  );
+  const tagIds = new Set(tagAssignmentRows.map((row) => row.tag_id));
+  const tags = contractTagOptions.filter((tag) => tagIds.has(tag.id));
 
   const versions = versionRows.map(mapContractVersionRow);
   const versionIds = versions.map((version) => version.id);
@@ -318,6 +536,15 @@ export async function loadContractDetail(
     receivableSummary: summaryRows[0]
       ? mapCustomerReceivableSummaryRow(summaryRows[0])
       : null,
+    createdByEmployee:
+      employeeOptions.find(
+        (employee) => employee.userId === contract.created_by,
+      ) ?? null,
+    responsibleEmployees: employeeOptions.filter((employee) =>
+      responsibleEmployeeIds.has(employee.id),
+    ),
+    attachments: attachmentRows.map(mapContractAttachment),
+    tags,
   };
 }
 
@@ -350,6 +577,13 @@ function toContractPayload(values: ContractFormValues) {
     auto_renew: values.autoRenew,
     note: values.note,
   };
+}
+
+function toContractTermsSnapshot(values: ContractFormValues) {
+  const metadataKeys = new Set(['responsibleEmployeeIds', 'tagIds']);
+  return Object.fromEntries(
+    Object.entries(values).filter(([key]) => !metadataKeys.has(key)),
+  );
 }
 
 export function normalizeContractVersionLineForSubmit(
@@ -423,7 +657,7 @@ async function insertVersion(
         effective_to: null,
         change_reason:
           versionNo === 1 ? 'Khởi tạo hợp đồng' : 'Cập nhật chính sách',
-        terms_snapshot: values,
+        terms_snapshot: toContractTermsSnapshot(values),
         created_by: userId,
       },
       { headers: { Prefer: 'return=representation' } },
@@ -443,23 +677,130 @@ async function insertVersion(
   return version;
 }
 
+async function replaceContractResponsibles(
+  tenantId: string,
+  contractId: string,
+  employeeIds: string[],
+  userId: string,
+) {
+  await supabaseApi.delete(
+    '/contract_responsibles',
+    queryParams({
+      tenant_id: `eq.${tenantId}`,
+      contract_id: `eq.${contractId}`,
+    }),
+  );
+  if (employeeIds.length === 0) return;
+
+  await request(
+    supabaseApi.post(
+      '/contract_responsibles',
+      employeeIds.map((employeeId) => ({
+        tenant_id: tenantId,
+        contract_id: contractId,
+        employee_id: employeeId,
+        assigned_by: userId,
+      })),
+    ),
+  );
+}
+
+function safeAttachmentFileName(fileName: string) {
+  return fileName.replace(/[^a-zA-Z0-9._-]+/g, '-');
+}
+
+async function uploadContractAttachments(
+  tenantId: string,
+  contractId: string,
+  userId: string,
+  files: File[],
+) {
+  if (files.length === 0) return;
+
+  const rows: Array<{
+    tenant_id: string;
+    contract_id: string;
+    storage_path: string;
+    file_name: string;
+    mime_type: string;
+    size_bytes: number;
+    uploaded_by: string;
+  }> = [];
+
+  for (const file of files) {
+    const storagePath = `${tenantId}/contracts/${contractId}/${crypto.randomUUID()}-${safeAttachmentFileName(file.name)}`;
+    await request<unknown>(
+      supabaseStorageApi.post(`/object/tenant-assets/${storagePath}`, file, {
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-upsert': 'false',
+        },
+      }),
+    );
+    rows.push({
+      tenant_id: tenantId,
+      contract_id: contractId,
+      storage_path: storagePath,
+      file_name: file.name,
+      mime_type: file.type || 'application/octet-stream',
+      size_bytes: file.size,
+      uploaded_by: userId,
+    });
+  }
+
+  await request(
+    supabaseApi.post('/contract_attachments', rows, {
+      headers: { Prefer: 'return=minimal' },
+    }),
+  );
+}
+
+async function persistContractMetadata(
+  tenantId: string,
+  contractId: string,
+  userId: string,
+  metadata: ContractMetadataInput,
+) {
+  await Promise.all([
+    replaceContractResponsibles(
+      tenantId,
+      contractId,
+      metadata.responsibleEmployeeIds,
+      userId,
+    ),
+    replaceSubjectTags(tenantId, 'contract', contractId, metadata.tagIds),
+    uploadContractAttachments(
+      tenantId,
+      contractId,
+      userId,
+      metadata.attachments,
+    ),
+  ]);
+}
+
 export async function createContract(
   tenantId: string,
   userId: string,
   values: ContractFormValues,
   lines: ContractVersionLineValuesForApi[],
+  metadata: ContractMetadataInput,
 ) {
   assertSupabaseConfigured();
   const contractRows = await request<ContractRow[]>(
     supabaseApi.post(
       '/contracts',
-      { tenant_id: tenantId, ...toContractPayload(values) },
+      {
+        tenant_id: tenantId,
+        created_by: userId,
+        ...toContractPayload(values),
+      },
       { headers: { Prefer: 'return=representation' } },
     ),
   );
   const contract = contractRows[0];
   if (!contract) throw new Error('Không thể tạo hợp đồng.');
   await insertVersion(contract.id, userId, values, lines, 1);
+  await persistContractMetadata(tenantId, contract.id, userId, metadata);
   return mapContractRow(contract);
 }
 
@@ -468,6 +809,7 @@ export async function updateContract(
   userId: string,
   values: ContractFormValues,
   lines: ContractVersionLineValuesForApi[],
+  metadata: ContractMetadataInput,
 ) {
   assertSupabaseConfigured();
   const contractRows = await request<ContractRow[]>(
@@ -500,7 +842,7 @@ export async function updateContract(
       '/contract_versions',
       {
         effective_from: effectiveFrom,
-        terms_snapshot: values,
+        terms_snapshot: toContractTermsSnapshot(values),
         updated_at: new Date().toISOString(),
       },
       queryParams({ id: `eq.${latest.id}` }),
@@ -526,6 +868,12 @@ export async function updateContract(
       (latest?.version_no ?? 0) + 1,
     );
   }
+  await persistContractMetadata(
+    contract.tenant_id,
+    contract.id,
+    userId,
+    metadata,
+  );
   return mapContractRow(contract);
 }
 

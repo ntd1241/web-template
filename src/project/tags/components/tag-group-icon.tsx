@@ -2,6 +2,7 @@ import {
   BarChart3,
   Blocks,
   Building2,
+  FileText,
   Folder,
   Settings2,
   ShoppingCart,
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils';
 
 const SYSTEM_MODULE_ICONS: Record<string, LucideIcon> = {
   customers: UsersRound,
+  contracts: FileText,
   organization: Building2,
   orders: ShoppingCart,
   reports: BarChart3,

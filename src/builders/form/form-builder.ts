@@ -229,15 +229,20 @@ function controlJsx(field: FormFieldSpec): string {
       field.kind === 'combobox' ||
       field.kind === 'searchSelect' ||
       field.kind === 'apiSearchSelect' ||
-      field.kind === 'multiselect'
+      field.kind === 'multiselect' ||
+      field.kind === 'tagSelect'
         ? field.searchPlaceholder
         : undefined,
     emptyMessage:
       field.kind === 'searchSelect' ||
       field.kind === 'apiSearchSelect' ||
-      field.kind === 'multiselect'
+      field.kind === 'multiselect' ||
+      field.kind === 'tagSelect'
         ? field.emptyMessage
         : undefined,
+    moduleCodes: field.kind === 'tagSelect' ? field.moduleCodes : undefined,
+    allowCustomGroups:
+      field.kind === 'tagSelect' ? field.allowCustomGroups : undefined,
     loadOptionsExpression: apiSearchSelect
       ? `load${field.name.charAt(0).toUpperCase()}${field.name.slice(1)}Options`
       : undefined,
@@ -418,6 +423,11 @@ function emitImports(spec: FormSpec): string {
     lines.push("import { MultiSelect } from '@/components/ui/multi-select';");
     lines.push(
       "import type { MultiSelectOption } from '@/components/ui/multi-select';",
+    );
+  }
+  if (kinds.has('tagSelect')) {
+    lines.push(
+      "import { TagSelect } from '@/project/tags/components/tag-select';",
     );
   }
   if (kinds.has('switch'))

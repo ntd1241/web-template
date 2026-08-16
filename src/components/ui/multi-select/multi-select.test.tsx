@@ -84,11 +84,11 @@ describe('MultiSelect', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('selects all visible enabled options and clears selection', async () => {
+  it('selects the first matching option when pressing Enter in search', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
 
-    const { rerender } = render(
+    render(
       <MultiSelect
         options={OPTIONS}
         value={[]}
@@ -98,26 +98,37 @@ describe('MultiSelect', () => {
     );
 
     await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: 'Chọn tất cả' }));
+    const input = screen.getByPlaceholderText('Tìm...');
+    await user.type(input, 'quan ly');
+    await user.keyboard('{Enter}');
 
-    expect(handleChange).toHaveBeenCalledWith([
-      'nhan-vien',
-      'quan-ly',
-      'chu-so-huu',
-    ]);
+    expect(handleChange).toHaveBeenCalledWith(['quan-ly']);
+    expect(input).toHaveFocus();
+  });
 
-    rerender(
+  it('clears inline tag input after adding a suggestion with Enter', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+
+    render(
       <MultiSelect
         options={OPTIONS}
-        value={['nhan-vien', 'quan-ly', 'chu-so-huu']}
+        value={[]}
         onChange={handleChange}
-        placeholder="Chọn vai trò"
+        searchMode="inline"
+        placeholder="Thêm nhãn"
+        searchPlaceholder="Tìm nhãn..."
       />,
     );
 
-    await user.click(screen.getByRole('option', { name: 'Bỏ chọn tất cả' }));
+    const input = screen.getByRole('textbox', { name: 'Tìm nhãn...' });
+    await user.click(input);
+    await user.type(input, 'quan ly');
+    expect(input).toHaveFocus();
+    await user.keyboard('{Enter}');
 
-    expect(handleChange).toHaveBeenLastCalledWith([]);
+    expect(handleChange).toHaveBeenCalledWith(['quan-ly']);
+    expect(input).toHaveValue('');
   });
 
   it('renders one-level groups and right-aligned counts', async () => {

@@ -110,6 +110,32 @@ describe('buildFormModule', () => {
     expect(dateSource).toContain('className="md:col-span-12"');
   });
 
+  it('generates a self-fetching tag selector with module scope', () => {
+    const tagSource = buildFormModule({
+      entity: 'Contract',
+      schemaImport: './contract.schema',
+      schemaName: 'contractSchema',
+      valuesType: 'ContractValues',
+      title: 'Tạo hợp đồng',
+      fields: [
+        {
+          kind: 'tagSelect',
+          name: 'tagIds',
+          label: 'Nhãn',
+          moduleCodes: ['contracts'],
+        },
+      ],
+    });
+
+    expect(tagSource).toContain(
+      "import { TagSelect } from '@/project/tags/components/tag-select';",
+    );
+    expect(tagSource).toContain(
+      '<TagSelect value={field.value} onChange={field.onChange} moduleCodes={["contracts"]}',
+    );
+    expect(tagSource).not.toContain('tagIdsOptions');
+  });
+
   it('generates a compound input with a separately bound select field', () => {
     const compoundSource = buildFormModule({
       entity: 'ContractFee',

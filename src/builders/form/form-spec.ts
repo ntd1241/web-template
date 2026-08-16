@@ -11,6 +11,7 @@ import {
   searchSelectFieldControlSchema,
   selectFieldControlSchema,
   switchFieldControlSchema,
+  tagSelectFieldControlSchema,
   textareaFieldControlSchema,
   textFieldControlSchema,
 } from '../shared/form-field-spec';
@@ -74,6 +75,8 @@ const inputSelectField = inputSelectFieldControlSchema.extend(base);
 
 const multiselectField = multiselectFieldControlSchema.extend(base);
 
+const tagSelectField = tagSelectFieldControlSchema.extend(base);
+
 const switchField = switchFieldControlSchema.extend(base);
 
 export const formFieldSchema = z.discriminatedUnion('kind', [
@@ -89,6 +92,7 @@ export const formFieldSchema = z.discriminatedUnion('kind', [
   customerSelectField,
   inputSelectField,
   multiselectField,
+  tagSelectField,
   switchField,
 ]);
 

@@ -10,6 +10,7 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react';
 import { CustomerSelect } from '@/project/customers/components/customer-select';
 import type { CustomerSelectOption } from '@/project/customers/components/customer-select';
+import { TagSelect } from '@/project/tags/components/tag-select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
@@ -32,6 +33,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
+import { MultiSelect } from '@/components/ui/multi-select';
+import type { MultiSelectOption } from '@/components/ui/multi-select';
 import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -44,6 +47,8 @@ import {
 
 export const contractDefaultValues: ContractFormValues = {
   customerId: '',
+  responsibleEmployeeIds: [],
+  tagIds: [],
   contractCode: '',
   name: '',
   currencyCode: 'VND',
@@ -66,6 +71,8 @@ export function useContractForm(
 export function mapContractToFormValues(entity: Contract): ContractFormValues {
   return {
     customerId: entity.customerId,
+    responsibleEmployeeIds: [],
+    tagIds: [],
     contractCode: entity.contractCode,
     name: entity.name,
     currencyCode: entity.currencyCode,
@@ -83,6 +90,7 @@ interface ContractFormProps {
   lineEditor?: ReactNode;
   selectedCustomer?: CustomerSelectOption;
   onCustomerSelect?: (customer: CustomerSelectOption | undefined) => void;
+  responsibleEmployeeIdsOptions: MultiSelectOption[];
 }
 
 export function ContractForm({
@@ -92,6 +100,7 @@ export function ContractForm({
   lineEditor,
   selectedCustomer,
   onCustomerSelect,
+  responsibleEmployeeIdsOptions,
 }: ContractFormProps) {
   return (
     <Form {...form}>
@@ -112,6 +121,48 @@ export function ContractForm({
                     onChange={field.onChange}
                     onSelect={onCustomerSelect}
                     placeholder="Chọn khách hàng"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="responsibleEmployeeIds"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12">
+                <FormLabel>Nhân viên phụ trách</FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={responsibleEmployeeIdsOptions}
+                    placeholder="Chọn nhân viên phụ trách"
+                    searchPlaceholder="Tìm nhân viên..."
+                    emptyMessage="Không tìm thấy nhân viên"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="tagIds"
+            render={({ field }) => (
+              <FormItem className="md:col-span-12">
+                <FormLabel>Nhãn</FormLabel>
+                <FormControl>
+                  <TagSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    moduleCodes={['contracts']}
+                    placeholder="Chọn nhãn"
+                    searchPlaceholder="Tìm nhãn..."
+                    emptyMessage="Không tìm thấy nhãn"
                   />
                 </FormControl>
                 <FormMessage />
@@ -244,6 +295,7 @@ interface ContractFormDialogProps {
   lineEditor?: ReactNode;
   selectedCustomer?: CustomerSelectOption;
   onCustomerSelect?: (customer: CustomerSelectOption | undefined) => void;
+  responsibleEmployeeIdsOptions: MultiSelectOption[];
 }
 
 export function ContractFormDialog({
@@ -257,6 +309,7 @@ export function ContractFormDialog({
   lineEditor,
   selectedCustomer,
   onCustomerSelect,
+  responsibleEmployeeIdsOptions,
 }: ContractFormDialogProps) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -308,6 +361,7 @@ export function ContractFormDialog({
               lineEditor={lineEditor}
               selectedCustomer={selectedCustomer}
               onCustomerSelect={onCustomerSelect}
+              responsibleEmployeeIdsOptions={responsibleEmployeeIdsOptions}
             />
           </div>
 
