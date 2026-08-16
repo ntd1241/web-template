@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { contractVersionLineSchema, mapContractRow } from './contract';
 import {
   customerPaymentSchema,
+  getContractChargeDisplayStatus,
   mapCustomerReceivableSummaryRow,
 } from './receivable';
 
@@ -116,6 +117,46 @@ describe('contract model', () => {
       totalPaid: 25_000_000,
       totalOutstanding: 5_000_000,
     });
+  });
+
+  it('derives the user-facing charge status from payment and due-date data', () => {
+    const today = new Date('2026-08-16T12:00:00Z');
+    const baseCharge = {
+      status: 'open' as const,
+      paidAmount: 0,
+      outstandingAmount: 1_000_000,
+    };
+
+    expect(
+      getContractChargeDisplayStatus(
+        { ...baseCharge, dueDate: '2026-08-16' },
+        today,
+      ),
+    ).toBe('upcoming');
+    expect(
+      getContractChargeDisplayStatus(
+        { ...baseCharge, dueDate: '2026-08-24' },
+        today,
+      ),
+    ).toBe('unpaid');
+    expect(
+      getContractChargeDisplayStatus(
+        { ...baseCharge, dueDate: '2026-08-15' },
+        today,
+      ),
+    ).toBe('overdue');
+    expect(
+      getContractChargeDisplayStatus(
+        { ...baseCharge, dueDate: '2026-08-16', outstandingAmount: 0 },
+        today,
+      ),
+    ).toBe('paid');
+    expect(
+      getContractChargeDisplayStatus(
+        { ...baseCharge, status: 'voided', dueDate: '2026-08-16' },
+        today,
+      ),
+    ).toBe('voided');
   });
 
   it('validates payment amount and currency before API submission', () => {

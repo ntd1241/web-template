@@ -354,6 +354,20 @@ UI nên hiển thị riêng:
 - **Đến hạn kỳ này:** phần cần thu trong kỳ hiện tại.
 - **Tiền dư:** khách đã trả nhưng chưa phân bổ.
 
+### 6.1. Trạng thái hiển thị của kỳ thanh toán
+
+Không thêm một cột trạng thái hiển thị riêng vào database. UI suy ra trạng thái từ số tiền đã
+phân bổ, hạn thanh toán và cờ hủy để tránh dữ liệu trạng thái bị lệch so với công nợ thực tế:
+
+- `Đã hủy`: charge có trạng thái hủy; thông tin hủy vẫn được lưu để audit.
+- `Đã thu`: số còn phải thu bằng 0.
+- `Quá hạn`: còn phải thu lớn hơn 0 và đã qua hạn thanh toán.
+- `Sắp tới hạn`: còn phải thu lớn hơn 0 và hạn thanh toán nằm trong 7 ngày tới.
+- `Chưa thu`: các trường hợp còn phải thu khác.
+
+Thanh toán một phần vẫn hiển thị là `Chưa thu`, đồng thời bảng hiển thị số đã thu và số còn lại.
+Khoảng 7 ngày là mặc định của UI và có thể chuyển thành setting toàn cục sau này.
+
 Không cộng các kỳ tương lai vào “tổng nợ” mặc định. Nếu cần dự báo, hiển thị thành chỉ số riêng “Giá trị dự kiến”.
 
 ## 7. Quy tắc phân bổ thanh toán

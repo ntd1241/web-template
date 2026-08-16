@@ -115,7 +115,10 @@ function attachListSummary(
   balances: ContractChargeBalance[],
 ): Contract {
   const contractBalances = balances.filter(
-    (balance) => balance.contractId === contract.id,
+    (balance) =>
+      balance.contractId === contract.id &&
+      balance.direction === 'receivable' &&
+      balance.status !== 'voided',
   );
   const outstanding = contractBalances.reduce(
     (sum, balance) => sum + balance.outstandingAmount,
@@ -170,7 +173,6 @@ export async function loadContractWorkspace(
         queryParams({
           select: '*',
           tenant_id: `eq.${tenantId}`,
-          status: 'neq.voided',
         }),
       ),
     ),
@@ -234,7 +236,6 @@ export async function loadContractDetail(
             select: '*',
             tenant_id: `eq.${tenantId}`,
             contract_id: `eq.${contractId}`,
-            status: 'neq.voided',
             order: 'due_date.asc,period_start.asc',
           }),
         ),

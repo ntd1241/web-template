@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { CardEmptyState } from '@/components/ui/card-empty-state';
-import { Tag } from '@/components/ui/tag';
 import { formatContractAmount } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
@@ -19,35 +18,16 @@ import {
   type ContractVersionLine,
 } from '../model/contract';
 import {
-  CONTRACT_CHARGE_STATUS_LABELS,
+  getContractChargeDisplayStatus,
   PAYMENT_METHOD_LABELS,
   type ContractChargeBalance,
   type CustomerPayment,
 } from '../model/receivable';
+import { ContractStatusBadge } from './contract-status-badge';
 
 function formatDate(value: string | null | undefined) {
   if (!value) return 'Chưa cập nhật';
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
-}
-
-function StatusTag({ status }: { status: string }) {
-  const success = ['paid', 'effective'].includes(status);
-  const warning = ['partially_paid', 'overdue'].includes(status);
-  return (
-    <Tag
-      size="sm"
-      shape="circle"
-      color={success ? '#16a34a' : warning ? '#d97706' : '#64748b'}
-    >
-      {CONTRACT_CHARGE_STATUS_LABELS[
-        status as keyof typeof CONTRACT_CHARGE_STATUS_LABELS
-      ] ??
-        CONTRACT_VERSION_STATUS_LABELS[
-          status as keyof typeof CONTRACT_VERSION_STATUS_LABELS
-        ] ??
-        status}
-    </Tag>
-  );
 }
 
 function FeeLine({ line }: { line: ContractVersionLine }) {
@@ -230,7 +210,9 @@ export function ContractReceivablesContent({
                   {formatContractAmount(charge.outstandingAmount, currencyCode)}
                 </td>
                 <td className="px-5 py-3">
-                  <StatusTag status={charge.status} />
+                  <ContractStatusBadge
+                    status={getContractChargeDisplayStatus(charge)}
+                  />
                 </td>
               </tr>
             ))}
@@ -292,7 +274,7 @@ export function ContractVersionsContent({
                   {version.changeReason || '—'}
                 </td>
                 <td className="px-5 py-3">
-                  <StatusTag status={version.status} />
+                  <ContractStatusBadge status={version.status} />
                 </td>
               </tr>
             ))}

@@ -15,6 +15,18 @@ export const CONTRACT_CHARGE_STATUSES = [
 ] as const;
 export type ContractChargeStatus = (typeof CONTRACT_CHARGE_STATUSES)[number];
 
+export const CONTRACT_CHARGE_DISPLAY_STATUSES = [
+  'upcoming',
+  'unpaid',
+  'paid',
+  'overdue',
+  'voided',
+] as const;
+export type ContractChargeDisplayStatus =
+  (typeof CONTRACT_CHARGE_DISPLAY_STATUSES)[number];
+
+export const CONTRACT_CHARGE_DUE_SOON_DAYS = 7;
+
 export const PAYMENT_STATUSES = ['posted', 'reversed'] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
@@ -28,6 +40,17 @@ export const CONTRACT_CHARGE_STATUS_LABELS: Record<
   open: 'Chưa thanh toán',
   partially_paid: 'Thanh toán một phần',
   paid: 'Đã thanh toán',
+  overdue: 'Quá hạn',
+  voided: 'Đã hủy',
+};
+
+export const CONTRACT_CHARGE_DISPLAY_STATUS_LABELS: Record<
+  ContractChargeDisplayStatus,
+  string
+> = {
+  upcoming: 'Sắp tới hạn',
+  unpaid: 'Chưa thu',
+  paid: 'Đã thu',
   overdue: 'Quá hạn',
   voided: 'Đã hủy',
 };
@@ -79,6 +102,38 @@ export interface ContractCharge {
 export interface ContractChargeBalance extends ContractCharge {
   paidAmount: number;
   outstandingAmount: number;
+}
+
+function addDays(value: string, days: number) {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function dateOnly(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function getContractChargeDisplayStatus(
+  charge: Pick<
+    ContractChargeBalance,
+    'status' | 'paidAmount' | 'outstandingAmount' | 'dueDate'
+  >,
+  today = new Date(),
+  dueSoonDays = CONTRACT_CHARGE_DUE_SOON_DAYS,
+): ContractChargeDisplayStatus {
+  if (charge.status === 'voided') return 'voided';
+  if (charge.outstandingAmount <= 0 || charge.status === 'paid') {
+    return 'paid';
+  }
+
+  const todayIso = dateOnly(today);
+  if (charge.dueDate < todayIso) return 'overdue';
+  if (charge.dueDate <= addDays(todayIso, dueSoonDays)) return 'upcoming';
+  return 'unpaid';
 }
 
 export interface CustomerPayment {
