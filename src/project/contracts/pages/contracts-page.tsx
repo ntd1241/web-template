@@ -34,6 +34,7 @@ import {
   deleteContract,
   loadContractDetail,
   loadContractWorkspace,
+  normalizeContractVersionLineForSubmit,
   updateContract,
   type ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
@@ -190,7 +191,7 @@ export function ContractsPage() {
   function handleSubmit(values: Parameters<typeof updateContract>[2]) {
     for (const [index, line] of feeLines.entries()) {
       const result = contractVersionLineSchema.safeParse({
-        ...line,
+        ...normalizeContractVersionLineForSubmit(line),
         sortOrder: index,
       });
       if (!result.success) {

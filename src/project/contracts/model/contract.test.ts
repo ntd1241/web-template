@@ -72,6 +72,33 @@ describe('contract model', () => {
     expect(result.success).toBe(false);
   });
 
+  it('keeps the recurrence values invalid for one-time fees until submit formatting', () => {
+    const result = contractVersionLineSchema.safeParse({
+      name: 'Phí khởi tạo',
+      quantity: 1,
+      unitPrice: 5_000_000,
+      billingType: 'one_time',
+      billingUnit: 'month',
+      billingInterval: 1,
+      chargeDate: '2026-06-01',
+      dueRule: 'on_period_start',
+      dueDays: null,
+      startDate: '2026-06-01',
+      endDate: null,
+      sortOrder: 0,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          path: ['billingType'],
+          message: 'Phí một lần không có chu kỳ lặp.',
+        }),
+      );
+    }
+  });
+
   it('maps database numeric values in receivable summaries', () => {
     expect(
       mapCustomerReceivableSummaryRow({

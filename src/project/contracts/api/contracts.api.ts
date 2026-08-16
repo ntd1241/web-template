@@ -306,26 +306,40 @@ function toContractPayload(values: ContractFormValues) {
   };
 }
 
+export function normalizeContractVersionLineForSubmit(
+  line: ContractVersionLineValuesForApi,
+): ContractVersionLineValuesForApi {
+  return {
+    ...line,
+    billingUnit: line.billingType === 'recurring' ? line.billingUnit : null,
+    billingInterval:
+      line.billingType === 'recurring' ? line.billingInterval : null,
+    chargeDate: line.billingType === 'one_time' ? line.chargeDate : null,
+    dueDays: line.dueRule === 'after_days' ? line.dueDays : null,
+  };
+}
+
 function toLinePayload(
   line: ContractVersionLineValuesForApi,
   versionId: string,
   index: number,
 ) {
+  const normalizedLine = normalizeContractVersionLineForSubmit(line);
+
   return {
     contract_version_id: versionId,
-    direction: line.direction,
-    name: line.name,
-    quantity: line.quantity,
-    unit_price: line.unitPrice,
-    billing_type: line.billingType,
-    billing_unit: line.billingType === 'recurring' ? line.billingUnit : null,
-    billing_interval:
-      line.billingType === 'recurring' ? line.billingInterval : null,
-    charge_date: line.billingType === 'one_time' ? line.chargeDate : null,
-    due_rule: line.dueRule,
-    due_days: line.dueRule === 'after_days' ? line.dueDays : null,
-    start_date: line.startDate,
-    end_date: line.endDate,
+    direction: normalizedLine.direction,
+    name: normalizedLine.name,
+    quantity: normalizedLine.quantity,
+    unit_price: normalizedLine.unitPrice,
+    billing_type: normalizedLine.billingType,
+    billing_unit: normalizedLine.billingUnit,
+    billing_interval: normalizedLine.billingInterval,
+    charge_date: normalizedLine.chargeDate,
+    due_rule: normalizedLine.dueRule,
+    due_days: normalizedLine.dueDays,
+    start_date: normalizedLine.startDate,
+    end_date: normalizedLine.endDate,
     sort_order: index,
   };
 }

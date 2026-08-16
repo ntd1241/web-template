@@ -36,6 +36,7 @@ import {
   deleteContract,
   formatContractAmount,
   loadContractDetail,
+  normalizeContractVersionLineForSubmit,
   updateContract,
   type ContractDetail,
   type ContractVersionLineValuesForApi,
@@ -291,7 +292,7 @@ export function ContractDetailPage() {
   function handleSubmit(values: Parameters<typeof updateContract>[2]) {
     for (const [index, line] of feeLines.entries()) {
       const result = contractVersionLineSchema.safeParse({
-        ...line,
+        ...normalizeContractVersionLineForSubmit(line),
         sortOrder: index,
       });
       if (!result.success) {

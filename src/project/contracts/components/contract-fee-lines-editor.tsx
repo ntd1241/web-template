@@ -9,6 +9,7 @@ import {
   type Control,
 } from 'react-hook-form';
 import { z } from 'zod';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { InputSelect } from '@/components/ui/input-select';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -28,7 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { ContractVersionLineValuesForApi } from '../api/contracts.api';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  normalizeContractVersionLineForSubmit,
+  type ContractVersionLineValuesForApi,
+} from '../api/contracts.api';
 import {
   BILLING_TYPE_LABELS,
   BILLING_UNIT_LABELS,
@@ -36,6 +42,7 @@ import {
   DUE_RULE_LABELS,
   type BillingType,
   type BillingUnit,
+  type ContractCashflowDirection,
   type DueRule,
 } from '../model/contract';
 
@@ -66,9 +73,19 @@ type ContractFeeLinesFormValues = {
   lines: ContractFeeLineFormValue[];
 };
 
+const contractFeeLineValidationSchema = z.preprocess(
+  (value) =>
+    value && typeof value === 'object'
+      ? normalizeContractVersionLineForSubmit(
+          value as ContractVersionLineValuesForApi,
+        )
+      : value,
+  contractVersionLineSchema,
+);
+
 const contractFeeLinesFormSchema = z.object({
   lines: z
-    .array(contractVersionLineSchema)
+    .array(contractFeeLineValidationSchema)
     .min(1, 'Hợp đồng cần ít nhất một khoản phí.'),
 });
 
@@ -170,6 +187,13 @@ function BillingPeriodField({
   );
 }
 
+function hasInactiveBillingPeriod(line: ContractVersionLineValuesForApi) {
+  return (
+    line.billingType === 'one_time' &&
+    (line.billingUnit !== null || line.billingInterval !== null)
+  );
+}
+
 export const ContractFeeLinesEditor = forwardRef<
   ContractFeeLinesEditorRef,
   ContractFeeLinesEditorProps
@@ -240,9 +264,51 @@ export const ContractFeeLinesEditor = forwardRef<
               >
                 <FormField
                   control={form.control}
+                  name={`lines.${index}.direction`}
+                  render={({ field: directionField }) => (
+                    <FormItem className="md:col-span-12">
+                      <FormControl>
+                        <ToggleGroup
+                          type="single"
+                          value={directionField.value}
+                          onValueChange={(value) => {
+                            if (!value) return;
+                            directionField.onChange(
+                              value as ContractCashflowDirection,
+                            );
+                            syncParent();
+                          }}
+                          variant="outline"
+                          size="md"
+                          aria-label="Loại dòng tiền"
+                          className="w-fit"
+                        >
+                          <ToggleGroupItem
+                            value="receivable"
+                            aria-label="Khoản thu"
+                            className="data-[state=off]:opacity-50 data-[state=on]:border-emerald-200 data-[state=on]:bg-emerald-50 data-[state=on]:text-emerald-700 dark:data-[state=on]:border-emerald-900 dark:data-[state=on]:bg-emerald-950 dark:data-[state=on]:text-emerald-300"
+                          >
+                            Thu
+                          </ToggleGroupItem>
+                          <ToggleGroupItem
+                            value="payable"
+                            aria-label="Khoản chi"
+                            className="data-[state=off]:opacity-50 data-[state=on]:border-rose-200 data-[state=on]:bg-rose-50 data-[state=on]:text-rose-700 dark:data-[state=on]:border-rose-900 dark:data-[state=on]:bg-rose-950 dark:data-[state=on]:text-rose-300"
+                          >
+                            Chi
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name={`lines.${index}.name`}
                   render={({ field: inputField }) => (
-                    <FormItem variant="compact" className="md:col-span-4">
+                    <FormItem className="md:col-span-4">
                       <FormLabel>
                         Tên khoản phí
                         <span className="text-destructive"> *</span>
@@ -268,7 +334,7 @@ export const ContractFeeLinesEditor = forwardRef<
                     control={form.control}
                     name={`lines.${index}.quantity`}
                     render={({ field: inputField }) => (
-                      <FormItem variant="compact" className="min-w-0">
+                      <FormItem className="min-w-0">
                         <FormLabel>Số lượng</FormLabel>
                         <FormControl>
                           <Input
@@ -300,7 +366,7 @@ export const ContractFeeLinesEditor = forwardRef<
                     control={form.control}
                     name={`lines.${index}.unitPrice`}
                     render={({ field: inputField }) => (
-                      <FormItem variant="compact" className="min-w-0">
+                      <FormItem className="min-w-0">
                         <FormLabel>Đơn giá</FormLabel>
                         <FormControl>
                           <Input
@@ -328,11 +394,18 @@ export const ContractFeeLinesEditor = forwardRef<
                     =
                   </span>
 
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <span className="block text-xs font-medium text-muted-foreground">
+                  <div className="flex min-w-0 flex-col gap-2.5">
+                    <span className="block font-medium text-foreground">
                       Thành tiền
                     </span>
-                    <span className="flex h-8.5 min-w-0 items-center truncate px-2.5 text-sm font-semibold tabular-nums">
+                    <span
+                      className={cn(
+                        'flex h-8.5 min-w-0 items-center truncate px-2.5 text-sm font-semibold tabular-nums',
+                        line.direction === 'receivable'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-rose-600 dark:text-rose-400',
+                      )}
+                    >
                       {new Intl.NumberFormat('vi-VN').format(amount)} VND
                     </span>
                   </div>
@@ -355,58 +428,58 @@ export const ContractFeeLinesEditor = forwardRef<
                   control={form.control}
                   name={`lines.${index}.billingType`}
                   render={({ field: selectField }) => (
-                    <FormItem variant="compact" className="md:col-span-3">
-                      <FormLabel>Loại phí</FormLabel>
-                      <Select
-                        value={selectField.value}
-                        onValueChange={(value: BillingType) => {
-                          selectField.onChange(value);
-                          form.setValue(
-                            `lines.${index}.billingUnit`,
-                            value === 'recurring' ? 'month' : null,
-                          );
-                          form.setValue(
-                            `lines.${index}.billingInterval`,
-                            value === 'recurring' ? 1 : null,
-                          );
-                          form.setValue(
-                            `lines.${index}.chargeDate`,
-                            value === 'one_time' ? line.startDate : null,
-                          );
-                          syncParent();
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
+                    <FormItem variant="compact" className="md:col-span-4">
+                      <FormLabel>Tần suất phát sinh</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={selectField.value}
+                          onValueChange={(value: BillingType) => {
+                            selectField.onChange(value);
+                            form.setValue(
+                              `lines.${index}.chargeDate`,
+                              value === 'one_time'
+                                ? (line.chargeDate ?? line.startDate)
+                                : null,
+                            );
+                            syncParent();
+                          }}
+                          orientation="horizontal"
+                          aria-label="Tần suất phát sinh"
+                          className="flex h-8.5 items-center gap-4"
+                        >
                           {(
                             Object.entries(BILLING_TYPE_LABELS) as [
                               BillingType,
                               string,
                             ][]
                           ).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
+                            <label
+                              key={value}
+                              className="flex cursor-pointer items-center gap-2 text-sm"
+                            >
+                              <RadioGroupItem value={value} size="sm" />
+                              <span>{label}</span>
+                            </label>
                           ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                        </RadioGroup>
+                      </FormControl>
+                      {hasInactiveBillingPeriod(line) ? (
+                        <p className="-mt-0.5 text-xs font-normal text-destructive">
+                          Phí một lần không có chu kỳ lặp.
+                        </p>
+                      ) : (
+                        <FormMessage />
+                      )}
                     </FormItem>
                   )}
                 />
 
                 {line.billingType === 'recurring' ? (
-                  <>
-                    <BillingPeriodField
-                      control={form.control}
-                      index={index}
-                      onSync={syncParent}
-                    />
-                  </>
+                  <BillingPeriodField
+                    control={form.control}
+                    index={index}
+                    onSync={syncParent}
+                  />
                 ) : (
                   <FormField
                     control={form.control}
@@ -436,74 +509,76 @@ export const ContractFeeLinesEditor = forwardRef<
                   />
                 )}
 
-                <FormField
-                  control={form.control}
-                  name={`lines.${index}.dueRule`}
-                  render={({ field: selectField }) => (
-                    <FormItem variant="compact" className="md:col-span-4">
-                      <FormLabel>Hạn thanh toán</FormLabel>
-                      <Select
-                        value={selectField.value}
-                        onValueChange={(value: DueRule) => {
-                          selectField.onChange(value);
-                          form.setValue(
-                            `lines.${index}.dueDays`,
-                            value === 'after_days' ? 0 : null,
-                          );
-                          syncParent();
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {(
-                            Object.entries(DUE_RULE_LABELS) as [
-                              DueRule,
-                              string,
-                            ][]
-                          ).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {line.dueRule === 'after_days' ? (
+                <div className="grid gap-3 md:col-span-12 md:grid-cols-12">
                   <FormField
                     control={form.control}
-                    name={`lines.${index}.dueDays`}
-                    render={({ field: inputField }) => (
-                      <FormItem variant="compact" className="md:col-span-2">
-                        <FormLabel>Số ngày</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={0}
-                            variant="md"
-                            value={inputField.value ?? ''}
-                            onChange={(event) => {
-                              inputField.onChange(
-                                event.target.value === ''
-                                  ? null
-                                  : Number(event.target.value),
-                              );
-                              syncParent();
-                            }}
-                          />
-                        </FormControl>
+                    name={`lines.${index}.dueRule`}
+                    render={({ field: selectField }) => (
+                      <FormItem variant="compact" className="md:col-span-4">
+                        <FormLabel>Hạn thanh toán</FormLabel>
+                        <Select
+                          value={selectField.value}
+                          onValueChange={(value: DueRule) => {
+                            selectField.onChange(value);
+                            form.setValue(
+                              `lines.${index}.dueDays`,
+                              value === 'after_days' ? 0 : null,
+                            );
+                            syncParent();
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {(
+                              Object.entries(DUE_RULE_LABELS) as [
+                                DueRule,
+                                string,
+                              ][]
+                            ).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                ) : null}
+
+                  {line.dueRule === 'after_days' ? (
+                    <FormField
+                      control={form.control}
+                      name={`lines.${index}.dueDays`}
+                      render={({ field: inputField }) => (
+                        <FormItem variant="compact" className="md:col-span-2">
+                          <FormLabel>Số ngày</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={0}
+                              variant="md"
+                              value={inputField.value ?? ''}
+                              onChange={(event) => {
+                                inputField.onChange(
+                                  event.target.value === ''
+                                    ? null
+                                    : Number(event.target.value),
+                                );
+                                syncParent();
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ) : null}
+                </div>
               </div>
             );
           })}
