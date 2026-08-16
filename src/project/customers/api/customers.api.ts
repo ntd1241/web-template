@@ -1,9 +1,9 @@
-import { env } from '@/config/env';
 import {
-  assertSupabaseConfigured,
-  supabaseApi,
-  supabaseStorageApi,
-} from '@/lib/supabase';
+  getPublicStorageUrl,
+  TENANT_ASSETS_BUCKET,
+  uploadStorageObject,
+} from '@/lib/storage';
+import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
 import { CUSTOMER_TAG_GROUP_CODE } from '../../tags/model/tag';
 import type {
   Customer,
@@ -249,8 +249,6 @@ function toPayload(values: CustomerFormValues) {
   };
 }
 
-const CUSTOMER_ASSETS_BUCKET = 'tenant-assets';
-
 function fileExtension(file: File): string {
   const extension = file.name.split('.').pop()?.toLowerCase();
   if (extension && /^[a-z0-9]+$/.test(extension)) return extension;
@@ -270,16 +268,14 @@ export async function uploadCustomerImage(
   assertSupabaseConfigured();
 
   const path = `${tenantId}/customers/${customerId}/image.${fileExtension(file)}`;
-  await request<unknown>(
-    supabaseStorageApi.post(`/object/${CUSTOMER_ASSETS_BUCKET}/${path}`, file, {
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream',
-        'x-upsert': 'true',
-      },
-    }),
-  );
+  await uploadStorageObject({
+    bucket: TENANT_ASSETS_BUCKET,
+    path,
+    file,
+    upsert: true,
+  });
 
-  return `${env.supabaseUrl}/storage/v1/object/public/${CUSTOMER_ASSETS_BUCKET}/${path}`;
+  return getPublicStorageUrl(TENANT_ASSETS_BUCKET, path);
 }
 
 export async function createCustomer(

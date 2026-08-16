@@ -1,9 +1,10 @@
-import { env } from '@/config/env';
 import {
-  assertSupabaseConfigured,
-  supabaseApi,
-  supabaseStorageApi,
-} from '@/lib/supabase';
+  getPublicStorageUrl,
+  removeStorageObjects,
+  TENANT_ASSETS_BUCKET,
+  uploadStorageObject,
+} from '@/lib/storage';
+import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
 import { loadCustomerDetail } from '../../customers/api/customers.api';
 import type { Customer } from '../../customers/model/customer';
 import { getPaymentReminderDays } from '../../model/tenant-settings';
@@ -106,6 +107,7 @@ export interface ContractCreationWorkspace {
 export interface ContractMetadataInput {
   responsibleEmployeeIds: string[];
   tagIds: string[];
+  attachmentIdsToKeep: string[];
   attachments: File[];
 }
 
@@ -260,7 +262,7 @@ function mapContractAttachment(row: ContractAttachmentRow): ContractAttachment {
     mimeType: row.mime_type,
     sizeBytes: numberValue(row.size_bytes),
     storagePath: row.storage_path,
-    url: `${env.supabaseUrl}/storage/v1/object/public/tenant-assets/${row.storage_path}`,
+    url: getPublicStorageUrl(TENANT_ASSETS_BUCKET, row.storage_path),
     uploadedBy: row.uploaded_by,
     createdAt: row.created_at,
   };
@@ -717,6 +719,7 @@ async function uploadContractAttachments(
 ) {
   if (files.length === 0) return;
 
+  const uploadedPaths: string[] = [];
   const rows: Array<{
     tenant_id: string;
     contract_id: string;
@@ -727,31 +730,74 @@ async function uploadContractAttachments(
     uploaded_by: string;
   }> = [];
 
-  for (const file of files) {
-    const storagePath = `${tenantId}/contracts/${contractId}/${crypto.randomUUID()}-${safeAttachmentFileName(file.name)}`;
-    await request<unknown>(
-      supabaseStorageApi.post(`/object/tenant-assets/${storagePath}`, file, {
-        headers: {
-          'Content-Type': file.type || 'application/octet-stream',
-          'x-upsert': 'false',
-        },
+  try {
+    for (const file of files) {
+      const storagePath = `${tenantId}/contracts/${contractId}/${crypto.randomUUID()}-${safeAttachmentFileName(file.name)}`;
+      await uploadStorageObject({
+        bucket: TENANT_ASSETS_BUCKET,
+        path: storagePath,
+        file,
+      });
+      uploadedPaths.push(storagePath);
+      rows.push({
+        tenant_id: tenantId,
+        contract_id: contractId,
+        storage_path: storagePath,
+        file_name: file.name,
+        mime_type: file.type || 'application/octet-stream',
+        size_bytes: file.size,
+        uploaded_by: userId,
+      });
+    }
+
+    await request(
+      supabaseApi.post('/contract_attachments', rows, {
+        headers: { Prefer: 'return=minimal' },
       }),
     );
-    rows.push({
-      tenant_id: tenantId,
-      contract_id: contractId,
-      storage_path: storagePath,
-      file_name: file.name,
-      mime_type: file.type || 'application/octet-stream',
-      size_bytes: file.size,
-      uploaded_by: userId,
-    });
+  } catch (error) {
+    await removeStorageObjects(TENANT_ASSETS_BUCKET, uploadedPaths).catch(
+      () => undefined,
+    );
+    throw error;
   }
+}
 
-  await request(
-    supabaseApi.post('/contract_attachments', rows, {
-      headers: { Prefer: 'return=minimal' },
+async function syncContractAttachments(
+  tenantId: string,
+  contractId: string,
+  userId: string,
+  attachmentIdsToKeep: string[],
+  files: File[],
+) {
+  const existingRows = await request<ContractAttachmentRow[]>(
+    supabaseApi.get(
+      '/contract_attachments',
+      queryParams({
+        select: 'id,storage_path',
+        tenant_id: `eq.${tenantId}`,
+        contract_id: `eq.${contractId}`,
+      }),
+    ),
+  );
+  const keepIds = new Set(attachmentIdsToKeep);
+  const removedRows = existingRows.filter((row) => !keepIds.has(row.id));
+
+  await uploadContractAttachments(tenantId, contractId, userId, files);
+
+  if (removedRows.length === 0) return;
+
+  await supabaseApi.delete(
+    '/contract_attachments',
+    queryParams({
+      tenant_id: `eq.${tenantId}`,
+      contract_id: `eq.${contractId}`,
+      id: `in.(${removedRows.map((row) => row.id).join(',')})`,
     }),
+  );
+  await removeStorageObjects(
+    TENANT_ASSETS_BUCKET,
+    removedRows.map((row) => row.storage_path),
   );
 }
 
@@ -769,10 +815,11 @@ async function persistContractMetadata(
       userId,
     ),
     replaceSubjectTags(tenantId, 'contract', contractId, metadata.tagIds),
-    uploadContractAttachments(
+    syncContractAttachments(
       tenantId,
       contractId,
       userId,
+      metadata.attachmentIdsToKeep,
       metadata.attachments,
     ),
   ]);

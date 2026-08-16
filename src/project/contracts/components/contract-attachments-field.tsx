@@ -17,12 +17,14 @@ export function ContractAttachmentsField({
   files,
   onChange,
   existingAttachments = [],
+  onRemoveExisting,
   disabled = false,
   className,
 }: {
   files: File[];
   onChange: (files: File[]) => void;
   existingAttachments?: ContractAttachment[];
+  onRemoveExisting?: (attachmentId: string) => void;
   disabled?: boolean;
   className?: string;
 }) {
@@ -79,21 +81,38 @@ export function ContractAttachmentsField({
       {existingAttachments.length > 0 || files.length > 0 ? (
         <div className="divide-y divide-border rounded-lg border border-border">
           {existingAttachments.map((attachment) => (
-            <a
+            <div
               key={attachment.id}
-              href={attachment.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm"
             >
-              <FileText className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate text-foreground">
-                {attachment.fileName}
-              </span>
-              <span className="shrink-0 text-xs text-muted-foreground">
-                {formatFileSize(attachment.sizeBytes)}
-              </span>
-            </a>
+              <a
+                href={attachment.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-w-0 flex-1 items-center gap-3 hover:text-primary"
+              >
+                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate text-foreground">
+                  {attachment.fileName}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {formatFileSize(attachment.sizeBytes)}
+                </span>
+              </a>
+              {onRemoveExisting ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  mode="icon"
+                  size="sm"
+                  disabled={disabled}
+                  aria-label={`Xóa tệp ${attachment.fileName}`}
+                  onClick={() => onRemoveExisting(attachment.id)}
+                >
+                  <X />
+                </Button>
+              ) : null}
+            </div>
           ))}
           {files.map((file, index) => (
             <div

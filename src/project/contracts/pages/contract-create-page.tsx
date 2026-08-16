@@ -127,6 +127,9 @@ export function ContractCreatePage() {
   ]);
   const [feeEditorKey, setFeeEditorKey] = useState('create');
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>(
+    [],
+  );
   const mappedEditIdRef = useRef<string | null>(null);
   const initializedCreateResponsibleRef = useRef(false);
 
@@ -183,6 +186,7 @@ export function ContractCreatePage() {
       `${editingContractId}:${detail.versions[0]?.id ?? 'no-version'}`,
     );
     setAttachmentFiles([]);
+    setRemovedAttachmentIds([]);
     initializedCreateResponsibleRef.current = false;
     setStep(1);
     setMaxStep(1);
@@ -200,6 +204,7 @@ export function ContractCreatePage() {
     ]);
     setFeeEditorKey('create');
     setAttachmentFiles([]);
+    setRemovedAttachmentIds([]);
     setStep(1);
     setMaxStep(1);
   }, [editingContractId, form]);
@@ -327,6 +332,9 @@ export function ContractCreatePage() {
       metadata: {
         responsibleEmployeeIds: values.responsibleEmployeeIds,
         tagIds: values.tagIds,
+        attachmentIdsToKeep: (editDetailQuery.data?.attachments ?? [])
+          .filter((attachment) => !removedAttachmentIds.includes(attachment.id))
+          .map((attachment) => attachment.id),
         attachments: attachmentFiles,
       },
     });
@@ -487,7 +495,19 @@ export function ContractCreatePage() {
                     files={attachmentFiles}
                     onChange={setAttachmentFiles}
                     existingAttachments={
-                      isEditMode ? editDetailQuery.data?.attachments : []
+                      isEditMode
+                        ? (editDetailQuery.data?.attachments ?? []).filter(
+                            (attachment) =>
+                              !removedAttachmentIds.includes(attachment.id),
+                          )
+                        : []
+                    }
+                    onRemoveExisting={(attachmentId) =>
+                      setRemovedAttachmentIds((current) =>
+                        current.includes(attachmentId)
+                          ? current
+                          : [...current, attachmentId],
+                      )
                     }
                     disabled={saveMutation.isPending}
                   />
