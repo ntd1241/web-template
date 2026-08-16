@@ -2,9 +2,10 @@
 
 ## Trạng thái
 
-- **Đã chốt hướng kiến trúc:** hợp đồng, phiên bản, khoản phải thu, thanh toán và phân bổ thanh toán là các thực thể tách biệt.
-- **Phạm vi tài liệu:** thiết kế nghiệp vụ, dữ liệu, API/UI và lộ trình triển khai.
-- **Chưa triển khai:** migration, API và giao diện sẽ được làm ở các bước tiếp theo.
+- **Đã chốt hướng kiến trúc:** hợp đồng, phiên bản, khoản phí, kỳ phải thu, thanh toán và phân bổ thanh toán là các thực thể tách biệt.
+- **Đã chốt hướng dòng tiền:** `direction` thuộc về từng khoản phí trong phiên bản hợp đồng, không thuộc toàn bộ hợp đồng.
+- **Phạm vi hiện tại:** triển khai luồng thu tiền khách hàng (`receivable`). Các khoản phí mới được lưu mặc định là `receivable`; UI chưa hiển thị bộ chọn thu/chi cho đến khi có nghiệp vụ chi.
+- **RLS:** môi trường Supabase demo chưa setup RLS; migration chạy trực tiếp bằng database connection trong `.env` theo quy định của project.
 
 ## 1. Bối cảnh và mục tiêu
 
@@ -122,6 +123,27 @@ Frontend không được tự ghi lần lượt payment rồi allocations vì re
 
 Trong demo, `ensure_contract_charges` có thể được gọi khi mở module hoặc khi xem công nợ đến một ngày cụ thể. Khi cần tự động hóa, dùng Supabase Cron hoặc Edge Function để gọi function này định kỳ. Khi backend riêng được bổ sung, chỉ thay lớp service RPC bằng API backend; model và contract của frontend được giữ nguyên.
 
+### 3.7. Hướng dòng tiền đặt ở khoản phí
+
+Một hợp đồng có thể chứa nhiều khoản phí với bản chất dòng tiền khác nhau. Vì vậy `direction` được đặt tại `contract_version_lines`, không đặt ở `contracts` hay chỉ ở `contract_versions`.
+
+```ts
+type ContractCashflowDirection = 'receivable' | 'payable';
+
+interface ContractVersionLine {
+  // ...
+  direction: ContractCashflowDirection;
+}
+```
+
+Quy tắc triển khai:
+
+- Giai đoạn hiện tại chỉ hỗ trợ `receivable`; mọi khoản phí mới có `direction = 'receivable'` mặc định.
+- Không thêm select thu/chi vào form khi chỉ có một lựa chọn. Khi triển khai phần chi, select sẽ xuất hiện ngay trong từng card khoản phí ở tab **Các khoản phí**.
+- Kỳ phải thu kế thừa direction từ khoản phí khi được sinh ra. Không cho frontend tự đổi direction của kỳ đã phát sinh.
+- Các view công nợ và RPC `record_customer_payment` chỉ sử dụng khoản phí `receivable`. Khoản `payable` sau này sẽ có luồng thanh toán ra riêng, không dùng chung RPC thu tiền khách hàng.
+- Nếu một hợp đồng có cả hai loại dòng tiền, tổng hợp ở cấp hợp đồng chỉ là projection (`Thu`, `Chi` hoặc `Hỗn hợp`); source of truth vẫn là từng khoản phí.
+
 ## 4. Mô hình nghiệp vụ
 
 ```mermaid
@@ -210,6 +232,7 @@ type BillingUnit = 'month' | 'quarter' | 'year';
 interface ContractVersionLine {
   id: string;
   contractVersionId: string;
+  direction: 'receivable' | 'payable';
   name: string;
   quantity: number;
   unitPrice: number;
@@ -256,6 +279,7 @@ interface ContractCharge {
   contractId: string;
   contractVersionId: string;
   contractVersionLineId: string;
+  direction: 'receivable' | 'payable';
   periodStart: string;
   periodEnd: string;
   dueDate: string;
@@ -471,6 +495,8 @@ Footer:
 - Nút `Xác nhận thu tiền`.
 
 Dialog phải có loading khi preview và khi submit; không đóng nếu submit lỗi. Sau khi thành công, invalidate query công nợ, danh sách hợp đồng và lịch sử thanh toán.
+
+Dialog chỉ lấy các kỳ phát sinh từ khoản phí có `direction = 'receivable'`; không dùng để ghi nhận khoản phải trả.
 
 ### 9.4. Trang chi tiết Hợp đồng
 

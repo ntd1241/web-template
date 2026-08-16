@@ -313,6 +313,7 @@ function toLinePayload(
 ) {
   return {
     contract_version_id: versionId,
+    direction: line.direction,
     name: line.name,
     quantity: line.quantity,
     unit_price: line.unitPrice,
@@ -330,6 +331,7 @@ function toLinePayload(
 }
 
 export type ContractVersionLineValuesForApi = {
+  direction: 'receivable' | 'payable';
   name: string;
   quantity: number;
   unitPrice: number;

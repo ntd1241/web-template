@@ -43,6 +43,7 @@ export function createDefaultContractFeeLine(
   startDate: string,
 ): ContractVersionLineValuesForApi {
   return {
+    direction: 'receivable',
     name: '',
     quantity: 1,
     unitPrice: 0,

@@ -200,6 +200,7 @@ function toEditableLines(
   return contract.lines
     .filter((line) => line.contractVersionId === latestVersion?.id)
     .map((line) => ({
+      direction: line.direction,
       name: line.name,
       quantity: line.quantity,
       unitPrice: line.unitPrice,

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import type { BillingType, BillingUnit, DueRule } from './contract';
+import type {
+  BillingType,
+  BillingUnit,
+  ContractCashflowDirection,
+  DueRule,
+} from './contract';
 
 export const CONTRACT_CHARGE_STATUSES = [
   'open',
@@ -60,6 +65,7 @@ export interface ContractCharge {
   contractId: string;
   contractVersionId: string;
   contractVersionLineId: string;
+  direction: ContractCashflowDirection;
   periodStart: string;
   periodEnd: string;
   dueDate: string;
@@ -118,6 +124,7 @@ export interface ContractChargeRow {
   contract_id: string;
   contract_version_id: string;
   contract_version_line_id: string;
+  direction: ContractCashflowDirection;
   period_start: string;
   period_end: string;
   due_date: string;
@@ -173,6 +180,7 @@ export function mapContractChargeRow(row: ContractChargeRow): ContractCharge {
     contractId: row.contract_id,
     contractVersionId: row.contract_version_id,
     contractVersionLineId: row.contract_version_line_id,
+    direction: row.direction ?? 'receivable',
     periodStart: row.period_start,
     periodEnd: row.period_end,
     dueDate: row.due_date,

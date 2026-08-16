@@ -30,6 +30,10 @@ export const DUE_RULES = [
 ] as const;
 export type DueRule = (typeof DUE_RULES)[number];
 
+export const CONTRACT_CASHFLOW_DIRECTIONS = ['receivable', 'payable'] as const;
+export type ContractCashflowDirection =
+  (typeof CONTRACT_CASHFLOW_DIRECTIONS)[number];
+
 export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   draft: 'Bản nháp',
   active: 'Đang hiệu lực',
@@ -63,6 +67,14 @@ export const DUE_RULE_LABELS: Record<DueRule, string> = {
   on_period_start: 'Đầu kỳ',
   on_period_end: 'Cuối kỳ',
   after_days: 'Sau số ngày',
+};
+
+export const CONTRACT_CASHFLOW_DIRECTION_LABELS: Record<
+  ContractCashflowDirection,
+  string
+> = {
+  receivable: 'Khoản thu',
+  payable: 'Khoản chi',
 };
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ.');
@@ -99,6 +111,7 @@ export type ContractFormValues = z.infer<typeof contractFormSchema>;
 
 export const contractVersionLineSchema = z
   .object({
+    direction: z.enum(CONTRACT_CASHFLOW_DIRECTIONS).default('receivable'),
     name: z.string().trim().min(1, 'Vui lòng nhập tên khoản phí.'),
     quantity: z.number().positive('Số lượng phải lớn hơn 0.'),
     unitPrice: z.number().nonnegative('Đơn giá không được âm.'),
@@ -221,6 +234,7 @@ export interface ContractVersion {
 export interface ContractVersionLine {
   id: string;
   contractVersionId: string;
+  direction: ContractCashflowDirection;
   name: string;
   quantity: number;
   unitPrice: number;
@@ -272,6 +286,7 @@ export interface ContractVersionRow {
 export interface ContractVersionLineRow {
   id: string;
   contract_version_id: string;
+  direction: ContractCashflowDirection;
   name: string;
   quantity: number | string;
   unit_price: number | string;
@@ -336,6 +351,7 @@ export function mapContractVersionLineRow(
   return {
     id: row.id,
     contractVersionId: row.contract_version_id,
+    direction: row.direction ?? 'receivable',
     name: row.name,
     quantity: numericValue(row.quantity),
     unitPrice: numericValue(row.unit_price),

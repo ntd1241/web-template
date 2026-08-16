@@ -48,6 +48,9 @@ describe('contract model', () => {
     });
 
     expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.direction).toBe('receivable');
+    }
   });
 
   it('rejects a recurring fee without a recurrence period', () => {
