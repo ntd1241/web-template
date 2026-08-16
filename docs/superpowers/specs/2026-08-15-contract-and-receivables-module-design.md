@@ -123,6 +123,18 @@ Frontend không được tự ghi lần lượt payment rồi allocations vì re
 
 Trong demo, `ensure_contract_charges` có thể được gọi khi mở module hoặc khi xem công nợ đến một ngày cụ thể. Khi cần tự động hóa, dùng Supabase Cron hoặc Edge Function để gọi function này định kỳ. Khi backend riêng được bổ sung, chỉ thay lớp service RPC bằng API backend; model và contract của frontend được giữ nguyên.
 
+### 3.6.1. Nguồn dữ liệu cho badge và số liệu tóm tắt trên UI
+
+Các số liệu gắn vào UI như badge trên tab, badge trên menu item, số lượng việc cần xử lý, số lượng bản ghi chờ duyệt hoặc counter trên card phải lấy từ một nguồn summary có chủ đích:
+
+- Ưu tiên lấy từ object thống kê đã có trong response của endpoint chi tiết, ví dụ `paymentPeriodSummary.pendingCount`.
+- Nếu summary không thuộc endpoint chi tiết hoặc được dùng ở nhiều màn hình, tạo một endpoint/RPC summary riêng, ví dụ `get_contract_payment_period_count`.
+- Không fetch endpoint danh sách rồi dùng frontend `length`, `filter` hoặc `reduce` để suy ra counter cho badge. Danh sách có thể được phân trang, lazy-load hoặc có điều kiện lọc khác với nghiệp vụ counter nên cách này dễ sai và gây tải không cần thiết.
+- Endpoint summary phải trả về đúng ngữ nghĩa của counter, có tenant/scope rõ ràng và được invalidation cùng nghiệp vụ làm thay đổi số liệu.
+- Nếu backend chưa có endpoint hoặc object summary phù hợp, phải hỏi lại để yêu cầu backend cập nhật trước khi triển khai badge. Không tự thêm một truy vấn danh sách làm fallback ở frontend.
+
+Ví dụ với tab **Kỳ thanh toán**: badge lấy số kỳ còn số dư cần xử lý từ RPC summary riêng; bảng kỳ thanh toán vẫn gọi endpoint danh sách để render nội dung khi cần. Hai mục đích này không được dùng lẫn nhau.
+
 ### 3.7. Hướng dòng tiền đặt ở khoản phí
 
 Một hợp đồng có thể chứa nhiều khoản phí với bản chất dòng tiền khác nhau. Vì vậy `direction` được đặt tại `contract_version_lines`, không đặt ở `contracts` hay chỉ ở `contract_versions`.

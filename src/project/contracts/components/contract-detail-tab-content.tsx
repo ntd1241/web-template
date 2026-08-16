@@ -1,14 +1,26 @@
-import { FileText, ReceiptText, WalletCards } from 'lucide-react';
+import { useState } from 'react';
+import {
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  type PaginationState,
+} from '@tanstack/react-table';
+import { FileText, WalletCards } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardHeading,
   CardTable,
   CardTitle,
 } from '@/components/ui/card';
 import { CardEmptyState } from '@/components/ui/card-empty-state';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { formatContractAmount } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
@@ -18,11 +30,12 @@ import {
   type ContractVersionLine,
 } from '../model/contract';
 import {
-  getContractChargeDisplayStatus,
+  mapContractReceivableTableRows,
   PAYMENT_METHOD_LABELS,
   type ContractChargeBalance,
   type CustomerPayment,
 } from '../model/receivable';
+import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
 import { ContractStatusBadge } from './contract-status-badge';
 
 function formatDate(value: string | null | undefined) {
@@ -87,77 +100,52 @@ export function ContractOverviewContent({
 
 export function ContractReceivablesContent({
   charges,
-  currencyCode,
+  lines,
   dueSoonDays,
 }: {
   charges: ContractChargeBalance[];
-  currencyCode: string;
+  lines: ContractVersionLine[];
   dueSoonDays: number;
 }) {
-  if (charges.length === 0) {
-    return (
-      <CardEmptyState
-        icon={ReceiptText}
-        title="Chưa có kỳ phải thu"
-        description="Các kỳ thanh toán sẽ xuất hiện sau khi phiên bản hợp đồng được kích hoạt."
-      />
-    );
-  }
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const rows = mapContractReceivableTableRows(charges, lines, dueSoonDays);
+  const columns = useContractReceivableTableRowColumns();
+  const table = useReactTable({
+    data: rows,
+    columns,
+    getRowId: (row) => row.id,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
-    <Card>
-      <CardHeader>
-        <CardHeading>
-          <CardTitle>Kỳ thanh toán</CardTitle>
-          <CardDescription>
-            Mỗi khoản phí định kỳ được sinh thành một kỳ phải thu độc lập.
-          </CardDescription>
-        </CardHeading>
-      </CardHeader>
-      <CardTable>
-        <table className="w-full min-w-[760px] text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-5 py-3 font-medium">Kỳ</th>
-              <th className="px-5 py-3 font-medium">Hạn thanh toán</th>
-              <th className="px-5 py-3 text-right font-medium">Số tiền</th>
-              <th className="px-5 py-3 text-right font-medium">Còn lại</th>
-              <th className="px-5 py-3 font-medium">Trạng thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            {charges.map((charge) => (
-              <tr
-                key={charge.id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-5 py-3 text-foreground">
-                  {formatDate(charge.periodStart)} –{' '}
-                  {formatDate(charge.periodEnd)}
-                </td>
-                <td className="px-5 py-3 text-muted-foreground">
-                  {formatDate(charge.dueDate)}
-                </td>
-                <td className="px-5 py-3 text-right tabular-nums">
-                  {formatContractAmount(charge.amount, currencyCode)}
-                </td>
-                <td className="px-5 py-3 text-right font-semibold tabular-nums">
-                  {formatContractAmount(charge.outstandingAmount, currencyCode)}
-                </td>
-                <td className="px-5 py-3">
-                  <ContractStatusBadge
-                    status={getContractChargeDisplayStatus(
-                      charge,
-                      new Date(),
-                      dueSoonDays,
-                    )}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </CardTable>
-    </Card>
+    <DataGrid
+      table={table}
+      recordCount={rows.length}
+      emptyMessage="Chưa có kỳ phải thu"
+    >
+      <Card className="min-h-0 overflow-hidden">
+        <CardHeader>
+          <CardHeading>
+            <CardTitle>Kỳ thanh toán</CardTitle>
+          </CardHeading>
+        </CardHeader>
+        <CardTable className="min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <DataGridTable />
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </CardTable>
+        <CardFooter className="justify-between">
+          <DataGridPagination />
+        </CardFooter>
+      </Card>
+    </DataGrid>
   );
 }
 

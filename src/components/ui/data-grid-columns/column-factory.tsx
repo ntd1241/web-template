@@ -237,7 +237,9 @@ export function createColumnHelpers<TRow extends object>() {
     ): ColumnDef<TRow> {
       return createAccessorColumn({
         ...options,
-        cell: (value) => <StatusBadge status={value} config={options.config} />,
+        cell: (value) => (
+          <StatusBadge status={value} config={options.config} size="md" />
+        ),
       });
     },
 

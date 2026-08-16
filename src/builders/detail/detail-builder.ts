@@ -22,6 +22,10 @@ function contentProp(tab: DetailTabSpec): string {
   return tab.contentProp ?? `${tab.value}Content`;
 }
 
+function badgeProp(tab: DetailTabSpec): string | undefined {
+  return tab.badgeProp;
+}
+
 function emitIconImports(spec: ResolvedDetailSpec): string {
   const icons = spec.tabs
     .map((tab) => tab.icon)
@@ -40,6 +44,9 @@ function emitProps(spec: ResolvedDetailSpec): string {
     '  profile: ReactNode;',
     '  information: ReactNode;',
     ...spec.tabs.map((tab) => `  ${contentProp(tab)}: ReactNode;`),
+    ...spec.tabs
+      .filter((tab) => badgeProp(tab))
+      .map((tab) => `  ${badgeProp(tab)}?: ReactNode;`),
     '  className?: string;',
     '}',
   ].join('\n');
@@ -49,7 +56,8 @@ function emitTabDefinitions(spec: ResolvedDetailSpec): string {
   const entries = spec.tabs
     .map((tab) => {
       const icon = tab.icon ? `, icon: ${tab.icon}` : '';
-      return `    { value: ${quote(tab.value)}, label: ${quote(tab.label)}${icon}, content: ${contentProp(tab)} },`;
+      const badge = tab.badgeProp ? `, badge: ${tab.badgeProp}` : '';
+      return `    { value: ${quote(tab.value)}, label: ${quote(tab.label)}${icon}, content: ${contentProp(tab)}${badge} },`;
     })
     .join('\n');
 
@@ -63,6 +71,9 @@ function emitComponent(spec: ResolvedDetailSpec): string {
     'profile',
     'information',
     ...spec.tabs.map((tab) => contentProp(tab)),
+    ...spec.tabs
+      .filter((tab) => badgeProp(tab))
+      .map((tab) => badgeProp(tab) as string),
     'className',
   ];
   const defaultValue = spec.defaultTab ?? spec.tabs[0].value;

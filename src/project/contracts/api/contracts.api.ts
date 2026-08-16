@@ -319,6 +319,24 @@ export async function loadContractDetail(
   };
 }
 
+export async function loadContractPaymentPeriodCount(
+  userId: string,
+  contractId: string,
+): Promise<number> {
+  assertSupabaseConfigured();
+  const tenantId = await resolveTenantId(userId);
+  await ensureCharges(tenantId);
+
+  const count = await request<number | string>(
+    supabaseApi.post('/rpc/get_contract_payment_period_count', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+    }),
+  );
+
+  return numberValue(count);
+}
+
 function toContractPayload(values: ContractFormValues) {
   return {
     customer_id: values.customerId,

@@ -23,6 +23,7 @@ export interface ContractDetailLayoutProps {
   receivablesContent: ReactNode;
   versionsContent: ReactNode;
   paymentsContent: ReactNode;
+  receivablesBadge?: ReactNode;
   className?: string;
 }
 export function ContractDetailLayout({
@@ -32,6 +33,7 @@ export function ContractDetailLayout({
   receivablesContent,
   versionsContent,
   paymentsContent,
+  receivablesBadge,
   className,
 }: ContractDetailLayoutProps) {
   const tabs: EntityDetailTab[] = [
@@ -46,6 +48,7 @@ export function ContractDetailLayout({
       label: 'Kỳ thanh toán',
       icon: ReceiptText,
       content: receivablesContent,
+      badge: receivablesBadge,
     },
     {
       value: 'versions',

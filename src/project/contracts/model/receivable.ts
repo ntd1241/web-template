@@ -106,6 +106,28 @@ export interface ContractChargeBalance extends ContractCharge {
   outstandingAmount: number;
 }
 
+export interface ContractReceivableTableFee {
+  id: string;
+  name: string;
+  amount: number;
+  currencyCode: string;
+}
+
+export interface ContractReceivableTableRow {
+  id: string;
+  direction: ContractCashflowDirection;
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  amount: number;
+  currencyCode: string;
+  status: ContractChargeStatus;
+  paidAmount: number;
+  outstandingAmount: number;
+  displayStatus: ContractChargeDisplayStatus;
+  fees: ContractReceivableTableFee[];
+}
+
 function addDays(value: string, days: number) {
   const date = new Date(`${value}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
@@ -142,6 +164,79 @@ export function getContractChargeDisplayStatus(
   }
   if (charge.dueDate > todayIso) return 'not_due';
   return 'unpaid';
+}
+
+export function mapContractReceivableTableRows(
+  charges: ContractChargeBalance[],
+  lines: Array<{ id: string; name: string }>,
+  dueSoonDays: number,
+  today = new Date(),
+): ContractReceivableTableRow[] {
+  const lineById = new Map(lines.map((line) => [line.id, line]));
+  const groups = new Map<string, ContractReceivableTableRow>();
+
+  for (const charge of charges) {
+    const key = [
+      charge.periodStart,
+      charge.periodEnd,
+      charge.dueDate,
+      charge.currencyCode,
+      charge.direction,
+    ].join('|');
+    const existing = groups.get(key);
+
+    if (existing) {
+      existing.amount += charge.amount;
+      existing.paidAmount += charge.paidAmount;
+      existing.outstandingAmount += charge.outstandingAmount;
+      if (charge.status !== 'voided') existing.status = 'open';
+      const line = lineById.get(charge.contractVersionLineId);
+      const feeId = line?.id ?? charge.contractVersionLineId;
+      const fee = existing.fees.find((item) => item.id === feeId);
+      if (fee) {
+        fee.amount += charge.amount;
+      } else {
+        existing.fees.push({
+          id: feeId,
+          name: line?.name ?? 'Khoản phí',
+          amount: charge.amount,
+          currencyCode: charge.currencyCode,
+        });
+      }
+      existing.displayStatus = getContractChargeDisplayStatus(
+        existing,
+        today,
+        dueSoonDays,
+      );
+      continue;
+    }
+
+    const line = lineById.get(charge.contractVersionLineId);
+    const row: ContractReceivableTableRow = {
+      id: key,
+      direction: charge.direction,
+      periodStart: charge.periodStart,
+      periodEnd: charge.periodEnd,
+      dueDate: charge.dueDate,
+      amount: charge.amount,
+      currencyCode: charge.currencyCode,
+      status: charge.status === 'voided' ? 'voided' : 'open',
+      paidAmount: charge.paidAmount,
+      outstandingAmount: charge.outstandingAmount,
+      displayStatus: getContractChargeDisplayStatus(charge, today, dueSoonDays),
+      fees: [
+        {
+          id: line?.id ?? charge.contractVersionLineId,
+          name: line?.name ?? 'Khoản phí',
+          amount: charge.amount,
+          currencyCode: charge.currencyCode,
+        },
+      ],
+    };
+    groups.set(key, row);
+  }
+
+  return [...groups.values()];
 }
 
 export interface ContractReceivableStats {

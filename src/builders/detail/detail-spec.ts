@@ -6,6 +6,7 @@ const tabSchema = z.object({
   label: z.string().min(1),
   icon: identifierSchema.optional(),
   contentProp: identifierSchema.optional(),
+  badgeProp: identifierSchema.optional(),
 });
 
 export const detailSpecSchema = z
@@ -18,6 +19,7 @@ export const detailSpecSchema = z
   .superRefine((spec, ctx) => {
     const values = new Set<string>();
     const contentProps = new Set<string>();
+    const badgeProps = new Set<string>();
 
     spec.tabs.forEach((tab, index) => {
       if (values.has(tab.value)) {
@@ -38,6 +40,17 @@ export const detailSpecSchema = z
         });
       }
       contentProps.add(contentProp);
+
+      if (tab.badgeProp) {
+        if (badgeProps.has(tab.badgeProp)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `badgeProp bị trùng: ${tab.badgeProp}`,
+            path: ['tabs', index, 'badgeProp'],
+          });
+        }
+        badgeProps.add(tab.badgeProp);
+      }
     });
 
     if (spec.defaultTab && !values.has(spec.defaultTab)) {

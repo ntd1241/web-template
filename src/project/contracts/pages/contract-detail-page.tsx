@@ -17,6 +17,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -40,6 +41,7 @@ import {
   deleteContract,
   formatContractAmount,
   loadContractDetail,
+  loadContractPaymentPeriodCount,
   type ContractDetail,
 } from '../api/contracts.api';
 import { ContractDetailLayout } from '../components/contract-detail-layout.generated';
@@ -234,6 +236,15 @@ export function ContractDetailPage() {
     enabled: Boolean(userId && id),
   });
 
+  const paymentPeriodCountQuery = useQuery({
+    queryKey: ['project', 'contracts', 'payment-period-count', userId, id],
+    queryFn: () => {
+      if (!userId || !id) throw new Error('Thiếu thông tin hợp đồng.');
+      return loadContractPaymentPeriodCount(userId, id);
+    },
+    enabled: Boolean(userId && id),
+  });
+
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ['project', 'contracts'] });
 
@@ -303,6 +314,7 @@ export function ContractDetailPage() {
   }
 
   const contract = contractQuery.data;
+  const paymentPeriodCount = paymentPeriodCountQuery.data ?? 0;
 
   return (
     <>
@@ -317,11 +329,23 @@ export function ContractDetailPage() {
             isActivating={activateMutation.isPending}
           />
         }
+        receivablesBadge={
+          paymentPeriodCount > 0 ? (
+            <Badge
+              size="sm"
+              shape="circle"
+              variant="secondary"
+              appearance="light"
+            >
+              {paymentPeriodCount}
+            </Badge>
+          ) : undefined
+        }
         overviewContent={<ContractOverviewContent contract={contract} />}
         receivablesContent={
           <ContractReceivablesContent
             charges={contract.charges}
-            currencyCode={contract.currencyCode}
+            lines={contract.lines}
             dueSoonDays={contract.paymentReminderDays}
           />
         }

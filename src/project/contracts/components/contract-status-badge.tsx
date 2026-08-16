@@ -2,6 +2,7 @@ import { Tag } from '@/components/ui/tag';
 import {
   CONTRACT_STATUS_LABELS,
   CONTRACT_VERSION_STATUS_LABELS,
+  type ContractCashflowDirection,
   type ContractStatus,
   type ContractVersionStatus,
 } from '../model/contract';
@@ -25,7 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
   paid: '#16a34a',
   upcoming: '#2563eb',
   open: '#64748b',
-  unpaid: '#64748b',
+  unpaid: '#dc2626',
   not_due: '#64748b',
   draft: '#64748b',
   superseded: '#64748b',
@@ -45,18 +46,59 @@ const STATUS_LABELS: Record<string, string> = {
   ...CONTRACT_CHARGE_DISPLAY_STATUS_LABELS,
 };
 
+const CASHFLOW_STATUS_LABELS: Record<
+  ContractCashflowDirection,
+  Partial<Record<ContractChargeDisplayStatus, string>>
+> = {
+  receivable: {
+    upcoming: 'Sắp tới hạn thu',
+    unpaid: 'Chưa thu',
+    not_due: 'Chưa tới hạn thu',
+    paid: 'Đã thu',
+    overdue: 'Chưa thu',
+    voided: 'Đã hủy',
+  },
+  payable: {
+    upcoming: 'Sắp tới hạn trả',
+    unpaid: 'Chưa trả',
+    not_due: 'Chưa tới hạn trả',
+    paid: 'Đã trả',
+    overdue: 'Chưa trả',
+    voided: 'Đã hủy',
+  },
+};
+
 export interface ContractStatusBadgeProps {
   status: ContractBadgeStatus;
   size?: 'sm' | 'md' | 'lg';
+  direction?: ContractCashflowDirection;
+  showDot?: boolean;
 }
 
 export function ContractStatusBadge({
   status,
-  size = 'sm',
+  size = 'md',
+  direction,
+  showDot = false,
 }: ContractStatusBadgeProps) {
+  const directionLabel =
+    direction &&
+    CASHFLOW_STATUS_LABELS[direction][status as ContractChargeDisplayStatus];
+  const colorStatus = direction && status === 'overdue' ? 'unpaid' : status;
+
   return (
-    <Tag size={size} shape="circle" color={STATUS_COLORS[status] ?? '#64748b'}>
-      {STATUS_LABELS[status] ?? status}
+    <Tag
+      size={size}
+      shape="circle"
+      color={STATUS_COLORS[colorStatus] ?? '#64748b'}
+    >
+      {showDot && (
+        <span
+          aria-hidden="true"
+          className="size-1.5 shrink-0 rounded-full bg-current"
+        />
+      )}
+      {directionLabel ?? STATUS_LABELS[status] ?? status}
     </Tag>
   );
 }

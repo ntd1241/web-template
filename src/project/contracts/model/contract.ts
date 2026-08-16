@@ -77,6 +77,14 @@ export const CONTRACT_CASHFLOW_DIRECTION_LABELS: Record<
   payable: 'Khoản chi',
 };
 
+export const CONTRACT_CASHFLOW_DIRECTION_SHORT_LABELS: Record<
+  ContractCashflowDirection,
+  string
+> = {
+  receivable: 'Thu',
+  payable: 'Trả',
+};
+
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ.');
 
 export const contractFormSchema = z

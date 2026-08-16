@@ -4,7 +4,12 @@ const spec = {
   defaultTab: 'overview',
   tabs: [
     { value: 'overview', label: 'Tổng quan', icon: 'LayoutDashboard' },
-    { value: 'receivables', label: 'Kỳ thanh toán', icon: 'ReceiptText' },
+    {
+      value: 'receivables',
+      label: 'Kỳ thanh toán',
+      icon: 'ReceiptText',
+      badgeProp: 'receivablesBadge',
+    },
     { value: 'versions', label: 'Phiên bản', icon: 'History' },
     { value: 'payments', label: 'Thanh toán', icon: 'WalletCards' },
   ],

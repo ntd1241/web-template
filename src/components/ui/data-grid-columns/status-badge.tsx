@@ -14,11 +14,13 @@ export type StatusBadgeConfig<TStatus extends string> = Record<
 export interface StatusBadgeProps<TStatus extends string> {
   status: TStatus | string | null | undefined;
   config: StatusBadgeConfig<TStatus>;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function StatusBadge<TStatus extends string>({
   status,
   config,
+  size = 'md',
 }: StatusBadgeProps<TStatus>) {
   const rawStatus = status ?? '';
   const statusConfig = config[rawStatus as TStatus];
@@ -29,6 +31,7 @@ export function StatusBadge<TStatus extends string>({
 
   return (
     <Badge
+      size={size}
       variant={statusConfig.variant}
       className={cn('gap-1.5', statusConfig.className)}
     >
