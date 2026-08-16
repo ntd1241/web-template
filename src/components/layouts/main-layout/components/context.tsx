@@ -73,20 +73,25 @@ export function LayoutProvider({
     appearance.autoCollapseSidebarOnDetail &&
     shell.menuGroups.length > 0 &&
     !isSidebarMenuRoute;
-  const wasAutoCollapsedRef = useRef(false);
+  const sidebarOpenBeforeAutoCollapseRef = useRef<boolean | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     !appearance.sidebarCollapsed,
   );
 
   useEffect(() => {
     if (shouldAutoCollapseSidebar) {
-      wasAutoCollapsedRef.current = true;
+      if (sidebarOpenBeforeAutoCollapseRef.current === null) {
+        sidebarOpenBeforeAutoCollapseRef.current = isSidebarOpen;
+      }
       setIsSidebarOpen(false);
       return;
     }
 
-    if (wasAutoCollapsedRef.current) {
-      wasAutoCollapsedRef.current = false;
+    if (sidebarOpenBeforeAutoCollapseRef.current !== null) {
+      const sidebarOpenBeforeAutoCollapse =
+        sidebarOpenBeforeAutoCollapseRef.current;
+      sidebarOpenBeforeAutoCollapseRef.current = null;
+      setIsSidebarOpen(sidebarOpenBeforeAutoCollapse);
       return;
     }
 
