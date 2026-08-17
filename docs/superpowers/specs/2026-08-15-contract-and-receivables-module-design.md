@@ -269,6 +269,11 @@ Ràng buộc:
 - `contract_code` duy nhất trong tenant.
 - Không xóa cứng hợp đồng đã có version hoặc charge; chỉ chuyển trạng thái.
 - Hợp đồng `active` phải có ít nhất một version `effective`.
+- `expired` là trạng thái kết thúc tự nhiên theo thời hạn hợp đồng; `terminated`
+  là trạng thái chấm dứt chủ động trước hoặc khác với thời hạn tự nhiên.
+- Cả `expired` và `terminated` đều là trạng thái đóng: không sinh thêm kỳ phải
+  thu mới. Các kỳ đã phát sinh, kể cả còn nợ, vẫn được giữ để đối soát và thu
+  hồi; không tự động xóa hoặc hủy chỉ vì hợp đồng đóng.
 
 Metadata quản lý hợp đồng được tách khỏi version tài chính:
 
@@ -347,6 +352,9 @@ Quy tắc theo `billingType`:
 
 - `recurring`: bắt buộc `billingUnit`, `billingInterval` và `startDate`; hệ thống sinh charge lặp theo chu kỳ.
 - `one_time`: `billingUnit` và `billingInterval` là `null`, `chargeDate` là ngày phát sinh duy nhất; hệ thống chỉ sinh một charge và không gia hạn.
+- Các đường sinh kỳ định kỳ phải loại trừ hợp đồng có trạng thái `draft`,
+  `expired` hoặc `terminated`. Điều kiện này áp dụng cả khi chạy ensure theo
+  horizon và khi thanh toán xong một kỳ để sinh kỳ kế tiếp.
 
 MVP chỉ cần preset định kỳ tháng/quý/năm. `billing_interval` vẫn được lưu để sau này hỗ trợ mỗi 2 tháng hoặc mỗi 6 tháng mà không đổi schema.
 
