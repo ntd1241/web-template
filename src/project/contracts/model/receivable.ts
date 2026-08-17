@@ -238,9 +238,9 @@ export function mapContractReceivableTableRows(
 
   return [...groups.values()].sort(
     (a, b) =>
-      a.periodStart.localeCompare(b.periodStart) ||
-      a.periodEnd.localeCompare(b.periodEnd) ||
-      a.dueDate.localeCompare(b.dueDate) ||
+      b.periodStart.localeCompare(a.periodStart) ||
+      b.periodEnd.localeCompare(a.periodEnd) ||
+      b.dueDate.localeCompare(a.dueDate) ||
       a.direction.localeCompare(b.direction) ||
       a.id.localeCompare(b.id),
   );

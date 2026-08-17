@@ -432,7 +432,8 @@ export async function loadContractDetail(
           tenant_id: `eq.${tenantId}`,
           contract_id: `eq.${contractId}`,
           status: 'neq.voided',
-          order: 'period_start.asc,period_end.asc,due_date.asc,direction.asc',
+          order:
+            'period_start.desc,period_end.desc,due_date.desc,direction.asc',
         }),
       ),
     ),

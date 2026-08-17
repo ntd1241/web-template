@@ -215,7 +215,7 @@ describe('contract model', () => {
     });
   });
 
-  it('sorts payment-period rows by period start date before rendering', () => {
+  it('sorts payment-period rows from newest period start to oldest', () => {
     const rows = mapContractReceivableTableRows(
       [
         {
@@ -266,8 +266,8 @@ describe('contract model', () => {
     );
 
     expect(rows.map((row) => row.periodStart)).toEqual([
-      '2026-08-16',
       '2026-09-01',
+      '2026-08-16',
     ]);
   });
 
