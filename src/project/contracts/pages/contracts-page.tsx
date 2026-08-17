@@ -1,13 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-  type PaginationState,
-} from '@tanstack/react-table';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -29,51 +24,41 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
-import { deleteContract, loadContractWorkspace } from '../api/contracts.api';
-import type { Contract } from '../model/contract';
+import { deleteContract } from '../api/contracts.api';
+import { useContractList } from '../hooks/use-contract-list';
+import {
+  CONTRACT_STATUS_LABELS,
+  CONTRACT_STATUSES,
+  type Contract,
+} from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
-
-const EMPTY_CONTRACTS: Contract[] = [];
 
 export function ContractsPage() {
   const navigate = useNavigate();
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
-  const [keyword, setKeyword] = useState('');
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
   const [deletingContract, setDeletingContract] = useState<Contract | null>(
     null,
   );
-
-  const workspaceQuery = useQuery({
-    queryKey: ['project', 'contracts', userId],
-    queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadContractWorkspace(userId);
-    },
-    enabled: Boolean(userId),
-  });
-
-  const contracts = useMemo(() => {
-    const normalized = keyword.trim().toLowerCase();
-    const source = workspaceQuery.data?.contracts ?? EMPTY_CONTRACTS;
-    if (!normalized) return source;
-    return source.filter((contract) =>
-      [
-        contract.contractCode,
-        contract.name,
-        contract.customerName,
-        contract.customerCode,
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(normalized),
-    );
-  }, [keyword, workspaceQuery.data?.contracts]);
+  const {
+    contracts,
+    total,
+    keyword,
+    setKeyword,
+    filters,
+    setFilter,
+    pagination,
+    onPaginationChange,
+    workspaceQuery,
+  } = useContractList(userId);
 
   const deleteMutation = useMutation({
     mutationFn: deleteContract,
@@ -106,8 +91,9 @@ export function ContractsPage() {
     columns,
     getRowId: (row) => row.id,
     state: { pagination },
-    onPaginationChange: setPagination,
-    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange,
+    manualPagination: true,
+    pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -134,7 +120,7 @@ export function ContractsPage() {
     <div className="flex h-full min-h-0 flex-col p-6">
       <DataGrid
         table={table}
-        recordCount={contracts.length}
+        recordCount={total}
         isLoading={workspaceQuery.isLoading}
         emptyMessage="Chưa có hợp đồng"
       >
@@ -149,11 +135,29 @@ export function ContractsPage() {
                 placeholder="Tìm theo mã, tên hoặc khách hàng"
                 value={keyword}
                 debounceMs={0}
-                onSearch={(value) => {
-                  setKeyword(value);
-                  setPagination((current) => ({ ...current, pageIndex: 0 }));
-                }}
+                onSearch={setKeyword}
               />
+              <Select
+                value={filters.status}
+                onValueChange={(value) =>
+                  setFilter('status', value as typeof filters.status)
+                }
+              >
+                <SelectTrigger
+                  className="w-44"
+                  aria-label="Trạng thái hợp đồng"
+                >
+                  <SelectValue label="Trạng thái" placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  {CONTRACT_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {CONTRACT_STATUS_LABELS[status]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="outline"
                 onClick={() => workspaceQuery.refetch()}
