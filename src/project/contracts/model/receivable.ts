@@ -236,7 +236,14 @@ export function mapContractReceivableTableRows(
     groups.set(key, row);
   }
 
-  return [...groups.values()];
+  return [...groups.values()].sort(
+    (a, b) =>
+      a.periodStart.localeCompare(b.periodStart) ||
+      a.periodEnd.localeCompare(b.periodEnd) ||
+      a.dueDate.localeCompare(b.dueDate) ||
+      a.direction.localeCompare(b.direction) ||
+      a.id.localeCompare(b.id),
+  );
 }
 
 export interface ContractReceivableStats {

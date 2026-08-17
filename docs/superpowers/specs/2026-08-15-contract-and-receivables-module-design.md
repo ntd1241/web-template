@@ -5,6 +5,7 @@
 - **Đã chốt hướng kiến trúc:** hợp đồng, phiên bản, khoản phí, kỳ phải thu, thanh toán và phân bổ thanh toán là các thực thể tách biệt.
 - **Đã chốt hướng dòng tiền:** `direction` thuộc về từng khoản phí trong phiên bản hợp đồng, không thuộc toàn bộ hợp đồng.
 - **Phạm vi hiện tại:** triển khai luồng thu tiền khách hàng (`receivable`). Các khoản phí mới được lưu mặc định là `receivable`; UI chưa hiển thị bộ chọn thu/chi cho đến khi có nghiệp vụ chi.
+- **Đã chốt chính sách sinh kỳ:** hệ thống sinh kỳ trong cửa sổ `chargeGenerationLeadDays` của tổ chức hoặc ngay sau khi kỳ trước được thanh toán đủ; mặc định `chargeGenerationLeadDays = 0`.
 - **RLS:** môi trường Supabase demo chưa setup RLS; migration chạy trực tiếp bằng database connection trong `.env` theo quy định của project.
 
 ## 1. Bối cảnh và mục tiêu
@@ -134,6 +135,71 @@ Các số liệu gắn vào UI như badge trên tab, badge trên menu item, số
 - Nếu backend chưa có endpoint hoặc object summary phù hợp, phải hỏi lại để yêu cầu backend cập nhật trước khi triển khai badge. Không tự thêm một truy vấn danh sách làm fallback ở frontend.
 
 Ví dụ với tab **Kỳ thanh toán**: badge lấy số kỳ còn số dư cần xử lý từ RPC summary riêng; bảng kỳ thanh toán vẫn gọi endpoint danh sách để render nội dung khi cần. Hai mục đích này không được dùng lẫn nhau.
+
+### 3.6.2. Chính sách sinh kỳ phải thu định kỳ
+
+`ensure_contract_charges` là thao tác **ensure**, không phải thao tác “sinh thêm một kỳ mới mỗi lần được gọi”. Mỗi lần chạy phải xác định các occurrence hợp lệ theo lịch của từng khoản phí rồi bỏ qua occurrence đã tồn tại.
+
+#### Setting cấp tổ chức
+
+Tổ chức có setting riêng trong `tenants.settings`:
+
+```text
+chargeGenerationLeadDays: số ngày cho phép sinh kỳ trước ngày bắt đầu kỳ
+```
+
+- Giá trị mặc định là `0`.
+- Giá trị phải là số nguyên không âm.
+- Setting này khác `paymentReminderDays`: `paymentReminderDays` chỉ điều khiển nhắc hạn/trạng thái sắp tới hạn; không điều khiển việc ghi thêm khoản phải thu.
+- Đổi setting chỉ ảnh hưởng các occurrence chưa được sinh. Không xóa, dời hoặc sửa các charge đã phát hành.
+- `as_of_date` dùng ngày theo timezone nghiệp vụ của tổ chức; không lấy ngày UTC một cách mù quáng gây lệch ngày ở thời điểm gần nửa đêm.
+
+#### Hai điều kiện tạo occurrence
+
+Với một recurring line và một occurrence có `period_start`:
+
+1. **Theo cửa sổ thời gian:** sinh khi `period_start <= as_of_date + chargeGenerationLeadDays`, đồng thời occurrence vẫn nằm trong thời hạn hiệu lực của hợp đồng, version và line.
+2. **Theo sự kiện thanh toán đủ:** khi một charge của line vừa chuyển sang `paid`, sinh ngay occurrence kế tiếp theo lịch của line nếu occurrence đó còn tồn tại trong thời hạn hợp đồng. Điều kiện này không phụ thuộc vào `chargeGenerationLeadDays`.
+
+Nếu occurrence kế tiếp đã được sinh từ điều kiện (1), điều kiện (2) là no-op. Nếu thanh toán chỉ một phần, không kích hoạt điều kiện (2). Nếu một payment thanh toán đủ nhiều charge, xử lý occurrence kế tiếp riêng cho từng charge vừa chuyển sang `paid`.
+
+#### Định danh và idempotency
+
+Occurrence logic của recurring line được định danh bởi:
+
+```text
+contract_version_line_id + period_start
+```
+
+`period_end` phải được tính từ lịch đầy đủ của occurrence (`period_start + độ dài chu kỳ - 1 ngày`), chỉ cắt ngắn khi gặp ngày kết thúc thực tế của hợp đồng, version hoặc line. `as_of_date` chỉ là **horizon để quyết định occurrence nào cần sinh**, không được dùng để cắt `period_end` của một kỳ đang chạy.
+
+Vì vậy:
+
+- Gọi `ensure_contract_charges` lặp lại cùng ngày hoặc khác ngày không được tạo bản ghi trùng cho cùng line và `period_start`.
+- Không cập nhật ngầm charge đã phát hành để “kéo dài” `period_end`; nếu dữ liệu cũ đã bị sinh sai, phải có migration/data-repair riêng và giữ audit.
+- Charge đã `voided` vẫn được xem là occurrence đã từng phát hành; không tự tạo lại cùng occurrence nếu chưa có nghiệp vụ reissue rõ ràng.
+
+#### Workflow chuẩn
+
+```mermaid
+flowchart TD
+  A[Khởi chạy ensure] --> B[Đọc setting tổ chức và as_of_date]
+  B --> C[Xác định occurrence theo lịch line]
+  C --> D{Đủ điều kiện theo horizon?}
+  D -- Không --> E[Bỏ qua]
+  D -- Có --> F{Đã có charge với line + period_start?}
+  F -- Có --> E
+  F -- Chưa --> G[Tạo charge với period_end đầy đủ]
+  H[Thanh toán] --> I[Phân bổ payment trong transaction]
+  I --> J{Charge vừa chuyển sang paid?}
+  J -- Không --> K[Kết thúc]
+  J -- Có --> L[Ensure occurrence kế tiếp của từng line]
+  L --> F
+```
+
+Kích hoạt hợp đồng phải gọi workflow (1) để tạo các kỳ đủ điều kiện cho từng recurring line và các khoản `one_time` đủ điều kiện. Việc mở trang, job định kỳ và các RPC liên quan có thể gọi lại cùng workflow vì workflow này phải idempotent.
+
+Khi điều kiện (2) tạo kỳ kế tiếp ngay sau thanh toán sớm, charge mới là nghiệp vụ **lập khoản phải thu trước** cho kỳ dịch vụ kế tiếp. Việc khách đã trả tiền không tự động đồng nghĩa doanh thu đã được ghi nhận; doanh thu và/hoặc khoản người mua trả trước phải theo chính sách kế toán của tổ chức và thời điểm cung cấp dịch vụ.
 
 ### 3.7. Hướng dòng tiền đặt ở khoản phí
 
@@ -320,7 +386,7 @@ interface ContractCharge {
 
 Ràng buộc nên có:
 
-- Unique theo `contract_version_line_id + period_start + period_end`.
+- Unique theo occurrence logic `contract_version_line_id + period_start`; `period_end` là thuộc tính được tính theo lịch, không phải một phần của định danh occurrence.
 - `amount > 0`.
 - Không sửa `amount` của charge đã phát hành; nếu cần điều chỉnh thì tạo credit/debit adjustment ở phase sau.
 - `overdue` là trạng thái suy ra từ `due_date` và số dư, không phải trạng thái user nhập tùy ý.
@@ -610,7 +676,7 @@ POST   /billing/charges/ensure-through
 
 `POST /payments` phải nhận allocation đã preview hoặc backend tự tính lại và kiểm tra lại trong transaction. Không tin số tiền allocation do frontend gửi mà không validate lại.
 
-Job sinh charge phải idempotent. Cùng một contract line và period không được sinh trùng charge.
+Job sinh charge phải idempotent. Cùng một contract line và `period_start` không được sinh trùng charge. Kích hoạt hợp đồng, job định kỳ, thao tác xem công nợ và payment event đều đi qua cùng quy tắc ensure; không có luồng nào được tự cộng thêm một kỳ chỉ vì nó được gọi lại.
 
 ## 12. Builder và cấu trúc frontend
 

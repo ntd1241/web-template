@@ -4,6 +4,7 @@ import {
   customerPaymentSchema,
   getContractChargeDisplayStatus,
   getContractReceivableStats,
+  mapContractReceivableTableRows,
   mapCustomerReceivableSummaryRow,
 } from './receivable';
 
@@ -212,6 +213,62 @@ describe('contract model', () => {
       totalOutstanding: 20_000_000,
       overdueOutstanding: 10_000_000,
     });
+  });
+
+  it('sorts payment-period rows by period start date before rendering', () => {
+    const rows = mapContractReceivableTableRows(
+      [
+        {
+          id: 'charge-later',
+          tenantId: 'tenant-1',
+          customerId: 'customer-1',
+          contractId: 'contract-1',
+          contractVersionId: 'version-1',
+          contractVersionLineId: 'line-1',
+          direction: 'receivable',
+          periodStart: '2026-09-01',
+          periodEnd: '2026-09-30',
+          dueDate: '2026-09-30',
+          amount: 2_000_000,
+          currencyCode: 'VND',
+          status: 'open',
+          voidReason: null,
+          createdAt: '2026-08-16T00:00:00Z',
+          paidAmount: 0,
+          outstandingAmount: 2_000_000,
+        },
+        {
+          id: 'charge-earlier',
+          tenantId: 'tenant-1',
+          customerId: 'customer-1',
+          contractId: 'contract-1',
+          contractVersionId: 'version-1',
+          contractVersionLineId: 'line-2',
+          direction: 'receivable',
+          periodStart: '2026-08-16',
+          periodEnd: '2026-08-17',
+          dueDate: '2026-08-17',
+          amount: 3_000_000,
+          currencyCode: 'VND',
+          status: 'open',
+          voidReason: null,
+          createdAt: '2026-08-16T00:00:00Z',
+          paidAmount: 0,
+          outstandingAmount: 3_000_000,
+        },
+      ],
+      [
+        { id: 'line-1', name: 'Phí tháng 9' },
+        { id: 'line-2', name: 'Phí tháng 8' },
+      ],
+      7,
+      new Date('2026-08-16T12:00:00Z'),
+    );
+
+    expect(rows.map((row) => row.periodStart)).toEqual([
+      '2026-08-16',
+      '2026-09-01',
+    ]);
   });
 
   it('validates payment amount and currency before API submission', () => {

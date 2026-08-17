@@ -430,7 +430,7 @@ export async function loadContractDetail(
           select: '*',
           tenant_id: `eq.${tenantId}`,
           contract_id: `eq.${contractId}`,
-          order: 'due_date.asc,period_start.asc',
+          order: 'period_start.asc,period_end.asc,due_date.asc,direction.asc',
         }),
       ),
     ),
