@@ -1,6 +1,11 @@
+import {
+  StatusBadge,
+  type StatusBadgeConfig,
+} from '@/components/ui/data-grid-columns';
 import { Tag } from '@/components/ui/tag';
 import {
   CONTRACT_STATUS_LABELS,
+  CONTRACT_STATUSES,
   CONTRACT_VERSION_STATUS_LABELS,
   type ContractCashflowDirection,
   type ContractStatus,
@@ -37,6 +42,36 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: '#dc2626',
   terminated: '#dc2626',
   expired: '#64748b',
+};
+
+export const CONTRACT_STATUS_BADGE_CONFIG: StatusBadgeConfig<ContractStatus> = {
+  draft: {
+    label: 'Bản nháp',
+    variant: 'outline',
+    className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+  },
+  active: {
+    label: 'Đang hiệu lực',
+    className:
+      'rounded-md border-transparent bg-admin-success-bg px-2.5 py-1 text-xs text-admin-success-text',
+    dotClassName: 'bg-admin-success-dot opacity-100',
+  },
+  suspended: {
+    label: 'Tạm dừng',
+    className:
+      'rounded-md border-transparent bg-admin-warning-bg px-2.5 py-1 text-xs text-admin-warning-text',
+    dotClassName: 'bg-admin-warning-dot opacity-100',
+  },
+  expired: {
+    label: 'Hết hạn',
+    variant: 'outline',
+    className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+  },
+  terminated: {
+    label: 'Đã chấm dứt',
+    variant: 'outline',
+    className: 'rounded-md px-2.5 py-1 text-xs text-destructive',
+  },
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -81,6 +116,16 @@ export function ContractStatusBadge({
   direction,
   showDot = false,
 }: ContractStatusBadgeProps) {
+  if (CONTRACT_STATUSES.includes(status as ContractStatus)) {
+    return (
+      <StatusBadge
+        status={status}
+        config={CONTRACT_STATUS_BADGE_CONFIG}
+        size={size}
+      />
+    );
+  }
+
   const directionLabel =
     direction &&
     CASHFLOW_STATUS_LABELS[direction][status as ContractChargeDisplayStatus];

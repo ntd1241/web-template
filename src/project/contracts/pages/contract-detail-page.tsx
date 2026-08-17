@@ -3,7 +3,6 @@ import { buildPath, ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  CalendarDays,
   CircleCheck,
   FileText,
   Pencil,
@@ -59,6 +58,7 @@ import {
   ContractReceivablesContent,
   ContractVersionsContent,
 } from '../components/contract-detail-tab-content';
+import { ContractStatusBadge } from '../components/contract-status-badge';
 import { getContractReceivableStats } from '../model/receivable';
 
 function formatDate(value: string | null) {
@@ -78,7 +78,6 @@ function DetailValue({ label, value }: { label: string; value: ReactNode }) {
 }
 
 function ContractProfileCard({ contract }: { contract: ContractDetail }) {
-  const isActive = contract.status === 'active';
   return (
     <EntityDetailProfileCard
       avatar={
@@ -89,30 +88,21 @@ function ContractProfileCard({ contract }: { contract: ContractDetail }) {
       title={contract.name}
       subtitle={contract.contractCode}
     >
-      <Link
-        to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
-          id: contract.customer.id,
-        })}
-        target="_blank"
-        rel="noreferrer"
-        className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
-      >
-        <CustomerIdentity customer={contract.customer} />
-      </Link>
-      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-        <CalendarDays className="size-4 shrink-0" />
-        <span>
-          {formatDate(contract.startDate)} – {formatDate(contract.endDate)}
-        </span>
+      <div className="space-y-1.5">
+        <div className="text-sm text-muted-foreground">Khách hàng</div>
+        <Link
+          to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
+            id: contract.customer.id,
+          })}
+          target="_blank"
+          rel="noreferrer"
+          className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
+        >
+          <CustomerIdentity customer={contract.customer} />
+        </Link>
       </div>
-      <Tag size="sm" shape="circle" color={isActive ? '#16a34a' : '#64748b'}>
-        {isActive
-          ? 'Đang hiệu lực'
-          : contract.status === 'draft'
-            ? 'Bản nháp'
-            : contract.status}
-      </Tag>
+      <ContractStatusBadge status={contract.status} />
     </EntityDetailProfileCard>
   );
 }
