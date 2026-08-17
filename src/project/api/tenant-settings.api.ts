@@ -102,6 +102,7 @@ export async function updateTenantSettings(
           taxCode: values.taxCode,
           website: values.website,
           paymentReminderDays: values.paymentReminderDays,
+          chargeGenerationLeadDays: values.chargeGenerationLeadDays,
         },
       },
       {

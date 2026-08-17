@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
   DEFAULT_PAYMENT_REMINDER_DAYS,
   tenantSettingsSchema,
   type TenantSettingsValues,
@@ -45,6 +46,7 @@ export const tenantSettingsDefaultValues: TenantSettingsValues = {
   address: '',
   website: '',
   paymentReminderDays: DEFAULT_PAYMENT_REMINDER_DAYS,
+  chargeGenerationLeadDays: DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
 };
 
 // TODO(scaffold): replace with the real entity type used for edit-mode mapping.
@@ -226,6 +228,32 @@ export function TenantSettingsForm({
             render={({ field }) => (
               <FormItem className="md:col-span-6">
                 <FormLabel>Nhắc hạn thanh toán trước (ngày)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    value={field.value}
+                    variant="md"
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(
+                        Number.isNaN(event.target.valueAsNumber)
+                          ? 0
+                          : event.target.valueAsNumber,
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="chargeGenerationLeadDays"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Tạo kỳ thanh toán trước (ngày)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

@@ -112,6 +112,7 @@ export function ProjectSettingsPage() {
         taxCode: values.taxCode,
         website: values.website,
         paymentReminderDays: values.paymentReminderDays,
+        chargeGenerationLeadDays: values.chargeGenerationLeadDays,
       };
       form.reset(values);
       setLogoFile(null);

@@ -79,6 +79,13 @@ const spec: FormSpec = {
       width: 'normal',
       format: 'plain',
     },
+    {
+      kind: 'number',
+      name: 'chargeGenerationLeadDays',
+      label: 'Tạo kỳ thanh toán trước (ngày)',
+      width: 'normal',
+      format: 'plain',
+    },
   ],
 };
 
