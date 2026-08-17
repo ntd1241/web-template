@@ -356,6 +356,7 @@ export async function loadContractWorkspace(
         queryParams({
           select: '*',
           tenant_id: `eq.${tenantId}`,
+          status: 'neq.voided',
         }),
       ),
     ),
@@ -430,6 +431,7 @@ export async function loadContractDetail(
           select: '*',
           tenant_id: `eq.${tenantId}`,
           contract_id: `eq.${contractId}`,
+          status: 'neq.voided',
           order: 'period_start.asc,period_end.asc,due_date.asc,direction.asc',
         }),
       ),
