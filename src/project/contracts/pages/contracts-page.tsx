@@ -57,6 +57,7 @@ export function ContractsPage() {
     setFilter,
     pagination,
     onPaginationChange,
+    contextQuery,
     workspaceQuery,
   } = useContractList(userId);
 
@@ -97,7 +98,10 @@ export function ContractsPage() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  if (workspaceQuery.isError) {
+  const listError = contextQuery.error ?? workspaceQuery.error;
+  const isListLoading = contextQuery.isLoading || workspaceQuery.isLoading;
+
+  if (contextQuery.isError || workspaceQuery.isError) {
     return (
       <div className="p-6">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
@@ -105,10 +109,16 @@ export function ContractsPage() {
           <div>
             <CardTitle>Không tải được danh sách hợp đồng</CardTitle>
             <CardDescription className="mt-1">
-              {getApiErrorMessage(workspaceQuery.error)}
+              {getApiErrorMessage(listError)}
             </CardDescription>
           </div>
-          <Button variant="outline" onClick={() => workspaceQuery.refetch()}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              void contextQuery.refetch();
+              void workspaceQuery.refetch();
+            }}
+          >
             Thử lại
           </Button>
         </Card>
@@ -121,7 +131,7 @@ export function ContractsPage() {
       <DataGrid
         table={table}
         recordCount={total}
-        isLoading={workspaceQuery.isLoading}
+        isLoading={isListLoading}
         emptyMessage="Chưa có hợp đồng"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
@@ -134,7 +144,7 @@ export function ContractsPage() {
                 className="w-72"
                 placeholder="Tìm theo mã, tên hoặc khách hàng"
                 value={keyword}
-                debounceMs={0}
+                debounceMs={300}
                 onSearch={setKeyword}
               />
               <Select

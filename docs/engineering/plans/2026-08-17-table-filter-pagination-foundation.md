@@ -9,11 +9,12 @@ filter, sort và pagination mà không lặp lại state ở từng page.
 ## Scope của đợt đầu
 
 - Tạo hook dùng chung cho `keyword`, filter state, sorting state và pagination.
-- Tạo helper chọn/lọc/sắp xếp/phân trang dữ liệu khi page hiện vẫn tải toàn bộ
-  workspace về client.
+- Tạo helper chọn/lọc/sắp xếp/phân trang dữ liệu cho các page vẫn phải tải toàn
+  bộ workspace về client.
 - Migrate bảng Hợp đồng làm pilot.
 - Thêm filter trạng thái hợp đồng để kiểm chứng việc reset về trang đầu khi
   filter thay đổi.
+- Chuyển pilot Hợp đồng sang server-side query với tổng bản ghi từ database.
 - Giữ `DataGridPagination` là component trình bày; không đưa query hoặc
   business logic vào component này.
 - Chưa tạo filter builder. Sau pilot sẽ đánh giá các filter field thực tế trước
@@ -59,9 +60,9 @@ unknown>` làm API chung.
 
 ### 2. Client-side và server-side
 
-Đợt đầu dùng client-side selector vì các API workspace hiện đang trả toàn bộ
-danh sách. Selector phải trả cả `items` và `total` để sau này thay bằng query
-server-side mà không đổi page contract.
+Helper client-side vẫn được giữ cho các API workspace chưa hỗ trợ phân trang.
+Pilot Hợp đồng hiện dùng server-side query để không tải toàn bộ danh sách về
+trình duyệt.
 
 Khi chuyển sang server-side:
 
@@ -70,6 +71,18 @@ Khi chuyển sang server-side:
 - Fetcher nhận và truyền tiếp `AbortSignal`.
 - Dùng `placeholderData: keepPreviousData`.
 - Không cache tổng cũ khi kết quả filter là 0.
+
+Server-side contract của Hợp đồng:
+
+- RPC `public.list_contracts` nhận `p_tenant_id`, `p_page`, `p_page_size`,
+  `p_search` và `p_status`.
+- RPC trả `{ items, total }`, lọc theo mã/tên hợp đồng và mã/tên khách hàng,
+  đồng thời tính `total_outstanding` và `next_due_date` từ charge/payment
+  allocations.
+- Query mặc định sắp xếp hợp đồng mới nhất trước theo `created_at desc, id
+  desc`.
+- RPC kiểm tra user đăng nhập và quyền `contracts:view`; migration tạo index
+  phục vụ thứ tự mặc định.
 
 ### 3. URL sync
 
@@ -89,9 +102,13 @@ và form; builder vẫn không sở hữu fetch/query/mutation.
 
 - Di chuyển keyword và pagination state vào `useTableListState`.
 - Thêm filter `status` với lựa chọn “Tất cả” và các trạng thái nghiệp vụ hiện có.
-- Dùng selector dùng chung để lọc rồi phân trang.
-- `recordCount` lấy từ tổng sau filter, không lấy tổng trước filter.
-- Giữ API workspace và table builder hiện tại không thay đổi.
+- Dùng `useTableListState` để chuẩn hóa params, nhưng fetch/filter/pagination
+  do server xử lý qua `public.list_contracts`.
+- `recordCount` lấy từ `total` do RPC trả về, kể cả khi kết quả filter là 0.
+- Search debounce 300ms; đổi search, status, page hoặc page size tạo query key
+  mới và gọi lại endpoint.
+- Giữ table builder chỉ chịu trách nhiệm column definitions; không đưa query
+  hoặc pagination vào builder.
 
 ## Tiêu chí nghiệm thu
 
@@ -100,9 +117,12 @@ và form; builder vẫn không sở hữu fetch/query/mutation.
 - Pagination hiển thị đúng tổng sau filter.
 - Không làm thay đổi create/edit/delete contract.
 - Unit test cho state reset và selector filter/pagination.
+- Live verification cho RPC với search, status filter và trường hợp không có
+  kết quả.
 - `npm run build` pass.
 
 ## Bước tiếp theo
 
-Sau pilot, áp dụng cùng hook cho Customers và Employees. Chỉ khi hai bảng này
-không cần thêm ngoại lệ lớn mới quyết định tạo filter builder.
+Sau pilot, áp dụng cùng hook và server-side contract cho Customers và Employees.
+Chỉ khi hai bảng này không cần thêm ngoại lệ lớn mới quyết định tạo filter
+builder.

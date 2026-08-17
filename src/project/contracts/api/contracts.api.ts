@@ -18,6 +18,8 @@ import {
   type ContractAttachment,
   type ContractEmployeeOption,
   type ContractFormValues,
+  type ContractListParams,
+  type ContractListResult,
   type ContractRow,
   type ContractTagOption,
   type ContractVersion,
@@ -93,9 +95,55 @@ interface TenantSettingsRow {
   settings: Record<string, unknown>;
 }
 
+interface ContractListRpcRow extends ContractRow {
+  customer_name: string;
+  customer_code: string;
+  customer_image_url: string | null;
+  total_outstanding: number | string;
+  next_due_date: string | null;
+}
+
+interface ContractListRpcResponse {
+  items: ContractListRpcRow[];
+  total: number | string;
+}
+
 export interface ContractWorkspace {
   tenantId: string;
   contracts: Contract[];
+}
+
+export async function loadContractList(
+  tenantId: string,
+  params: ContractListParams,
+  signal?: AbortSignal,
+): Promise<ContractListResult> {
+  assertSupabaseConfigured();
+  const response = await request<ContractListRpcResponse>(
+    supabaseApi.post(
+      '/rpc/list_contracts',
+      {
+        p_tenant_id: tenantId,
+        p_page: params.page,
+        p_page_size: params.pageSize,
+        p_search: params.search?.trim() || null,
+        p_status: params.status ?? null,
+      },
+      { signal },
+    ),
+  );
+
+  return {
+    contracts: response.items.map((row) => ({
+      ...mapContractRow(row),
+      customerName: row.customer_name,
+      customerCode: row.customer_code,
+      customerImageUrl: row.customer_image_url,
+      totalOutstanding: numberValue(row.total_outstanding),
+      nextDueDate: row.next_due_date,
+    })),
+    total: numberValue(response.total),
+  };
 }
 
 export interface ContractCreationWorkspace {

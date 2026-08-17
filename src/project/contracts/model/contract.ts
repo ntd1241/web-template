@@ -230,6 +230,18 @@ export interface Contract {
   nextDueDate?: string | null;
 }
 
+export interface ContractListParams {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: ContractStatus;
+}
+
+export interface ContractListResult {
+  contracts: Contract[];
+  total: number;
+}
+
 export interface ContractEmployeeOption {
   id: string;
   userId: string | null;
