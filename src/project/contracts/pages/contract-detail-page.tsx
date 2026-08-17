@@ -11,7 +11,6 @@ import {
   RefreshCw,
   Trash2,
   TriangleAlert,
-  UserRound,
   WalletCards,
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -90,10 +89,17 @@ function ContractProfileCard({ contract }: { contract: ContractDetail }) {
       title={contract.name}
       subtitle={contract.contractCode}
     >
-      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-        <UserRound className="size-4 shrink-0" />
-        <span className="truncate">{contract.customer.name}</span>
-      </div>
+      <Link
+        to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
+          id: contract.customer.id,
+        })}
+        target="_blank"
+        rel="noreferrer"
+        className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
+      >
+        <CustomerIdentity customer={contract.customer} />
+      </Link>
       <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
         <CalendarDays className="size-4 shrink-0" />
         <span>
@@ -167,23 +173,6 @@ function ContractInformationCard({
       }
     >
       <EntityDetailInformationGrid>
-        <DetailValue label="Mã hợp đồng" value={contract.contractCode} />
-        <DetailValue
-          label="Khách hàng"
-          value={
-            <Link
-              to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
-                id: contract.customer.id,
-              })}
-              target="_blank"
-              rel="noreferrer"
-              className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
-            >
-              <CustomerIdentity customer={contract.customer} />
-            </Link>
-          }
-        />
         <DetailValue
           label="Ngày bắt đầu"
           value={formatDate(contract.startDate)}
@@ -192,6 +181,7 @@ function ContractInformationCard({
           label="Ngày kết thúc"
           value={formatDate(contract.endDate)}
         />
+        <DetailValue label="Mã hợp đồng" value={contract.contractCode} />
         <DetailValue
           label="Tự động gia hạn"
           value={contract.autoRenew ? 'Có' : 'Không'}
