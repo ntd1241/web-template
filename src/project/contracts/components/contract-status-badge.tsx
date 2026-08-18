@@ -35,7 +35,7 @@ const STATUS_COLORS: Record<string, string> = {
   not_due: '#64748b',
   draft: '#64748b',
   superseded: '#64748b',
-  partially_paid: '#d97706',
+  partially_paid: '#ca8a04',
   overdue: '#d97706',
   suspended: '#d97706',
   voided: '#dc2626',
@@ -88,6 +88,7 @@ const CASHFLOW_STATUS_LABELS: Record<
   receivable: {
     upcoming: 'Sắp tới hạn thu',
     unpaid: 'Chưa thu',
+    partially_paid: 'Đã thu một phần',
     not_due: 'Chưa tới hạn thu',
     paid: 'Đã thu',
     overdue: 'Chưa thu',
@@ -96,6 +97,7 @@ const CASHFLOW_STATUS_LABELS: Record<
   payable: {
     upcoming: 'Sắp tới hạn trả',
     unpaid: 'Chưa trả',
+    partially_paid: 'Đã trả một phần',
     not_due: 'Chưa tới hạn trả',
     paid: 'Đã trả',
     overdue: 'Chưa trả',

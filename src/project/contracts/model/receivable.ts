@@ -18,6 +18,7 @@ export type ContractChargeStatus = (typeof CONTRACT_CHARGE_STATUSES)[number];
 export const CONTRACT_CHARGE_DISPLAY_STATUSES = [
   'upcoming',
   'unpaid',
+  'partially_paid',
   'not_due',
   'paid',
   'overdue',
@@ -51,6 +52,7 @@ export const CONTRACT_CHARGE_DISPLAY_STATUS_LABELS: Record<
 > = {
   upcoming: 'Sắp tới hạn',
   unpaid: 'Chưa thu',
+  partially_paid: 'Đã thu một phần',
   not_due: 'Chưa tới hạn',
   paid: 'Đã thu',
   overdue: 'Quá hạn',
@@ -181,6 +183,7 @@ export function getContractChargeDisplayStatus(
   if (charge.outstandingAmount <= 0 || charge.status === 'paid') {
     return 'paid';
   }
+  if (charge.paidAmount > 0) return 'partially_paid';
 
   const todayIso = dateOnly(today);
   if (charge.dueDate < todayIso) return 'overdue';

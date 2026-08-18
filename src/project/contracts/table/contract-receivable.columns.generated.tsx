@@ -103,8 +103,15 @@ export function useContractReceivableTableRowColumns(
         cellClassName: 'text-right font-semibold tabular-nums',
         size: 160,
         enableSorting: false,
-        cell: (row) =>
-          formatContractAmount(row.outstandingAmount, row.currencyCode),
+        cell: (row) => (
+          <span
+            className={
+              row.outstandingAmount > 0 ? 'text-destructive' : 'text-foreground'
+            }
+          >
+            {formatContractAmount(row.outstandingAmount, row.currencyCode)}
+          </span>
+        ),
       }),
       col.custom({
         id: 'displayStatus',

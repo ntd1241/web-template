@@ -61,7 +61,7 @@ export function ContractDetailLayout({
     },
     {
       value: 'payments',
-      label: 'Thanh toán',
+      label: 'Lịch sử thanh toán',
       icon: WalletCards,
       content: paymentsContent,
     },

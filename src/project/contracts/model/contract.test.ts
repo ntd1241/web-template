@@ -157,6 +157,17 @@ describe('contract model', () => {
     ).toBe('overdue');
     expect(
       getContractChargeDisplayStatus(
+        {
+          ...baseCharge,
+          paidAmount: 400_000,
+          outstandingAmount: 600_000,
+          dueDate: '2026-08-16',
+        },
+        today,
+      ),
+    ).toBe('partially_paid');
+    expect(
+      getContractChargeDisplayStatus(
         { ...baseCharge, dueDate: '2026-08-16', outstandingAmount: 0 },
         today,
       ),

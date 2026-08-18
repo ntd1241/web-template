@@ -22,7 +22,6 @@ import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -59,6 +58,64 @@ function formatPeriod(row: ContractReceivableTableRow) {
   const format = (value: string) =>
     new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
   return `${format(row.periodStart)} – ${format(row.periodEnd)}`;
+}
+
+const allocationProgressToneClasses = {
+  destructive: {
+    container:
+      'border-[var(--color-destructive-alpha,var(--color-red-200))] bg-[var(--color-destructive-soft,var(--color-red-50))] text-[var(--color-destructive-accent,var(--color-red-700))]',
+    indicator: 'bg-[var(--color-destructive-accent,var(--color-red-500))]',
+  },
+  warning: {
+    container:
+      'border-[var(--color-warning-soft,var(--color-yellow-200))] bg-[var(--color-warning-soft,var(--color-yellow-50))] text-[var(--color-warning-accent,var(--color-yellow-700))]',
+    indicator: 'bg-[var(--color-warning-accent,var(--color-yellow-500))]',
+  },
+  success: {
+    container:
+      'border-[var(--color-success-accent,var(--color-green-500))] bg-[var(--color-success-soft,var(--color-green-50))] text-[var(--color-success-foreground,var(--color-white))]',
+    indicator: 'bg-[var(--color-success-accent,var(--color-green-500))]',
+  },
+} as const;
+
+function PaymentAllocationProgress({
+  allocatedAmount,
+  outstandingAmount,
+  currencyCode,
+}: {
+  allocatedAmount: number;
+  outstandingAmount: number;
+  currencyCode: string;
+}) {
+  const progress =
+    outstandingAmount > 0
+      ? Math.min(100, Math.max(0, (allocatedAmount / outstandingAmount) * 100))
+      : 0;
+  const tone =
+    allocatedAmount <= 0
+      ? 'destructive'
+      : progress >= 100
+        ? 'success'
+        : 'warning';
+  const toneClasses = allocationProgressToneClasses[tone];
+
+  return (
+    <div
+      data-testid="payment-allocation-progress"
+      data-payment-tone={tone}
+      className={`relative h-8 w-36 overflow-hidden rounded-md border ${toneClasses.container}`}
+      aria-label={`Đã phân bổ ${formatContractAmount(allocatedAmount, currencyCode)} trên ${formatContractAmount(outstandingAmount, currencyCode)}`}
+    >
+      <div
+        aria-hidden="true"
+        className={`absolute inset-y-0 start-0 transition-[width] duration-200 ${toneClasses.indicator}`}
+        style={{ width: `${progress}%` }}
+      />
+      <span className="relative flex h-full items-center justify-center px-2 text-xs font-semibold tabular-nums">
+        {formatContractAmount(allocatedAmount, currencyCode)}
+      </span>
+    </div>
+  );
 }
 
 function SortableAllocationRow({
@@ -103,9 +160,11 @@ function SortableAllocationRow({
       <span className="text-right text-sm tabular-nums text-muted-foreground">
         {formatContractAmount(fee.outstandingAmount, currencyCode)}
       </span>
-      <span className="text-right text-sm font-semibold tabular-nums text-foreground">
-        {formatContractAmount(allocatedAmount, currencyCode)}
-      </span>
+      <PaymentAllocationProgress
+        allocatedAmount={allocatedAmount}
+        outstandingAmount={fee.outstandingAmount}
+        currencyCode={currencyCode}
+      />
     </div>
   );
 }
@@ -184,10 +243,6 @@ export function ContractPaymentDialog({
       <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle>Thanh toán kỳ {formatPeriod(row)}</DialogTitle>
-          <DialogDescription>
-            Nhập số tiền thanh toán và sắp xếp thứ tự ưu tiên phân bổ cho các
-            khoản phí trong kỳ.
-          </DialogDescription>
         </DialogHeader>
 
         <Separator />
@@ -197,6 +252,7 @@ export function ContractPaymentDialog({
             <Label htmlFor="contract-payment-amount">Số tiền thanh toán</Label>
             <Input
               id="contract-payment-amount"
+              variant="ghost"
               type="number"
               min="0.01"
               max={maxAmount}
@@ -204,6 +260,7 @@ export function ContractPaymentDialog({
               value={amountValue}
               onChange={(event) => setAmountValue(event.target.value)}
               aria-invalid={amountValue !== '' && !isAmountValid}
+              className="h-12 rounded-none border-0 bg-transparent px-0 text-2xl font-semibold text-primary shadow-none focus-visible:border-0 focus-visible:bg-transparent focus-visible:text-primary focus-visible:ring-0 aria-invalid:border-0 aria-invalid:ring-0"
             />
             <p className="text-xs text-muted-foreground">
               Tối đa:{' '}
@@ -225,9 +282,6 @@ export function ContractPaymentDialog({
                 <h3 className="text-sm font-semibold text-foreground">
                   Phân bổ thanh toán
                 </h3>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Kéo biểu tượng để thay đổi thứ tự ưu tiên.
-                </p>
               </div>
               <div className="grid shrink-0 grid-cols-2 gap-3 text-right text-xs text-muted-foreground">
                 <span>Cần thu</span>

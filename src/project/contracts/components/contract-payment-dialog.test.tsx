@@ -43,7 +43,16 @@ describe('ContractPaymentDialog', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText(/Thanh toán kỳ/)).toBeInTheDocument();
     expect(screen.getByLabelText('Số tiền thanh toán')).toHaveValue(1000000);
+    expect(screen.getByLabelText('Số tiền thanh toán')).toHaveClass(
+      'text-2xl',
+      'text-primary',
+      'border-0',
+    );
     expect(screen.getByRole('dialog')).toHaveClass('max-h-[90dvh]');
+    expect(screen.getByTestId('payment-allocation-progress')).toHaveAttribute(
+      'data-payment-tone',
+      'success',
+    );
   });
 
   it('opens the payment form from the receivable table action', async () => {
