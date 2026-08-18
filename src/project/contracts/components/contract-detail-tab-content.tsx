@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   getCoreRowModel,
@@ -141,7 +141,10 @@ export function ContractReceivablesContent({
   });
   const [paymentRow, setPaymentRow] =
     useState<ContractReceivableTableRow | null>(null);
-  const rows = mapContractReceivableTableRows(charges, lines, dueSoonDays);
+  const rows = useMemo(
+    () => mapContractReceivableTableRows(charges, lines, dueSoonDays),
+    [charges, lines, dueSoonDays],
+  );
   const paymentMutation = useMutation({
     mutationFn: (submission: ContractPaymentSubmission) => {
       if (!paymentRow) throw new Error('Chưa chọn kỳ thanh toán.');

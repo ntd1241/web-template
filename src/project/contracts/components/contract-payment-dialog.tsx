@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { formatContractAmount } from '../api/contracts.api';
 import {
   calculateContractPaymentAllocations,
@@ -85,7 +86,7 @@ function SortableAllocationRow({
         transform: CSS.Transform.toString(transform),
         transition,
       }}
-      className={`grid grid-cols-[auto_minmax(0,1fr)_9rem_9rem] items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5 ${isDragging ? 'relative z-10 shadow-lg' : ''}`}
+      className={`grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5 ${isDragging ? 'relative z-10 shadow-lg' : ''}`}
     >
       <button
         type="button"
@@ -180,15 +181,18 @@ export function ContractPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
           <DialogTitle>Thanh toán kỳ {formatPeriod(row)}</DialogTitle>
           <DialogDescription>
             Nhập số tiền thanh toán và sắp xếp thứ tự ưu tiên phân bổ cho các
             khoản phí trong kỳ.
           </DialogDescription>
         </DialogHeader>
-        <DialogBody className="space-y-6">
+
+        <Separator />
+
+        <DialogBody className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
           <div className="space-y-2">
             <Label htmlFor="contract-payment-amount">Số tiền thanh toán</Label>
             <Input
@@ -225,7 +229,7 @@ export function ContractPaymentDialog({
                   Kéo biểu tượng để thay đổi thứ tự ưu tiên.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-right text-xs text-muted-foreground">
+              <div className="grid shrink-0 grid-cols-2 gap-3 text-right text-xs text-muted-foreground">
                 <span>Cần thu</span>
                 <span>Thanh toán</span>
               </div>
@@ -257,7 +261,10 @@ export function ContractPaymentDialog({
             </DndContext>
           </div>
         </DialogBody>
-        <DialogFooter>
+
+        <Separator />
+
+        <DialogFooter className="shrink-0 px-6 py-4">
           <Button
             type="button"
             variant="outline"
