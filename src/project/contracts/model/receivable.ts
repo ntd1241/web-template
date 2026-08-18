@@ -369,6 +369,19 @@ export interface CustomerPaymentAllocation {
   createdAt: string;
 }
 
+export interface ContractPaymentAllocationDetail extends CustomerPaymentAllocation {
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  feeName: string;
+  chargeAmount: number;
+  currencyCode: string;
+}
+
+export interface ContractPaymentHistory extends CustomerPayment {
+  allocations: ContractPaymentAllocationDetail[];
+}
+
 export interface CustomerReceivableSummary {
   tenantId: string;
   customerId: string;
@@ -417,6 +430,14 @@ export interface CustomerPaymentRow {
   created_by: string | null;
   reversed_at: string | null;
   reversal_reason: string | null;
+  created_at: string;
+}
+
+export interface CustomerPaymentAllocationRow {
+  id: string;
+  payment_id: string;
+  charge_id: string;
+  allocated_amount: number | string;
   created_at: string;
 }
 
@@ -482,6 +503,18 @@ export function mapCustomerPaymentRow(
     createdBy: row.created_by,
     reversedAt: row.reversed_at,
     reversalReason: row.reversal_reason,
+    createdAt: row.created_at,
+  };
+}
+
+export function mapCustomerPaymentAllocationRow(
+  row: CustomerPaymentAllocationRow,
+): CustomerPaymentAllocation {
+  return {
+    id: row.id,
+    paymentId: row.payment_id,
+    chargeId: row.charge_id,
+    allocatedAmount: numericValue(row.allocated_amount),
     createdAt: row.created_at,
   };
 }

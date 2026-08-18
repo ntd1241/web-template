@@ -9,6 +9,7 @@ import {
 import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -38,9 +39,10 @@ import {
 import {
   mapContractReceivableTableRows,
   PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_LABELS,
   type ContractChargeBalance,
+  type ContractPaymentHistory,
   type ContractReceivableTableRow,
-  type CustomerPayment,
 } from '../model/receivable';
 import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
 import {
@@ -289,7 +291,7 @@ export function ContractPaymentsContent({
   payments,
   currencyCode,
 }: {
-  payments: CustomerPayment[];
+  payments: ContractPaymentHistory[];
   currencyCode: string;
 }) {
   if (payments.length === 0) {
@@ -307,19 +309,23 @@ export function ContractPaymentsContent({
         <CardHeading>
           <CardTitle>Lịch sử thanh toán</CardTitle>
           <CardDescription>
-            Thanh toán được ghi nhận ở cấp khách hàng và tự động phân bổ vào các
-            kỳ còn nợ.
+            Theo dõi khoản tiền đã nhận và số tiền đã phân bổ cho từng khoản
+            phí, kỳ thanh toán.
           </CardDescription>
         </CardHeading>
       </CardHeader>
-      <CardTable>
-        <table className="w-full min-w-[680px] text-sm">
+      <CardTable className="overflow-x-auto">
+        <table className="w-full min-w-[1080px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-5 py-3 font-medium">Ngày nhận</th>
+              <th className="px-5 py-3 font-medium">Khoản phí / kỳ</th>
               <th className="px-5 py-3 font-medium">Phương thức</th>
               <th className="px-5 py-3 font-medium">Mã tham chiếu</th>
-              <th className="px-5 py-3 text-right font-medium">Số tiền</th>
+              <th className="px-5 py-3 text-right font-medium">
+                Tổng thanh toán
+              </th>
+              <th className="px-5 py-3 font-medium">Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -332,6 +338,32 @@ export function ContractPaymentsContent({
                   {formatDate(payment.receivedAt.slice(0, 10))}
                 </td>
                 <td className="px-5 py-3">
+                  <div className="min-w-[360px] space-y-2">
+                    {payment.allocations.map((allocation) => (
+                      <div
+                        key={allocation.id}
+                        className="flex items-center justify-between gap-4 rounded-md bg-muted/50 px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {allocation.feeName}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {formatDate(allocation.periodStart)} –{' '}
+                            {formatDate(allocation.periodEnd)}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                          {formatContractAmount(
+                            allocation.allocatedAmount,
+                            allocation.currencyCode,
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-5 py-3">
                   {PAYMENT_METHOD_LABELS[payment.paymentMethod]}
                 </td>
                 <td className="px-5 py-3 text-muted-foreground">
@@ -339,6 +371,17 @@ export function ContractPaymentsContent({
                 </td>
                 <td className="px-5 py-3 text-right font-semibold tabular-nums">
                   {formatContractAmount(payment.amount, currencyCode)}
+                </td>
+                <td className="px-5 py-3">
+                  <Badge
+                    variant={
+                      payment.status === 'reversed' ? 'destructive' : 'success'
+                    }
+                    appearance="light"
+                    size="sm"
+                  >
+                    {PAYMENT_STATUS_LABELS[payment.status]}
+                  </Badge>
                 </td>
               </tr>
             ))}

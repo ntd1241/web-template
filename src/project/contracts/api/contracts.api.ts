@@ -29,11 +29,13 @@ import {
 } from '../model/contract';
 import {
   mapContractChargeBalanceRow,
+  mapCustomerPaymentAllocationRow,
   mapCustomerPaymentRow,
   mapCustomerReceivableSummaryRow,
   type ContractChargeBalance,
   type ContractChargeBalanceRow,
-  type CustomerPayment,
+  type ContractPaymentHistory,
+  type CustomerPaymentAllocationRow,
   type CustomerPaymentRow,
   type CustomerReceivableSummary,
   type CustomerReceivableSummaryRow,
@@ -183,7 +185,7 @@ export interface ContractDetail extends Contract {
   versions: ContractVersion[];
   lines: ContractVersionLine[];
   charges: ContractChargeBalance[];
-  payments: CustomerPayment[];
+  payments: ContractPaymentHistory[];
   receivableSummary: CustomerReceivableSummary | null;
   createdByEmployee: ContractEmployeeOption | null;
   responsibleEmployees: ContractEmployeeOption[];
@@ -574,6 +576,52 @@ export async function loadContractDetail(
     );
   }
 
+  const charges = balanceRows.map(mapContractChargeBalanceRow);
+  const allocationRows =
+    charges.length > 0
+      ? await request<CustomerPaymentAllocationRow[]>(
+          supabaseApi.get(
+            '/customer_payment_allocations',
+            queryParams({
+              select: '*',
+              charge_id: `in.(${charges.map((charge) => charge.id).join(',')})`,
+            }),
+          ),
+        )
+      : [];
+  const lineNameById = new Map(lineRows.map((line) => [line.id, line.name]));
+  const chargeById = new Map(charges.map((charge) => [charge.id, charge]));
+  const allocationsByPaymentId = new Map<
+    string,
+    ContractPaymentHistory['allocations']
+  >();
+
+  for (const allocationRow of allocationRows) {
+    const charge = chargeById.get(allocationRow.charge_id);
+    if (!charge) continue;
+
+    const allocation = mapCustomerPaymentAllocationRow(allocationRow);
+    const details = allocationsByPaymentId.get(allocation.paymentId) ?? [];
+    details.push({
+      ...allocation,
+      periodStart: charge.periodStart,
+      periodEnd: charge.periodEnd,
+      dueDate: charge.dueDate,
+      feeName: lineNameById.get(charge.contractVersionLineId) ?? 'Khoản phí',
+      chargeAmount: charge.amount,
+      currencyCode: charge.currencyCode,
+    });
+    allocationsByPaymentId.set(allocation.paymentId, details);
+  }
+
+  const payments = paymentRows
+    .map(mapCustomerPaymentRow)
+    .map((payment) => ({
+      ...payment,
+      allocations: allocationsByPaymentId.get(payment.id) ?? [],
+    }))
+    .filter((payment) => payment.allocations.length > 0);
+
   return {
     ...mapContractRow(contract),
     paymentReminderDays: getPaymentReminderDays(
@@ -584,8 +632,8 @@ export async function loadContractDetail(
     customer,
     versions,
     lines: lineRows.map(mapContractVersionLineRow),
-    charges: balanceRows.map(mapContractChargeBalanceRow),
-    payments: paymentRows.map(mapCustomerPaymentRow),
+    charges,
+    payments,
     receivableSummary: summaryRows[0]
       ? mapCustomerReceivableSummaryRow(summaryRows[0])
       : null,
