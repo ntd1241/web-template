@@ -619,6 +619,59 @@ export async function loadContractPaymentPeriodCount(
   return numberValue(count);
 }
 
+export interface RecordContractPeriodPaymentInput {
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  amount: number;
+  allocations: Array<{
+    chargeId: string;
+    allocatedAmount: number;
+  }>;
+}
+
+interface RecordContractPeriodPaymentRpcRow {
+  payment_id: string;
+  allocated_amount: number | string;
+  unapplied_amount: number | string;
+}
+
+export async function recordContractPeriodPayment(
+  userId: string,
+  contractId: string,
+  customerId: string,
+  currencyCode: string,
+  input: RecordContractPeriodPaymentInput,
+): Promise<RecordContractPeriodPaymentRpcRow> {
+  assertSupabaseConfigured();
+  const tenantId = await resolveTenantId(userId);
+  const response = await request<
+    RecordContractPeriodPaymentRpcRow[] | RecordContractPeriodPaymentRpcRow
+  >(
+    supabaseApi.post('/rpc/record_contract_period_payment', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+      p_customer_id: customerId,
+      p_period_start: input.periodStart,
+      p_period_end: input.periodEnd,
+      p_due_date: input.dueDate,
+      p_amount: input.amount,
+      p_currency_code: currencyCode,
+      p_received_at: new Date().toISOString(),
+      p_payment_method: 'other',
+      p_reference: '',
+      p_note: '',
+      p_allocations: input.allocations.map((allocation) => ({
+        charge_id: allocation.chargeId,
+        allocated_amount: allocation.allocatedAmount,
+      })),
+    }),
+  );
+  const row = Array.isArray(response) ? response[0] : response;
+  if (!row) throw new Error('Không nhận được kết quả ghi nhận thanh toán.');
+  return row;
+}
+
 function toContractPayload(values: ContractFormValues) {
   return {
     customer_id: values.customerId,

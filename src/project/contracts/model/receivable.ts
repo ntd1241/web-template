@@ -108,9 +108,37 @@ export interface ContractChargeBalance extends ContractCharge {
 
 export interface ContractReceivableTableFee {
   id: string;
+  chargeId: string;
   name: string;
   amount: number;
+  outstandingAmount: number;
   currencyCode: string;
+}
+
+export interface ContractPaymentAllocation {
+  chargeId: string;
+  allocatedAmount: number;
+}
+
+export function roundCurrencyAmount(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+export function calculateContractPaymentAllocations(
+  fees: Array<
+    Pick<ContractReceivableTableFee, 'chargeId' | 'outstandingAmount'>
+  >,
+  amount: number,
+): ContractPaymentAllocation[] {
+  let remaining = Math.max(0, roundCurrencyAmount(amount));
+
+  return fees.map((fee) => {
+    const allocatedAmount = roundCurrencyAmount(
+      Math.min(remaining, fee.outstandingAmount),
+    );
+    remaining = roundCurrencyAmount(remaining - allocatedAmount);
+    return { chargeId: fee.chargeId, allocatedAmount };
+  });
 }
 
 export interface ContractReceivableTableRow {
@@ -168,11 +196,12 @@ export function getContractChargeDisplayStatus(
 
 export function mapContractReceivableTableRows(
   charges: ContractChargeBalance[],
-  lines: Array<{ id: string; name: string }>,
+  lines: Array<{ id: string; name: string; sortOrder?: number }>,
   dueSoonDays: number,
   today = new Date(),
 ): ContractReceivableTableRow[] {
   const lineById = new Map(lines.map((line) => [line.id, line]));
+  const chargeById = new Map(charges.map((charge) => [charge.id, charge]));
   const groups = new Map<string, ContractReceivableTableRow>();
 
   for (const charge of charges) {
@@ -191,18 +220,14 @@ export function mapContractReceivableTableRows(
       existing.outstandingAmount += charge.outstandingAmount;
       if (charge.status !== 'voided') existing.status = 'open';
       const line = lineById.get(charge.contractVersionLineId);
-      const feeId = line?.id ?? charge.contractVersionLineId;
-      const fee = existing.fees.find((item) => item.id === feeId);
-      if (fee) {
-        fee.amount += charge.amount;
-      } else {
-        existing.fees.push({
-          id: feeId,
-          name: line?.name ?? 'Khoản phí',
-          amount: charge.amount,
-          currencyCode: charge.currencyCode,
-        });
-      }
+      existing.fees.push({
+        id: charge.id,
+        chargeId: charge.id,
+        name: line?.name ?? 'Khoản phí',
+        amount: charge.amount,
+        outstandingAmount: charge.outstandingAmount,
+        currencyCode: charge.currencyCode,
+      });
       existing.displayStatus = getContractChargeDisplayStatus(
         existing,
         today,
@@ -226,9 +251,11 @@ export function mapContractReceivableTableRows(
       displayStatus: getContractChargeDisplayStatus(charge, today, dueSoonDays),
       fees: [
         {
-          id: line?.id ?? charge.contractVersionLineId,
+          id: charge.id,
+          chargeId: charge.id,
           name: line?.name ?? 'Khoản phí',
           amount: charge.amount,
+          outstandingAmount: charge.outstandingAmount,
           currencyCode: charge.currencyCode,
         },
       ],
@@ -236,14 +263,32 @@ export function mapContractReceivableTableRows(
     groups.set(key, row);
   }
 
-  return [...groups.values()].sort(
-    (a, b) =>
-      b.periodStart.localeCompare(a.periodStart) ||
-      b.periodEnd.localeCompare(a.periodEnd) ||
-      b.dueDate.localeCompare(a.dueDate) ||
-      a.direction.localeCompare(b.direction) ||
-      a.id.localeCompare(b.id),
-  );
+  return [...groups.values()]
+    .map((row) => ({
+      ...row,
+      fees: [...row.fees].sort((a, b) => {
+        const aLine = lineById.get(
+          chargeById.get(a.chargeId)?.contractVersionLineId ?? '',
+        );
+        const bLine = lineById.get(
+          chargeById.get(b.chargeId)?.contractVersionLineId ?? '',
+        );
+        return (
+          (aLine?.sortOrder ?? Number.MAX_SAFE_INTEGER) -
+            (bLine?.sortOrder ?? Number.MAX_SAFE_INTEGER) ||
+          a.name.localeCompare(b.name) ||
+          a.chargeId.localeCompare(b.chargeId)
+        );
+      }),
+    }))
+    .sort(
+      (a, b) =>
+        b.periodStart.localeCompare(a.periodStart) ||
+        b.periodEnd.localeCompare(a.periodEnd) ||
+        b.dueDate.localeCompare(a.dueDate) ||
+        a.direction.localeCompare(b.direction) ||
+        a.id.localeCompare(b.id),
+    );
 }
 
 export interface ContractReceivableStats {

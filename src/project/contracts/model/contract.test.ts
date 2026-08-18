@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { contractVersionLineSchema, mapContractRow } from './contract';
 import {
+  calculateContractPaymentAllocations,
   customerPaymentSchema,
   getContractChargeDisplayStatus,
   getContractReceivableStats,
@@ -283,5 +284,20 @@ describe('contract model', () => {
         note: '',
       }).success,
     ).toBe(false);
+  });
+
+  it('allocates a period payment by the current fee priority order', () => {
+    expect(
+      calculateContractPaymentAllocations(
+        [
+          { chargeId: 'fee-1', outstandingAmount: 1_000_000 },
+          { chargeId: 'fee-2', outstandingAmount: 2_000_000 },
+        ],
+        2_500_000,
+      ),
+    ).toEqual([
+      { chargeId: 'fee-1', allocatedAmount: 1_000_000 },
+      { chargeId: 'fee-2', allocatedAmount: 1_500_000 },
+    ]);
   });
 });

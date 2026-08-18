@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import {
   getCoreRowModel,
   getPaginationRowModel,
@@ -6,6 +7,8 @@ import {
   type PaginationState,
 } from '@tanstack/react-table';
 import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
+import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/errors';
 import {
   Card,
   CardContent,
@@ -21,7 +24,10 @@ import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { formatContractAmount } from '../api/contracts.api';
+import {
+  formatContractAmount,
+  recordContractPeriodPayment,
+} from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
   BILLING_TYPE_LABELS,
@@ -33,9 +39,14 @@ import {
   mapContractReceivableTableRows,
   PAYMENT_METHOD_LABELS,
   type ContractChargeBalance,
+  type ContractReceivableTableRow,
   type CustomerPayment,
 } from '../model/receivable';
 import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
+import {
+  ContractPaymentDialog,
+  type ContractPaymentSubmission,
+} from './contract-payment-dialog';
 import { ContractStatusBadge } from './contract-status-badge';
 
 function formatDate(value: string | null | undefined) {
@@ -109,17 +120,56 @@ export function ContractReceivablesContent({
   charges,
   lines,
   dueSoonDays,
+  userId,
+  contractId,
+  customerId,
+  currencyCode,
+  onPaymentRecorded,
 }: {
   charges: ContractChargeBalance[];
   lines: ContractVersionLine[];
   dueSoonDays: number;
+  userId: string;
+  contractId: string;
+  customerId: string;
+  currencyCode: string;
+  onPaymentRecorded: () => Promise<void>;
 }) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [paymentRow, setPaymentRow] =
+    useState<ContractReceivableTableRow | null>(null);
   const rows = mapContractReceivableTableRows(charges, lines, dueSoonDays);
-  const columns = useContractReceivableTableRowColumns();
+  const paymentMutation = useMutation({
+    mutationFn: (submission: ContractPaymentSubmission) => {
+      if (!paymentRow) throw new Error('Chưa chọn kỳ thanh toán.');
+      return recordContractPeriodPayment(
+        userId,
+        contractId,
+        customerId,
+        currencyCode,
+        {
+          periodStart: paymentRow.periodStart,
+          periodEnd: paymentRow.periodEnd,
+          dueDate: paymentRow.dueDate,
+          amount: submission.amount,
+          allocations: submission.allocations,
+        },
+      );
+    },
+    onSuccess: async () => {
+      toast.success('Đã ghi nhận thanh toán cho kỳ.');
+      setPaymentRow(null);
+      await onPaymentRecorded();
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+  const handlePay = useCallback((row: ContractReceivableTableRow) => {
+    setPaymentRow(row);
+  }, []);
+  const columns = useContractReceivableTableRowColumns({ onPay: handlePay });
   const table = useReactTable({
     data: rows,
     columns,
@@ -131,28 +181,42 @@ export function ContractReceivablesContent({
   });
 
   return (
-    <DataGrid
-      table={table}
-      recordCount={rows.length}
-      emptyMessage="Chưa có kỳ phải thu"
-    >
-      <Card className="min-h-0 overflow-hidden">
-        <CardHeader>
-          <CardHeading>
-            <CardTitle>Kỳ thanh toán</CardTitle>
-          </CardHeading>
-        </CardHeader>
-        <CardTable className="min-h-0 flex-1">
-          <ScrollArea className="h-full">
-            <DataGridTable />
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-        </CardTable>
-        <CardFooter className="justify-between">
-          <DataGridPagination />
-        </CardFooter>
-      </Card>
-    </DataGrid>
+    <>
+      <DataGrid
+        table={table}
+        recordCount={rows.length}
+        emptyMessage="Chưa có kỳ phải thu"
+      >
+        <Card className="min-h-0 overflow-hidden">
+          <CardHeader>
+            <CardHeading>
+              <CardTitle>Kỳ thanh toán</CardTitle>
+            </CardHeading>
+          </CardHeader>
+          <CardTable className="min-h-0 flex-1">
+            <ScrollArea className="h-full">
+              <div className="min-w-[1360px]">
+                <DataGridTable />
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </CardTable>
+          <CardFooter className="justify-between">
+            <DataGridPagination />
+          </CardFooter>
+        </Card>
+      </DataGrid>
+      <ContractPaymentDialog
+        open={paymentRow !== null}
+        row={paymentRow}
+        currencyCode={currencyCode}
+        isSubmitting={paymentMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open && !paymentMutation.isPending) setPaymentRow(null);
+        }}
+        onSubmit={(submission) => paymentMutation.mutate(submission)}
+      />
+    </>
   );
 }
 

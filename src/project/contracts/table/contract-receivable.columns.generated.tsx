@@ -6,7 +6,9 @@
  */
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { WalletCards } from 'lucide-react';
 import { formatDate } from '@/lib/date';
+import { Button } from '@/components/ui/button';
 import { createColumnHelpers } from '@/components/ui/data-grid-columns';
 import { Tag } from '@/components/ui/tag';
 import {
@@ -18,7 +20,13 @@ import { formatContractAmount } from '../api/contracts.api';
 import { ContractStatusBadge } from '../components/contract-status-badge';
 import type { ContractReceivableTableRow } from '../model/receivable';
 
-export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceivableTableRow>[] {
+export interface UseContractReceivableTableRowColumnsParams {
+  onPay: (row: ContractReceivableTableRow) => void;
+}
+
+export function useContractReceivableTableRowColumns(
+  params: UseContractReceivableTableRowColumnsParams,
+): ColumnDef<ContractReceivableTableRow>[] {
   return useMemo(() => {
     const col = createColumnHelpers<ContractReceivableTableRow>();
 
@@ -27,6 +35,7 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
         id: 'period',
         header: 'Kỳ',
         headerClassName: 'min-w-[220px]',
+        size: 260,
         enableSorting: false,
         cell: (row) => (
           <span className="whitespace-nowrap">
@@ -38,9 +47,10 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
         id: 'fees',
         header: 'Các khoản phí',
         headerClassName: 'min-w-[240px]',
+        size: 300,
         enableSorting: false,
         cell: (row) => (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex min-w-0 flex-wrap gap-1.5">
             {row.fees.map((fee) => (
               <Tooltip key={fee.id}>
                 <TooltipTrigger asChild>
@@ -50,6 +60,7 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
                     color={
                       row.direction === 'receivable' ? '#16a34a' : '#dc2626'
                     }
+                    className="whitespace-nowrap"
                   >
                     {fee.name}
                   </Tag>
@@ -73,6 +84,7 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
         header: 'Hạn thanh toán',
         get: (row) => row.dueDate,
         headerClassName: 'min-w-[150px]',
+        size: 170,
         enableSorting: false,
       }),
       col.custom({
@@ -80,6 +92,7 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
         header: 'Số tiền',
         headerClassName: 'min-w-[150px] text-right',
         cellClassName: 'text-right tabular-nums',
+        size: 160,
         enableSorting: false,
         cell: (row) => formatContractAmount(row.amount, row.currencyCode),
       }),
@@ -88,6 +101,7 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
         header: 'Còn lại',
         headerClassName: 'min-w-[150px] text-right',
         cellClassName: 'text-right font-semibold tabular-nums',
+        size: 160,
         enableSorting: false,
         cell: (row) =>
           formatContractAmount(row.outstandingAmount, row.currencyCode),
@@ -96,6 +110,7 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
         id: 'displayStatus',
         header: 'Trạng thái',
         headerClassName: 'min-w-[140px]',
+        size: 180,
         enableSorting: false,
         cell: (row) => (
           <ContractStatusBadge
@@ -105,6 +120,28 @@ export function useContractReceivableTableRowColumns(): ColumnDef<ContractReceiv
           />
         ),
       }),
+      col.actions({
+        id: 'actions',
+        header: '',
+        headerClassName: 'w-[130px]',
+        cellClassName: 'text-right',
+        size: 130,
+        enableSorting: false,
+        cell: (row) =>
+          row.direction === 'receivable' && row.outstandingAmount > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-primary"
+              onClick={() => params.onPay(row)}
+              aria-label={`Thanh toán kỳ ${formatDate(row.periodStart)}`}
+            >
+              <WalletCards />
+              Thanh toán
+            </Button>
+          ) : null,
+      }),
     ];
-  }, []);
+  }, [params.onPay]);
 }

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 const DEFAULT_TAG_COLOR = '#64748b';
 
 const tagVariants = cva(
-  'inline-flex items-center justify-center border font-medium leading-none focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center justify-center whitespace-nowrap border font-medium leading-none focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       size: {

@@ -392,6 +392,17 @@ export function ContractDetailPage() {
             charges={contract.charges}
             lines={contract.lines}
             dueSoonDays={contract.paymentReminderDays}
+            userId={userId ?? ''}
+            contractId={contract.id}
+            customerId={contract.customer.id}
+            currencyCode={contract.currencyCode}
+            onPaymentRecorded={async () => {
+              await Promise.all([
+                contractQuery.refetch(),
+                paymentPeriodCountQuery.refetch(),
+                invalidate(),
+              ]);
+            }}
           />
         }
         versionsContent={<ContractVersionsContent contract={contract} />}
