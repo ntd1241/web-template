@@ -126,3 +126,11 @@ và form; builder vẫn không sở hữu fetch/query/mutation.
 Sau pilot, áp dụng cùng hook và server-side contract cho Customers và Employees.
 Chỉ khi hai bảng này không cần thêm ngoại lệ lớn mới quyết định tạo filter
 builder.
+
+### Mốc nhắc lại filter builder
+
+Khi có ít nhất **3 bảng** dùng chung các loại filter thực tế (ví dụ search,
+select trạng thái và sort), quay lại đánh giá và triển khai `filter builder`.
+Builder khi đó chỉ sinh filter UI/config và reset behavior; không sở hữu query,
+fetch API/RPC, mutation hoặc business rule. Trước mốc này, mỗi feature dùng
+`useTableListState` và tự định nghĩa filter UI theo nghiệp vụ của bảng.

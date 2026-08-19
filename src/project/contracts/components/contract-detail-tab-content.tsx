@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
-  type PaginationState,
 } from '@tanstack/react-table';
 import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,17 +36,19 @@ import {
 import { recordContractPeriodPayment } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
+  useContractReceivableList,
+  type ContractReceivableListFilters,
+  type ContractReceivableSortOption,
+} from '../hooks/use-contract-receivable-list';
+import {
   BILLING_TYPE_LABELS,
   BILLING_UNIT_LABELS,
   CONTRACT_VERSION_STATUS_LABELS,
   type ContractVersionLine,
 } from '../model/contract';
 import {
-  CONTRACT_CHARGE_DISPLAY_STATUS_LABELS,
   CONTRACT_CHARGE_DISPLAY_STATUSES,
-  mapContractReceivableTableRows,
   type ContractChargeBalance,
-  type ContractChargeDisplayStatus,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
 } from '../model/receivable';
@@ -59,16 +60,8 @@ import {
 } from './contract-payment-dialog';
 import { ContractStatusBadge } from './contract-status-badge';
 
-type ReceivableSortOption =
-  | 'periodStart_desc'
-  | 'periodStart_asc'
-  | 'dueDate_desc'
-  | 'dueDate_asc'
-  | 'amount_desc'
-  | 'amount_asc';
-
 const RECEIVABLE_SORT_OPTIONS: Array<{
-  value: ReceivableSortOption;
+  value: ContractReceivableSortOption;
   label: string;
 }> = [
   { value: 'periodStart_desc', label: 'Kỳ mới nhất' },
@@ -78,56 +71,6 @@ const RECEIVABLE_SORT_OPTIONS: Array<{
   { value: 'amount_desc', label: 'Số tiền cao nhất' },
   { value: 'amount_asc', label: 'Số tiền thấp nhất' },
 ];
-
-function normalizeSearchValue(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase('vi-VN');
-}
-
-function compareReceivableRows(
-  first: ContractReceivableTableRow,
-  second: ContractReceivableTableRow,
-  sort: ReceivableSortOption,
-) {
-  const compareDates = (firstValue: string, secondValue: string) =>
-    firstValue.localeCompare(secondValue);
-
-  switch (sort) {
-    case 'periodStart_asc':
-      return (
-        compareDates(first.periodStart, second.periodStart) ||
-        compareDates(first.periodEnd, second.periodEnd)
-      );
-    case 'dueDate_desc':
-      return (
-        compareDates(second.dueDate, first.dueDate) ||
-        compareDates(second.periodStart, first.periodStart)
-      );
-    case 'dueDate_asc':
-      return (
-        compareDates(first.dueDate, second.dueDate) ||
-        compareDates(first.periodStart, second.periodStart)
-      );
-    case 'amount_desc':
-      return (
-        second.amount - first.amount ||
-        compareDates(second.periodStart, first.periodStart)
-      );
-    case 'amount_asc':
-      return (
-        first.amount - second.amount ||
-        compareDates(second.periodStart, first.periodStart)
-      );
-    case 'periodStart_desc':
-    default:
-      return (
-        compareDates(second.periodStart, first.periodStart) ||
-        compareDates(second.periodEnd, first.periodEnd)
-      );
-  }
-}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return 'Chưa cập nhật';
@@ -231,54 +174,17 @@ export function ContractReceivablesContent({
   currencyCode: string;
   onPaymentRecorded: () => Promise<void>;
 }) {
-  const [keyword, setKeyword] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-    'all' | ContractChargeDisplayStatus
-  >('all');
-  const [sort, setSort] = useState<ReceivableSortOption>('periodStart_desc');
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const {
+    filters,
+    keyword,
+    setFilter,
+    setKeyword,
+    pagination,
+    onPaginationChange,
+    visibleRows,
+  } = useContractReceivableList({ charges, lines, dueSoonDays });
   const [paymentRow, setPaymentRow] =
     useState<ContractReceivableTableRow | null>(null);
-  const rows = useMemo(
-    () => mapContractReceivableTableRows(charges, lines, dueSoonDays),
-    [charges, lines, dueSoonDays],
-  );
-  const visibleRows = useMemo(() => {
-    const normalizedKeyword = normalizeSearchValue(keyword.trim());
-
-    return rows
-      .filter((row) => {
-        if (statusFilter !== 'all' && row.displayStatus !== statusFilter) {
-          return false;
-        }
-
-        if (!normalizedKeyword) return true;
-
-        const searchValues = [
-          row.periodStart,
-          row.periodEnd,
-          row.dueDate,
-          formatDate(row.periodStart),
-          formatDate(row.periodEnd),
-          formatDate(row.dueDate),
-          CONTRACT_CHARGE_DISPLAY_STATUS_LABELS[row.displayStatus],
-          ...row.fees.map((fee) => fee.name),
-        ];
-
-        return searchValues.some((value) =>
-          normalizeSearchValue(value).includes(normalizedKeyword),
-        );
-      })
-      .sort((first, second) => compareReceivableRows(first, second, sort));
-  }, [keyword, rows, sort, statusFilter]);
-  useEffect(() => {
-    setPagination((current) =>
-      current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
-    );
-  }, [keyword, sort, statusFilter]);
   const paymentMutation = useMutation({
     mutationFn: (submission: ContractPaymentSubmission) => {
       if (!paymentRow) throw new Error('Chưa chọn kỳ thanh toán.');
@@ -312,7 +218,7 @@ export function ContractReceivablesContent({
     columns,
     getRowId: (row) => row.id,
     state: { pagination },
-    onPaginationChange: setPagination,
+    onPaginationChange,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
   });
@@ -338,9 +244,12 @@ export function ContractReceivablesContent({
                 onSearch={setKeyword}
               />
               <Select
-                value={statusFilter}
+                value={filters.status}
                 onValueChange={(value) =>
-                  setStatusFilter(value as 'all' | ContractChargeDisplayStatus)
+                  setFilter(
+                    'status',
+                    value as ContractReceivableListFilters['status'],
+                  )
                 }
               >
                 <SelectTrigger
@@ -364,9 +273,12 @@ export function ContractReceivablesContent({
                 </SelectContent>
               </Select>
               <Select
-                value={sort}
+                value={filters.sort}
                 onValueChange={(value) =>
-                  setSort(value as ReceivableSortOption)
+                  setFilter(
+                    'sort',
+                    value as ContractReceivableListFilters['sort'],
+                  )
                 }
               >
                 <SelectTrigger
