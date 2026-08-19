@@ -6,6 +6,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { Select as SelectPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
+import { useDialogContentContainer } from './dialog';
 
 // Create a Context for `indicatorPosition` and `indicator` control
 const SelectContext = React.createContext<{
@@ -162,8 +163,10 @@ function SelectContent({
   position = 'popper',
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const dialogContainer = useDialogContentContainer();
+
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={dialogContainer ?? undefined}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(

@@ -6,8 +6,23 @@ import { X } from 'lucide-react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
+const DialogContentContainerContext = React.createContext<HTMLElement | null>(
+  null,
+);
+
+/**
+ * Returns the nearest dialog content element for nested portalled controls.
+ *
+ * Radix's modal scroll lock whitelists the dialog content subtree. Shared
+ * popovers and selects use this container so their scroll events stay inside
+ * that whitelist even though they are still positioned through a portal.
+ */
+export function useDialogContentContainer() {
+  return React.useContext(DialogContentContainerContext);
+}
+
 const dialogContentVariants = cva(
-  'flex flex-col fixed outline-0 z-50 border border-border bg-background p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg',
+  'flex flex-col fixed outline-0 z-50 border border-border bg-background p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg has-[[data-slot=popover-content][data-state=open]]:!overflow-visible has-[[data-slot=select-content][data-state=open]]:!overflow-visible',
   {
     variants: {
       variant: {
@@ -74,22 +89,28 @@ function DialogContent({
     showCloseButton?: boolean;
     overlay?: boolean;
   }) {
+  const [contentContainer, setContentContainer] =
+    React.useState<HTMLElement | null>(null);
+
   return (
     <DialogPortal>
       {overlay && <DialogOverlay />}
-      <DialogPrimitive.Content
-        data-slot="dialog-content"
-        className={cn(dialogContentVariants({ variant }), className)}
-        {...props}
-      >
-        {children}
-        {showCloseButton && (
-          <DialogClose className="cursor-pointer outline-0 absolute end-5 top-5 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-            <X className="size-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-        )}
-      </DialogPrimitive.Content>
+      <DialogContentContainerContext.Provider value={contentContainer}>
+        <DialogPrimitive.Content
+          ref={setContentContainer}
+          data-slot="dialog-content"
+          className={cn(dialogContentVariants({ variant }), className)}
+          {...props}
+        >
+          {children}
+          {showCloseButton && (
+            <DialogClose className="cursor-pointer outline-0 absolute end-5 top-5 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+              <X className="size-4" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          )}
+        </DialogPrimitive.Content>
+      </DialogContentContainerContext.Provider>
     </DialogPortal>
   );
 }

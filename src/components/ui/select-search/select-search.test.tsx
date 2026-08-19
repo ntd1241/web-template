@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { SelectSearch } from './select-search';
 
 const OPTIONS = [
@@ -61,5 +62,32 @@ describe('SelectSearch', () => {
     await user.click(screen.getByRole('option', { name: 'Quản lý' }));
 
     expect(handleChange).toHaveBeenCalledWith('');
+  });
+
+  it('keeps nested popover content inside the dialog scroll boundary', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>Chọn vai trò</DialogTitle>
+          <SelectSearch options={OPTIONS} />
+        </DialogContent>
+      </Dialog>,
+    );
+
+    await user.click(screen.getByRole('combobox'));
+
+    const dialogContent = document.querySelector(
+      '[data-slot="dialog-content"]',
+    );
+    const popoverContent = document.querySelector(
+      '[data-slot="popover-content"]',
+    );
+
+    expect(dialogContent).toContainElement(popoverContent);
+    expect(dialogContent).toHaveClass(
+      'has-[[data-slot=popover-content][data-state=open]]:!overflow-visible',
+    );
   });
 });
