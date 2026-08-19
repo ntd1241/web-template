@@ -262,6 +262,7 @@ export function ContractPaymentDialog({
               min={0.01}
               max={maxAmount}
               step={0.01}
+              suffix=" ₫"
               value={amountValue}
               onValueChange={(value) =>
                 setAmountValue(value === undefined ? '' : String(value))
@@ -269,12 +270,26 @@ export function ContractPaymentDialog({
               aria-invalid={amountValue !== '' && !isAmountValid}
               className="h-12 rounded-none border-0 bg-transparent px-0 text-2xl font-semibold text-primary shadow-none focus-visible:border-0 focus-visible:bg-transparent focus-visible:text-primary focus-visible:ring-0 aria-invalid:border-0 aria-invalid:ring-0"
             />
-            <p className="text-xs text-muted-foreground">
-              Tối đa:{' '}
-              <span className="font-medium text-foreground">
-                {formatCurrency(maxAmount, currencyCode)}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <span>Tổng tiền kỳ:</span>
+                <span className="font-medium text-foreground">
+                  {formatCurrency(row.amount, currencyCode)}
+                </span>
               </span>
-            </p>
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <span>Đã thanh toán:</span>
+                <span className="font-medium text-foreground">
+                  {formatCurrency(row.paidAmount, currencyCode)}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <span>Còn lại:</span>
+                <span className="font-medium text-primary">
+                  {formatCurrency(maxAmount, currencyCode)}
+                </span>
+              </span>
+            </div>
             {amountValue !== '' && !isAmountValid ? (
               <p className="text-xs text-destructive">
                 Số tiền phải lớn hơn 0 và không vượt quá số tiền còn phải thu

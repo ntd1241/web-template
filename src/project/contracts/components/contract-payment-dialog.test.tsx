@@ -42,12 +42,18 @@ describe('ContractPaymentDialog', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText(/Thanh toán kỳ/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Số tiền thanh toán')).toHaveValue(1000000);
+    expect(screen.getByLabelText('Số tiền thanh toán')).toHaveValue(
+      '1.000.000 ₫',
+    );
     expect(screen.getByLabelText('Số tiền thanh toán')).toHaveClass(
       'text-2xl',
       'text-primary',
       'border-0',
     );
+    expect(screen.getByText('Tổng tiền kỳ:')).toBeInTheDocument();
+    expect(screen.getByText('Đã thanh toán:')).toBeInTheDocument();
+    expect(screen.getByText('Còn lại:')).toBeInTheDocument();
+    expect(screen.getAllByText(/1\.000\.000/)).toHaveLength(4);
     expect(screen.getByRole('dialog')).toHaveClass('max-h-[90dvh]');
     expect(screen.getByTestId('payment-allocation-progress')).toHaveAttribute(
       'data-payment-tone',
