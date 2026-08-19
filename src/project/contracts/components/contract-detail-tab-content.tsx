@@ -9,7 +9,6 @@ import {
 import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -38,12 +37,11 @@ import {
 } from '../model/contract';
 import {
   mapContractReceivableTableRows,
-  PAYMENT_METHOD_LABELS,
-  PAYMENT_STATUS_LABELS,
   type ContractChargeBalance,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
 } from '../model/receivable';
+import { useContractPaymentHistoryColumns } from '../table/contract-payment-history.columns.generated';
 import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
 import {
   ContractPaymentDialog,
@@ -289,11 +287,24 @@ export function ContractVersionsContent({
 
 export function ContractPaymentsContent({
   payments,
-  currencyCode,
 }: {
   payments: ContractPaymentHistory[];
-  currencyCode: string;
 }) {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const columns = useContractPaymentHistoryColumns();
+  const table = useReactTable({
+    data: payments,
+    columns,
+    getRowId: (row) => row.id,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   if (payments.length === 0) {
     return (
       <CardEmptyState
@@ -303,92 +314,36 @@ export function ContractPaymentsContent({
       />
     );
   }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardHeading>
-          <CardTitle>Lịch sử thanh toán</CardTitle>
-          <CardDescription>
-            Theo dõi khoản tiền đã nhận và số tiền đã phân bổ cho từng khoản
-            phí, kỳ thanh toán.
-          </CardDescription>
-        </CardHeading>
-      </CardHeader>
-      <CardTable className="overflow-x-auto">
-        <table className="w-full min-w-[1080px] text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-5 py-3 font-medium">Ngày nhận</th>
-              <th className="px-5 py-3 font-medium">Khoản phí / kỳ</th>
-              <th className="px-5 py-3 font-medium">Phương thức</th>
-              <th className="px-5 py-3 font-medium">Mã tham chiếu</th>
-              <th className="px-5 py-3 text-right font-medium">
-                Tổng thanh toán
-              </th>
-              <th className="px-5 py-3 font-medium">Trạng thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((payment) => (
-              <tr
-                key={payment.id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-5 py-3">
-                  {formatDate(payment.receivedAt.slice(0, 10))}
-                </td>
-                <td className="px-5 py-3">
-                  <div className="min-w-[360px] space-y-2">
-                    {payment.allocations.map((allocation) => (
-                      <div
-                        key={allocation.id}
-                        className="flex items-center justify-between gap-4 rounded-md bg-muted/50 px-3 py-2"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {allocation.feeName}
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {formatDate(allocation.periodStart)} –{' '}
-                            {formatDate(allocation.periodEnd)}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                          {formatContractAmount(
-                            allocation.allocatedAmount,
-                            allocation.currencyCode,
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-5 py-3">
-                  {PAYMENT_METHOD_LABELS[payment.paymentMethod]}
-                </td>
-                <td className="px-5 py-3 text-muted-foreground">
-                  {payment.reference || '—'}
-                </td>
-                <td className="px-5 py-3 text-right font-semibold tabular-nums">
-                  {formatContractAmount(payment.amount, currencyCode)}
-                </td>
-                <td className="px-5 py-3">
-                  <Badge
-                    variant={
-                      payment.status === 'reversed' ? 'destructive' : 'success'
-                    }
-                    appearance="light"
-                    size="sm"
-                  >
-                    {PAYMENT_STATUS_LABELS[payment.status]}
-                  </Badge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </CardTable>
-    </Card>
+    <DataGrid
+      table={table}
+      recordCount={payments.length}
+      emptyMessage="Chưa có thanh toán"
+    >
+      <Card className="min-h-0 overflow-hidden">
+        <CardHeader>
+          <CardHeading>
+            <CardTitle>Lịch sử thanh toán</CardTitle>
+            <CardDescription>
+              Theo dõi khoản tiền đã nhận và số tiền đã phân bổ cho từng khoản
+              phí, kỳ thanh toán.
+            </CardDescription>
+          </CardHeading>
+        </CardHeader>
+        <CardTable className="min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <div className="min-w-[1180px]">
+              <DataGridTable />
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </CardTable>
+        <CardFooter className="justify-between">
+          <DataGridPagination />
+        </CardFooter>
+      </Card>
+    </DataGrid>
   );
 }
 

@@ -407,10 +407,7 @@ export function ContractDetailPage() {
         }
         versionsContent={<ContractVersionsContent contract={contract} />}
         paymentsContent={
-          <ContractPaymentsContent
-            payments={contract.payments}
-            currencyCode={contract.currencyCode}
-          />
+          <ContractPaymentsContent payments={contract.payments} />
         }
         attachmentsContent={<ContractAttachmentsContent contract={contract} />}
       />
