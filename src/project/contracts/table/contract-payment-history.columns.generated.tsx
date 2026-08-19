@@ -7,11 +7,11 @@
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { formatDate } from '@/lib/date';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import {
   createColumnHelpers,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
-import { formatContractAmount } from '../api/contracts.api';
 import {
   PAYMENT_METHOD_LABELS,
   type ContractPaymentHistory,
@@ -32,6 +32,8 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
 };
 
 export function useContractPaymentHistoryColumns(): ColumnDef<ContractPaymentHistory>[] {
+  const { formatCurrency } = useNumberFormat();
+
   return useMemo(() => {
     const col = createColumnHelpers<ContractPaymentHistory>();
 
@@ -67,7 +69,7 @@ export function useContractPaymentHistoryColumns(): ColumnDef<ContractPaymentHis
                   </p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                  {formatContractAmount(
+                  {formatCurrency(
                     allocation.allocatedAmount,
                     allocation.currencyCode,
                   )}
@@ -100,7 +102,7 @@ export function useContractPaymentHistoryColumns(): ColumnDef<ContractPaymentHis
         cellClassName: 'text-right font-semibold tabular-nums',
         size: 180,
         enableSorting: false,
-        cell: (row) => formatContractAmount(row.amount, row.currencyCode),
+        cell: (row) => formatCurrency(row.amount, row.currencyCode),
       }),
       col.badge({
         id: 'status',
@@ -112,5 +114,5 @@ export function useContractPaymentHistoryColumns(): ColumnDef<ContractPaymentHis
         enableSorting: false,
       }),
     ];
-  }, []);
+  }, [formatCurrency]);
 }

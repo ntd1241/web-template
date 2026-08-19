@@ -1,118 +1,272 @@
 /**
- * Vietnamese number formatting uses `.` for thousands and `,` for decimals.
- * Keep values numeric until the final display step so callers do not
- * double-format user-visible numbers.
+ * Shared number formatting primitives.
+ *
+ * Values stay numeric until the final display step. The provider layer can
+ * create these formatters from tenant settings, while these exports keep a
+ * safe Vietnamese/VND default for non-React code and legacy callers.
  */
 
-const numberFormatter = new Intl.NumberFormat('vi-VN');
-const currencyVndFormatter = new Intl.NumberFormat('vi-VN', {
-  style: 'currency',
-  currency: 'VND',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
-const compactFormatter = new Intl.NumberFormat('vi-VN', {
-  notation: 'compact',
-  maximumFractionDigits: 1,
-});
+export type CompactDisplay = 'long' | 'short';
 
-const numberFormatterCache = new Map<string, Intl.NumberFormat>();
-const percentFormatterCache = new Map<number, Intl.NumberFormat>();
+export interface NumberFormatSettings {
+  locale: string;
+  currencyCode: string;
+  compactDisplay: CompactDisplay;
+}
+
+export const DEFAULT_NUMBER_FORMAT_SETTINGS: NumberFormatSettings = {
+  locale: 'vi-VN',
+  currencyCode: 'VND',
+  compactDisplay: 'long',
+};
+
+export interface NumberInputSeparators {
+  thousandSeparator: string;
+  decimalSeparator: string;
+}
+
+export interface NumberFormatters {
+  settings: NumberFormatSettings;
+  inputSeparators: NumberInputSeparators;
+  formatNumber: (
+    value: number | null | undefined,
+    options?: Intl.NumberFormatOptions,
+  ) => string;
+  formatCurrency: (
+    value: number | null | undefined,
+    currencyCode?: string,
+    options?: Intl.NumberFormatOptions,
+  ) => string;
+  formatCurrencyVND: (value: number | null | undefined) => string;
+  formatPercent: (
+    value: number | null | undefined,
+    fractionDigits?: number,
+  ) => string;
+  formatCompact: (value: number | null | undefined) => string;
+  formatCompactCurrency: (
+    value: number | null | undefined,
+    currencyCode?: string,
+  ) => string;
+}
+
+const formatterCache = new Map<string, Intl.NumberFormat>();
 
 function isFormattableNumber(
   value: number | null | undefined,
 ): value is number {
-  return value !== null && value !== undefined && !Number.isNaN(value);
+  return value !== null && value !== undefined && Number.isFinite(value);
 }
 
-function getNumberFormatter(
-  options: Intl.NumberFormatOptions | undefined,
+function safeLocale(locale: string): string {
+  try {
+    new Intl.NumberFormat(locale);
+    return locale;
+  } catch {
+    return DEFAULT_NUMBER_FORMAT_SETTINGS.locale;
+  }
+}
+
+function safeCurrencyCode(currencyCode: string): string {
+  return /^[A-Z]{3}$/.test(currencyCode)
+    ? currencyCode
+    : DEFAULT_NUMBER_FORMAT_SETTINGS.currencyCode;
+}
+
+function getFormatter(
+  locale: string,
+  options: Intl.NumberFormatOptions = {},
 ): Intl.NumberFormat {
-  if (!options) {
-    return numberFormatter;
-  }
+  const normalizedLocale = safeLocale(locale);
+  const cacheKey = JSON.stringify([normalizedLocale, options]);
+  const cachedFormatter = formatterCache.get(cacheKey);
 
-  const cacheKey = JSON.stringify(options);
-  const cachedFormatter = numberFormatterCache.get(cacheKey);
+  if (cachedFormatter) return cachedFormatter;
 
-  if (cachedFormatter) {
-    return cachedFormatter;
-  }
-
-  const formatter = new Intl.NumberFormat('vi-VN', options);
-  numberFormatterCache.set(cacheKey, formatter);
-
+  const formatter = new Intl.NumberFormat(normalizedLocale, options);
+  formatterCache.set(cacheKey, formatter);
   return formatter;
 }
 
-function getPercentFormatter(fractionDigits: number): Intl.NumberFormat {
-  const cachedFormatter = percentFormatterCache.get(fractionDigits);
-
-  if (cachedFormatter) {
-    return cachedFormatter;
-  }
-
-  const formatter = new Intl.NumberFormat('vi-VN', {
-    style: 'percent',
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
-  percentFormatterCache.set(fractionDigits, formatter);
-
-  return formatter;
+function getInputSeparators(locale: string): NumberInputSeparators {
+  const parts = getFormatter(locale).formatToParts(12345.6);
+  return {
+    thousandSeparator:
+      parts.find((part) => part.type === 'group')?.value ?? ',',
+    decimalSeparator:
+      parts.find((part) => part.type === 'decimal')?.value ?? '.',
+  };
 }
 
-export function formatNumber(
-  value: number | null | undefined,
-  options?: Intl.NumberFormatOptions,
+function getCompactUnit(
+  locale: string,
+  value: number,
+  compactDisplay: CompactDisplay,
+) {
+  const absValue = Math.abs(value);
+  const isVietnamese = locale.toLowerCase().startsWith('vi');
+
+  if (absValue >= 1_000_000_000) {
+    return isVietnamese
+      ? compactDisplay === 'long'
+        ? { divisor: 1_000_000_000, label: 'tỷ' }
+        : { divisor: 1_000_000_000, label: 'Tỷ' }
+      : compactDisplay === 'long'
+        ? { divisor: 1_000_000_000, label: 'billion' }
+        : { divisor: 1_000_000_000, label: 'B' };
+  }
+
+  if (absValue >= 1_000_000) {
+    return isVietnamese
+      ? compactDisplay === 'long'
+        ? { divisor: 1_000_000, label: 'triệu' }
+        : { divisor: 1_000_000, label: 'Tr' }
+      : compactDisplay === 'long'
+        ? { divisor: 1_000_000, label: 'million' }
+        : { divisor: 1_000_000, label: 'M' };
+  }
+
+  if (absValue >= 1_000) {
+    return isVietnamese
+      ? compactDisplay === 'long'
+        ? { divisor: 1_000, label: 'nghìn' }
+        : { divisor: 1_000, label: 'N' }
+      : compactDisplay === 'long'
+        ? { divisor: 1_000, label: 'thousand' }
+        : { divisor: 1_000, label: 'K' };
+  }
+
+  return null;
+}
+
+function formatCompactCurrencyValue(
+  value: number,
+  locale: string,
+  currencyCode: string,
+  compactDisplay: CompactDisplay,
 ): string {
-  if (!isFormattableNumber(value)) {
-    return '';
+  const unit = getCompactUnit(locale, value, compactDisplay);
+  if (!unit) {
+    return getFormatter(locale, {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
   }
 
-  try {
-    return getNumberFormatter(options).format(value);
-  } catch {
-    return '';
-  }
+  const scaledValue = value / unit.divisor;
+  const numberText = getFormatter(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(scaledValue);
+  const currencyParts = getFormatter(locale, {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).formatToParts(0);
+  const currencyPart = currencyParts.find((part) => part.type === 'currency');
+
+  if (!currencyPart) return `${numberText} ${unit.label}`;
+
+  const firstNumberIndex = currencyParts.findIndex(
+    (part) => part.type === 'integer' || part.type === 'decimal',
+  );
+  const currencyIndex = currencyParts.findIndex(
+    (part) => part.type === 'currency',
+  );
+
+  return currencyIndex < firstNumberIndex
+    ? `${currencyPart.value}${numberText} ${unit.label}`
+    : `${numberText} ${unit.label} ${currencyPart.value}`;
 }
 
-export function formatCurrencyVND(value: number | null | undefined): string {
-  if (!isFormattableNumber(value)) {
-    return '';
-  }
+export function createNumberFormatters(
+  settings: NumberFormatSettings = DEFAULT_NUMBER_FORMAT_SETTINGS,
+): NumberFormatters {
+  const normalizedSettings: NumberFormatSettings = {
+    locale: safeLocale(settings.locale),
+    currencyCode: safeCurrencyCode(settings.currencyCode),
+    compactDisplay: settings.compactDisplay === 'short' ? 'short' : 'long',
+  };
 
-  try {
-    return currencyVndFormatter.format(value);
-  } catch {
-    return '';
-  }
+  const formatNumber = (
+    value: number | null | undefined,
+    options?: Intl.NumberFormatOptions,
+  ) => {
+    if (!isFormattableNumber(value)) return '';
+    return getFormatter(normalizedSettings.locale, options).format(value);
+  };
+
+  const formatCurrency = (
+    value: number | null | undefined,
+    currencyCode = normalizedSettings.currencyCode,
+    options: Intl.NumberFormatOptions = {},
+  ) => {
+    if (!isFormattableNumber(value)) return '';
+    return getFormatter(normalizedSettings.locale, {
+      style: 'currency',
+      currency: safeCurrencyCode(currencyCode),
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+      ...options,
+    }).format(value);
+  };
+
+  const formatCurrencyVND = (value: number | null | undefined) =>
+    formatCurrency(value, 'VND');
+
+  const formatPercent = (
+    value: number | null | undefined,
+    fractionDigits = 0,
+  ) => {
+    if (!isFormattableNumber(value)) return '';
+    return getFormatter(normalizedSettings.locale, {
+      style: 'percent',
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(value);
+  };
+
+  const formatCompact = (value: number | null | undefined) => {
+    if (!isFormattableNumber(value)) return '';
+    return getFormatter(normalizedSettings.locale, {
+      notation: 'compact',
+      compactDisplay: normalizedSettings.compactDisplay,
+      maximumFractionDigits: 1,
+    }).format(value);
+  };
+
+  const formatCompactCurrency = (
+    value: number | null | undefined,
+    currencyCode = normalizedSettings.currencyCode,
+  ) => {
+    if (!isFormattableNumber(value)) return '';
+    return formatCompactCurrencyValue(
+      value,
+      normalizedSettings.locale,
+      safeCurrencyCode(currencyCode),
+      normalizedSettings.compactDisplay,
+    );
+  };
+
+  return {
+    settings: normalizedSettings,
+    inputSeparators: getInputSeparators(normalizedSettings.locale),
+    formatNumber,
+    formatCurrency,
+    formatCurrencyVND,
+    formatPercent,
+    formatCompact,
+    formatCompactCurrency,
+  };
 }
 
-/** Formats a ratio as a percent: `0.125` renders as `12,5%`. */
-export function formatPercent(
-  value: number | null | undefined,
-  fractionDigits = 0,
-): string {
-  if (!isFormattableNumber(value)) {
-    return '';
-  }
+const defaultFormatters = createNumberFormatters();
 
-  try {
-    return getPercentFormatter(fractionDigits).format(value);
-  } catch {
-    return '';
-  }
-}
-
-export function formatCompact(value: number | null | undefined): string {
-  if (!isFormattableNumber(value)) {
-    return '';
-  }
-
-  try {
-    return compactFormatter.format(value);
-  } catch {
-    return '';
-  }
-}
+export const formatNumber = defaultFormatters.formatNumber;
+export const formatCurrency = defaultFormatters.formatCurrency;
+export const formatCurrencyVND = defaultFormatters.formatCurrencyVND;
+export const formatPercent = defaultFormatters.formatPercent;
+export const formatCompact = defaultFormatters.formatCompact;
+export const formatCompactCurrency = defaultFormatters.formatCompactCurrency;

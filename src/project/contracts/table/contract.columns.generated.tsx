@@ -9,6 +9,7 @@ import { buildPath, ROUTES } from '@/constants/routes';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Button } from '@/components/ui/button';
 import {
   createColumnHelpers,
@@ -61,8 +62,14 @@ export interface UseContractColumnsParams {
 export function useContractColumns(
   params: UseContractColumnsParams,
 ): ColumnDef<Contract>[] {
+  const { formatNumber, formatCurrency, formatPercent } = useNumberFormat();
+
   return useMemo(() => {
-    const col = createColumnHelpers<Contract>();
+    const col = createColumnHelpers<Contract>({
+      formatNumber,
+      formatCurrency,
+      formatPercent,
+    });
 
     return [
       col.custom({
@@ -170,5 +177,5 @@ export function useContractColumns(
         ),
       }),
     ];
-  }, [params]);
+  }, [formatCurrency, formatNumber, formatPercent, params]);
 }

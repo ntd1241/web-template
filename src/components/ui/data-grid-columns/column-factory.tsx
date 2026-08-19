@@ -5,7 +5,12 @@ import type {
   HeaderContext,
 } from '@tanstack/react-table';
 import { formatDate, formatDateTime, type DateInput } from '@/lib/date';
-import { formatCurrencyVND, formatNumber, formatPercent } from '@/lib/format';
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+  type NumberFormatters,
+} from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
@@ -162,7 +167,16 @@ function createAccessorColumn<TRow extends object, TValue>({
   };
 }
 
-export function createColumnHelpers<TRow extends object>() {
+export function createColumnHelpers<TRow extends object>(
+  formatters: Pick<
+    NumberFormatters,
+    'formatNumber' | 'formatCurrency' | 'formatPercent'
+  > = {
+    formatNumber,
+    formatCurrency,
+    formatPercent,
+  },
+) {
   return {
     text(options: TextColumnOptions<TRow>): ColumnDef<TRow> {
       return createAccessorColumn({
@@ -191,7 +205,7 @@ export function createColumnHelpers<TRow extends object>() {
         ...options,
         headerClassName: cn('text-right', options.headerClassName),
         cellClassName: cn('text-right tabular-nums', options.cellClassName),
-        cell: (value) => formatNumber(value, options.options),
+        cell: (value) => formatters.formatNumber(value, options.options),
       });
     },
 
@@ -202,7 +216,7 @@ export function createColumnHelpers<TRow extends object>() {
         ...options,
         headerClassName: cn('text-right', options.headerClassName),
         cellClassName: cn('text-right tabular-nums', options.cellClassName),
-        cell: (value) => formatCurrencyVND(value),
+        cell: (value) => formatters.formatCurrency(value),
       });
     },
 
@@ -211,7 +225,8 @@ export function createColumnHelpers<TRow extends object>() {
         ...options,
         headerClassName: cn('text-right', options.headerClassName),
         cellClassName: cn('text-right tabular-nums', options.cellClassName),
-        cell: (value) => formatPercent(value, options.fractionDigits),
+        cell: (value) =>
+          formatters.formatPercent(value, options.fractionDigits),
       });
     },
 

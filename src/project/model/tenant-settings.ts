@@ -4,6 +4,17 @@ export const DEFAULT_PAYMENT_REMINDER_DAYS = 7;
 export const MAX_PAYMENT_REMINDER_DAYS = 365;
 export const DEFAULT_CHARGE_GENERATION_LEAD_DAYS = 0;
 export const MAX_CHARGE_GENERATION_LEAD_DAYS = 365;
+export const NUMBER_FORMAT_LOCALES = ['vi-VN', 'en-US'] as const;
+export const NUMBER_FORMAT_COMPACT_DISPLAYS = ['long', 'short'] as const;
+export const DEFAULT_NUMBER_FORMAT_LOCALE = 'vi-VN';
+export const DEFAULT_NUMBER_FORMAT_CURRENCY_CODE = 'VND';
+export const DEFAULT_NUMBER_FORMAT_COMPACT_DISPLAY = 'long';
+
+const currencyCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z]{3}$/, 'Mã tiền tệ phải gồm 3 ký tự chữ in hoa.');
 
 export const tenantSettingsSchema = z.object({
   name: z.string().trim().min(1, 'Vui lòng nhập tên tổ chức.'),
@@ -34,6 +45,9 @@ export const tenantSettingsSchema = z.object({
       MAX_CHARGE_GENERATION_LEAD_DAYS,
       `Số ngày không được lớn hơn ${MAX_CHARGE_GENERATION_LEAD_DAYS}.`,
     ),
+  numberLocale: z.enum(NUMBER_FORMAT_LOCALES),
+  currencyCode: currencyCodeSchema,
+  compactDisplay: z.enum(NUMBER_FORMAT_COMPACT_DISPLAYS),
 });
 
 export type TenantSettingsValues = z.infer<typeof tenantSettingsSchema>;
@@ -58,6 +72,9 @@ export const emptyTenantSettings: TenantSettingsValues = {
   website: '',
   paymentReminderDays: DEFAULT_PAYMENT_REMINDER_DAYS,
   chargeGenerationLeadDays: DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
+  numberLocale: DEFAULT_NUMBER_FORMAT_LOCALE,
+  currencyCode: DEFAULT_NUMBER_FORMAT_CURRENCY_CODE,
+  compactDisplay: DEFAULT_NUMBER_FORMAT_COMPACT_DISPLAY,
 };
 
 export function mapTenantSettingsRow(
@@ -75,6 +92,9 @@ export function mapTenantSettingsRow(
     website: getStringSetting(row.settings, 'website'),
     paymentReminderDays: getPaymentReminderDays(row.settings),
     chargeGenerationLeadDays: getChargeGenerationLeadDays(row.settings),
+    numberLocale: getNumberLocale(row.settings),
+    currencyCode: getCurrencyCode(row.settings),
+    compactDisplay: getCompactDisplay(row.settings),
   };
 }
 
@@ -105,4 +125,37 @@ export function getChargeGenerationLeadDays(
     value <= MAX_CHARGE_GENERATION_LEAD_DAYS
     ? value
     : DEFAULT_CHARGE_GENERATION_LEAD_DAYS;
+}
+
+export function getNumberLocale(
+  settings: Record<string, unknown> | null | undefined,
+) {
+  const value = settings?.numberLocale;
+  return isNumberLocale(value) ? value : DEFAULT_NUMBER_FORMAT_LOCALE;
+}
+
+export function getCurrencyCode(
+  settings: Record<string, unknown> | null | undefined,
+) {
+  const value = settings?.currencyCode;
+  return typeof value === 'string' && /^[A-Z]{3}$/.test(value)
+    ? value
+    : DEFAULT_NUMBER_FORMAT_CURRENCY_CODE;
+}
+
+export function getCompactDisplay(
+  settings: Record<string, unknown> | null | undefined,
+) {
+  const value = settings?.compactDisplay;
+  return value === 'short' || value === 'long'
+    ? value
+    : DEFAULT_NUMBER_FORMAT_COMPACT_DISPLAY;
+}
+
+function isNumberLocale(
+  value: unknown,
+): value is (typeof NUMBER_FORMAT_LOCALES)[number] {
+  return NUMBER_FORMAT_LOCALES.includes(
+    value as (typeof NUMBER_FORMAT_LOCALES)[number],
+  );
 }

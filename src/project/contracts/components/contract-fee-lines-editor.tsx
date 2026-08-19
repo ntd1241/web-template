@@ -10,6 +10,7 @@ import {
 } from 'react-hook-form';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -22,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { InputSelect } from '@/components/ui/input-select';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
+import { NumericInput } from '@/components/ui/inputs/numeric-input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
@@ -136,17 +138,14 @@ function BillingPeriodField({
       </label>
       <InputSelect
         input={
-          <Input
+          <NumericInput
             id={inputId}
-            type="number"
             min={1}
             variant="md"
             value={interval.field.value ?? ''}
             onBlur={interval.field.onBlur}
-            onChange={(event) => {
-              interval.field.onChange(
-                event.target.value === '' ? null : Number(event.target.value),
-              );
+            onValueChange={(value) => {
+              interval.field.onChange(value ?? null);
               onSync();
             }}
             ref={interval.field.ref}
@@ -198,6 +197,7 @@ export const ContractFeeLinesEditor = forwardRef<
   ContractFeeLinesEditorRef,
   ContractFeeLinesEditorProps
 >(function ContractFeeLinesEditor({ lines, onChange, currencyField }, ref) {
+  const { formatCurrency } = useNumberFormat();
   const form = useForm<ContractFeeLinesFormValues>({
     resolver: zodResolver(contractFeeLinesFormSchema),
     mode: 'onChange',
@@ -337,18 +337,12 @@ export const ContractFeeLinesEditor = forwardRef<
                       <FormItem className="min-w-0">
                         <FormLabel>Số lượng</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <NumericInput
                             min={0}
-                            step="any"
                             variant="ghost"
                             value={inputField.value}
-                            onChange={(event) => {
-                              inputField.onChange(
-                                event.target.value === ''
-                                  ? 0
-                                  : Number(event.target.value),
-                              );
+                            onValueChange={(value) => {
+                              inputField.onChange(value ?? 0);
                               syncParent();
                             }}
                           />
@@ -369,18 +363,12 @@ export const ContractFeeLinesEditor = forwardRef<
                       <FormItem className="min-w-0">
                         <FormLabel>Đơn giá</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <NumericInput
                             min={0}
-                            step="any"
                             variant="ghost"
                             value={inputField.value}
-                            onChange={(event) => {
-                              inputField.onChange(
-                                event.target.value === ''
-                                  ? 0
-                                  : Number(event.target.value),
-                              );
+                            onValueChange={(value) => {
+                              inputField.onChange(value ?? 0);
                               syncParent();
                             }}
                           />
@@ -406,7 +394,7 @@ export const ContractFeeLinesEditor = forwardRef<
                           : 'text-rose-600 dark:text-rose-400',
                       )}
                     >
-                      {new Intl.NumberFormat('vi-VN').format(amount)} VND
+                      {formatCurrency(amount)}
                     </span>
                   </div>
                 </div>
@@ -558,17 +546,12 @@ export const ContractFeeLinesEditor = forwardRef<
                         <FormItem variant="compact" className="md:col-span-2">
                           <FormLabel>Số ngày</FormLabel>
                           <FormControl>
-                            <Input
-                              type="number"
+                            <NumericInput
                               min={0}
                               variant="md"
                               value={inputField.value ?? ''}
-                              onChange={(event) => {
-                                inputField.onChange(
-                                  event.target.value === ''
-                                    ? null
-                                    : Number(event.target.value),
-                                );
+                              onValueChange={(value) => {
+                                inputField.onChange(value ?? null);
                                 syncParent();
                               }}
                             />

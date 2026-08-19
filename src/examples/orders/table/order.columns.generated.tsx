@@ -6,6 +6,7 @@
  */
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { createColumnHelpers } from '@/components/ui/data-grid-columns';
 import type { Order } from '../model/order';
 
@@ -24,8 +25,14 @@ export interface UseOrderColumnsParams {
 export function useOrderColumns(
   params: UseOrderColumnsParams,
 ): ColumnDef<Order>[] {
+  const { formatNumber, formatCurrency, formatPercent } = useNumberFormat();
+
   return useMemo(() => {
-    const col = createColumnHelpers<Order>();
+    const col = createColumnHelpers<Order>({
+      formatNumber,
+      formatCurrency,
+      formatPercent,
+    });
 
     return [
       col.select(),
@@ -66,5 +73,5 @@ export function useOrderColumns(
         enableSorting: false,
       }),
     ];
-  }, [params.onStatusEdit]);
+  }, [formatNumber, formatCurrency, formatPercent, params.onStatusEdit]);
 }

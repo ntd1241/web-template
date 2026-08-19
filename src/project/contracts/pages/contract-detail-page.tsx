@@ -15,6 +15,7 @@ import {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,7 +46,6 @@ import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import {
   activateContract,
   deleteContract,
-  formatContractAmount,
   loadContractDetail,
   loadContractPaymentPeriodCount,
   type ContractDetail,
@@ -119,6 +119,7 @@ function ContractInformationCard({
   onActivate: () => void;
   isActivating: boolean;
 }) {
+  const { formatCurrency } = useNumberFormat();
   const stats = getContractReceivableStats(contract.charges);
 
   return (
@@ -224,22 +225,19 @@ function ContractInformationCard({
             icon={FileText}
             iconTone="info"
             label="Tổng đã lập"
-            value={formatContractAmount(
-              stats.totalBilled,
-              contract.currencyCode,
-            )}
+            value={formatCurrency(stats.totalBilled, contract.currencyCode)}
           />
           <StatCard
             icon={CircleCheck}
             iconTone="success"
             label="Đã thanh toán"
-            value={formatContractAmount(stats.totalPaid, contract.currencyCode)}
+            value={formatCurrency(stats.totalPaid, contract.currencyCode)}
           />
           <StatCard
             icon={WalletCards}
             iconTone="warning"
             label="Còn phải thu"
-            value={formatContractAmount(
+            value={formatCurrency(
               stats.totalOutstanding,
               contract.currencyCode,
             )}
@@ -249,7 +247,7 @@ function ContractInformationCard({
             icon={TriangleAlert}
             iconTone="danger"
             label="Quá hạn"
-            value={formatContractAmount(
+            value={formatCurrency(
               stats.overdueOutstanding,
               contract.currencyCode,
             )}

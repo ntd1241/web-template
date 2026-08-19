@@ -16,6 +16,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -84,10 +85,6 @@ const STEPS = [
   },
 ] as const;
 
-function formatAmount(amount: number) {
-  return `${new Intl.NumberFormat('vi-VN').format(amount)} VND`;
-}
-
 function toEditableLines(
   contract: ContractDetail,
 ): ContractVersionLineValuesForApi[] {
@@ -114,6 +111,7 @@ export function ContractCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userId = useAuthStore((state) => state.user?.id);
+  const { formatCurrency } = useNumberFormat();
   const editingContractId = searchParams.get('edit');
   const isEditMode = Boolean(editingContractId);
   const [step, setStep] = useState(1);
@@ -545,7 +543,7 @@ export function ContractCreatePage() {
                     />
                     <ReviewValue
                       label="Tổng khoản phí"
-                      value={formatAmount(totalAmount)}
+                      value={formatCurrency(totalAmount, values.currencyCode)}
                     />
                   </div>
                   <Card className="bg-muted/30 shadow-none">
@@ -566,7 +564,10 @@ export function ContractCreatePage() {
                             {line.name || `Khoản phí ${index + 1}`}
                           </span>
                           <span className="shrink-0 font-semibold tabular-nums">
-                            {formatAmount(line.quantity * line.unitPrice)}
+                            {formatCurrency(
+                              line.quantity * line.unitPrice,
+                              values.currencyCode,
+                            )}
                           </span>
                         </div>
                       ))}

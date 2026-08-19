@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,10 +27,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/inputs/numeric-input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { formatContractAmount } from '../api/contracts.api';
 import {
   calculateContractPaymentAllocations,
   roundCurrencyAmount,
@@ -82,10 +82,12 @@ function PaymentAllocationProgress({
   allocatedAmount,
   outstandingAmount,
   currencyCode,
+  formatAmount,
 }: {
   allocatedAmount: number;
   outstandingAmount: number;
   currencyCode: string;
+  formatAmount: (value: number, currencyCode?: string) => string;
 }) {
   const progress =
     outstandingAmount > 0
@@ -104,7 +106,7 @@ function PaymentAllocationProgress({
       data-testid="payment-allocation-progress"
       data-payment-tone={tone}
       className={`relative h-8 w-36 overflow-hidden rounded-md border ${toneClasses.container}`}
-      aria-label={`Đã phân bổ ${formatContractAmount(allocatedAmount, currencyCode)} trên ${formatContractAmount(outstandingAmount, currencyCode)}`}
+      aria-label={`Đã phân bổ ${formatAmount(allocatedAmount, currencyCode)} trên ${formatAmount(outstandingAmount, currencyCode)}`}
     >
       <div
         aria-hidden="true"
@@ -112,7 +114,7 @@ function PaymentAllocationProgress({
         style={{ width: `${progress}%` }}
       />
       <span className="relative flex h-full items-center justify-center px-2 text-xs font-semibold tabular-nums">
-        {formatContractAmount(allocatedAmount, currencyCode)}
+        {formatAmount(allocatedAmount, currencyCode)}
       </span>
     </div>
   );
@@ -122,10 +124,12 @@ function SortableAllocationRow({
   fee,
   allocatedAmount,
   currencyCode,
+  formatAmount,
 }: {
   fee: ContractReceivableTableFee;
   allocatedAmount: number;
   currencyCode: string;
+  formatAmount: (value: number, currencyCode?: string) => string;
 }) {
   const {
     attributes,
@@ -158,12 +162,13 @@ function SortableAllocationRow({
         {fee.name}
       </span>
       <span className="text-right text-sm tabular-nums text-muted-foreground">
-        {formatContractAmount(fee.outstandingAmount, currencyCode)}
+        {formatAmount(fee.outstandingAmount, currencyCode)}
       </span>
       <PaymentAllocationProgress
         allocatedAmount={allocatedAmount}
         outstandingAmount={fee.outstandingAmount}
         currencyCode={currencyCode}
+        formatAmount={formatAmount}
       />
     </div>
   );
@@ -177,6 +182,7 @@ export function ContractPaymentDialog({
   onOpenChange,
   onSubmit,
 }: ContractPaymentDialogProps) {
+  const { formatCurrency } = useNumberFormat();
   const [amountValue, setAmountValue] = useState('');
   const [orderedFees, setOrderedFees] = useState<ContractReceivableTableFee[]>(
     [],
@@ -250,22 +256,23 @@ export function ContractPaymentDialog({
         <DialogBody className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
           <div className="space-y-2">
             <Label htmlFor="contract-payment-amount">Số tiền thanh toán</Label>
-            <Input
+            <NumericInput
               id="contract-payment-amount"
               variant="ghost"
-              type="number"
-              min="0.01"
+              min={0.01}
               max={maxAmount}
-              step="0.01"
+              step={0.01}
               value={amountValue}
-              onChange={(event) => setAmountValue(event.target.value)}
+              onValueChange={(value) =>
+                setAmountValue(value === undefined ? '' : String(value))
+              }
               aria-invalid={amountValue !== '' && !isAmountValid}
               className="h-12 rounded-none border-0 bg-transparent px-0 text-2xl font-semibold text-primary shadow-none focus-visible:border-0 focus-visible:bg-transparent focus-visible:text-primary focus-visible:ring-0 aria-invalid:border-0 aria-invalid:ring-0"
             />
             <p className="text-xs text-muted-foreground">
               Tối đa:{' '}
               <span className="font-medium text-foreground">
-                {formatContractAmount(maxAmount, currencyCode)}
+                {formatCurrency(maxAmount, currencyCode)}
               </span>
             </p>
             {amountValue !== '' && !isAmountValid ? (
@@ -308,6 +315,7 @@ export function ContractPaymentDialog({
                         )?.allocatedAmount ?? 0
                       }
                       currencyCode={currencyCode}
+                      formatAmount={formatCurrency}
                     />
                   ))}
                 </div>

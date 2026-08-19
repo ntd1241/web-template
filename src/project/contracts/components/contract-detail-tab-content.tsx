@@ -9,6 +9,7 @@ import {
 import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import {
   Card,
   CardContent,
@@ -24,10 +25,7 @@ import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  formatContractAmount,
-  recordContractPeriodPayment,
-} from '../api/contracts.api';
+import { recordContractPeriodPayment } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
   BILLING_TYPE_LABELS,
@@ -61,7 +59,15 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function FeeLine({ line }: { line: ContractVersionLine }) {
+function FeeLine({
+  line,
+  formatAmount,
+  currencyCode,
+}: {
+  line: ContractVersionLine;
+  formatAmount: (value: number, currencyCode?: string) => string;
+  currencyCode: string;
+}) {
   const cycle =
     line.billingType === 'recurring'
       ? `${line.billingInterval ?? 1} ${BILLING_UNIT_LABELS[line.billingUnit ?? 'month'].toLowerCase()}`
@@ -77,7 +83,7 @@ function FeeLine({ line }: { line: ContractVersionLine }) {
         </p>
       </div>
       <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-        {formatContractAmount(line.amount)}
+        {formatAmount(line.amount, currencyCode)}
       </p>
     </div>
   );
@@ -88,6 +94,7 @@ export function ContractOverviewContent({
 }: {
   contract: ContractDetail;
 }) {
+  const { formatCurrency } = useNumberFormat();
   const latestVersion = contract.versions[0];
   const latestLines = contract.lines.filter(
     (line) => line.contractVersionId === latestVersion?.id,
@@ -107,7 +114,14 @@ export function ContractOverviewContent({
       </CardHeader>
       <CardContent className="space-y-3">
         {latestLines.length > 0 ? (
-          latestLines.map((line) => <FeeLine key={line.id} line={line} />)
+          latestLines.map((line) => (
+            <FeeLine
+              key={line.id}
+              line={line}
+              formatAmount={formatCurrency}
+              currencyCode={contract.currencyCode}
+            />
+          ))
         ) : (
           <p className="text-sm text-muted-foreground">Chưa có khoản phí.</p>
         )}

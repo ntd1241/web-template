@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createNumberFormatters,
   formatCompact,
   formatCurrencyVND,
   formatNumber,
@@ -21,7 +22,32 @@ describe('format helpers', () => {
   });
 
   it('formats compact Vietnamese numbers', () => {
-    expect(formatCompact(1200000)).toMatch(/^1,2\s*(Tr|tr)$/);
+    expect(formatCompact(1200000)).toBe('1,2 triệu');
+  });
+
+  it('supports organization-specific locale and compact display settings', () => {
+    const shortVietnamese = createNumberFormatters({
+      locale: 'vi-VN',
+      currencyCode: 'VND',
+      compactDisplay: 'short',
+    });
+    const english = createNumberFormatters({
+      locale: 'en-US',
+      currencyCode: 'USD',
+      compactDisplay: 'long',
+    });
+
+    expect(shortVietnamese.inputSeparators).toEqual({
+      thousandSeparator: '.',
+      decimalSeparator: ',',
+    });
+    expect(shortVietnamese.formatCompact(1200000)).toBe('1,2\u00a0Tr');
+    expect(english.inputSeparators).toEqual({
+      thousandSeparator: ',',
+      decimalSeparator: '.',
+    });
+    expect(english.formatCurrency(1234.5)).toBe('$1,235');
+    expect(english.formatCompactCurrency(1200000)).toMatch(/^\$1\.2 million$/);
   });
 
   it('returns an empty string for nullish or NaN values', () => {

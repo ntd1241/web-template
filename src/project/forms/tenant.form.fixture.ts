@@ -86,6 +86,33 @@ const spec: FormSpec = {
       width: 'normal',
       format: 'plain',
     },
+    {
+      kind: 'select',
+      name: 'numberLocale',
+      label: 'Định dạng số',
+      width: 'normal',
+      options: [
+        { value: 'vi-VN', label: 'Việt Nam (1.234,56)' },
+        { value: 'en-US', label: 'Quốc tế (1,234.56)' },
+      ],
+    },
+    {
+      kind: 'text',
+      name: 'currencyCode',
+      label: 'Mã tiền tệ mặc định',
+      width: 'normal',
+      placeholder: 'VND',
+    },
+    {
+      kind: 'select',
+      name: 'compactDisplay',
+      label: 'Đơn vị số rút gọn',
+      width: 'normal',
+      options: [
+        { value: 'long', label: 'Đầy đủ (triệu, tỷ)' },
+        { value: 'short', label: 'Viết tắt (Tr, Tỷ)' },
+      ],
+    },
   ],
 };
 

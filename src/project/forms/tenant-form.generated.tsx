@@ -1,13 +1,18 @@
 /**
  * Scaffolded by form-builder from `src/project/forms/tenant.form.fixture.ts`. Run `npm run gen:form` — do NOT hand-write this file.
- * You own this file now — wire submit + edit reset behavior in the parent. To change fields,
- * widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits. Do not
- * hand-edit this banner or the generated options consts — that's how review detects a bypassed builder.
+ * You own this file now — keep create and edit dialog state separate in the parent. Create forms
+ * keep their draft when closed; edit forms reset after the selected entity is assigned on the next
+ * open. Never clear the selected entity or reset the form while an edit dialog is closing. To change
+ * fields, widths or layout, edit the spec and re-gen to a scratch path, then reconcile your edits.
+ * Do not hand-edit this banner or the generated options consts — that's how review detects a
+ * bypassed builder.
  */
+import { useState, type KeyboardEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { UseFormProps, UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Dialog,
   DialogContent,
@@ -26,14 +31,30 @@ import {
 } from '@/components/ui/form';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
-  DEFAULT_PAYMENT_REMINDER_DAYS,
   tenantSettingsSchema,
   type TenantSettingsValues,
 } from '../model/tenant-settings';
+
+const numberLocaleOptions = [
+  { value: 'vi-VN', label: 'Việt Nam (1.234,56)' },
+  { value: 'en-US', label: 'Quốc tế (1,234.56)' },
+];
+
+const compactDisplayOptions = [
+  { value: 'long', label: 'Đầy đủ (triệu, tỷ)' },
+  { value: 'short', label: 'Viết tắt (Tr, Tỷ)' },
+];
 
 export const tenantSettingsDefaultValues: TenantSettingsValues = {
   logoUrl: '',
@@ -45,8 +66,11 @@ export const tenantSettingsDefaultValues: TenantSettingsValues = {
   phone: '',
   address: '',
   website: '',
-  paymentReminderDays: DEFAULT_PAYMENT_REMINDER_DAYS,
-  chargeGenerationLeadDays: DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
+  paymentReminderDays: 0,
+  chargeGenerationLeadDays: 0,
+  numberLocale: '',
+  currencyCode: '',
+  compactDisplay: '',
 };
 
 // TODO(scaffold): replace with the real entity type used for edit-mode mapping.
@@ -273,6 +297,70 @@ export function TenantSettingsForm({
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="numberLocale"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Định dạng số</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {numberLocaleOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="currencyCode"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Mã tiền tệ mặc định</FormLabel>
+                <FormControl>
+                  <Input placeholder="VND" variant="md" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="compactDisplay"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Đơn vị số rút gọn</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {compactDisplayOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       </form>
     </Form>
@@ -282,6 +370,7 @@ export function TenantSettingsForm({
 interface TenantSettingsFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode: 'create' | 'edit';
   form: UseFormReturn<TenantSettingsValues>;
   onSubmit: (values: TenantSettingsValues) => void;
   isSaving?: boolean;
@@ -292,55 +381,103 @@ interface TenantSettingsFormDialogProps {
 export function TenantSettingsFormDialog({
   open,
   onOpenChange,
+  mode,
   form,
   onSubmit,
   isSaving = false,
   title,
   onLogoUrlFileChange,
 }: TenantSettingsFormDialogProps) {
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isSaving || !(event.ctrlKey || event.metaKey)) return;
+
+    const key = event.key.toLowerCase();
+    if (key !== 's' && key !== 'enter') return;
+
+    event.preventDefault();
+    void form.handleSubmit(onSubmit)();
+  };
+  const requestClose = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    if (mode === 'edit') {
+      setConfirmCloseOpen(true);
+      return;
+    }
+
+    onOpenChange(false);
+  };
+
+  const confirmClose = () => {
+    setConfirmCloseOpen(false);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
-          <DialogTitle>{title ?? 'Thông tin tổ chức'}</DialogTitle>
-          <DialogDescription>
-            Cập nhật thông tin nhận diện và liên hệ của tổ chức.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={requestClose}>
+        <DialogContent
+          className="flex max-h-[90dvh] max-w-2xl flex-col gap-0 overflow-hidden p-0"
+          onKeyDown={handleDialogKeyDown}
+        >
+          <DialogHeader className="shrink-0 space-y-1.5 px-6 py-5 text-start">
+            <DialogTitle>{title ?? 'Thông tin tổ chức'}</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin nhận diện và liên hệ của tổ chức.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Separator />
+          <Separator />
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-          <TenantSettingsForm
-            form={form}
-            onSubmit={onSubmit}
-            id="tenantSettings-form"
-            onLogoUrlFileChange={onLogoUrlFileChange}
-          />
-        </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            <TenantSettingsForm
+              form={form}
+              onSubmit={onSubmit}
+              id="tenantSettings-form"
+              onLogoUrlFileChange={onLogoUrlFileChange}
+            />
+          </div>
 
-        <Separator />
+          <Separator />
 
-        <DialogFooter className="shrink-0 px-6 py-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSaving}
-          >
-            Hủy
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            form="tenantSettings-form"
-            loading={isSaving}
-            loadingText="Đang lưu..."
-          >
-            Lưu
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter className="shrink-0 px-6 py-4">
+            <ShortcutTooltip label="Hủy" shortcut="Esc">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => requestClose(false)}
+                disabled={isSaving}
+              >
+                Hủy
+              </Button>
+            </ShortcutTooltip>
+            <ShortcutTooltip label="Lưu" shortcut="Ctrl/Cmd + S">
+              <Button
+                type="submit"
+                variant="primary"
+                form="tenantSettings-form"
+                loading={isSaving}
+                loadingText="Đang lưu..."
+              >
+                Lưu
+              </Button>
+            </ShortcutTooltip>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog
+        open={confirmCloseOpen}
+        onOpenChange={setConfirmCloseOpen}
+        title="Đóng chỉnh sửa?"
+        description="Bạn có thay đổi chưa lưu. Nếu đóng, các thay đổi hiện tại sẽ bị mất."
+        confirmLabel="Đóng"
+        confirmVariant="destructive"
+        onConfirm={confirmClose}
+      />
+    </>
   );
 }

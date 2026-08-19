@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/lib/format';
 import {
   getPublicStorageUrl,
   removeStorageObjects,
@@ -1142,9 +1143,5 @@ export async function deleteContract(contractId: string) {
 }
 
 export function formatContractAmount(amount: number, currencyCode = 'VND') {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: currencyCode,
-    maximumFractionDigits: 0,
-  }).format(numberValue(amount));
+  return formatCurrency(numberValue(amount), currencyCode);
 }

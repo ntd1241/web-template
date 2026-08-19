@@ -298,19 +298,19 @@ function emitHookParamsInterface(spec: TableSpec, hookName: string): string {
   return `export interface ${interfaceName} {\n${lines.map((line) => `  ${line}`).join('\n')}\n}`;
 }
 
-function emitMemoDeps(columns: ColumnSpec[]): string {
-  const deps = editableSelectColumns(columns).flatMap((col) => {
-    const values = [`params.on${pascalCase(col.id)}Edit`];
-    if (col.optionsFrom === 'prop') values.push(`params.${col.id}Options`);
-    return values;
-  });
-
-  return deps.length > 0 ? `[${deps.join(', ')}]` : '[]';
+function hasNumberFormatColumns(columns: ColumnSpec[]): boolean {
+  return columns.some(
+    (column) =>
+      column.kind === 'number' ||
+      column.kind === 'currency' ||
+      column.kind === 'percent',
+  );
 }
 
 /** Build the import block, including only what the columns actually use. */
 function emitImports(spec: TableSpec): string {
   const hasBadge = spec.columns.some((col) => col.kind === 'badge');
+  const hasFormatters = hasNumberFormatColumns(spec.columns);
 
   const lines = ["import { useMemo } from 'react';"];
   lines.push("import type { ColumnDef } from '@tanstack/react-table';");
@@ -319,6 +319,11 @@ function emitImports(spec: TableSpec): string {
       ? "import {\n  createColumnHelpers,\n  type StatusBadgeConfig,\n} from '@/components/ui/data-grid-columns';"
       : "import { createColumnHelpers } from '@/components/ui/data-grid-columns';",
   );
+  if (hasFormatters) {
+    lines.push(
+      "import { useNumberFormat } from '@/providers/number-format-provider';",
+    );
+  }
   lines.push(`import type { ${spec.entity} } from ${quote(spec.modelImport)};`);
   return lines.join('\n');
 }
@@ -327,18 +332,33 @@ export function buildColumnsModule(input: TableSpec): string {
   const spec = tableSpecSchema.parse(input);
   const hookName = spec.hookName ?? `use${spec.entity}Columns`;
   const hasEditableColumns = editableSelectColumns(spec.columns).length > 0;
+  const hasFormatters = hasNumberFormatColumns(spec.columns);
   const paramsInterface = emitHookParamsInterface(spec, hookName);
   const paramsSignature = hasEditableColumns
     ? `params: ${pascalCase(hookName)}Params`
     : '';
-  const memoDeps = emitMemoDeps(spec.columns);
-
   const calls = spec.columns
     .map((col) => indent(`${emitColumnCall(col)},`, 6))
     .join('\n');
 
-  const memoBody = `const col = createColumnHelpers<${spec.entity}>();\n\nreturn [\n${calls}\n];`;
-  const fn = `export function ${hookName}(${paramsSignature}): ColumnDef<${spec.entity}>[] {\n  return useMemo(() => {\n${indent(memoBody, 4)}\n  }, ${memoDeps});\n}`;
+  const formatterHook = hasFormatters
+    ? '  const { formatNumber, formatCurrency, formatPercent } = useNumberFormat();\n\n'
+    : '';
+  const formatterSetup = hasFormatters
+    ? `const col = createColumnHelpers<${spec.entity}>({\n  formatNumber,\n  formatCurrency,\n  formatPercent,\n});`
+    : `const col = createColumnHelpers<${spec.entity}>();`;
+  const memoBody = `${formatterSetup}\n\nreturn [\n${calls}\n];`;
+  const formatterDeps = hasFormatters
+    ? ['formatNumber', 'formatCurrency', 'formatPercent']
+    : [];
+  const editableDeps = editableSelectColumns(spec.columns).flatMap((col) => {
+    const values = [`params.on${pascalCase(col.id)}Edit`];
+    if (col.optionsFrom === 'prop') values.push(`params.${col.id}Options`);
+    return values;
+  });
+  const deps = [...formatterDeps, ...editableDeps];
+  const hookMemoDeps = deps.length > 0 ? `[${deps.join(', ')}]` : '[]';
+  const fn = `export function ${hookName}(${paramsSignature}): ColumnDef<${spec.entity}>[] {\n${formatterHook}  return useMemo(() => {\n${indent(memoBody, 4)}\n  }, ${hookMemoDeps});\n}`;
 
   const badgeConfigs = emitBadgeConfigs(spec.columns);
   const editableSelectOptions = emitEditableSelectOptions(spec.columns);

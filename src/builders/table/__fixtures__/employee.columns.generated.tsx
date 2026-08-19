@@ -6,6 +6,7 @@
  */
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import {
   createColumnHelpers,
   type StatusBadgeConfig,
@@ -33,8 +34,14 @@ export interface UseEmployeeColumnsParams {
 export function useEmployeeColumns(
   params: UseEmployeeColumnsParams,
 ): ColumnDef<Employee>[] {
+  const { formatNumber, formatCurrency, formatPercent } = useNumberFormat();
+
   return useMemo(() => {
-    const col = createColumnHelpers<Employee>();
+    const col = createColumnHelpers<Employee>({
+      formatNumber,
+      formatCurrency,
+      formatPercent,
+    });
 
     return [
       col.index({
@@ -102,5 +109,5 @@ export function useEmployeeColumns(
         cell: () => null,
       }),
     ];
-  }, [params.onStatusSelectEdit]);
+  }, [formatNumber, formatCurrency, formatPercent, params.onStatusSelectEdit]);
 }

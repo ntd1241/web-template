@@ -91,12 +91,17 @@ describe('buildColumnsModule', () => {
     expect(source).toContain('config: statusBadgeConfig,');
   });
 
-  it('emits inline cell stubs for actions/custom (no callbacks, deps stay [])', () => {
+  it('emits inline cell stubs for actions/custom and tenant formatters', () => {
     expect(source).toContain('col.custom({');
     expect(source).toContain('col.actions({');
     expect(source).toContain('// TODO(scaffold): điền nội dung cell');
     expect(source).toContain('cell: () => null,');
-    expect(source).toContain('}, []);');
+    expect(source).toContain(
+      "import { useNumberFormat } from '@/providers/number-format-provider';",
+    );
+    expect(source).toContain(
+      '}, [formatNumber, formatCurrency, formatPercent]);',
+    );
     expect(source).not.toContain('options');
   });
 

@@ -13,6 +13,7 @@ import {
   createColumnHelpers,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import type { Employee } from '../model/employee';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
@@ -21,8 +22,14 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
 };
 
 export function useEmployeeColumns(): ColumnDef<Employee>[] {
+  const { formatNumber, formatCurrency, formatPercent } = useNumberFormat();
+
   return useMemo(() => {
-    const col = createColumnHelpers<Employee>();
+    const col = createColumnHelpers<Employee>({
+      formatNumber,
+      formatCurrency,
+      formatPercent,
+    });
 
     return [
           col.index({
@@ -65,7 +72,7 @@ export function useEmployeeColumns(): ColumnDef<Employee>[] {
             cell: () => null,
           }),
     ];
-  }, []);
+  }, [formatNumber, formatCurrency, formatPercent]);
 }
 "
 `;

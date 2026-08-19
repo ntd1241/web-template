@@ -5,6 +5,7 @@ import type {
   NumericFormatProps,
 } from 'react-number-format';
 import { cn } from '@/lib/utils';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { inputVariants } from '@/components/ui/input';
 
 /**
@@ -43,10 +44,11 @@ export function NumericInput({
   onValueChange,
   allowNegative = false,
   decimalScale,
-  thousandSeparator = '.',
-  decimalSeparator = ',',
+  thousandSeparator,
+  decimalSeparator,
   ...props
 }: NumericInputProps) {
+  const { inputSeparators } = useNumberFormat();
   const handleValueChange = (values: NumberFormatValues) => {
     onValueChange?.(values.value === '' ? undefined : values.floatValue);
   };
@@ -58,8 +60,8 @@ export function NumericInput({
       valueIsNumericString={typeof value === 'string'}
       allowNegative={allowNegative}
       decimalScale={decimalScale}
-      thousandSeparator={thousandSeparator}
-      decimalSeparator={decimalSeparator}
+      thousandSeparator={thousandSeparator ?? inputSeparators.thousandSeparator}
+      decimalSeparator={decimalSeparator ?? inputSeparators.decimalSeparator}
       onValueChange={handleValueChange}
       className={cn(
         inputVariants({ variant }),

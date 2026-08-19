@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { WalletCards } from 'lucide-react';
 import { formatDate } from '@/lib/date';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Button } from '@/components/ui/button';
 import { createColumnHelpers } from '@/components/ui/data-grid-columns';
 import { Tag } from '@/components/ui/tag';
@@ -16,7 +17,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { formatContractAmount } from '../api/contracts.api';
 import { ContractStatusBadge } from '../components/contract-status-badge';
 import type { ContractReceivableTableRow } from '../model/receivable';
 
@@ -27,6 +27,9 @@ export interface UseContractReceivableTableRowColumnsParams {
 export function useContractReceivableTableRowColumns(
   params: UseContractReceivableTableRowColumnsParams,
 ): ColumnDef<ContractReceivableTableRow>[] {
+  const { formatCurrency } = useNumberFormat();
+  const onPay = params.onPay;
+
   return useMemo(() => {
     const col = createColumnHelpers<ContractReceivableTableRow>();
 
@@ -70,7 +73,7 @@ export function useContractReceivableTableRowColumns(
                     <p className="font-medium">{fee.name}</p>
                     <p>
                       {row.direction === 'receivable' ? 'Phải thu' : 'Phải trả'}{' '}
-                      : {formatContractAmount(fee.amount, fee.currencyCode)}
+                      : {formatCurrency(fee.amount, fee.currencyCode)}
                     </p>
                   </div>
                 </TooltipContent>
@@ -94,7 +97,7 @@ export function useContractReceivableTableRowColumns(
         cellClassName: 'text-right tabular-nums',
         size: 160,
         enableSorting: false,
-        cell: (row) => formatContractAmount(row.amount, row.currencyCode),
+        cell: (row) => formatCurrency(row.amount, row.currencyCode),
       }),
       col.custom({
         id: 'outstandingAmount',
@@ -109,7 +112,7 @@ export function useContractReceivableTableRowColumns(
               row.outstandingAmount > 0 ? 'text-destructive' : 'text-foreground'
             }
           >
-            {formatContractAmount(row.outstandingAmount, row.currencyCode)}
+            {formatCurrency(row.outstandingAmount, row.currencyCode)}
           </span>
         ),
       }),
@@ -141,7 +144,7 @@ export function useContractReceivableTableRowColumns(
               variant="ghost"
               size="sm"
               className="text-primary"
-              onClick={() => params.onPay(row)}
+              onClick={() => onPay(row)}
               aria-label={`Thanh toán kỳ ${formatDate(row.periodStart)}`}
             >
               <WalletCards />
@@ -150,5 +153,5 @@ export function useContractReceivableTableRowColumns(
           ) : null,
       }),
     ];
-  }, [params.onPay]);
+  }, [formatCurrency, onPay]);
 }

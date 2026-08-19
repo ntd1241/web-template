@@ -103,6 +103,9 @@ export async function updateTenantSettings(
           website: values.website,
           paymentReminderDays: values.paymentReminderDays,
           chargeGenerationLeadDays: values.chargeGenerationLeadDays,
+          numberLocale: values.numberLocale,
+          currencyCode: values.currencyCode,
+          compactDisplay: values.compactDisplay,
         },
       },
       {
