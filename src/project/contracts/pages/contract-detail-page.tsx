@@ -102,7 +102,6 @@ function ContractProfileCard({ contract }: { contract: ContractDetail }) {
           <CustomerIdentity customer={contract.customer} />
         </Link>
       </div>
-      <ContractStatusBadge status={contract.status} />
     </EntityDetailProfileCard>
   );
 }
@@ -164,6 +163,10 @@ function ContractInformationCard({
     >
       <EntityDetailInformationGrid>
         <DetailValue
+          label="Trạng thái"
+          value={<ContractStatusBadge status={contract.status} />}
+        />
+        <DetailValue
           label="Ngày bắt đầu"
           value={formatDate(contract.startDate)}
         />
@@ -171,7 +174,6 @@ function ContractInformationCard({
           label="Ngày kết thúc"
           value={formatDate(contract.endDate)}
         />
-        <DetailValue label="Mã hợp đồng" value={contract.contractCode} />
         <DetailValue
           label="Tự động gia hạn"
           value={contract.autoRenew ? 'Có' : 'Không'}
