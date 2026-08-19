@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   getCoreRowModel,
@@ -19,12 +19,21 @@ import {
   CardHeading,
   CardTable,
   CardTitle,
+  CardToolbar,
 } from '@/components/ui/card';
 import { CardEmptyState } from '@/components/ui/card-empty-state';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
+import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { recordContractPeriodPayment } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
@@ -34,8 +43,11 @@ import {
   type ContractVersionLine,
 } from '../model/contract';
 import {
+  CONTRACT_CHARGE_DISPLAY_STATUS_LABELS,
+  CONTRACT_CHARGE_DISPLAY_STATUSES,
   mapContractReceivableTableRows,
   type ContractChargeBalance,
+  type ContractChargeDisplayStatus,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
 } from '../model/receivable';
@@ -46,6 +58,76 @@ import {
   type ContractPaymentSubmission,
 } from './contract-payment-dialog';
 import { ContractStatusBadge } from './contract-status-badge';
+
+type ReceivableSortOption =
+  | 'periodStart_desc'
+  | 'periodStart_asc'
+  | 'dueDate_desc'
+  | 'dueDate_asc'
+  | 'amount_desc'
+  | 'amount_asc';
+
+const RECEIVABLE_SORT_OPTIONS: Array<{
+  value: ReceivableSortOption;
+  label: string;
+}> = [
+  { value: 'periodStart_desc', label: 'Kỳ mới nhất' },
+  { value: 'periodStart_asc', label: 'Kỳ cũ nhất' },
+  { value: 'dueDate_desc', label: 'Hạn thanh toán mới nhất' },
+  { value: 'dueDate_asc', label: 'Hạn thanh toán cũ nhất' },
+  { value: 'amount_desc', label: 'Số tiền cao nhất' },
+  { value: 'amount_asc', label: 'Số tiền thấp nhất' },
+];
+
+function normalizeSearchValue(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('vi-VN');
+}
+
+function compareReceivableRows(
+  first: ContractReceivableTableRow,
+  second: ContractReceivableTableRow,
+  sort: ReceivableSortOption,
+) {
+  const compareDates = (firstValue: string, secondValue: string) =>
+    firstValue.localeCompare(secondValue);
+
+  switch (sort) {
+    case 'periodStart_asc':
+      return (
+        compareDates(first.periodStart, second.periodStart) ||
+        compareDates(first.periodEnd, second.periodEnd)
+      );
+    case 'dueDate_desc':
+      return (
+        compareDates(second.dueDate, first.dueDate) ||
+        compareDates(second.periodStart, first.periodStart)
+      );
+    case 'dueDate_asc':
+      return (
+        compareDates(first.dueDate, second.dueDate) ||
+        compareDates(first.periodStart, second.periodStart)
+      );
+    case 'amount_desc':
+      return (
+        second.amount - first.amount ||
+        compareDates(second.periodStart, first.periodStart)
+      );
+    case 'amount_asc':
+      return (
+        first.amount - second.amount ||
+        compareDates(second.periodStart, first.periodStart)
+      );
+    case 'periodStart_desc':
+    default:
+      return (
+        compareDates(second.periodStart, first.periodStart) ||
+        compareDates(second.periodEnd, first.periodEnd)
+      );
+  }
+}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return 'Chưa cập nhật';
@@ -149,6 +231,11 @@ export function ContractReceivablesContent({
   currencyCode: string;
   onPaymentRecorded: () => Promise<void>;
 }) {
+  const [keyword, setKeyword] = useState('');
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | ContractChargeDisplayStatus
+  >('all');
+  const [sort, setSort] = useState<ReceivableSortOption>('periodStart_desc');
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -159,6 +246,39 @@ export function ContractReceivablesContent({
     () => mapContractReceivableTableRows(charges, lines, dueSoonDays),
     [charges, lines, dueSoonDays],
   );
+  const visibleRows = useMemo(() => {
+    const normalizedKeyword = normalizeSearchValue(keyword.trim());
+
+    return rows
+      .filter((row) => {
+        if (statusFilter !== 'all' && row.displayStatus !== statusFilter) {
+          return false;
+        }
+
+        if (!normalizedKeyword) return true;
+
+        const searchValues = [
+          row.periodStart,
+          row.periodEnd,
+          row.dueDate,
+          formatDate(row.periodStart),
+          formatDate(row.periodEnd),
+          formatDate(row.dueDate),
+          CONTRACT_CHARGE_DISPLAY_STATUS_LABELS[row.displayStatus],
+          ...row.fees.map((fee) => fee.name),
+        ];
+
+        return searchValues.some((value) =>
+          normalizeSearchValue(value).includes(normalizedKeyword),
+        );
+      })
+      .sort((first, second) => compareReceivableRows(first, second, sort));
+  }, [keyword, rows, sort, statusFilter]);
+  useEffect(() => {
+    setPagination((current) =>
+      current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
+    );
+  }, [keyword, sort, statusFilter]);
   const paymentMutation = useMutation({
     mutationFn: (submission: ContractPaymentSubmission) => {
       if (!paymentRow) throw new Error('Chưa chọn kỳ thanh toán.');
@@ -188,7 +308,7 @@ export function ContractReceivablesContent({
   }, []);
   const columns = useContractReceivableTableRowColumns({ onPay: handlePay });
   const table = useReactTable({
-    data: rows,
+    data: visibleRows,
     columns,
     getRowId: (row) => row.id,
     state: { pagination },
@@ -201,14 +321,69 @@ export function ContractReceivablesContent({
     <>
       <DataGrid
         table={table}
-        recordCount={rows.length}
+        recordCount={visibleRows.length}
         emptyMessage="Chưa có kỳ phải thu"
       >
         <Card className="min-h-0 overflow-hidden">
-          <CardHeader>
+          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
               <CardTitle>Kỳ thanh toán</CardTitle>
             </CardHeading>
+            <CardToolbar className="flex-wrap">
+              <SearchInput
+                className="w-72"
+                placeholder="Tìm theo khoản phí hoặc ngày"
+                value={keyword}
+                debounceMs={250}
+                onSearch={setKeyword}
+              />
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as 'all' | ContractChargeDisplayStatus)
+                }
+              >
+                <SelectTrigger
+                  className="w-48"
+                  aria-label="Lọc trạng thái kỳ thanh toán"
+                >
+                  <SelectValue label="Trạng thái" placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  {CONTRACT_CHARGE_DISPLAY_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      <ContractStatusBadge
+                        status={status}
+                        direction="receivable"
+                        size="sm"
+                        showDot
+                      />
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={sort}
+                onValueChange={(value) =>
+                  setSort(value as ReceivableSortOption)
+                }
+              >
+                <SelectTrigger
+                  className="w-52"
+                  aria-label="Sắp xếp kỳ thanh toán"
+                >
+                  <SelectValue label="Sắp xếp" placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECEIVABLE_SORT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardToolbar>
           </CardHeader>
           <CardTable className="min-h-0 flex-1">
             <ScrollArea className="h-full">
@@ -339,10 +514,6 @@ export function ContractPaymentsContent({
         <CardHeader>
           <CardHeading>
             <CardTitle>Lịch sử thanh toán</CardTitle>
-            <CardDescription>
-              Theo dõi khoản tiền đã nhận và số tiền đã phân bổ cho từng khoản
-              phí, kỳ thanh toán.
-            </CardDescription>
           </CardHeading>
         </CardHeader>
         <CardTable className="min-h-0 flex-1">

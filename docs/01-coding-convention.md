@@ -44,6 +44,10 @@ is available.
 - Memoize only when profiling or referential contracts justify it.
 - Extract a component when it gains an independent responsibility, not merely to reduce line count.
 - Use accessible names for icon-only controls.
+- When a select, filter, table, or other control represents a field with a shared badge/status
+  renderer, reuse that renderer for the option and selected value instead of duplicating its label
+  and colors. If the field has no shared renderer yet, create one first, then update existing and
+  new usages to consume it.
 
 ## State And Data Fetching
 

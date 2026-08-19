@@ -33,12 +33,9 @@ import {
 } from '@/components/ui/select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { deleteContract } from '../api/contracts.api';
+import { ContractStatusBadge } from '../components/contract-status-badge';
 import { useContractList } from '../hooks/use-contract-list';
-import {
-  CONTRACT_STATUS_LABELS,
-  CONTRACT_STATUSES,
-  type Contract,
-} from '../model/contract';
+import { CONTRACT_STATUSES, type Contract } from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
 
 export function ContractsPage() {
@@ -163,7 +160,7 @@ export function ContractsPage() {
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   {CONTRACT_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {CONTRACT_STATUS_LABELS[status]}
+                      <ContractStatusBadge status={status} size="sm" />
                     </SelectItem>
                   ))}
                 </SelectContent>
