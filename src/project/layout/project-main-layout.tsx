@@ -1,17 +1,18 @@
 import { buildPath, ROUTES } from '@/constants/routes';
-import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { PROJECT_MENU_GROUPS } from '@/config/project-menu.config';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { MainLayout } from '@/components/layouts/main-layout';
-import { loadProjectContext } from '../api/project-context.api';
 import { loadContractDetail } from '../contracts/api/contracts.api';
 import { loadCustomerDetail } from '../customers/api/customers.api';
 
 export function ProjectMainLayout() {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId, tenantName, roleNames } = useTenant();
   const isContractCreate = pathname === ROUTES.PROJECT.CONTRACT_CREATE;
   const contractEditId = isContractCreate
     ? searchParams.get('edit')
@@ -26,35 +27,28 @@ export function ProjectMainLayout() {
   const contractId = isContractDetail
     ? pathname.slice(`${ROUTES.PROJECT.CONTRACTS}/`.length).split('/')[0]
     : contractEditId;
-  const contextQuery = useQuery({
-    queryKey: ['project', 'context', userId],
-    queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadProjectContext(userId);
-    },
-    enabled: Boolean(userId),
-    staleTime: 5 * 60 * 1000,
-  });
   const customerDetailQuery = useQuery({
-    queryKey: ['project', 'customers', 'detail', userId, customerId],
+    queryKey: ['project', 'customers', 'detail', userId, customerId, tenantId],
     queryFn: () => {
-      if (!userId || !customerId)
+      if (!userId || !customerId || !tenantId)
         throw new Error('Thiếu thông tin khách hàng.');
-      return loadCustomerDetail(userId, customerId);
+      return loadCustomerDetail(userId, customerId, tenantId);
     },
-    enabled: Boolean(userId && customerId),
+    enabled: Boolean(userId && customerId && tenantId),
   });
   const contractDetailQuery = useQuery({
-    queryKey: ['project', 'contracts', 'detail', userId, contractId],
+    queryKey: ['project', 'contracts', 'detail', userId, contractId, tenantId],
     queryFn: () => {
-      if (!userId || !contractId) throw new Error('Thiếu thông tin hợp đồng.');
-      return loadContractDetail(userId, contractId);
+      if (!userId || !contractId || !tenantId) {
+        throw new Error('Thiếu thông tin hợp đồng.');
+      }
+      return loadContractDetail(userId, contractId, tenantId);
     },
-    enabled: Boolean(userId && contractId),
+    enabled: Boolean(userId && contractId && tenantId),
   });
 
-  const tenantName = contextQuery.data?.tenantName ?? 'Đang tải tenant...';
-  const accountRoles = contextQuery.data?.roleNames ?? [];
+  const headerTenantName = tenantName ?? 'Đang tải tenant...';
+  const accountRoles = roleNames;
   const breadcrumbCurrent = isCustomerDetail
     ? (customerDetailQuery.data?.name ?? 'Chi tiết khách hàng')
     : isContractDetail
@@ -81,7 +75,7 @@ export function ProjectMainLayout() {
         menuGroups: PROJECT_MENU_GROUPS,
         homePath: '/',
         brandName: 'VACOM | KẾ TOÁN DỊCH VỤ',
-        headerTitle: tenantName,
+        headerTitle: headerTenantName,
         accountRoles,
         breadcrumbRootLabel: 'Trang chủ',
         breadcrumbRootPath: '/',

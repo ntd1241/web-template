@@ -52,10 +52,11 @@ async function getCurrentTenantId(userId: string) {
 
 export async function loadCurrentTenantSettings(
   userId: string,
+  tenantIdOverride?: string,
 ): Promise<CurrentTenantSettings> {
   assertSupabaseConfigured();
 
-  const tenantId = await getCurrentTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await getCurrentTenantId(userId));
   const rows = await request<TenantSettingsRow[]>(
     supabaseApi.get(
       '/tenants',

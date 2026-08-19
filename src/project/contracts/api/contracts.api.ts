@@ -199,9 +199,10 @@ export interface ContractMetadataInput {
 export async function loadContractCreationWorkspace(
   userId: string,
   includeInactiveEmployees = false,
+  tenantIdOverride?: string,
 ): Promise<ContractCreationWorkspace> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   const employees = await loadContractEmployeeOptions(
     tenantId,
     includeInactiveEmployees,
@@ -408,9 +409,10 @@ function attachListSummary(
 
 export async function loadContractWorkspace(
   userId: string,
+  tenantIdOverride?: string,
 ): Promise<ContractWorkspace> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   await ensureCharges(tenantId);
 
   const [contractRows, customerRows, balanceRows] = await Promise.all([
@@ -466,9 +468,10 @@ export async function loadContractWorkspace(
 export async function loadContractDetail(
   userId: string,
   contractId: string,
+  tenantIdOverride?: string,
 ): Promise<ContractDetail> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   await ensureCharges(tenantId);
 
   const contractRows = await request<ContractRow[]>(
@@ -498,7 +501,7 @@ export async function loadContractDetail(
     tagAssignmentRows,
     contractTagOptions,
   ] = await Promise.all([
-    loadCustomerDetail(userId, contract.customer_id),
+    loadCustomerDetail(userId, contract.customer_id, tenantId),
     request<ContractVersionRow[]>(
       supabaseApi.get(
         '/contract_versions',
@@ -687,10 +690,10 @@ export async function loadContractDetail(
 export async function loadContractPaymentPeriodCount(
   userId: string,
   contractId: string,
+  tenantIdOverride?: string,
 ): Promise<number> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
-  await ensureCharges(tenantId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
 
   const count = await request<number | string>(
     supabaseApi.post('/rpc/get_contract_payment_period_count', {
@@ -725,9 +728,10 @@ export async function recordContractPeriodPayment(
   customerId: string,
   currencyCode: string,
   input: RecordContractPeriodPaymentInput,
+  tenantIdOverride?: string,
 ): Promise<RecordContractPeriodPaymentRpcRow> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   const response = await request<
     RecordContractPeriodPaymentRpcRow[] | RecordContractPeriodPaymentRpcRow
   >(

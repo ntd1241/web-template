@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getCoreRowModel,
@@ -10,6 +9,8 @@ import {
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -60,7 +61,8 @@ import { useCustomerColumns } from '../table/customer.columns.generated';
 const EMPTY_CUSTOMERS: Customer[] = [];
 
 export function CustomersPage() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [customerTagId, setCustomerTagId] = useState('all');
@@ -77,12 +79,14 @@ export function CustomersPage() {
   const form = useCustomerForm();
 
   const workspaceQuery = useQuery({
-    queryKey: ['project', 'customers', userId],
+    queryKey: ['project', 'customers', userId, tenantId],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadCustomerWorkspace(userId);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadCustomerWorkspace(userId, tenantId);
     },
-    enabled: Boolean(userId),
+    enabled: Boolean(userId && tenantId),
   });
 
   const customerTagFilterQuery = useQuery({

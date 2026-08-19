@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ROUTES } from '@/constants/routes';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -40,7 +40,7 @@ import { useContractColumns } from '../table/contract.columns.generated';
 
 export function ContractsPage() {
   const navigate = useNavigate();
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
   const queryClient = useQueryClient();
   const [deletingContract, setDeletingContract] = useState<Contract | null>(
     null,
@@ -54,9 +54,9 @@ export function ContractsPage() {
     setFilter,
     pagination,
     onPaginationChange,
-    contextQuery,
+    tenantQuery,
     workspaceQuery,
-  } = useContractList(userId);
+  } = useContractList();
 
   const deleteMutation = useMutation({
     mutationFn: deleteContract,
@@ -95,10 +95,10 @@ export function ContractsPage() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const listError = contextQuery.error ?? workspaceQuery.error;
-  const isListLoading = contextQuery.isLoading || workspaceQuery.isLoading;
+  const listError = tenantQuery.error ?? workspaceQuery.error;
+  const isListLoading = tenantQuery.isPending || workspaceQuery.isLoading;
 
-  if (contextQuery.isError || workspaceQuery.isError) {
+  if (tenantQuery.isError || workspaceQuery.isError) {
     return (
       <div className="p-6">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
@@ -112,7 +112,7 @@ export function ContractsPage() {
           <Button
             variant="outline"
             onClick={() => {
-              void contextQuery.refetch();
+              void tenantQuery.refetch();
               void workspaceQuery.refetch();
             }}
           >

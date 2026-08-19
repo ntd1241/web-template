@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { ROUTES } from '@/constants/routes';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, Mail, MapPin, Pencil, Phone, Trash2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { COUNTRY_OPTIONS } from '@/lib/countries';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -172,16 +173,19 @@ function CustomerInformationCard({
 }
 
 function useCustomerQuery() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const { id } = useParams<{ id: string }>();
 
   return useQuery({
-    queryKey: ['project', 'customers', 'detail', userId, id],
+    queryKey: ['project', 'customers', 'detail', userId, tenantId, id],
     queryFn: () => {
-      if (!userId || !id) throw new Error('Thiếu thông tin khách hàng.');
-      return loadCustomerDetail(userId, id);
+      if (!userId || !tenantId || !id) {
+        throw new Error('Thiếu thông tin khách hàng.');
+      }
+      return loadCustomerDetail(userId, id, tenantId);
     },
-    enabled: Boolean(userId && id),
+    enabled: Boolean(userId && tenantId && id),
   });
 }
 

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { FolderPlus, Plus, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -61,15 +62,18 @@ type PendingDelete = {
 };
 
 export function TagsPage() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
   const workspaceQuery = useQuery({
-    queryKey: ['project', 'tags', userId],
+    queryKey: ['project', 'tags', userId, tenantId],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadTagWorkspace(userId);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadTagWorkspace(userId, tenantId);
     },
-    enabled: Boolean(userId),
+    enabled: Boolean(userId && tenantId),
   });
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [tagCreateDialogOpen, setTagCreateDialogOpen] = useState(false);

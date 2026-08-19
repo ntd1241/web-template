@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import type { CustomerSelectOption } from '@/project/customers/components/customer-select';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -17,6 +16,8 @@ import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { useNumberFormat } from '@/providers/number-format-provider';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -110,7 +111,8 @@ function toEditableLines(
 export function ContractCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId, isPending: isTenantPending } = useTenant();
   const { formatCurrency } = useNumberFormat();
   const editingContractId = searchParams.get('edit');
   const isEditMode = Boolean(editingContractId);
@@ -132,23 +134,39 @@ export function ContractCreatePage() {
   const initializedCreateResponsibleRef = useRef(false);
 
   const workspaceQuery = useQuery({
-    queryKey: ['project', 'contracts', 'create-options', userId, isEditMode],
+    queryKey: [
+      'project',
+      'contracts',
+      'create-options',
+      userId,
+      tenantId,
+      isEditMode,
+    ],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadContractCreationWorkspace(userId, isEditMode);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadContractCreationWorkspace(userId, isEditMode, tenantId);
     },
-    enabled: Boolean(userId),
+    enabled: Boolean(userId && tenantId),
   });
 
   const editDetailQuery = useQuery({
-    queryKey: ['project', 'contracts', 'detail', userId, editingContractId],
+    queryKey: [
+      'project',
+      'contracts',
+      'detail',
+      userId,
+      tenantId,
+      editingContractId,
+    ],
     queryFn: () => {
-      if (!userId || !editingContractId) {
+      if (!userId || !tenantId || !editingContractId) {
         throw new Error('Thiếu thông tin hợp đồng cần chỉnh sửa.');
       }
-      return loadContractDetail(userId, editingContractId);
+      return loadContractDetail(userId, editingContractId, tenantId);
     },
-    enabled: Boolean(userId && editingContractId),
+    enabled: Boolean(userId && tenantId && editingContractId),
   });
 
   useEffect(() => {
@@ -339,7 +357,7 @@ export function ContractCreatePage() {
   }
 
   const isLoadingEditData = isEditMode && editDetailQuery.isPending;
-  if (workspaceQuery.isPending || isLoadingEditData) {
+  if (isTenantPending || workspaceQuery.isPending || isLoadingEditData) {
     return (
       <PageLoading
         label={

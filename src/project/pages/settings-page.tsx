@@ -5,7 +5,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Building2, Palette, Save, type LucideIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -16,6 +15,8 @@ import {
   type AppDensity,
   type AppTheme,
 } from '@/providers/app-settings-provider';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -55,18 +56,21 @@ const tabs = [
 type SettingsTab = (typeof tabs)[number]['value'];
 
 export function ProjectSettingsPage() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const { theme, setTheme } = useTheme();
   const { appearance, saveAppearance } = useAppSettings();
   const [activeTab, setActiveTab] = useState<SettingsTab>('organization');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const tenantSettingsQuery = useQuery({
-    queryKey: ['project', 'tenant-settings', userId],
+    queryKey: ['project', 'tenant-settings', userId, tenantId],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadCurrentTenantSettings(userId);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadCurrentTenantSettings(userId, tenantId);
     },
-    enabled: Boolean(userId),
+    enabled: Boolean(userId && tenantId),
   });
   const form = useTenantSettingsForm();
   const currentSettingsRef = useRef<Record<string, unknown>>({});

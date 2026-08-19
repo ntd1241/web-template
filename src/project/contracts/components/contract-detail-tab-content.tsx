@@ -200,6 +200,7 @@ export function ContractReceivablesContent({
           amount: submission.amount,
           allocations: submission.allocations,
         },
+        tenantId,
       );
     },
     onSuccess: async () => {

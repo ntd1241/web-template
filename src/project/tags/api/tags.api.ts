@@ -89,10 +89,13 @@ function mapTag(row: TagRow, groupName: string, assignmentCount: number): Tag {
   };
 }
 
-export async function loadTagWorkspace(userId: string): Promise<TagWorkspace> {
+export async function loadTagWorkspace(
+  userId: string,
+  tenantIdOverride?: string,
+): Promise<TagWorkspace> {
   assertSupabaseConfigured();
 
-  const tenantId = await getCurrentTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await getCurrentTenantId(userId));
   const [groupRows, tagRows, assignmentRows, moduleRows] = await Promise.all([
     request<TagGroupRow[]>(
       supabaseApi.get(
@@ -187,10 +190,11 @@ export interface TagSelectConfig {
 export async function loadTagSelectOptions(
   userId: string,
   config: TagSelectConfig = {},
+  tenantIdOverride?: string,
 ): Promise<TagSelectOption[]> {
   assertSupabaseConfigured();
 
-  const tenantId = await getCurrentTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await getCurrentTenantId(userId));
   const moduleCodes = Array.from(
     new Set(
       (config.moduleCodes ?? []).map((code) => code.trim()).filter(Boolean),

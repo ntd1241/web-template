@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CircleCheck,
@@ -16,6 +15,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useNumberFormat } from '@/providers/number-format-provider';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -261,26 +262,44 @@ function ContractInformationCard({
 export function ContractDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const {
+    tenantId,
+    isPending: isTenantPending,
+    isError: isTenantError,
+    error: tenantError,
+    refetch: refetchTenant,
+  } = useTenant();
   const { id } = useParams<{ id: string }>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const contractQuery = useQuery({
-    queryKey: ['project', 'contracts', 'detail', userId, id],
+    queryKey: ['project', 'contracts', 'detail', userId, id, tenantId],
     queryFn: () => {
-      if (!userId || !id) throw new Error('Thiếu thông tin hợp đồng.');
-      return loadContractDetail(userId, id);
+      if (!userId || !id || !tenantId) {
+        throw new Error('Thiếu thông tin hợp đồng.');
+      }
+      return loadContractDetail(userId, id, tenantId);
     },
-    enabled: Boolean(userId && id),
+    enabled: Boolean(userId && id && tenantId),
   });
 
   const paymentPeriodCountQuery = useQuery({
-    queryKey: ['project', 'contracts', 'payment-period-count', userId, id],
+    queryKey: [
+      'project',
+      'contracts',
+      'payment-period-count',
+      userId,
+      id,
+      tenantId,
+    ],
     queryFn: () => {
-      if (!userId || !id) throw new Error('Thiếu thông tin hợp đồng.');
-      return loadContractPaymentPeriodCount(userId, id);
+      if (!userId || !id || !tenantId) {
+        throw new Error('Thiếu thông tin hợp đồng.');
+      }
+      return loadContractPaymentPeriodCount(userId, id, tenantId);
     },
-    enabled: Boolean(userId && id),
+    enabled: Boolean(userId && id && tenantId && contractQuery.data),
   });
 
   const invalidate = () =>
@@ -305,7 +324,6 @@ export function ContractDetailPage() {
     onSuccess: async () => {
       toast.success('Đã kích hoạt hợp đồng.');
       await invalidate();
-      await contractQuery.refetch();
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
@@ -316,13 +334,13 @@ export function ContractDetailPage() {
     );
   }
 
-  if (contractQuery.isPending) {
+  if (isTenantPending || contractQuery.isPending) {
     return (
       <PageLoading label="Đang tải thông tin hợp đồng..." className="h-full" />
     );
   }
 
-  if (contractQuery.isError || !contractQuery.data) {
+  if (isTenantError || contractQuery.isError || !contractQuery.data) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <Card className="max-w-lg text-center">
@@ -330,7 +348,7 @@ export function ContractDetailPage() {
             <CardHeading>
               <CardTitle>Không tải được hợp đồng</CardTitle>
               <CardDescription className="mt-2">
-                {getApiErrorMessage(contractQuery.error)}
+                {getApiErrorMessage(tenantError ?? contractQuery.error)}
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -341,7 +359,13 @@ export function ContractDetailPage() {
             >
               Danh sách hợp đồng
             </Button>
-            <Button variant="primary" onClick={() => contractQuery.refetch()}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                void refetchTenant();
+                void contractQuery.refetch();
+              }}
+            >
               <RefreshCw />
               Thử lại
             </Button>
@@ -396,11 +420,7 @@ export function ContractDetailPage() {
             customerId={contract.customer.id}
             currencyCode={contract.currencyCode}
             onPaymentRecorded={async () => {
-              await Promise.all([
-                contractQuery.refetch(),
-                paymentPeriodCountQuery.refetch(),
-                invalidate(),
-              ]);
+              await invalidate();
             }}
           />
         }

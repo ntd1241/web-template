@@ -54,6 +54,9 @@ is available.
 - Local interaction state stays in the component or feature hook.
 - Server data and mutations use React Query.
 - Cross-feature client state uses Zustand sparingly.
+- User session is exposed through `useUser()` and current organization context
+  through `useTenant()`; feature APIs receive the resolved `tenantId` instead of
+  resolving `/tenant_members` repeatedly.
 - API calls live in feature API modules and use the shared Axios client.
 - Query keys come from the project's query-key helpers and remain stable.
 - Mutations explicitly handle invalidation, success feedback, and normalized failures.

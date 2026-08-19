@@ -8,13 +8,14 @@ import {
   getCurrencyCode,
   getNumberLocale,
 } from '@/project/model/tenant-settings';
-import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import {
   createNumberFormatters,
   type NumberFormatSettings,
   type NumberFormatters,
 } from '@/lib/format';
+import { useTenant } from './tenant-provider';
+import { useUser } from './user-provider';
 
 export interface NumberFormatContextValue extends NumberFormatters {
   isLoading: boolean;
@@ -36,14 +37,17 @@ export function NumberFormatProvider({
   children,
   settings: settingsOverride,
 }: NumberFormatProviderProps) {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const tenantSettingsQuery = useQuery({
-    queryKey: ['project', 'tenant-settings', userId],
+    queryKey: ['project', 'tenant-settings', userId, tenantId],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadCurrentTenantSettings(userId);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tenant đang hoạt động.');
+      }
+      return loadCurrentTenantSettings(userId, tenantId);
     },
-    enabled: Boolean(userId && !settingsOverride),
+    enabled: Boolean(userId && tenantId && !settingsOverride),
     staleTime: 5 * 60 * 1000,
   });
 

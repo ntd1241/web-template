@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getCoreRowModel,
@@ -10,6 +9,8 @@ import {
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -56,7 +57,8 @@ import {
 import { useEmployeeColumns } from '../table/employee.columns.generated';
 
 export function EmployeesPage() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
   const [employeeTagId, setEmployeeTagId] = useState('all');
@@ -72,12 +74,14 @@ export function EmployeesPage() {
   const form = useEmployeeForm();
 
   const workspaceQuery = useQuery({
-    queryKey: ['project', 'employees', userId],
+    queryKey: ['project', 'employees', userId, tenantId],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadEmployeeWorkspace(userId);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadEmployeeWorkspace(userId, tenantId);
     },
-    enabled: Boolean(userId),
+    enabled: Boolean(userId && tenantId),
   });
 
   const employeeTagFilterQuery = useQuery({

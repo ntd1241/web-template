@@ -57,6 +57,7 @@ export function useContractReceivableList({
       ),
     enabled: Boolean(tenantId && contractId),
     placeholderData: keepPreviousData,
+    retry: false,
   });
 
   return {

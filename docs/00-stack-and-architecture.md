@@ -34,6 +34,18 @@ Exact versions belong in `package.json`, not duplicated here.
 - `src/builders/`: build-time UI scaffold generators; see [`src/builders/README.md`](../src/builders/README.md).
 - `supabase/`: temporary Supabase migrations and setup notes for the real project.
 
+### User and tenant context
+
+- `UserProvider` (`src/providers/user-provider.tsx`) là lớp đọc session/auth từ
+  Zustand và cung cấp `user`, `userId`, token state cùng các auth action cho
+  component React.
+- `TenantProvider` (`src/providers/tenant-provider.tsx`) là nguồn tenant hiện
+  tại dùng chung toàn app. Dữ liệu tenant/role là server state nên nằm trong
+  React Query, không nhân bản vào Zustand.
+- Feature API nên nhận `tenantId` đã lấy từ `useTenant()` khi gọi từ React.
+  Tham số override tùy chọn chỉ giữ compatibility cho các caller ngoài React;
+  không nên tự gọi `/tenant_members` trong từng page, hook hoặc selector.
+
 ### Hai vùng ứng dụng trong cùng một project
 
 Project hiện được chia thành hai vùng để vừa phát triển sản phẩm thật vừa đối
@@ -68,6 +80,8 @@ Page or feature component
 - Server state stays in React Query, not Zustand.
 - Feature-local UI state stays local.
 - Global stores contain only cross-feature client state.
+- Chỉ dùng `useUser()` và `useTenant()` để đọc session/tenant trong component;
+  `useAuthStore` trực tiếp chỉ dành cho startup adapter không chạy trong React.
 - API errors are normalized at the client boundary and surfaced through query/mutation state.
 
 ### HTTP client conventions

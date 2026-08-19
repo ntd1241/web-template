@@ -84,9 +84,10 @@ interface CustomerSelectRow {
 
 export async function loadCustomerSelectOptions(
   userId: string,
+  tenantIdOverride?: string,
 ): Promise<CustomerSelectOption[]> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   const rows = await request<CustomerSelectRow[]>(
     supabaseApi.get(
       '/customers',
@@ -127,9 +128,10 @@ export async function loadCustomerRegionOptions() {
 
 export async function loadCustomerWorkspace(
   userId: string,
+  tenantIdOverride?: string,
 ): Promise<CustomerWorkspace> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   const rows = await request<CustomerRow[]>(
     supabaseApi.get(
       '/customers',
@@ -147,9 +149,10 @@ export async function loadCustomerWorkspace(
 export async function loadCustomerDetail(
   userId: string,
   customerId: string,
+  tenantIdOverride?: string,
 ): Promise<Customer> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   const rows = await request<CustomerRow[]>(
     supabaseApi.get(
       '/customers',

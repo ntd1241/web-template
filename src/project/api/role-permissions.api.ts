@@ -50,22 +50,26 @@ function queryParams(params: Record<string, string>) {
 
 export async function loadRolePermissionsWorkspace(
   userId: string,
+  tenantIdOverride?: string,
 ): Promise<RolePermissionsWorkspace> {
   assertSupabaseConfigured();
 
-  const memberships = await request<TenantMembershipRow[]>(
-    supabaseApi.get(
-      '/tenant_members',
-      queryParams({
-        select: 'tenant_id',
-        user_id: `eq.${userId}`,
-        status: 'eq.active',
-        order: 'created_at.asc',
-        limit: '1',
-      }),
-    ),
-  );
-  const tenantId = memberships[0]?.tenant_id;
+  const tenantId =
+    tenantIdOverride ??
+    (
+      await request<TenantMembershipRow[]>(
+        supabaseApi.get(
+          '/tenant_members',
+          queryParams({
+            select: 'tenant_id',
+            user_id: `eq.${userId}`,
+            status: 'eq.active',
+            order: 'created_at.asc',
+            limit: '1',
+          }),
+        ),
+      )
+    )[0]?.tenant_id;
 
   if (!tenantId) {
     throw new Error('Tài khoản chưa thuộc tenant đang hoạt động.');

@@ -80,9 +80,10 @@ async function resolveTenantId(userId: string) {
 
 export async function loadEmployeeWorkspace(
   userId: string,
+  tenantIdOverride?: string,
 ): Promise<EmployeeWorkspace> {
   assertSupabaseConfigured();
-  const tenantId = await resolveTenantId(userId);
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
   const rows = await request<EmployeeRow[]>(
     supabaseApi.get(
       '/employees',

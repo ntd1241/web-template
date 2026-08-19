@@ -5,7 +5,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -24,6 +23,8 @@ import {
 import { toast } from 'sonner';
 import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -149,14 +150,17 @@ function countAllPermissions(modules: PermissionModule[]) {
 }
 
 export function RolePermissionsPage() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const { userId } = useUser();
+  const { tenantId } = useTenant();
   const workspaceQuery = useQuery({
-    queryKey: ['project', 'role-permissions', userId],
+    queryKey: ['project', 'role-permissions', userId, tenantId],
     queryFn: () => {
-      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
-      return loadRolePermissionsWorkspace(userId);
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadRolePermissionsWorkspace(userId, tenantId);
     },
-    enabled: Boolean(userId),
+    enabled: Boolean(userId && tenantId),
   });
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [modules, setModules] = useState<PermissionModule[]>([]);
