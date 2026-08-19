@@ -158,6 +158,88 @@ export interface ContractReceivableTableRow {
   fees: ContractReceivableTableFee[];
 }
 
+export type ContractReceivableSortOption =
+  | 'periodStart_desc'
+  | 'periodStart_asc'
+  | 'dueDate_desc'
+  | 'dueDate_asc'
+  | 'amount_desc'
+  | 'amount_asc';
+
+export interface ContractReceivablePeriodListParams {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: ContractChargeDisplayStatus;
+  sort: ContractReceivableSortOption;
+  dueSoonDays: number;
+}
+
+export interface ContractReceivablePeriodListResult {
+  rows: ContractReceivableTableRow[];
+  total: number;
+}
+
+export interface ContractReceivablePeriodRpcFee {
+  id: string;
+  charge_id: string;
+  name: string;
+  amount: number | string;
+  outstanding_amount: number | string;
+  currency_code: string;
+}
+
+export interface ContractReceivablePeriodRpcRow {
+  period_start: string;
+  period_end: string;
+  due_date: string;
+  amount: number | string;
+  currency_code: string;
+  direction: ContractCashflowDirection;
+  status: ContractChargeStatus;
+  paid_amount: number | string;
+  outstanding_amount: number | string;
+  display_status: ContractChargeDisplayStatus;
+  fees: ContractReceivablePeriodRpcFee[];
+}
+
+export interface ContractReceivablePeriodRpcResponse {
+  items: ContractReceivablePeriodRpcRow[];
+  total: number | string;
+}
+
+export function mapContractReceivablePeriodRpcRow(
+  row: ContractReceivablePeriodRpcRow,
+): ContractReceivableTableRow {
+  return {
+    id: [
+      row.period_start,
+      row.period_end,
+      row.due_date,
+      row.currency_code,
+      row.direction,
+    ].join('|'),
+    direction: row.direction,
+    periodStart: row.period_start,
+    periodEnd: row.period_end,
+    dueDate: row.due_date,
+    amount: numericValue(row.amount),
+    currencyCode: row.currency_code,
+    status: row.status,
+    paidAmount: numericValue(row.paid_amount),
+    outstandingAmount: numericValue(row.outstanding_amount),
+    displayStatus: row.display_status,
+    fees: row.fees.map((fee) => ({
+      id: fee.id,
+      chargeId: fee.charge_id,
+      name: fee.name,
+      amount: numericValue(fee.amount),
+      outstandingAmount: numericValue(fee.outstanding_amount),
+      currencyCode: fee.currency_code,
+    })),
+  };
+}
+
 function addDays(value: string, days: number) {
   const date = new Date(`${value}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);

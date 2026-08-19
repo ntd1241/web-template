@@ -30,12 +30,16 @@ import {
 } from '../model/contract';
 import {
   mapContractChargeBalanceRow,
+  mapContractReceivablePeriodRpcRow,
   mapCustomerPaymentAllocationRow,
   mapCustomerPaymentRow,
   mapCustomerReceivableSummaryRow,
   type ContractChargeBalance,
   type ContractChargeBalanceRow,
   type ContractPaymentHistory,
+  type ContractReceivablePeriodListParams,
+  type ContractReceivablePeriodListResult,
+  type ContractReceivablePeriodRpcResponse,
   type CustomerPaymentAllocationRow,
   type CustomerPaymentRow,
   type CustomerReceivableSummary,
@@ -145,6 +149,36 @@ export async function loadContractList(
       totalOutstanding: numberValue(row.total_outstanding),
       nextDueDate: row.next_due_date,
     })),
+    total: numberValue(response.total),
+  };
+}
+
+export async function loadContractReceivablePeriodList(
+  tenantId: string,
+  contractId: string,
+  params: ContractReceivablePeriodListParams,
+  signal?: AbortSignal,
+): Promise<ContractReceivablePeriodListResult> {
+  assertSupabaseConfigured();
+  const response = await request<ContractReceivablePeriodRpcResponse>(
+    supabaseApi.post(
+      '/rpc/list_contract_receivable_periods',
+      {
+        p_tenant_id: tenantId,
+        p_contract_id: contractId,
+        p_page: params.page,
+        p_page_size: params.pageSize,
+        p_search: params.search?.trim() || null,
+        p_status: params.status ?? null,
+        p_sort: params.sort,
+        p_due_soon_days: params.dueSoonDays,
+      },
+      { signal },
+    ),
+  );
+
+  return {
+    rows: response.items.map(mapContractReceivablePeriodRpcRow),
     total: numberValue(response.total),
   };
 }

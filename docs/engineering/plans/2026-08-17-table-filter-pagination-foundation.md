@@ -80,9 +80,19 @@ Server-side contract của Hợp đồng:
   đồng thời tính `total_outstanding` và `next_due_date` từ charge/payment
   allocations.
 - Query mặc định sắp xếp hợp đồng mới nhất trước theo `created_at desc, id
-  desc`.
+desc`.
 - RPC kiểm tra user đăng nhập và quyền `contracts:view`; migration tạo index
   phục vụ thứ tự mặc định.
+
+Bảng Kỳ thanh toán trong trang chi tiết Hợp đồng cũng dùng server-side query:
+
+- RPC `public.list_contract_receivable_periods` nhận tenant, contract, phân
+  trang, search theo khoản phí/ngày, trạng thái, sort và số ngày “sắp tới hạn”.
+- Database group các charge cùng kỳ thành một row, trả tổng tiền, đã thu, còn
+  lại, trạng thái hiển thị và danh sách khoản phí để dialog thanh toán vẫn phân
+  bổ đúng charge.
+- Query key chứa toàn bộ params; đổi search/filter/sort/page/page size gọi lại
+  RPC và dùng `manualPagination` ở table.
 
 ### 3. URL sync
 

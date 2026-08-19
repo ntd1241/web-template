@@ -5,6 +5,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import type { PaginationState } from '@tanstack/react-table';
 import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -48,7 +49,6 @@ import {
 } from '../model/contract';
 import {
   CONTRACT_CHARGE_DISPLAY_STATUSES,
-  type ContractChargeBalance,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
 } from '../model/receivable';
@@ -156,8 +156,7 @@ export function ContractOverviewContent({
 }
 
 export function ContractReceivablesContent({
-  charges,
-  lines,
+  tenantId,
   dueSoonDays,
   userId,
   contractId,
@@ -165,8 +164,7 @@ export function ContractReceivablesContent({
   currencyCode,
   onPaymentRecorded,
 }: {
-  charges: ContractChargeBalance[];
-  lines: ContractVersionLine[];
+  tenantId: string;
   dueSoonDays: number;
   userId: string;
   contractId: string;
@@ -181,8 +179,10 @@ export function ContractReceivablesContent({
     setKeyword,
     pagination,
     onPaginationChange,
+    total,
+    listQuery,
     visibleRows,
-  } = useContractReceivableList({ charges, lines, dueSoonDays });
+  } = useContractReceivableList({ tenantId, contractId, dueSoonDays });
   const [paymentRow, setPaymentRow] =
     useState<ContractReceivableTableRow | null>(null);
   const paymentMutation = useMutation({
@@ -219,7 +219,8 @@ export function ContractReceivablesContent({
     getRowId: (row) => row.id,
     state: { pagination },
     onPaginationChange,
-    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -227,8 +228,13 @@ export function ContractReceivablesContent({
     <>
       <DataGrid
         table={table}
-        recordCount={visibleRows.length}
-        emptyMessage="Chưa có kỳ phải thu"
+        recordCount={total}
+        isLoading={listQuery.isLoading}
+        emptyMessage={
+          listQuery.isError
+            ? getApiErrorMessage(listQuery.error)
+            : 'Chưa có kỳ phải thu'
+        }
       >
         <Card className="min-h-0 overflow-hidden">
           <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">

@@ -389,8 +389,7 @@ export function ContractDetailPage() {
         overviewContent={<ContractOverviewContent contract={contract} />}
         receivablesContent={
           <ContractReceivablesContent
-            charges={contract.charges}
-            lines={contract.lines}
+            tenantId={contract.tenantId}
             dueSoonDays={contract.paymentReminderDays}
             userId={userId ?? ''}
             contractId={contract.id}
