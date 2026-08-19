@@ -42,6 +42,7 @@ export interface MultiSelectProps<T = unknown> {
   ) => ReactNode;
   disabled?: boolean;
   maxChips?: number;
+  showSelectedOptionsInTrigger?: boolean;
   className?: string;
 }
 
@@ -58,6 +59,7 @@ export function MultiSelect<T = unknown>({
   renderSelectedOption,
   disabled = false,
   maxChips = 2,
+  showSelectedOptionsInTrigger = true,
   className,
 }: MultiSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -67,8 +69,12 @@ export function MultiSelect<T = unknown>({
     () => options.filter((option) => value.includes(option.value)),
     [options, value],
   );
-  const visibleChips = selectedOptions.slice(0, maxChips);
-  const overflowCount = Math.max(0, selectedOptions.length - maxChips);
+  const visibleChips = showSelectedOptionsInTrigger
+    ? selectedOptions.slice(0, maxChips)
+    : [];
+  const overflowCount = showSelectedOptionsInTrigger
+    ? Math.max(0, selectedOptions.length - maxChips)
+    : 0;
   const hasSelection = selectedOptions.length > 0;
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -193,7 +199,8 @@ export function MultiSelect<T = unknown>({
             placeholder={hasSelection ? searchPlaceholder : placeholder}
           />
         ) : null}
-        {searchMode !== 'inline' && !hasSelection ? (
+        {searchMode !== 'inline' &&
+        (!hasSelection || !showSelectedOptionsInTrigger) ? (
           <span className="truncate text-muted-foreground">{placeholder}</span>
         ) : null}
       </span>
@@ -229,7 +236,7 @@ export function MultiSelect<T = unknown>({
             disabled={disabled}
             variant="outline"
             mode="input"
-            placeholder={!hasSelection}
+            placeholder={!hasSelection || !showSelectedOptionsInTrigger}
             className={cn(
               'h-8.5 w-full justify-between border-border bg-field text-foreground',
               className,

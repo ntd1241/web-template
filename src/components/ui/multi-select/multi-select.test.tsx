@@ -67,6 +67,22 @@ describe('MultiSelect', () => {
     expect(handleChange).toHaveBeenCalledWith(['quan-ly']);
   });
 
+  it('can keep selected options out of the trigger', () => {
+    render(
+      <MultiSelect
+        options={OPTIONS}
+        value={['nhan-vien']}
+        placeholder="Chọn nhân viên"
+        showSelectedOptionsInTrigger={false}
+      />,
+    );
+
+    const trigger = screen.getByRole('combobox');
+
+    expect(within(trigger).getByText('Chọn nhân viên')).toBeInTheDocument();
+    expect(within(trigger).queryByText('Nhân viên')).not.toBeInTheDocument();
+  });
+
   it('filters accented labels with an accent-free query', async () => {
     const user = userEvent.setup();
 

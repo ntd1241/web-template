@@ -248,6 +248,7 @@ export function ContractCreatePage() {
       value: employee.id,
       label: <EmployeeIdentity employee={employee} />,
       searchableText: `${employee.displayName} ${employee.employeeCode}`,
+      data: employee,
     })) ?? [];
   const saveMutation = useMutation({
     mutationFn: async ({
