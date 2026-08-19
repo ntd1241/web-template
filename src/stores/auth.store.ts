@@ -23,6 +23,7 @@ interface AuthState {
     token: string;
     refreshToken?: string | null;
   }) => void;
+  setPermissions: (permissions: string[]) => void;
   updateTokens: (payload: {
     token: string;
     refreshToken?: string | null;
@@ -39,6 +40,10 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       setAuth: ({ user, token, refreshToken = null }) =>
         set({ user, token, refreshToken }),
+      setPermissions: (permissions) =>
+        set((state) =>
+          state.user ? { user: { ...state.user, permissions } } : state,
+        ),
       updateTokens: ({ token, refreshToken }) =>
         set((state) => ({
           token,

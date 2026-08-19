@@ -1,5 +1,13 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from 'react';
+import { getEffectivePermissionCodes } from '@/project/api/permission-access.api';
 import { loadProjectContext } from '@/project/api/project-context.api';
+import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from './user-provider';
 
@@ -17,6 +25,7 @@ const TenantContext = createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
   const { userId } = useUser();
+  const setPermissions = useAuthStore((state) => state.setPermissions);
   const tenantQuery = useQuery({
     queryKey: ['project', 'context', userId],
     queryFn: () => {
@@ -27,10 +36,29 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
+  const tenantId = tenantQuery.data?.tenantId ?? null;
+  const permissionQuery = useQuery({
+    queryKey: ['project', 'effective-permissions', userId, tenantId],
+    queryFn: () => {
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tài khoản hoặc tenant.');
+      }
+      return getEffectivePermissionCodes(tenantId, userId);
+    },
+    enabled: Boolean(userId && tenantId),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (permissionQuery.data) {
+      setPermissions(permissionQuery.data);
+    }
+  }, [permissionQuery.data, setPermissions]);
 
   const value = useMemo<TenantContextValue>(
     () => ({
-      tenantId: tenantQuery.data?.tenantId ?? null,
+      tenantId,
       tenantName: tenantQuery.data?.tenantName ?? null,
       roleNames: tenantQuery.data?.roleNames ?? [],
       isPending: tenantQuery.isPending,
@@ -44,6 +72,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       tenantQuery.isError,
       tenantQuery.isPending,
       tenantQuery.refetch,
+      tenantId,
     ],
   );
 

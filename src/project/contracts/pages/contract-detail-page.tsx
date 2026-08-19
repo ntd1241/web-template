@@ -59,6 +59,8 @@ import {
   ContractReceivablesContent,
   ContractVersionsContent,
 } from '../components/contract-detail-tab-content';
+import { ContractResponsibleAvatarGroup } from '../components/contract-responsible-avatar-group';
+import { ContractResponsibleDialog } from '../components/contract-responsible-dialog';
 import { ContractStatusBadge } from '../components/contract-status-badge';
 import { getContractReceivableStats } from '../model/receivable';
 
@@ -112,12 +114,16 @@ function ContractInformationCard({
   onEdit,
   onDelete,
   onActivate,
+  onManageResponsibles,
+  canManageResponsibles,
   isActivating,
 }: {
   contract: ContractDetail;
   onEdit: () => void;
   onDelete: () => void;
   onActivate: () => void;
+  onManageResponsibles: () => void;
+  canManageResponsibles: boolean;
   isActivating: boolean;
 }) {
   const { formatCurrency } = useNumberFormat();
@@ -191,13 +197,10 @@ function ContractInformationCard({
         <DetailValue
           label="Nhân viên phụ trách"
           value={
-            contract.responsibleEmployees.length > 0 ? (
-              <div className="space-y-2">
-                {contract.responsibleEmployees.map((employee) => (
-                  <EmployeeIdentity key={employee.id} employee={employee} />
-                ))}
-              </div>
-            ) : undefined
+            <ContractResponsibleAvatarGroup
+              employees={contract.responsibleEmployees}
+              onClick={canManageResponsibles ? onManageResponsibles : undefined}
+            />
           }
         />
         <DetailValue
@@ -262,7 +265,7 @@ function ContractInformationCard({
 export function ContractDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { userId } = useUser();
+  const { userId, hasPermission } = useUser();
   const {
     tenantId,
     isPending: isTenantPending,
@@ -272,6 +275,8 @@ export function ContractDetailPage() {
   } = useTenant();
   const { id } = useParams<{ id: string }>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [responsibleDialogOpen, setResponsibleDialogOpen] = useState(false);
+  const canManageResponsibles = hasPermission('contracts:assign');
 
   const contractQuery = useQuery({
     queryKey: ['project', 'contracts', 'detail', userId, id, tenantId],
@@ -388,6 +393,8 @@ export function ContractDetailPage() {
             onEdit={() => openEdit(contract)}
             onDelete={() => setDeleteDialogOpen(true)}
             onActivate={() => activateMutation.mutate()}
+            onManageResponsibles={() => setResponsibleDialogOpen(true)}
+            canManageResponsibles={canManageResponsibles}
             isActivating={activateMutation.isPending}
           />
         }
@@ -438,6 +445,12 @@ export function ContractDetailPage() {
         confirmLabel="Xóa hợp đồng"
         confirmVariant="destructive"
         onConfirm={() => deleteMutation.mutate(contract.id)}
+      />
+      <ContractResponsibleDialog
+        open={responsibleDialogOpen}
+        onOpenChange={setResponsibleDialogOpen}
+        tenantId={contract.tenantId}
+        contractId={contract.id}
       />
     </>
   );

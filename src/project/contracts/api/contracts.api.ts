@@ -28,6 +28,10 @@ import {
   type ContractVersionLineRow,
   type ContractVersionRow,
 } from '../model/contract';
+import type {
+  ContractResponsibleAssignmentInput,
+  ContractResponsibleWorkspace,
+} from '../model/contract-responsible';
 import {
   mapContractChargeBalanceRow,
   mapContractReceivablePeriodRpcRow,
@@ -162,7 +166,7 @@ export async function loadContractReceivablePeriodList(
   assertSupabaseConfigured();
   const response = await request<ContractReceivablePeriodRpcResponse>(
     supabaseApi.post(
-      '/rpc/list_contract_receivable_periods',
+      '/rpc/list_contract_receivable_periods_scoped',
       {
         p_tenant_id: tenantId,
         p_contract_id: contractId,
@@ -687,6 +691,37 @@ export async function loadContractDetail(
   };
 }
 
+export async function loadContractResponsibleWorkspace(
+  tenantId: string,
+  contractId: string,
+): Promise<ContractResponsibleWorkspace> {
+  assertSupabaseConfigured();
+  return request<ContractResponsibleWorkspace>(
+    supabaseApi.post('/rpc/get_contract_responsible_workspace', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+    }),
+  );
+}
+
+export async function replaceContractResponsibleAccess(
+  tenantId: string,
+  contractId: string,
+  assignments: ContractResponsibleAssignmentInput[],
+): Promise<void> {
+  assertSupabaseConfigured();
+  await request(
+    supabaseApi.post('/rpc/replace_contract_responsible_access', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+      p_assignments: assignments.map((assignment) => ({
+        employee_id: assignment.employeeId,
+        disabled_permission_codes: assignment.disabledPermissionCodes,
+      })),
+    }),
+  );
+}
+
 export async function loadContractPaymentPeriodCount(
   userId: string,
   contractId: string,
@@ -735,7 +770,7 @@ export async function recordContractPeriodPayment(
   const response = await request<
     RecordContractPeriodPaymentRpcRow[] | RecordContractPeriodPaymentRpcRow
   >(
-    supabaseApi.post('/rpc/record_contract_period_payment', {
+    supabaseApi.post('/rpc/record_contract_period_payment_scoped', {
       p_tenant_id: tenantId,
       p_contract_id: contractId,
       p_customer_id: customerId,
@@ -876,25 +911,16 @@ async function replaceContractResponsibles(
   employeeIds: string[],
   userId: string,
 ) {
-  await supabaseApi.delete(
-    '/contract_responsibles',
-    queryParams({
-      tenant_id: `eq.${tenantId}`,
-      contract_id: `eq.${contractId}`,
-    }),
-  );
-  if (employeeIds.length === 0) return;
-
+  void userId;
   await request(
-    supabaseApi.post(
-      '/contract_responsibles',
-      employeeIds.map((employeeId) => ({
-        tenant_id: tenantId,
-        contract_id: contractId,
+    supabaseApi.post('/rpc/replace_contract_responsible_access', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+      p_assignments: employeeIds.map((employeeId) => ({
         employee_id: employeeId,
-        assigned_by: userId,
+        disabled_permission_codes: [],
       })),
-    ),
+    }),
   );
 }
 
@@ -997,14 +1023,9 @@ async function persistContractMetadata(
   contractId: string,
   userId: string,
   metadata: ContractMetadataInput,
+  options: { includeResponsibles?: boolean } = {},
 ) {
-  await Promise.all([
-    replaceContractResponsibles(
-      tenantId,
-      contractId,
-      metadata.responsibleEmployeeIds,
-      userId,
-    ),
+  const tasks: Promise<unknown>[] = [
     replaceSubjectTags(tenantId, 'contract', contractId, metadata.tagIds),
     syncContractAttachments(
       tenantId,
@@ -1013,7 +1034,18 @@ async function persistContractMetadata(
       metadata.attachmentIdsToKeep,
       metadata.attachments,
     ),
-  ]);
+  ];
+  if (options.includeResponsibles) {
+    tasks.push(
+      replaceContractResponsibles(
+        tenantId,
+        contractId,
+        metadata.responsibleEmployeeIds,
+        userId,
+      ),
+    );
+  }
+  await Promise.all(tasks);
 }
 
 export async function createContract(
@@ -1038,7 +1070,9 @@ export async function createContract(
   const contract = contractRows[0];
   if (!contract) throw new Error('Không thể tạo hợp đồng.');
   await insertVersion(contract.id, userId, values, lines, 1);
-  await persistContractMetadata(tenantId, contract.id, userId, metadata);
+  await persistContractMetadata(tenantId, contract.id, userId, metadata, {
+    includeResponsibles: true,
+  });
   return mapContractRow(contract);
 }
 
