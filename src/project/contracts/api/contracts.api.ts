@@ -345,7 +345,10 @@ async function loadContractTagOptions(
   }));
 }
 
-function mapContractAttachment(row: ContractAttachmentRow): ContractAttachment {
+function mapContractAttachment(
+  row: ContractAttachmentRow,
+  uploadedByNameByUserId?: Map<string, string>,
+): ContractAttachment {
   return {
     id: row.id,
     fileName: row.file_name,
@@ -354,6 +357,9 @@ function mapContractAttachment(row: ContractAttachmentRow): ContractAttachment {
     storagePath: row.storage_path,
     url: getPublicStorageUrl(TENANT_ASSETS_BUCKET, row.storage_path),
     uploadedBy: row.uploaded_by,
+    uploadedByName: row.uploaded_by
+      ? (uploadedByNameByUserId?.get(row.uploaded_by) ?? null)
+      : null,
     createdAt: row.created_at,
   };
 }
@@ -599,6 +605,11 @@ export async function loadContractDetail(
   const responsibleEmployeeIds = new Set(
     responsibleRows.map((row) => row.employee_id),
   );
+  const uploadedByNameByUserId = new Map(
+    employeeOptions
+      .filter((employee) => employee.userId)
+      .map((employee) => [employee.userId as string, employee.displayName]),
+  );
   const tagIds = new Set(tagAssignmentRows.map((row) => row.tag_id));
   const tags = contractTagOptions.filter((tag) => tagIds.has(tag.id));
 
@@ -686,7 +697,9 @@ export async function loadContractDetail(
     responsibleEmployees: employeeOptions.filter((employee) =>
       responsibleEmployeeIds.has(employee.id),
     ),
-    attachments: attachmentRows.map(mapContractAttachment),
+    attachments: attachmentRows.map((row) =>
+      mapContractAttachment(row, uploadedByNameByUserId),
+    ),
     tags,
   };
 }
@@ -980,6 +993,40 @@ export async function uploadContractAttachments(
   }
 }
 
+export async function deleteContractAttachment(
+  tenantId: string,
+  contractId: string,
+  attachmentId: string,
+) {
+  assertSupabaseConfigured();
+  const rows = await request<ContractAttachmentRow[]>(
+    supabaseApi.get(
+      '/contract_attachments',
+      queryParams({
+        select: 'id,storage_path',
+        tenant_id: `eq.${tenantId}`,
+        contract_id: `eq.${contractId}`,
+        id: `eq.${attachmentId}`,
+        limit: '1',
+      }),
+    ),
+  );
+  const attachment = rows[0];
+  if (!attachment) throw new Error('Không tìm thấy tài liệu để xóa.');
+
+  await request(
+    supabaseApi.delete(
+      '/contract_attachments',
+      queryParams({
+        tenant_id: `eq.${tenantId}`,
+        contract_id: `eq.${contractId}`,
+        id: `eq.${attachmentId}`,
+      }),
+    ),
+  );
+  await removeStorageObjects(TENANT_ASSETS_BUCKET, [attachment.storage_path]);
+}
+
 async function syncContractAttachments(
   tenantId: string,
   contractId: string,
@@ -1018,14 +1065,14 @@ async function syncContractAttachments(
   );
 }
 
-async function persistContractMetadata(
+export async function updateContractNonVersionMetadata(
   tenantId: string,
   contractId: string,
   userId: string,
   metadata: ContractMetadataInput,
-  options: { includeResponsibles?: boolean } = {},
 ) {
-  const tasks: Promise<unknown>[] = [
+  assertSupabaseConfigured();
+  await Promise.all([
     replaceSubjectTags(tenantId, 'contract', contractId, metadata.tagIds),
     syncContractAttachments(
       tenantId,
@@ -1034,18 +1081,13 @@ async function persistContractMetadata(
       metadata.attachmentIdsToKeep,
       metadata.attachments,
     ),
-  ];
-  if (options.includeResponsibles) {
-    tasks.push(
-      replaceContractResponsibles(
-        tenantId,
-        contractId,
-        metadata.responsibleEmployeeIds,
-        userId,
-      ),
-    );
-  }
-  await Promise.all(tasks);
+    replaceContractResponsibles(
+      tenantId,
+      contractId,
+      metadata.responsibleEmployeeIds,
+      userId,
+    ),
+  ]);
 }
 
 export async function createContract(
@@ -1070,9 +1112,12 @@ export async function createContract(
   const contract = contractRows[0];
   if (!contract) throw new Error('Không thể tạo hợp đồng.');
   await insertVersion(contract.id, userId, values, lines, 1);
-  await persistContractMetadata(tenantId, contract.id, userId, metadata, {
-    includeResponsibles: true,
-  });
+  await updateContractNonVersionMetadata(
+    tenantId,
+    contract.id,
+    userId,
+    metadata,
+  );
   return mapContractRow(contract);
 }
 
@@ -1140,7 +1185,7 @@ export async function updateContract(
       (latest?.version_no ?? 0) + 1,
     );
   }
-  await persistContractMetadata(
+  await updateContractNonVersionMetadata(
     contract.tenant_id,
     contract.id,
     userId,

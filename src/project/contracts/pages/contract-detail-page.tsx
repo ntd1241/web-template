@@ -439,7 +439,7 @@ export function ContractDetailPage() {
           <ContractAttachmentsContent
             contract={contract}
             userId={userId ?? ''}
-            onUploaded={async () => {
+            onChanged={async () => {
               await invalidate();
             }}
           />

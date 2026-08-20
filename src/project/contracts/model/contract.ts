@@ -264,6 +264,7 @@ export interface ContractAttachment {
   storagePath: string;
   url: string;
   uploadedBy: string | null;
+  uploadedByName: string | null;
   createdAt: string;
 }
 

@@ -13,6 +13,7 @@ import {
   FileText,
   Grid2X2,
   List,
+  Trash2,
   WalletCards,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ import {
   CardToolbar,
 } from '@/components/ui/card';
 import { CardEmptyState } from '@/components/ui/card-empty-state';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -45,6 +47,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  deleteContractAttachment,
   recordContractPeriodPayment,
   uploadContractAttachments,
 } from '../api/contracts.api';
@@ -484,180 +495,249 @@ export function ContractPaymentsContent({
 export function ContractAttachmentsContent({
   contract,
   userId,
-  onUploaded,
+  onChanged,
 }: {
   contract: ContractDetail;
   userId: string;
-  onUploaded: () => Promise<void>;
+  onChanged: () => Promise<void>;
 }) {
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const [attachmentToDelete, setAttachmentToDelete] = useState<
+    ContractDetail['attachments'][number] | null
+  >(null);
   const uploadMutation = useMutation({
     mutationFn: (files: File[]) =>
       uploadContractAttachments(contract.tenantId, contract.id, userId, files),
     onSuccess: async () => {
       toast.success('Đã tải tài liệu lên hợp đồng.');
-      await onUploaded();
+      await onChanged();
     },
     onError: (uploadError) => toast.error(getApiErrorMessage(uploadError)),
   });
+  const deleteMutation = useMutation({
+    mutationFn: (attachmentId: string) =>
+      deleteContractAttachment(contract.tenantId, contract.id, attachmentId),
+    onSuccess: async () => {
+      setAttachmentToDelete(null);
+      toast.success('Đã xóa tài liệu khỏi hợp đồng.');
+      await onChanged();
+    },
+    onError: (deleteError) => toast.error(getApiErrorMessage(deleteError)),
+  });
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader>
-        <CardHeading>
-          <CardTitle>Tài liệu đính kèm</CardTitle>
-        </CardHeading>
-        <CardToolbar className="flex-wrap justify-end">
-          <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5">
-            <Button
-              type="button"
-              variant="ghost"
-              mode="icon"
-              size="md"
-              selected={viewMode === 'table'}
-              aria-label="Hiển thị dạng bảng"
-              aria-pressed={viewMode === 'table'}
-              title="Hiển thị dạng bảng"
-              onClick={() => setViewMode('table')}
-            >
-              <List />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              mode="icon"
-              size="md"
-              selected={viewMode === 'card'}
-              aria-label="Hiển thị dạng thẻ"
-              aria-pressed={viewMode === 'card'}
-              title="Hiển thị dạng thẻ"
-              onClick={() => setViewMode('card')}
-            >
-              <Grid2X2 />
-            </Button>
-          </div>
-        </CardToolbar>
-      </CardHeader>
-      {viewMode === 'table' && contract.attachments.length > 0 ? (
-        <CardTable>
-          <table className="w-full min-w-[620px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="px-5 py-3 font-medium">Tài liệu</th>
-                <th className="px-5 py-3 font-medium">Dung lượng</th>
-                <th className="px-5 py-3 font-medium">Ngày tải lên</th>
-                <th className="px-5 py-3 text-right font-medium">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contract.attachments.map((attachment) => (
-                <tr
-                  key={attachment.id}
-                  className="border-b border-border last:border-0"
-                >
-                  <td className="px-5 py-3">
-                    <a
-                      href={getAttachmentOpenUrl(attachment)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex min-w-0 items-center gap-3 hover:text-primary"
-                    >
-                      <FileText className="size-4 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0 truncate font-medium">
-                        {attachment.fileName}
-                      </span>
-                    </a>
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">
-                    {formatFileSize(attachment.sizeBytes)}
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">
-                    {formatDate(attachment.createdAt.slice(0, 10))}
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <a
-                      href={getAttachmentOpenUrl(attachment)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
-                    >
-                      <ExternalLink className="size-4" />
-                      Mở file
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardTable>
-      ) : null}
-
-      {viewMode === 'card' && contract.attachments.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8">
-          {contract.attachments.map((attachment) => {
-            const isImage = attachment.mimeType.startsWith('image/');
-            const FileIcon = isImage
-              ? FileImage
-              : attachment.mimeType.includes('spreadsheet') ||
-                  attachment.mimeType.includes('excel')
-                ? FileSpreadsheet
-                : FileText;
-
-            return (
-              <div
-                key={attachment.id}
-                className="group overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-sm"
+    <>
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardHeading>
+            <CardTitle>Tài liệu đính kèm</CardTitle>
+          </CardHeading>
+          <CardToolbar className="flex-wrap justify-end">
+            <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5">
+              <Button
+                type="button"
+                variant="ghost"
+                mode="icon"
+                size="md"
+                selected={viewMode === 'table'}
+                aria-label="Hiển thị dạng bảng"
+                aria-pressed={viewMode === 'table'}
+                title="Hiển thị dạng bảng"
+                onClick={() => setViewMode('table')}
               >
-                <a
-                  href={getAttachmentOpenUrl(attachment)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                <List />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                mode="icon"
+                size="md"
+                selected={viewMode === 'card'}
+                aria-label="Hiển thị dạng thẻ"
+                aria-pressed={viewMode === 'card'}
+                title="Hiển thị dạng thẻ"
+                onClick={() => setViewMode('card')}
+              >
+                <Grid2X2 />
+              </Button>
+            </div>
+          </CardToolbar>
+        </CardHeader>
+        {viewMode === 'table' && contract.attachments.length > 0 ? (
+          <CardTable>
+            <Table className="min-w-[820px] text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tài liệu</TableHead>
+                  <TableHead>Dung lượng</TableHead>
+                  <TableHead>Ngày tải lên</TableHead>
+                  <TableHead>Người upload</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contract.attachments.map((attachment) => (
+                  <TableRow key={attachment.id}>
+                    <TableCell>
+                      <a
+                        href={getAttachmentOpenUrl(attachment)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-w-0 items-center gap-3 hover:text-primary"
+                      >
+                        <FileText className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="min-w-0 truncate font-medium">
+                          {attachment.fileName}
+                        </span>
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {formatFileSize(attachment.sizeBytes)}
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {formatDate(attachment.createdAt.slice(0, 10))}
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {attachment.uploadedByName ?? 'Không xác định'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex items-center gap-1">
+                        <a
+                          href={getAttachmentOpenUrl(attachment)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                        >
+                          <ExternalLink className="size-4" />
+                          Mở file
+                        </a>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          mode="icon"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          disabled={deleteMutation.isPending}
+                          aria-label={`Xóa tệp ${attachment.fileName}`}
+                          title="Xóa file"
+                          onClick={() => setAttachmentToDelete(attachment)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardTable>
+        ) : null}
+
+        {viewMode === 'card' && contract.attachments.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8">
+            {contract.attachments.map((attachment) => {
+              const isImage = attachment.mimeType.startsWith('image/');
+              const FileIcon = isImage
+                ? FileImage
+                : attachment.mimeType.includes('spreadsheet') ||
+                    attachment.mimeType.includes('excel')
+                  ? FileSpreadsheet
+                  : FileText;
+
+              return (
+                <div
+                  key={attachment.id}
+                  className="group overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-sm"
                 >
-                  <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted/40">
-                    {isImage ? (
-                      <img
-                        src={attachment.url}
-                        alt={attachment.fileName}
-                        className="size-full object-cover transition-transform group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <FileIcon className="size-16 text-muted-foreground" />
-                    )}
-                  </div>
-                </a>
-                <div className="space-y-2 p-3">
                   <a
                     href={getAttachmentOpenUrl(attachment)}
                     target="_blank"
                     rel="noreferrer"
-                    className="block truncate text-sm font-semibold text-foreground hover:text-primary"
-                    title={attachment.fileName}
+                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
-                    {attachment.fileName}
+                    <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted/40">
+                      {isImage ? (
+                        <img
+                          src={attachment.url}
+                          alt={attachment.fileName}
+                          className="size-full object-cover transition-transform group-hover:scale-[1.02]"
+                        />
+                      ) : (
+                        <FileIcon className="size-16 text-muted-foreground" />
+                      )}
+                    </div>
                   </a>
-                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span>{formatFileSize(attachment.sizeBytes)}</span>
-                    <span>{formatDate(attachment.createdAt.slice(0, 10))}</span>
+                  <div className="space-y-2 p-3">
+                    <a
+                      href={getAttachmentOpenUrl(attachment)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate text-sm font-semibold text-foreground hover:text-primary"
+                      title={attachment.fileName}
+                    >
+                      {attachment.fileName}
+                    </a>
+                    <div className="flex items-center justify-between gap-2 text-xs text-foreground">
+                      <span>{formatFileSize(attachment.sizeBytes)}</span>
+                      <span>
+                        {formatDate(attachment.createdAt.slice(0, 10))}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className="min-w-0 truncate text-xs text-foreground"
+                        title={attachment.uploadedByName ?? 'Không xác định'}
+                      >
+                        {attachment.uploadedByName ?? 'Không xác định'}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        mode="icon"
+                        size="sm"
+                        className="shrink-0 text-destructive hover:text-destructive"
+                        disabled={deleteMutation.isPending}
+                        aria-label={`Xóa tệp ${attachment.fileName}`}
+                        title="Xóa file"
+                        onClick={() => setAttachmentToDelete(attachment)}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-
-      <CardContent className="space-y-4">
-        <FileUploadContent
-          onUpload={(files) => uploadMutation.mutateAsync(files)}
-          isUploading={uploadMutation.isPending}
-        />
-        {contract.attachments.length === 0 ? (
-          <div className="flex min-h-40 items-center justify-center text-center text-sm text-muted-foreground">
-            Chưa có tài liệu. Kéo thả tệp vào khu vực này để bắt đầu.
+              );
+            })}
           </div>
         ) : null}
-      </CardContent>
-    </Card>
+
+        <CardContent className="space-y-4">
+          <FileUploadContent
+            onUpload={(files) => uploadMutation.mutateAsync(files)}
+            isUploading={uploadMutation.isPending}
+          />
+          {contract.attachments.length === 0 ? (
+            <div className="flex min-h-40 items-center justify-center text-center text-sm text-muted-foreground">
+              Chưa có tài liệu. Kéo thả tệp vào khu vực này để bắt đầu.
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+      <ConfirmDialog
+        open={attachmentToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setAttachmentToDelete(null);
+        }}
+        title="Xóa tài liệu?"
+        description={`Bạn có chắc muốn xóa tệp "${attachmentToDelete?.fileName ?? ''}" khỏi hợp đồng?`}
+        confirmLabel="Xóa tài liệu"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (attachmentToDelete) {
+            deleteMutation.mutate(attachmentToDelete.id);
+          }
+        }}
+      />
+    </>
   );
 }
