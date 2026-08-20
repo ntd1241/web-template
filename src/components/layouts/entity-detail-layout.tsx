@@ -67,6 +67,25 @@ export function EntityDetailInformationCard({
   );
 }
 
+export function EntityDetailInformationItem({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('min-w-0 space-y-2', className)}>
+      <p className="text-sm text-subtext-foreground">{label}</p>
+      <div className="min-w-0 text-sm font-semibold text-foreground">
+        {value || 'Chưa cập nhật'}
+      </div>
+    </div>
+  );
+}
+
 export function EntityDetailInformationGrid({
   children,
   className,

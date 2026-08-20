@@ -6,7 +6,9 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import type { PaginationState } from '@tanstack/react-table';
+import type { LucideIcon } from 'lucide-react';
 import {
+  CircleCheck,
   ExternalLink,
   FileImage,
   FileSpreadsheet,
@@ -14,6 +16,7 @@ import {
   Grid2X2,
   List,
   Trash2,
+  TriangleAlert,
   WalletCards,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -66,13 +69,8 @@ import {
   type ContractReceivableSortOption,
 } from '../hooks/use-contract-receivable-list';
 import {
-  BILLING_TYPE_LABELS,
-  BILLING_UNIT_LABELS,
-  CONTRACT_VERSION_STATUS_LABELS,
-  type ContractVersionLine,
-} from '../model/contract';
-import {
   CONTRACT_CHARGE_DISPLAY_STATUSES,
+  getContractReceivableStats,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
 } from '../model/receivable';
@@ -125,33 +123,136 @@ function getAttachmentOpenUrl(
   return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(attachment.url)}&wdOrigin=BROWSELINK`;
 }
 
-function FeeLine({
-  line,
-  formatAmount,
-  currencyCode,
+const PAYMENT_METRIC_TONE_CLASSES = {
+  info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  danger: 'bg-destructive/10 text-destructive',
+} as const;
+
+function PaymentMetric({
+  icon: Icon,
+  iconTone,
+  label,
+  value,
+  emphasis = false,
 }: {
-  line: ContractVersionLine;
-  formatAmount: (value: number, currencyCode?: string) => string;
-  currencyCode: string;
+  icon: LucideIcon;
+  iconTone: keyof typeof PAYMENT_METRIC_TONE_CLASSES;
+  label: string;
+  value: string;
+  emphasis?: boolean;
 }) {
-  const cycle =
-    line.billingType === 'recurring'
-      ? `${line.billingInterval ?? 1} ${BILLING_UNIT_LABELS[line.billingUnit ?? 'month'].toLowerCase()}`
-      : `Ngày ${formatDate(line.chargeDate)}`;
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3">
+    <div className="flex min-w-0 items-center gap-3 px-4 py-3.5">
+      <span
+        className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${PAYMENT_METRIC_TONE_CLASSES[iconTone]}`}
+      >
+        <Icon className="size-4" />
+      </span>
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-foreground">
-          {line.name}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {BILLING_TYPE_LABELS[line.billingType]} · {cycle}
+        <p className="truncate text-xs text-subtext-foreground">{label}</p>
+        <p
+          className={`mt-1 truncate text-sm font-semibold tabular-nums ${emphasis ? 'text-primary' : 'text-foreground'}`}
+        >
+          {value}
         </p>
       </div>
-      <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-        {formatAmount(line.amount, currencyCode)}
-      </p>
     </div>
+  );
+}
+
+function getLatestFinancialUpdate(contract: ContractDetail) {
+  return [
+    contract.updatedAt,
+    ...contract.charges.map((charge) => charge.createdAt),
+    ...contract.payments.flatMap((payment) => [
+      payment.receivedAt,
+      payment.createdAt,
+    ]),
+  ].reduce((latest, value) => (value > latest ? value : latest), '');
+}
+
+function formatTimestampDate(value: string) {
+  if (!value) return 'Chưa cập nhật';
+  return new Intl.DateTimeFormat('vi-VN').format(new Date(value));
+}
+
+function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
+  const { formatCurrency } = useNumberFormat();
+  const stats = getContractReceivableStats(contract.charges);
+  const remainingAmount = Math.max(0, stats.totalBilled - stats.totalPaid);
+  const progress =
+    stats.totalBilled > 0
+      ? Math.min(100, Math.max(0, (stats.totalPaid / stats.totalBilled) * 100))
+      : 0;
+  const formattedProgress = new Intl.NumberFormat('vi-VN', {
+    maximumFractionDigits: 2,
+  }).format(progress);
+  const latestFinancialUpdate = getLatestFinancialUpdate(contract);
+
+  return (
+    <Card className="mt-6 overflow-hidden">
+      <CardHeader>
+        <CardHeading>
+          <CardTitle className="text-lg">Tình hình thanh toán</CardTitle>
+        </CardHeading>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        <div className="grid overflow-hidden rounded-lg border border-border sm:grid-cols-2 xl:grid-cols-4 xl:divide-x xl:divide-border">
+          <PaymentMetric
+            icon={FileText}
+            iconTone="info"
+            label="Tổng đã lập"
+            value={formatCurrency(stats.totalBilled, contract.currencyCode)}
+          />
+          <PaymentMetric
+            icon={CircleCheck}
+            iconTone="success"
+            label="Đã thanh toán"
+            value={formatCurrency(stats.totalPaid, contract.currencyCode)}
+          />
+          <PaymentMetric
+            icon={WalletCards}
+            iconTone="warning"
+            label="Còn phải thu"
+            value={formatCurrency(remainingAmount, contract.currencyCode)}
+            emphasis
+          />
+          <PaymentMetric
+            icon={TriangleAlert}
+            iconTone="danger"
+            label="Quá hạn"
+            value={formatCurrency(
+              stats.overdueOutstanding,
+              contract.currencyCode,
+            )}
+          />
+        </div>
+        <div
+          className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
+          aria-label={`Đã thanh toán ${formattedProgress}%`}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-[width]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>
+            <strong className="font-semibold text-emerald-600">
+              {formattedProgress}%
+            </strong>{' '}
+            đã thanh toán
+          </span>
+          <span>Cập nhật đến {formatTimestampDate(latestFinancialUpdate)}</span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -160,40 +261,7 @@ export function ContractOverviewContent({
 }: {
   contract: ContractDetail;
 }) {
-  const { formatCurrency } = useNumberFormat();
-  const latestVersion = contract.versions[0];
-  const latestLines = contract.lines.filter(
-    (line) => line.contractVersionId === latestVersion?.id,
-  );
-  return (
-    <Card>
-      <CardHeader>
-        <CardHeading>
-          <CardTitle>Khoản phí phiên bản hiện tại</CardTitle>
-          <CardDescription>
-            Phiên bản {latestVersion?.versionNo ?? '—'} ·{' '}
-            {latestVersion
-              ? CONTRACT_VERSION_STATUS_LABELS[latestVersion.status]
-              : 'Chưa có'}
-          </CardDescription>
-        </CardHeading>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {latestLines.length > 0 ? (
-          latestLines.map((line) => (
-            <FeeLine
-              key={line.id}
-              line={line}
-              formatAmount={formatCurrency}
-              currencyCode={contract.currencyCode}
-            />
-          ))
-        ) : (
-          <p className="text-sm text-muted-foreground">Chưa có khoản phí.</p>
-        )}
-      </CardContent>
-    </Card>
-  );
+  return <ContractFinancialOverview contract={contract} />;
 }
 
 export function ContractReceivablesContent({

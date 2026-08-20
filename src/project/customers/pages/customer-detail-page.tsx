@@ -29,6 +29,7 @@ import {
 import {
   EntityDetailInformationCard,
   EntityDetailInformationGrid,
+  EntityDetailInformationItem,
   EntityDetailProfileCard,
 } from '@/components/layouts/entity-detail-layout';
 import { deleteCustomer, loadCustomerDetail } from '../api/customers.api';
@@ -44,17 +45,6 @@ import {
   CUSTOMER_STATUS_LABELS,
   type Customer,
 } from '../model/customer';
-
-function DetailValue({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 space-y-1">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="truncate text-sm font-semibold text-foreground">
-        {value || 'Chưa cập nhật'}
-      </dd>
-    </div>
-  );
-}
 
 function CustomerProfileCard({ customer }: { customer: Customer }) {
   return (
@@ -142,23 +132,35 @@ function CustomerInformationCard({
       }
     >
       <EntityDetailInformationGrid>
-        <DetailValue label="Mã khách hàng" value={customer.customerCode} />
-        <DetailValue
+        <EntityDetailInformationItem
+          label="Mã khách hàng"
+          value={customer.customerCode}
+        />
+        <EntityDetailInformationItem
           label="Loại hình đơn vị"
           value={BUSINESS_TYPE_LABELS[customer.businessType]}
         />
-        <DetailValue
+        <EntityDetailInformationItem
           label="Mã số thuế / QHNS / ĐKKD"
           value={customer.businessRegistrationCode}
         />
-        <DetailValue
+        <EntityDetailInformationItem
           label="Quốc gia"
           value={country?.label ?? customer.countryCode}
         />
-        <DetailValue label="Tỉnh/Thành phố" value={customer.regionName} />
-        <DetailValue label="Địa chỉ chi tiết" value={customer.addressDetail} />
-        <DetailValue label="Số điện thoại" value={customer.phone} />
-        <DetailValue label="Email" value={customer.email} />
+        <EntityDetailInformationItem
+          label="Tỉnh/Thành phố"
+          value={customer.regionName}
+        />
+        <EntityDetailInformationItem
+          label="Địa chỉ chi tiết"
+          value={customer.addressDetail}
+        />
+        <EntityDetailInformationItem
+          label="Số điện thoại"
+          value={customer.phone}
+        />
+        <EntityDetailInformationItem label="Email" value={customer.email} />
       </EntityDetailInformationGrid>
       {customer.note ? (
         <div className="mt-6 flex gap-2.5 border-t border-border pt-5 text-sm">

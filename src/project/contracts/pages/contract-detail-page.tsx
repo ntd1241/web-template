@@ -1,9 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { LucideIcon } from 'lucide-react';
 import {
-  CircleCheck,
   FileText,
   History,
   LayoutDashboard,
@@ -12,13 +10,11 @@ import {
   ReceiptText,
   RefreshCw,
   Trash2,
-  TriangleAlert,
   WalletCards,
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
-import { useNumberFormat } from '@/providers/number-format-provider';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +36,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  EntityDetailInformationItem,
   EntityDetailTabs,
   type EntityDetailTab,
 } from '@/components/layouts/entity-detail-layout';
@@ -61,30 +58,10 @@ import {
 import { ContractResponsibleAvatarGroup } from '../components/contract-responsible-avatar-group';
 import { ContractResponsibleDialog } from '../components/contract-responsible-dialog';
 import { ContractStatusBadge } from '../components/contract-status-badge';
-import { getContractReceivableStats } from '../model/receivable';
 
 function formatDate(value: string | null) {
   if (!value) return 'Không giới hạn';
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
-}
-
-function SummaryItem({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`min-w-0 space-y-2 ${className ?? ''}`}>
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <div className="min-w-0 text-sm font-semibold text-foreground">
-        {value || 'Chưa cập nhật'}
-      </div>
-    </div>
-  );
 }
 
 function ContractHero({
@@ -145,7 +122,7 @@ function ContractSummaryCard({
     <Card className="relative -mt-10 overflow-hidden border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
       <CardContent className="p-5 sm:p-6">
         <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-0">
-          <SummaryItem
+          <EntityDetailInformationItem
             label="Khách hàng"
             className="lg:border-e lg:border-border lg:pe-6"
             value={
@@ -162,17 +139,17 @@ function ContractSummaryCard({
               </Link>
             }
           />
-          <SummaryItem
+          <EntityDetailInformationItem
             label="Ngày bắt đầu"
             className="lg:px-6 lg:border-e lg:border-border"
             value={formatDate(contract.startDate)}
           />
-          <SummaryItem
+          <EntityDetailInformationItem
             label="Ngày kết thúc"
             className="lg:px-6 lg:border-e lg:border-border"
             value={formatDate(contract.endDate)}
           />
-          <SummaryItem
+          <EntityDetailInformationItem
             label="Nhân viên phụ trách"
             className="lg:ps-6"
             value={
@@ -184,126 +161,6 @@ function ContractSummaryCard({
               />
             }
           />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-const PAYMENT_METRIC_TONE_CLASSES = {
-  info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  danger: 'bg-destructive/10 text-destructive',
-} as const;
-
-function PaymentMetric({
-  icon: Icon,
-  iconTone,
-  label,
-  value,
-  emphasis = false,
-}: {
-  icon: LucideIcon;
-  iconTone: keyof typeof PAYMENT_METRIC_TONE_CLASSES;
-  label: string;
-  value: ReactNode;
-  emphasis?: boolean;
-}) {
-  return (
-    <div className="flex min-w-0 items-center gap-3 px-4 py-3.5">
-      <span
-        className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${PAYMENT_METRIC_TONE_CLASSES[iconTone]}`}
-      >
-        <Icon className="size-4" />
-      </span>
-      <div className="min-w-0">
-        <p className="truncate text-xs text-muted-foreground">{label}</p>
-        <p
-          className={`mt-1 truncate text-sm font-semibold tabular-nums ${emphasis ? 'text-primary' : 'text-foreground'}`}
-        >
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
-  const { formatCurrency } = useNumberFormat();
-  const stats = getContractReceivableStats(contract.charges);
-  const progress =
-    stats.totalBilled > 0
-      ? Math.min(100, Math.max(0, (stats.totalPaid / stats.totalBilled) * 100))
-      : 0;
-  const formattedProgress = new Intl.NumberFormat('vi-VN', {
-    maximumFractionDigits: 2,
-  }).format(progress);
-
-  return (
-    <Card className="mt-6 overflow-hidden">
-      <CardHeader>
-        <CardHeading>
-          <CardTitle className="text-lg">Tình hình thanh toán</CardTitle>
-        </CardHeading>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-0">
-        <div className="grid overflow-hidden rounded-lg border border-border sm:grid-cols-2 xl:grid-cols-4 xl:divide-x xl:divide-border">
-          <PaymentMetric
-            icon={FileText}
-            iconTone="info"
-            label="Tổng đã lập"
-            value={formatCurrency(stats.totalBilled, contract.currencyCode)}
-          />
-          <PaymentMetric
-            icon={CircleCheck}
-            iconTone="success"
-            label="Đã thanh toán"
-            value={formatCurrency(stats.totalPaid, contract.currencyCode)}
-          />
-          <PaymentMetric
-            icon={WalletCards}
-            iconTone="warning"
-            label="Còn phải thu"
-            value={formatCurrency(
-              stats.totalOutstanding,
-              contract.currencyCode,
-            )}
-            emphasis
-          />
-          <PaymentMetric
-            icon={TriangleAlert}
-            iconTone="danger"
-            label="Quá hạn"
-            value={formatCurrency(
-              stats.overdueOutstanding,
-              contract.currencyCode,
-            )}
-          />
-        </div>
-        <div
-          className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
-          aria-label={`Đã thanh toán ${formattedProgress}%`}
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progress}
-        >
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-[width]"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>
-            <strong className="font-semibold text-emerald-600">
-              {formattedProgress}%
-            </strong>{' '}
-            đã thanh toán
-          </span>
-          <span>
-            Cập nhật đến {formatDate(contract.updatedAt.slice(0, 10))}
-          </span>
         </div>
       </CardContent>
     </Card>
@@ -386,7 +243,6 @@ function ContractDetailShell({
           onManageResponsibles={onManageResponsibles}
           canManageResponsibles={canManageResponsibles}
         />
-        <ContractFinancialOverview contract={contract} />
         <div className="mt-6">
           <EntityDetailTabs tabs={tabs} defaultValue="overview" />
         </div>

@@ -72,6 +72,7 @@
 
   --background: var(--admin-surface);
   --foreground: var(--admin-neutral-800);
+  --subtext-foreground: var(--admin-neutral-600);
   --card: var(--admin-surface);
   --card-foreground: var(--admin-neutral-800);
   --popover: var(--admin-surface);
@@ -101,6 +102,7 @@
 .dark {
   --background: var(--color-zinc-950);
   --foreground: var(--color-zinc-50);
+  --subtext-foreground: var(--color-zinc-400);
   --card: var(--color-zinc-950);
   --card-foreground: var(--color-zinc-50);
   --popover: var(--color-zinc-950);
@@ -136,6 +138,7 @@
   /** Base Colors **/
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-subtext-foreground: var(--subtext-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
