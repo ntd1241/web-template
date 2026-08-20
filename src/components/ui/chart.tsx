@@ -25,11 +25,7 @@ type ChartContextProps = {
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
 export type ChartTooltipStyle =
-  | 'default'
-  | 'line'
-  | 'dashed'
-  | 'compact'
-  | 'emphasis';
+  'default' | 'line' | 'dashed' | 'compact' | 'emphasis';
 
 const ChartTooltipStyleContext = React.createContext<ChartTooltipStyle | null>(
   null,
@@ -144,6 +140,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
+  valueFormatter,
 }: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
   React.ComponentProps<'div'> & {
     hideLabel?: boolean;
@@ -151,6 +148,7 @@ function ChartTooltipContent({
     indicator?: 'line' | 'dot' | 'dashed';
     nameKey?: string;
     labelKey?: string;
+    valueFormatter?: (value: number, name?: string) => React.ReactNode;
   }) {
   const { config, tooltipStyle } = useChart();
   const styleConfig = tooltipStyle
@@ -234,7 +232,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        'border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+        'border-border/50 bg-background grid min-w-[10rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
         styleConfig.className,
         className,
       )}
@@ -285,19 +283,21 @@ function ChartTooltipContent({
                   )}
                   <div
                     className={cn(
-                      'flex flex-1 justify-between leading-none',
+                      'flex min-w-0 flex-1 justify-between gap-4 leading-none',
                       nestLabel ? 'items-end' : 'items-center',
                     )}
                   >
                     <div className="grid gap-1.5">
                       {nestLabel ? tooltipLabel : null}
-                      <span className="text-muted-foreground">
+                      <span className="min-w-0 truncate text-muted-foreground">
                         {itemConfig?.label || item.name}
                       </span>
                     </div>
-                    {item.value && (
-                      <span className="text-foreground font-mono font-medium tabular-nums">
-                        {item.value.toLocaleString()}
+                    {item.value !== undefined && item.value !== null && (
+                      <span className="shrink-0 whitespace-nowrap text-foreground font-mono font-medium tabular-nums">
+                        {valueFormatter
+                          ? valueFormatter(Number(item.value), item.name)
+                          : item.value.toLocaleString()}
                       </span>
                     )}
                   </div>

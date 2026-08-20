@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   getCoreRowModel,
@@ -63,11 +63,17 @@ import {
   uploadContractAttachments,
 } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
+import { ContractFeeReceivableChart } from '../charts/contract-fee-receivable.chart.generated';
+import { ContractPaymentPeriodChart } from '../charts/contract-payment-period.chart.generated';
 import {
   useContractReceivableList,
   type ContractReceivableListFilters,
   type ContractReceivableSortOption,
 } from '../hooks/use-contract-receivable-list';
+import {
+  buildContractFeeReceivableChartData,
+  buildContractPaymentPeriodChartData,
+} from '../model/contract-chart';
 import {
   CONTRACT_CHARGE_DISPLAY_STATUSES,
   getContractReceivableStats,
@@ -256,12 +262,88 @@ function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
   );
 }
 
+function ContractChartCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <Card className="min-w-0 overflow-hidden">
+      <CardHeader>
+        <CardHeading>
+          <CardTitle className="text-base">{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeading>
+      </CardHeader>
+      <CardContent className="pt-0">{children}</CardContent>
+    </Card>
+  );
+}
+
+function ContractChartEmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 px-6 text-center text-sm text-muted-foreground">
+      {message}
+    </div>
+  );
+}
+
 export function ContractOverviewContent({
   contract,
 }: {
   contract: ContractDetail;
 }) {
-  return <ContractFinancialOverview contract={contract} />;
+  const { formatCompactCurrency } = useNumberFormat();
+  const paymentPeriodData = buildContractPaymentPeriodChartData(
+    contract.charges,
+  );
+  const feeReceivableData = buildContractFeeReceivableChartData(
+    contract.charges,
+    contract.lines,
+  );
+  const valueFormatter = (value: number) =>
+    formatCompactCurrency(value, contract.currencyCode);
+  const axisValueFormatter = (value: number) =>
+    formatCompactCurrency(value, contract.currencyCode);
+
+  return (
+    <>
+      <ContractFinancialOverview contract={contract} />
+      <div className="mt-6 grid min-w-0 gap-6 xl:grid-cols-2">
+        <ContractChartCard
+          title="Tình hình thu theo kỳ"
+          description="Theo dõi số đã thu, còn phải thu và quá hạn theo từng kỳ thanh toán."
+        >
+          {paymentPeriodData.length > 0 ? (
+            <ContractPaymentPeriodChart
+              data={paymentPeriodData}
+              valueFormatter={valueFormatter}
+              axisValueFormatter={axisValueFormatter}
+            />
+          ) : (
+            <ContractChartEmptyState message="Chưa có dữ liệu kỳ thanh toán để hiển thị." />
+          )}
+        </ContractChartCard>
+        <ContractChartCard
+          title="Công nợ theo khoản phí"
+          description="So sánh số đã thu và số còn phải thu của từng khoản phí."
+        >
+          {feeReceivableData.length > 0 ? (
+            <ContractFeeReceivableChart
+              data={feeReceivableData}
+              valueFormatter={valueFormatter}
+            />
+          ) : (
+            <ContractChartEmptyState message="Chưa có dữ liệu khoản phí để hiển thị." />
+          )}
+        </ContractChartCard>
+      </div>
+    </>
+  );
 }
 
 export function ContractReceivablesContent({
