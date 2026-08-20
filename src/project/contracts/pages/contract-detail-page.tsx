@@ -119,7 +119,7 @@ function ContractSummaryCard({
   canManageResponsibles: boolean;
 }) {
   return (
-    <Card className="relative -mt-10 overflow-hidden border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
+    <Card className="relative -mt-10 overflow-visible border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
       <CardContent className="p-5 sm:p-6">
         <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-0">
           <EntityDetailInformationItem
