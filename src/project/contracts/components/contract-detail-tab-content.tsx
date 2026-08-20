@@ -97,6 +97,23 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function getAttachmentOpenUrl(
+  attachment: ContractDetail['attachments'][number],
+) {
+  const isOfficeDocument =
+    attachment.mimeType.includes('msword') ||
+    attachment.mimeType.includes('wordprocessingml') ||
+    attachment.mimeType.includes('ms-excel') ||
+    attachment.mimeType.includes('spreadsheetml') ||
+    attachment.mimeType.includes('ms-powerpoint') ||
+    attachment.mimeType.includes('presentationml') ||
+    /\.(doc|docx|xls|xlsx|ppt|pptx)$/i.test(attachment.fileName);
+
+  if (!isOfficeDocument) return attachment.url;
+
+  return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(attachment.url)}&wdOrigin=BROWSELINK`;
+}
+
 function FeeLine({
   line,
   formatAmount,
@@ -540,7 +557,7 @@ export function ContractAttachmentsContent({
                 >
                   <td className="px-5 py-3">
                     <a
-                      href={attachment.url}
+                      href={getAttachmentOpenUrl(attachment)}
                       target="_blank"
                       rel="noreferrer"
                       className="flex min-w-0 items-center gap-3 hover:text-primary"
@@ -559,7 +576,7 @@ export function ContractAttachmentsContent({
                   </td>
                   <td className="px-5 py-3 text-right">
                     <a
-                      href={attachment.url}
+                      href={getAttachmentOpenUrl(attachment)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1.5 text-primary hover:underline"
@@ -592,7 +609,7 @@ export function ContractAttachmentsContent({
                 className="group overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-sm"
               >
                 <a
-                  href={attachment.url}
+                  href={getAttachmentOpenUrl(attachment)}
                   target="_blank"
                   rel="noreferrer"
                   className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -611,7 +628,7 @@ export function ContractAttachmentsContent({
                 </a>
                 <div className="space-y-2 p-3">
                   <a
-                    href={attachment.url}
+                    href={getAttachmentOpenUrl(attachment)}
                     target="_blank"
                     rel="noreferrer"
                     className="block truncate text-sm font-semibold text-foreground hover:text-primary"
