@@ -31,7 +31,7 @@ const spec: TableSpec = {
         draft: {
           label: 'Bản nháp',
           className:
-            'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-subtext-foreground',
+            'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
           dotClassName: 'bg-muted-foreground opacity-100',
         },
         active: {
@@ -49,7 +49,7 @@ const spec: TableSpec = {
         expired: {
           label: 'Hết hạn',
           className:
-            'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-subtext-foreground',
+            'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
           dotClassName: 'bg-muted-foreground opacity-100',
         },
         terminated: {

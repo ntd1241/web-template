@@ -72,7 +72,7 @@
 
   --background: var(--admin-surface);
   --foreground: var(--admin-neutral-800);
-  --subtext-foreground: var(--admin-neutral-600);
+  --disabled-foreground: var(--admin-neutral-500);
   --card: var(--admin-surface);
   --card-foreground: var(--admin-neutral-800);
   --popover: var(--admin-surface);
@@ -82,7 +82,7 @@
   --secondary: var(--admin-blue-bg);
   --secondary-foreground: var(--admin-blue-dark);
   --muted: var(--admin-neutral-bg);
-  --muted-foreground: var(--admin-neutral-500);
+  --muted-foreground: var(--admin-neutral-600);
   --field: var(--admin-surface-alt);
   --accent: var(--admin-primary-bg);
   --accent-foreground: var(--admin-primary-dark);
@@ -102,7 +102,7 @@
 .dark {
   --background: var(--color-zinc-950);
   --foreground: var(--color-zinc-50);
-  --subtext-foreground: var(--color-zinc-400);
+  --disabled-foreground: var(--color-zinc-500);
   --card: var(--color-zinc-950);
   --card-foreground: var(--color-zinc-50);
   --popover: var(--color-zinc-950);
@@ -112,7 +112,7 @@
   --secondary: var(--color-zinc-800);
   --secondary-foreground: var(--color-zinc-50);
   --muted: var(--color-zinc-900);
-  --muted-foreground: var(--color-zinc-500);
+  --muted-foreground: var(--color-zinc-400);
   --field: var(--color-zinc-900);
   --accent: var(--color-zinc-900);
   --accent-foreground: var(--color-zinc-50);
@@ -138,7 +138,7 @@
   /** Base Colors **/
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-subtext-foreground: var(--subtext-foreground);
+  --color-disabled-foreground: var(--disabled-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);

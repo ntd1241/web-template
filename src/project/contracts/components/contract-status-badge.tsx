@@ -65,7 +65,7 @@ export const CONTRACT_STATUS_BADGE_CONFIG: StatusBadgeConfig<ContractStatus> = {
   expired: {
     label: 'Hết hạn',
     className:
-      'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-subtext-foreground',
+      'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
     dotClassName: 'bg-muted-foreground opacity-100',
   },
   terminated: {

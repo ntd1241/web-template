@@ -151,7 +151,7 @@ function PaymentMetric({
         <Icon className="size-4" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-xs text-subtext-foreground">{label}</p>
+        <p className="truncate text-xs text-muted-foreground">{label}</p>
         <p
           className={`mt-1 truncate text-sm font-semibold tabular-nums ${emphasis ? 'text-primary' : 'text-foreground'}`}
         >

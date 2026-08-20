@@ -102,7 +102,7 @@ export function MultiSelectList<T>({
                   onSelect={() => onToggle(option)}
                   className={cn(
                     'min-h-8 text-foreground',
-                    option.disabled && 'text-muted-foreground',
+                    option.disabled && 'text-disabled-foreground',
                   )}
                 >
                   <Check

@@ -233,7 +233,7 @@ export function SelectSearch<T = unknown>({
                         onSelect={() => handleSelect(option)}
                         className={cn(
                           'min-h-8 text-foreground',
-                          option.disabled && 'text-muted-foreground',
+                          option.disabled && 'text-disabled-foreground',
                         )}
                       >
                         <span className="min-w-0 flex-1 truncate">

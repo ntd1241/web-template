@@ -26,8 +26,18 @@ const menuItems: MenuItem[] = [
     value: 'cards',
     label: 'Cards',
     children: [
-      { value: 'static-cards', label: 'Static Cards', badge: 'New', badgeVariant: 'new' },
-      { value: 'list-cards', label: 'List Cards', badge: 'New', badgeVariant: 'new' },
+      {
+        value: 'static-cards',
+        label: 'Static Cards',
+        badge: 'New',
+        badgeVariant: 'new',
+      },
+      {
+        value: 'list-cards',
+        label: 'List Cards',
+        badge: 'New',
+        badgeVariant: 'new',
+      },
       { value: 'table-cards', label: 'Table Cards' },
       { value: 'timeline-cards', label: 'Timeline Cards' },
       { value: 'form-cards', label: 'Form Cards' },
@@ -108,7 +118,10 @@ const menuItems: MenuItem[] = [
 ];
 
 export default function SidebarTree() {
-  const renderBadge = (badge?: string | number, badgeVariant?: 'new' | 'count') => {
+  const renderBadge = (
+    badge?: string | number,
+    badgeVariant?: 'new' | 'count',
+  ) => {
     if (!badge) return null;
 
     if (badgeVariant === 'new') {
@@ -134,7 +147,11 @@ export default function SidebarTree() {
           <AccordionMenuSubTrigger>
             <span className="text-foreground font-medium">{item.label}</span>
           </AccordionMenuSubTrigger>
-          <AccordionMenuSubContent type="single" collapsible parentValue={item.value}>
+          <AccordionMenuSubContent
+            type="single"
+            collapsible
+            parentValue={item.value}
+          >
             <AccordionMenuGroup>
               {item.children.map((child) => (
                 <AccordionMenuItem
@@ -143,7 +160,9 @@ export default function SidebarTree() {
                   onClick={() => console.log(`${child.label} clicked`)}
                   disabled={child.disabled}
                 >
-                  <span className={child.disabled ? 'text-muted-foreground' : ''}>
+                  <span
+                    className={child.disabled ? 'text-disabled-foreground' : ''}
+                  >
                     {child.label}
                   </span>
                   {child.badge && (
@@ -165,7 +184,11 @@ export default function SidebarTree() {
         <AccordionMenuSubTrigger>
           <span className="text-foreground font-medium">{item.label}</span>
         </AccordionMenuSubTrigger>
-        <AccordionMenuSubContent type="single" collapsible parentValue={item.value}>
+        <AccordionMenuSubContent
+          type="single"
+          collapsible
+          parentValue={item.value}
+        >
           <AccordionMenuGroup>
             {/* Empty submenu - can be populated later */}
           </AccordionMenuGroup>
@@ -178,7 +201,9 @@ export default function SidebarTree() {
     <div className="flex flex-col py-3">
       <Pattern className="shrink-0 h-3 text-border border-t border-b border-border" />
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
-        <span className="text-sm font-medium text-muted-foreground">UI Blocks</span>
+        <span className="text-sm font-medium text-muted-foreground">
+          UI Blocks
+        </span>
         {renderBadge(2462, 'count')}
       </div>
       <AccordionMenu
@@ -189,7 +214,8 @@ export default function SidebarTree() {
         classNames={{
           root: 'px-3.5 py-1',
           group: 'gap-0',
-          label: 'uppercase text-xs font-medium text-muted-foreground/70 pt-2.25 pb-px',
+          label:
+            'uppercase text-xs font-medium text-muted-foreground/70 pt-2.25 pb-px',
           separator: '',
           subContent: `
             relative ps-3 gap-0 before:content-[''] before:absolute before:start-2 before:top-0 before:bottom-0 before:w-px before:bg-input
@@ -199,12 +225,11 @@ export default function SidebarTree() {
             [&[data-selected=true]]:before:content-[''] [&[data-selected=true]]:before:absolute [&[data-selected=true]]:before:-start-1 [&[data-selected=true]]:before:top-0 
             [&[data-selected=true]]:before:bottom-0 [&[data-selected=true]]:before:w-px [&[data-selected=true]]:before:bg-zinc-400
           `,
-          subTrigger: 'h-8 hover:bg-transparent text-muted-foreground hover:text-primary data-[selected=true]:text-primary data-[selected=true]:bg-transparent data-[selected=true]:font-medium',
+          subTrigger:
+            'h-8 hover:bg-transparent text-muted-foreground hover:text-primary data-[selected=true]:text-primary data-[selected=true]:bg-transparent data-[selected=true]:font-medium',
         }}
       >
-        <AccordionMenuGroup>
-          {menuItems.map(renderMenuItem)}
-        </AccordionMenuGroup>
+        <AccordionMenuGroup>{menuItems.map(renderMenuItem)}</AccordionMenuGroup>
       </AccordionMenu>
     </div>
   );
