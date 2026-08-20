@@ -130,9 +130,19 @@ function emitAxes(spec: ResolvedChartSpec): string {
   ].join('\n');
 }
 
-function emitSeries(spec: ResolvedChartSpec, series: ChartSeriesSpec): string {
+function emitSeries(
+  spec: ResolvedChartSpec,
+  series: ChartSeriesSpec,
+  seriesIndex: number,
+): string {
   const common = `dataKey=${quote(series.key)} ${series.stackId ? `stackId=${quote(series.stackId)} ` : ''}`;
   const color = `var(--color-${series.key})`;
+  const hasSeriesAbove = Boolean(
+    series.stackId &&
+    spec.series
+      .slice(seriesIndex + 1)
+      .some((item) => item.stackId === series.stackId),
+  );
 
   if (
     spec.chartKind === 'area' ||
@@ -157,7 +167,7 @@ function emitSeries(spec: ResolvedChartSpec, series: ChartSeriesSpec): string {
       '          <Bar',
       `            ${common.trim()}`,
       `            fill=${quote(color)}`,
-      '            radius={[4, 4, 0, 0]}',
+      `            radius={${hasSeriesAbove ? '[0, 0, 0, 0]' : '[4, 4, 0, 0]'}}`,
       '          />',
     ].join('\n');
   }
@@ -185,7 +195,9 @@ function emitCartesianChart(spec: ResolvedChartSpec): string {
           ? 'BarChart'
           : 'ComposedChart';
 
-  const series = spec.series.map((item) => emitSeries(spec, item)).join('\n');
+  const series = spec.series
+    .map((item, index) => emitSeries(spec, item, index))
+    .join('\n');
   return [
     `        <${Chart} data={${spec.dataProp}}${emitInteractive(spec)}>`,
     emitGrid(spec),

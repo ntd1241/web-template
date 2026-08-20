@@ -23,6 +23,12 @@ const spec = {
       color: 'var(--admin-red-primary)',
       stackId: 'receivable',
     },
+    {
+      key: 'futureOutstanding',
+      label: 'Chưa đến hạn',
+      color: 'var(--admin-neutral-200)',
+      stackId: 'receivable',
+    },
   ],
   includeLegend: true,
   tooltipStyle: 'line',

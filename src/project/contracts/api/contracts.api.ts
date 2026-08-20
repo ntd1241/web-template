@@ -392,6 +392,7 @@ function attachListSummary(
   customer: CustomerOptionRow | undefined,
   balances: ContractChargeBalance[],
 ): Contract {
+  const currentDate = todayIso();
   const contractBalances = balances.filter(
     (balance) =>
       balance.contractId === contract.id &&
@@ -399,7 +400,8 @@ function attachListSummary(
       balance.status !== 'voided',
   );
   const outstanding = contractBalances.reduce(
-    (sum, balance) => sum + balance.outstandingAmount,
+    (sum, balance) =>
+      balance.dueDate <= currentDate ? sum + balance.outstandingAmount : sum,
     0,
   );
   const nextDueDate = contractBalances

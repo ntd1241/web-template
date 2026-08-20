@@ -845,6 +845,7 @@ export function ChartsShowcasePage() {
                           dataKey="internal"
                           stackId="percentage"
                           fill="var(--color-internal)"
+                          radius={[0, 0, 0, 0]}
                         />
                         <Bar
                           dataKey="external"

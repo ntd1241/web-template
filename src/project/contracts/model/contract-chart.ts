@@ -6,6 +6,7 @@ export interface ContractPaymentPeriodChartPoint {
   paidAmount: number;
   currentOutstanding: number;
   overdueOutstanding: number;
+  futureOutstanding: number;
 }
 
 export interface ContractFeeReceivableChartPoint {
@@ -61,14 +62,19 @@ export function buildContractPaymentPeriodChartData(
         paidAmount: 0,
         currentOutstanding: 0,
         overdueOutstanding: 0,
+        futureOutstanding: 0,
       };
       const outstandingAmount = Math.max(0, charge.outstandingAmount);
 
       current.paidAmount += clampPaidAmount(charge);
-      if (charge.dueDate < todayIso) {
-        current.overdueOutstanding += outstandingAmount;
+      if (charge.dueDate > todayIso) {
+        current.futureOutstanding += outstandingAmount;
       } else {
-        current.currentOutstanding += outstandingAmount;
+        if (charge.dueDate < todayIso) {
+          current.overdueOutstanding += outstandingAmount;
+        } else {
+          current.currentOutstanding += outstandingAmount;
+        }
       }
       periods.set(key, current);
     });
@@ -94,6 +100,7 @@ export function buildContractFeeReceivableChartData(
   lines: ContractVersionLine[],
   limit = 8,
 ): ContractFeeReceivableChartPoint[] {
+  const todayIso = getTodayIso();
   const lineNameById = new Map(lines.map((line) => [line.id, line.name]));
   const fees = new Map<string, ContractFeeReceivableChartPoint>();
 
@@ -112,7 +119,9 @@ export function buildContractFeeReceivableChartData(
       };
 
       current.paidAmount += clampPaidAmount(charge);
-      current.outstandingAmount += Math.max(0, charge.outstandingAmount);
+      if (charge.dueDate <= todayIso) {
+        current.outstandingAmount += Math.max(0, charge.outstandingAmount);
+      }
       fees.set(charge.contractVersionLineId, current);
     });
 

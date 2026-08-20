@@ -24,6 +24,10 @@ const chartConfig = {
     color: 'var(--admin-amber-primary)',
   },
   overdueOutstanding: { label: 'Quá hạn', color: 'var(--admin-red-primary)' },
+  futureOutstanding: {
+    label: 'Chưa đến hạn',
+    color: 'var(--admin-neutral-200)',
+  },
 } satisfies ChartConfig;
 
 export interface ContractPaymentPeriodChartProps {
@@ -71,18 +75,24 @@ export function ContractPaymentPeriodChart({
             dataKey="paidAmount"
             stackId="receivable"
             fill="var(--color-paidAmount)"
-            radius={[4, 4, 0, 0]}
+            radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="currentOutstanding"
             stackId="receivable"
             fill="var(--color-currentOutstanding)"
-            radius={[4, 4, 0, 0]}
+            radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="overdueOutstanding"
             stackId="receivable"
             fill="var(--color-overdueOutstanding)"
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="futureOutstanding"
+            stackId="receivable"
+            fill="var(--color-futureOutstanding)"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>

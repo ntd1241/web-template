@@ -187,7 +187,7 @@ function formatTimestampDate(value: string) {
 function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
   const { formatCurrency } = useNumberFormat();
   const stats = getContractReceivableStats(contract.charges);
-  const remainingAmount = Math.max(0, stats.totalBilled - stats.totalPaid);
+  const remainingAmount = stats.totalOutstanding;
   const progress =
     stats.totalBilled > 0
       ? Math.min(100, Math.max(0, (stats.totalPaid / stats.totalBilled) * 100))
@@ -316,7 +316,7 @@ export function ContractOverviewContent({
       <div className="mt-6 grid min-w-0 gap-6 xl:grid-cols-2">
         <ContractChartCard
           title="Tình hình thu theo kỳ"
-          description="Theo dõi số đã thu, còn phải thu và quá hạn theo từng kỳ thanh toán."
+          description="Theo dõi số đã thu, còn phải thu, quá hạn và chưa đến hạn theo từng kỳ."
         >
           {paymentPeriodData.length > 0 ? (
             <ContractPaymentPeriodChart
@@ -330,7 +330,7 @@ export function ContractOverviewContent({
         </ContractChartCard>
         <ContractChartCard
           title="Công nợ theo khoản phí"
-          description="So sánh số đã thu và số còn phải thu của từng khoản phí."
+          description="So sánh số đã thu và số còn phải thu đã đến hạn của từng khoản phí."
         >
           {feeReceivableData.length > 0 ? (
             <ContractFeeReceivableChart

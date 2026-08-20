@@ -86,4 +86,23 @@ describe('chart-builder', () => {
       chartSpecSchema.parse({ ...baseSpec, chartKind: 'scatter' }),
     ).toThrow(/scatter chart cần/);
   });
+
+  it('keeps stacked bars connected by rounding only the top segment', () => {
+    const source = buildChartModule({
+      ...baseSpec,
+      chartKind: 'bar',
+      series: [
+        { key: 'first', label: 'Đầu tiên', color: 'green', stackId: 'stack' },
+        { key: 'top', label: 'Trên cùng', color: 'blue', stackId: 'stack' },
+      ],
+    });
+
+    expect(source).toContain("dataKey='first' stackId='stack'");
+    expect(source).toMatch(
+      /dataKey='first' stackId='stack'\s+fill='var\(--color-first\)'\s+radius=\{\[0, 0, 0, 0\]\}/,
+    );
+    expect(source).toMatch(
+      /dataKey='top' stackId='stack'\s+fill='var\(--color-top\)'\s+radius=\{\[4, 4, 0, 0\]\}/,
+    );
+  });
 });
