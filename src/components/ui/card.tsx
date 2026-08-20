@@ -7,10 +7,14 @@ import { cn } from '@/lib/utils';
 // Define CardContext
 type CardContextType = {
   variant: 'default' | 'accent';
+  sectionBorders: CardSectionBorders;
 };
 
+type CardSectionBorders = 'none' | 'default';
+
 const CardContext = React.createContext<CardContextType>({
-  variant: 'default', // Default value
+  variant: 'default',
+  sectionBorders: 'none',
 });
 
 // Hook to use CardContext
@@ -43,12 +47,17 @@ const cardHeaderVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-b border-border',
+        default: '',
         accent: '',
+      },
+      sectionBorders: {
+        none: '',
+        default: 'border-b border-border',
       },
     },
     defaultVariants: {
       variant: 'default',
+      sectionBorders: 'none',
     },
   },
 );
@@ -80,12 +89,17 @@ const cardTableVariants = cva('grid grow', {
 const cardFooterVariants = cva('flex items-center px-5 min-h-14', {
   variants: {
     variant: {
-      default: 'border-t border-border',
+      default: '',
       accent: 'bg-card rounded-b-xl mt-[2px]',
+    },
+    sectionBorders: {
+      none: '',
+      default: 'border-t border-border',
     },
   },
   defaultVariants: {
     variant: 'default',
+    sectionBorders: 'none',
   },
 });
 
@@ -93,10 +107,19 @@ const cardFooterVariants = cva('flex items-center px-5 min-h-14', {
 function Card({
   className,
   variant = 'default',
+  sectionBorders = 'none',
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>) {
+}: React.HTMLAttributes<HTMLDivElement> &
+  VariantProps<typeof cardVariants> & {
+    sectionBorders?: CardSectionBorders;
+  }) {
   return (
-    <CardContext.Provider value={{ variant: variant || 'default' }}>
+    <CardContext.Provider
+      value={{
+        variant: variant || 'default',
+        sectionBorders: sectionBorders || 'none',
+      }}
+    >
       <div
         data-slot="card"
         className={cn(cardVariants({ variant }), className)}
@@ -111,11 +134,11 @@ function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  const { variant } = useCardContext();
+  const { variant, sectionBorders } = useCardContext();
   return (
     <div
       data-slot="card-header"
-      className={cn(cardHeaderVariants({ variant }), className)}
+      className={cn(cardHeaderVariants({ variant, sectionBorders }), className)}
       {...props}
     />
   );
@@ -156,11 +179,11 @@ function CardFooter({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  const { variant } = useCardContext();
+  const { variant, sectionBorders } = useCardContext();
   return (
     <div
       data-slot="card-footer"
-      className={cn(cardFooterVariants({ variant }), className)}
+      className={cn(cardFooterVariants({ variant, sectionBorders }), className)}
       {...props}
     />
   );

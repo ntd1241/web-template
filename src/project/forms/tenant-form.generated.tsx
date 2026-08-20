@@ -38,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -431,8 +430,6 @@ export function TenantSettingsFormDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <Separator />
-
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
             <TenantSettingsForm
               form={form}
@@ -441,8 +438,6 @@ export function TenantSettingsFormDialog({
               onLogoUrlFileChange={onLogoUrlFileChange}
             />
           </div>
-
-          <Separator />
 
           <DialogFooter className="shrink-0 px-6 py-4">
             <ShortcutTooltip label="Hủy" shortcut="Esc">

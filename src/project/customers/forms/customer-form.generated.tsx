@@ -40,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -457,8 +456,6 @@ export function CustomerFormDialog({
             <DialogTitle>{title ?? 'Thêm khách hàng'}</DialogTitle>
           </DialogHeader>
 
-          <Separator />
-
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
             <CustomerForm
               form={form}
@@ -469,8 +466,6 @@ export function CustomerFormDialog({
               onImageUrlFileChange={onImageUrlFileChange}
             />
           </div>
-
-          <Separator />
 
           <DialogFooter className="shrink-0 px-6 py-4">
             <ShortcutTooltip label="Hủy" shortcut="Esc">

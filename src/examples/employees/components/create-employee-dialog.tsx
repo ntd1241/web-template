@@ -13,7 +13,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { Separator } from '@/components/ui/separator';
 import {
   createEmployeeFormSchema,
   EMPLOYEE_DEPARTMENTS,
@@ -96,8 +95,6 @@ export function CreateEmployeeDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -109,8 +106,6 @@ export function CreateEmployeeDialog({
                 onAvatarChange={setAvatar}
               />
             </div>
-
-            <Separator />
 
             <DialogFooter className="shrink-0 px-6 py-4">
               <Button

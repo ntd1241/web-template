@@ -25,7 +25,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import type { InspectionTable } from '../../model/inspection-table';
 import {
@@ -156,8 +155,6 @@ export function InspectionTableFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <InspectionTableForm
             form={form}
@@ -165,8 +162,6 @@ export function InspectionTableFormDialog({
             id="inspectionTable-form"
           />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <Button

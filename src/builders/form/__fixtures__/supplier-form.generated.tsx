@@ -41,7 +41,6 @@ import {
 } from '@/components/ui/select';
 import { SelectSearch } from '@/components/ui/select-search';
 import type { SearchSelectOption } from '@/components/ui/select-search';
-import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -353,8 +352,6 @@ export function SupplierFormDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <Separator />
-
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
             <SupplierForm
               form={form}
@@ -363,8 +360,6 @@ export function SupplierFormDialog({
               regionOptions={regionOptions}
             />
           </div>
-
-          <Separator />
 
           <DialogFooter className="shrink-0 px-6 py-4">
             <ShortcutTooltip label="Hủy" shortcut="Esc">

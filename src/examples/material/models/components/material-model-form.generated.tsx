@@ -32,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { MaterialModel } from '../../model/material-model';
@@ -292,8 +291,6 @@ export function MaterialModelFormDialog({
           <DialogDescription>Thông tin cơ bản của mẫu.</DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <MaterialModelForm
             form={form}
@@ -303,8 +300,6 @@ export function MaterialModelFormDialog({
             inspectionTableIdOptions={inspectionTableIdOptions}
           />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <Button

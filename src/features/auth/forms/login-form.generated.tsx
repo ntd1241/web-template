@@ -25,7 +25,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { loginFormSchema, type LoginFormValues } from './login-form.schema';
 
 export const loginDefaultValues: LoginFormValues = {
@@ -136,13 +135,9 @@ export function LoginFormDialog({
           <DialogTitle>{title ?? 'Đăng nhập'}</DialogTitle>
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <LoginForm form={form} onSubmit={onSubmit} id="login-form" />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <Button

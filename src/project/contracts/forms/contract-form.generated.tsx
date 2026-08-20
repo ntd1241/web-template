@@ -36,7 +36,6 @@ import { Input } from '@/components/ui/input';
 import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import type { MultiSelectOption } from '@/components/ui/multi-select';
-import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -391,8 +390,6 @@ export function ContractFormDialog({
             <DialogTitle>{title ?? 'Thêm hợp đồng'}</DialogTitle>
           </DialogHeader>
 
-          <Separator />
-
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
             <ContractForm
               form={form}
@@ -404,8 +401,6 @@ export function ContractFormDialog({
               responsibleEmployeeIdsOptions={responsibleEmployeeIdsOptions}
             />
           </div>
-
-          <Separator />
 
           <DialogFooter className="shrink-0 px-6 py-4">
             <ShortcutTooltip label="Hủy" shortcut="Esc">

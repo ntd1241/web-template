@@ -32,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import {
   materialFormSchema,
   type MaterialFormValues,
@@ -265,8 +264,6 @@ export function MaterialFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <MaterialForm
             form={form}
@@ -281,8 +278,6 @@ export function MaterialFormDialog({
             onModelChange={onModelChange}
           />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <Button

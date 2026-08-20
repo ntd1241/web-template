@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/dialog';
 import { NumericInput } from '@/components/ui/inputs/numeric-input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import {
   calculateContractPaymentAllocations,
   roundCurrencyAmount,
@@ -251,8 +250,6 @@ export function ContractPaymentDialog({
           <DialogTitle>Thanh toán kỳ {formatPeriod(row)}</DialogTitle>
         </DialogHeader>
 
-        <Separator />
-
         <DialogBody className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
           <div className="space-y-2">
             <Label htmlFor="contract-payment-amount">Số tiền thanh toán</Label>
@@ -338,8 +335,6 @@ export function ContractPaymentDialog({
             </DndContext>
           </div>
         </DialogBody>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <Button

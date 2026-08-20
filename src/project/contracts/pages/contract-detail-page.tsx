@@ -1,9 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { LucideIcon } from 'lucide-react';
 import {
   CircleCheck,
   FileText,
+  History,
+  LayoutDashboard,
+  Paperclip,
   Pencil,
   ReceiptText,
   RefreshCw,
@@ -30,20 +34,16 @@ import {
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PageLoading } from '@/components/ui/loading';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
-import { StatCard } from '@/components/ui/stat-card';
-import { Tag } from '@/components/ui/tag';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  EntityDetailInformationCard,
-  EntityDetailInformationGrid,
-  EntityDetailProfileCard,
+  EntityDetailTabs,
+  type EntityDetailTab,
 } from '@/components/layouts/entity-detail-layout';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
-import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import {
   activateContract,
   deleteContract,
@@ -51,7 +51,6 @@ import {
   loadContractPaymentPeriodCount,
   type ContractDetail,
 } from '../api/contracts.api';
-import { ContractDetailLayout } from '../components/contract-detail-layout.generated';
 import {
   ContractAttachmentsContent,
   ContractOverviewContent,
@@ -69,175 +68,194 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
 }
 
-function DetailValue({ label, value }: { label: string; value: ReactNode }) {
+function SummaryItem({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="min-w-0 space-y-1">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-sm font-semibold text-foreground">
+    <div className={`min-w-0 space-y-2 ${className ?? ''}`}>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="min-w-0 text-sm font-semibold text-foreground">
         {value || 'Chưa cập nhật'}
-      </dd>
+      </div>
     </div>
   );
 }
 
-function ContractProfileCard({ contract }: { contract: ContractDetail }) {
+function ContractHero({
+  contract,
+  actions,
+}: {
+  contract: ContractDetail;
+  actions: ReactNode;
+}) {
   return (
-    <EntityDetailProfileCard
-      avatar={
-        <div className="flex size-24 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <FileText className="size-10" />
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#0b3b9e] via-[#0b57c7] to-[#2774df] text-white">
+      <div className="pointer-events-none absolute -end-24 -top-36 size-[28rem] rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-48 start-1/3 size-[32rem] rounded-full bg-cyan-300/10 blur-3xl" />
+      <div className="relative mx-auto flex min-h-[220px] max-w-[1600px] flex-col justify-end gap-8 px-4 pb-20 pt-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-white/30 bg-white/15 shadow-lg backdrop-blur-sm sm:size-20">
+              <FileText className="size-8 sm:size-10" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-sm font-medium text-white/70">
+                Chi tiết hợp đồng
+              </p>
+              <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+                {contract.name}
+              </h1>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-white/80">
+                <span>Mã hợp đồng: {contract.contractCode}</span>
+                <ContractStatusBadge status={contract.status} />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            {actions}
+          </div>
         </div>
-      }
-      title={contract.name}
-      subtitle={contract.contractCode}
-    >
-      <div className="space-y-1.5">
-        <div className="text-sm text-muted-foreground">Khách hàng</div>
-        <Link
-          to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
-            id: contract.customer.id,
-          })}
-          target="_blank"
-          rel="noreferrer"
-          className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
-        >
-          <CustomerIdentity customer={contract.customer} />
-        </Link>
       </div>
-    </EntityDetailProfileCard>
+    </section>
   );
 }
 
-function ContractInformationCard({
+function ContractSummaryCard({
   contract,
-  onEdit,
-  onDelete,
-  onActivate,
   onManageResponsibles,
   canManageResponsibles,
-  isActivating,
 }: {
   contract: ContractDetail;
-  onEdit: () => void;
-  onDelete: () => void;
-  onActivate: () => void;
   onManageResponsibles: () => void;
   canManageResponsibles: boolean;
-  isActivating: boolean;
 }) {
+  return (
+    <Card className="relative -mt-10 overflow-hidden border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
+      <CardContent className="p-5 sm:p-6">
+        <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-0">
+          <SummaryItem
+            label="Khách hàng"
+            className="lg:border-e lg:border-border lg:pe-6"
+            value={
+              <Link
+                to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
+                  id: contract.customer.id,
+                })}
+                target="_blank"
+                rel="noreferrer"
+                className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label={`Xem chi tiết khách hàng ${contract.customer.name}`}
+              >
+                <CustomerIdentity customer={contract.customer} />
+              </Link>
+            }
+          />
+          <SummaryItem
+            label="Ngày bắt đầu"
+            className="lg:px-6 lg:border-e lg:border-border"
+            value={formatDate(contract.startDate)}
+          />
+          <SummaryItem
+            label="Ngày kết thúc"
+            className="lg:px-6 lg:border-e lg:border-border"
+            value={formatDate(contract.endDate)}
+          />
+          <SummaryItem
+            label="Nhân viên phụ trách"
+            className="lg:ps-6"
+            value={
+              <ContractResponsibleAvatarGroup
+                employees={contract.responsibleEmployees}
+                onClick={
+                  canManageResponsibles ? onManageResponsibles : undefined
+                }
+              />
+            }
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const PAYMENT_METRIC_TONE_CLASSES = {
+  info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  danger: 'bg-destructive/10 text-destructive',
+} as const;
+
+function PaymentMetric({
+  icon: Icon,
+  iconTone,
+  label,
+  value,
+  emphasis = false,
+}: {
+  icon: LucideIcon;
+  iconTone: keyof typeof PAYMENT_METRIC_TONE_CLASSES;
+  label: string;
+  value: ReactNode;
+  emphasis?: boolean;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 px-4 py-3.5">
+      <span
+        className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${PAYMENT_METRIC_TONE_CLASSES[iconTone]}`}
+      >
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-xs text-muted-foreground">{label}</p>
+        <p
+          className={`mt-1 truncate text-sm font-semibold tabular-nums ${emphasis ? 'text-primary' : 'text-foreground'}`}
+        >
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
   const { formatCurrency } = useNumberFormat();
   const stats = getContractReceivableStats(contract.charges);
+  const progress =
+    stats.totalBilled > 0
+      ? Math.min(100, Math.max(0, (stats.totalPaid / stats.totalBilled) * 100))
+      : 0;
+  const formattedProgress = new Intl.NumberFormat('vi-VN', {
+    maximumFractionDigits: 2,
+  }).format(progress);
 
   return (
-    <EntityDetailInformationCard
-      actions={
-        <>
-          {contract.versions[0]?.status === 'draft' ? (
-            <Button
-              type="button"
-              variant="ghost"
-              loading={isActivating}
-              loadingText="Đang kích hoạt..."
-              onClick={onActivate}
-            >
-              <ReceiptText />
-              Kích hoạt
-            </Button>
-          ) : null}
-          <ShortcutTooltip label="Sửa thông tin" shortcut="Alt + E">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onEdit}
-              data-shortcut-action="edit"
-            >
-              <Pencil />
-              Sửa thông tin
-            </Button>
-          </ShortcutTooltip>
-          <Button
-            type="button"
-            variant="ghost"
-            mode="icon"
-            className="text-destructive hover:text-destructive"
-            aria-label={`Xóa hợp đồng ${contract.name}`}
-            onClick={onDelete}
-          >
-            <Trash2 />
-          </Button>
-        </>
-      }
-    >
-      <EntityDetailInformationGrid>
-        <DetailValue
-          label="Trạng thái"
-          value={<ContractStatusBadge status={contract.status} />}
-        />
-        <DetailValue
-          label="Ngày bắt đầu"
-          value={formatDate(contract.startDate)}
-        />
-        <DetailValue
-          label="Ngày kết thúc"
-          value={formatDate(contract.endDate)}
-        />
-        <DetailValue
-          label="Tự động gia hạn"
-          value={contract.autoRenew ? 'Có' : 'Không'}
-        />
-        <DetailValue
-          label="Người tạo hợp đồng"
-          value={
-            contract.createdByEmployee ? (
-              <EmployeeIdentity employee={contract.createdByEmployee} />
-            ) : undefined
-          }
-        />
-        <DetailValue
-          label="Nhân viên phụ trách"
-          value={
-            <ContractResponsibleAvatarGroup
-              employees={contract.responsibleEmployees}
-              onClick={canManageResponsibles ? onManageResponsibles : undefined}
-            />
-          }
-        />
-        <DetailValue
-          label="Nhãn"
-          value={
-            contract.tags.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {contract.tags.map((tag) => (
-                  <Tag key={tag.id} color={tag.color}>
-                    {tag.name}
-                  </Tag>
-                ))}
-              </div>
-            ) : undefined
-          }
-        />
-      </EntityDetailInformationGrid>
-      {contract.note ? (
-        <div className="mt-6 border-t border-border pt-5 text-sm text-muted-foreground">
-          {contract.note}
-        </div>
-      ) : null}
-      <div className="mt-6">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
+    <Card className="mt-6 overflow-hidden">
+      <CardHeader>
+        <CardHeading>
+          <CardTitle className="text-lg">Tình hình thanh toán</CardTitle>
+        </CardHeading>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        <div className="grid overflow-hidden rounded-lg border border-border sm:grid-cols-2 xl:grid-cols-4 xl:divide-x xl:divide-border">
+          <PaymentMetric
             icon={FileText}
             iconTone="info"
             label="Tổng đã lập"
             value={formatCurrency(stats.totalBilled, contract.currencyCode)}
           />
-          <StatCard
+          <PaymentMetric
             icon={CircleCheck}
             iconTone="success"
             label="Đã thanh toán"
             value={formatCurrency(stats.totalPaid, contract.currencyCode)}
           />
-          <StatCard
+          <PaymentMetric
             icon={WalletCards}
             iconTone="warning"
             label="Còn phải thu"
@@ -247,7 +265,7 @@ function ContractInformationCard({
             )}
             emphasis
           />
-          <StatCard
+          <PaymentMetric
             icon={TriangleAlert}
             iconTone="danger"
             label="Quá hạn"
@@ -257,8 +275,117 @@ function ContractInformationCard({
             )}
           />
         </div>
-      </div>
-    </EntityDetailInformationCard>
+        <div
+          className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
+          aria-label={`Đã thanh toán ${formattedProgress}%`}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-[width]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>
+            <strong className="font-semibold text-emerald-600">
+              {formattedProgress}%
+            </strong>{' '}
+            đã thanh toán
+          </span>
+          <span>
+            Cập nhật đến {formatDate(contract.updatedAt.slice(0, 10))}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ContractHeroActions({
+  contract,
+  onEdit,
+  onDelete,
+  onActivate,
+  isActivating,
+}: {
+  contract: ContractDetail;
+  onEdit: () => void;
+  onDelete: () => void;
+  onActivate: () => void;
+  isActivating: boolean;
+}) {
+  return (
+    <>
+      {contract.versions[0]?.status === 'draft' ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          loading={isActivating}
+          loadingText="Đang kích hoạt..."
+          onClick={onActivate}
+        >
+          <ReceiptText />
+          Kích hoạt
+        </Button>
+      ) : null}
+      <ShortcutTooltip label="Sửa thông tin" shortcut="Alt + E">
+        <Button
+          type="button"
+          variant="outline"
+          className="border-white/25 bg-white text-primary hover:bg-white/90 hover:text-primary"
+          onClick={onEdit}
+          data-shortcut-action="edit"
+        >
+          <Pencil />
+          Sửa thông tin
+        </Button>
+      </ShortcutTooltip>
+      <Button
+        type="button"
+        variant="outline"
+        mode="icon"
+        className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+        aria-label={`Xóa hợp đồng ${contract.name}`}
+        onClick={onDelete}
+      >
+        <Trash2 />
+      </Button>
+    </>
+  );
+}
+
+function ContractDetailShell({
+  contract,
+  heroActions,
+  onManageResponsibles,
+  canManageResponsibles,
+  tabs,
+}: {
+  contract: ContractDetail;
+  heroActions: ReactNode;
+  onManageResponsibles: () => void;
+  canManageResponsibles: boolean;
+  tabs: EntityDetailTab[];
+}) {
+  return (
+    <div className="flex min-h-full flex-col bg-muted/30">
+      <ContractHero contract={contract} actions={heroActions} />
+      <main className="mx-auto w-full max-w-[1600px] px-4 pb-8 sm:px-6 lg:px-8">
+        <ContractSummaryCard
+          contract={contract}
+          onManageResponsibles={onManageResponsibles}
+          canManageResponsibles={canManageResponsibles}
+        />
+        <ContractFinancialOverview contract={contract} />
+        <div className="mt-6">
+          <EntityDetailTabs tabs={tabs} defaultValue="overview" />
+        </div>
+      </main>
+    </div>
   );
 }
 
@@ -383,67 +510,93 @@ export function ContractDetailPage() {
   const contract = contractQuery.data;
   const paymentPeriodCount = paymentPeriodCountQuery.data ?? 0;
 
+  const tabs: EntityDetailTab[] = [
+    {
+      value: 'overview',
+      label: 'Tổng quan',
+      icon: LayoutDashboard,
+      content: <ContractOverviewContent contract={contract} />,
+    },
+    {
+      value: 'receivables',
+      label: 'Kỳ thanh toán',
+      icon: ReceiptText,
+      badge:
+        paymentPeriodCount > 0 ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                size="sm"
+                shape="circle"
+                variant="destructive"
+                aria-label={`${paymentPeriodCount} kỳ thanh toán cần xử lý`}
+              >
+                {paymentPeriodCount}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              {paymentPeriodCount} kỳ thanh toán cần xử lý
+            </TooltipContent>
+          </Tooltip>
+        ) : undefined,
+      content: (
+        <ContractReceivablesContent
+          tenantId={contract.tenantId}
+          dueSoonDays={contract.paymentReminderDays}
+          userId={userId ?? ''}
+          contractId={contract.id}
+          customerId={contract.customer.id}
+          currencyCode={contract.currencyCode}
+          onPaymentRecorded={async () => {
+            await invalidate();
+          }}
+        />
+      ),
+    },
+    {
+      value: 'versions',
+      label: 'Phiên bản',
+      icon: History,
+      content: <ContractVersionsContent contract={contract} />,
+    },
+    {
+      value: 'payments',
+      label: 'Lịch sử thanh toán',
+      icon: WalletCards,
+      content: <ContractPaymentsContent payments={contract.payments} />,
+    },
+    {
+      value: 'attachments',
+      label: 'Tài liệu',
+      icon: Paperclip,
+      content: (
+        <ContractAttachmentsContent
+          contract={contract}
+          userId={userId ?? ''}
+          onChanged={async () => {
+            await invalidate();
+          }}
+        />
+      ),
+    },
+  ];
+
   return (
     <>
-      <ContractDetailLayout
-        profile={<ContractProfileCard contract={contract} />}
-        information={
-          <ContractInformationCard
+      <ContractDetailShell
+        contract={contract}
+        heroActions={
+          <ContractHeroActions
             contract={contract}
             onEdit={() => openEdit(contract)}
             onDelete={() => setDeleteDialogOpen(true)}
             onActivate={() => activateMutation.mutate()}
-            onManageResponsibles={() => setResponsibleDialogOpen(true)}
-            canManageResponsibles={canManageResponsibles}
             isActivating={activateMutation.isPending}
           />
         }
-        receivablesBadge={
-          paymentPeriodCount > 0 ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  size="sm"
-                  shape="circle"
-                  variant="destructive"
-                  aria-label={`${paymentPeriodCount} kỳ thanh toán cần xử lý`}
-                >
-                  {paymentPeriodCount}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                {paymentPeriodCount} kỳ thanh toán cần xử lý
-              </TooltipContent>
-            </Tooltip>
-          ) : undefined
-        }
-        overviewContent={<ContractOverviewContent contract={contract} />}
-        receivablesContent={
-          <ContractReceivablesContent
-            tenantId={contract.tenantId}
-            dueSoonDays={contract.paymentReminderDays}
-            userId={userId ?? ''}
-            contractId={contract.id}
-            customerId={contract.customer.id}
-            currencyCode={contract.currencyCode}
-            onPaymentRecorded={async () => {
-              await invalidate();
-            }}
-          />
-        }
-        versionsContent={<ContractVersionsContent contract={contract} />}
-        paymentsContent={
-          <ContractPaymentsContent payments={contract.payments} />
-        }
-        attachmentsContent={
-          <ContractAttachmentsContent
-            contract={contract}
-            userId={userId ?? ''}
-            onChanged={async () => {
-              await invalidate();
-            }}
-          />
-        }
+        onManageResponsibles={() => setResponsibleDialogOpen(true)}
+        canManageResponsibles={canManageResponsibles}
+        tabs={tabs}
       />
       <ConfirmDialog
         open={deleteDialogOpen}

@@ -353,7 +353,6 @@ function emitImports(spec: FormSpec): string {
     "import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';",
     `import {\n${dialogParts.map((part) => `  ${part},`).join('\n')}\n} from '@/components/ui/dialog';`,
     `import {\n${formParts.map((p) => `  ${p},`).join('\n')}\n} from '@/components/ui/form';`,
-    "import { Separator } from '@/components/ui/separator';",
   ];
 
   if (
@@ -722,8 +721,6 @@ export function ${dialogComponent}({
           <DialogTitle>{title ?? ${str(spec.title)}}</DialogTitle>${description}
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <${formComponent}
             form={form}
@@ -731,8 +728,6 @@ export function ${dialogComponent}({
             id="${lowerFirst(spec.entity)}-form"${hasFieldModes ? ' mode={mode}' : ''}${forwardPropsAttr}
           />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <ShortcutTooltip label="Hủy" shortcut="Esc">

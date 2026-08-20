@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { employeeFormSchema, type EmployeeFormValues } from '../model/employee';
@@ -281,13 +280,9 @@ export function EmployeeFormDialog({
           <DialogTitle>{title ?? 'Thêm nhân viên'}</DialogTitle>
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <EmployeeForm form={form} onSubmit={onSubmit} id="employee-form" />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <ShortcutTooltip label="Hủy" shortcut="Esc">

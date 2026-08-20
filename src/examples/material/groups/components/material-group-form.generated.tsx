@@ -32,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import type { MaterialGroup } from '../../model/material-group';
 import {
@@ -191,8 +190,6 @@ export function MaterialGroupFormDialog({
           <DialogDescription>Thông tin nhóm vật tư.</DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <MaterialGroupForm
             form={form}
@@ -201,8 +198,6 @@ export function MaterialGroupFormDialog({
             parentIdOptions={parentIdOptions}
           />
         </div>
-
-        <Separator />
 
         <DialogFooter className="shrink-0 px-6 py-4">
           <Button
