@@ -435,7 +435,15 @@ export function ContractDetailPage() {
         paymentsContent={
           <ContractPaymentsContent payments={contract.payments} />
         }
-        attachmentsContent={<ContractAttachmentsContent contract={contract} />}
+        attachmentsContent={
+          <ContractAttachmentsContent
+            contract={contract}
+            userId={userId ?? ''}
+            onUploaded={async () => {
+              await invalidate();
+            }}
+          />
+        }
       />
       <ConfirmDialog
         open={deleteDialogOpen}

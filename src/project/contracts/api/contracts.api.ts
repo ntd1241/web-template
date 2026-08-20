@@ -928,7 +928,7 @@ function safeAttachmentFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]+/g, '-');
 }
 
-async function uploadContractAttachments(
+export async function uploadContractAttachments(
   tenantId: string,
   contractId: string,
   userId: string,

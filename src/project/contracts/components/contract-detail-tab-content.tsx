@@ -6,10 +6,19 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import type { PaginationState } from '@tanstack/react-table';
-import { ExternalLink, FileText, Paperclip, WalletCards } from 'lucide-react';
+import {
+  ExternalLink,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  Grid2X2,
+  List,
+  WalletCards,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useNumberFormat } from '@/providers/number-format-provider';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -25,6 +34,7 @@ import { CardEmptyState } from '@/components/ui/card-empty-state';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
+import { FileUploadContent } from '@/components/ui/file-upload/file-upload-content';
 import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
@@ -34,7 +44,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { recordContractPeriodPayment } from '../api/contracts.api';
+import {
+  recordContractPeriodPayment,
+  uploadContractAttachments,
+} from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import {
   useContractReceivableList,
@@ -453,18 +466,23 @@ export function ContractPaymentsContent({
 
 export function ContractAttachmentsContent({
   contract,
+  userId,
+  onUploaded,
 }: {
   contract: ContractDetail;
+  userId: string;
+  onUploaded: () => Promise<void>;
 }) {
-  if (contract.attachments.length === 0) {
-    return (
-      <CardEmptyState
-        icon={Paperclip}
-        title="Chưa có tài liệu"
-        description="Tài liệu đính kèm của hợp đồng sẽ hiển thị tại đây."
-      />
-    );
-  }
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const uploadMutation = useMutation({
+    mutationFn: (files: File[]) =>
+      uploadContractAttachments(contract.tenantId, contract.id, userId, files),
+    onSuccess: async () => {
+      toast.success('Đã tải tài liệu lên hợp đồng.');
+      await onUploaded();
+    },
+    onError: (uploadError) => toast.error(getApiErrorMessage(uploadError)),
+  });
 
   return (
     <Card className="overflow-hidden">
@@ -472,58 +490,157 @@ export function ContractAttachmentsContent({
         <CardHeading>
           <CardTitle>Tài liệu đính kèm</CardTitle>
         </CardHeading>
+        <CardToolbar className="flex-wrap justify-end">
+          <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5">
+            <Button
+              type="button"
+              variant="ghost"
+              mode="icon"
+              size="md"
+              selected={viewMode === 'table'}
+              aria-label="Hiển thị dạng bảng"
+              aria-pressed={viewMode === 'table'}
+              title="Hiển thị dạng bảng"
+              onClick={() => setViewMode('table')}
+            >
+              <List />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              mode="icon"
+              size="md"
+              selected={viewMode === 'card'}
+              aria-label="Hiển thị dạng thẻ"
+              aria-pressed={viewMode === 'card'}
+              title="Hiển thị dạng thẻ"
+              onClick={() => setViewMode('card')}
+            >
+              <Grid2X2 />
+            </Button>
+          </div>
+        </CardToolbar>
       </CardHeader>
-      <CardTable>
-        <table className="w-full min-w-[620px] text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-5 py-3 font-medium">Tài liệu</th>
-              <th className="px-5 py-3 font-medium">Dung lượng</th>
-              <th className="px-5 py-3 font-medium">Ngày tải lên</th>
-              <th className="px-5 py-3 text-right font-medium">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contract.attachments.map((attachment) => (
-              <tr
-                key={attachment.id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-5 py-3">
-                  <a
-                    href={attachment.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex min-w-0 items-center gap-3 hover:text-primary"
-                  >
-                    <FileText className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 truncate font-medium">
-                      {attachment.fileName}
-                    </span>
-                  </a>
-                </td>
-                <td className="px-5 py-3 text-muted-foreground">
-                  {formatFileSize(attachment.sizeBytes)}
-                </td>
-                <td className="px-5 py-3 text-muted-foreground">
-                  {formatDate(attachment.createdAt.slice(0, 10))}
-                </td>
-                <td className="px-5 py-3 text-right">
-                  <a
-                    href={attachment.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-primary hover:underline"
-                  >
-                    <ExternalLink className="size-4" />
-                    Mở file
-                  </a>
-                </td>
+      {viewMode === 'table' && contract.attachments.length > 0 ? (
+        <CardTable>
+          <table className="w-full min-w-[620px] text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                <th className="px-5 py-3 font-medium">Tài liệu</th>
+                <th className="px-5 py-3 font-medium">Dung lượng</th>
+                <th className="px-5 py-3 font-medium">Ngày tải lên</th>
+                <th className="px-5 py-3 text-right font-medium">Thao tác</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </CardTable>
+            </thead>
+            <tbody>
+              {contract.attachments.map((attachment) => (
+                <tr
+                  key={attachment.id}
+                  className="border-b border-border last:border-0"
+                >
+                  <td className="px-5 py-3">
+                    <a
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex min-w-0 items-center gap-3 hover:text-primary"
+                    >
+                      <FileText className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="min-w-0 truncate font-medium">
+                        {attachment.fileName}
+                      </span>
+                    </a>
+                  </td>
+                  <td className="px-5 py-3 text-muted-foreground">
+                    {formatFileSize(attachment.sizeBytes)}
+                  </td>
+                  <td className="px-5 py-3 text-muted-foreground">
+                    {formatDate(attachment.createdAt.slice(0, 10))}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <a
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <ExternalLink className="size-4" />
+                      Mở file
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardTable>
+      ) : null}
+
+      {viewMode === 'card' && contract.attachments.length > 0 ? (
+        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8">
+          {contract.attachments.map((attachment) => {
+            const isImage = attachment.mimeType.startsWith('image/');
+            const FileIcon = isImage
+              ? FileImage
+              : attachment.mimeType.includes('spreadsheet') ||
+                  attachment.mimeType.includes('excel')
+                ? FileSpreadsheet
+                : FileText;
+
+            return (
+              <div
+                key={attachment.id}
+                className="group overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-sm"
+              >
+                <a
+                  href={attachment.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
+                  <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted/40">
+                    {isImage ? (
+                      <img
+                        src={attachment.url}
+                        alt={attachment.fileName}
+                        className="size-full object-cover transition-transform group-hover:scale-[1.02]"
+                      />
+                    ) : (
+                      <FileIcon className="size-16 text-muted-foreground" />
+                    )}
+                  </div>
+                </a>
+                <div className="space-y-2 p-3">
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-sm font-semibold text-foreground hover:text-primary"
+                    title={attachment.fileName}
+                  >
+                    {attachment.fileName}
+                  </a>
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span>{formatFileSize(attachment.sizeBytes)}</span>
+                    <span>{formatDate(attachment.createdAt.slice(0, 10))}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <CardContent className="space-y-4">
+        <FileUploadContent
+          onUpload={(files) => uploadMutation.mutateAsync(files)}
+          isUploading={uploadMutation.isPending}
+        />
+        {contract.attachments.length === 0 ? (
+          <div className="flex min-h-40 items-center justify-center text-center text-sm text-muted-foreground">
+            Chưa có tài liệu. Kéo thả tệp vào khu vực này để bắt đầu.
+          </div>
+        ) : null}
+      </CardContent>
     </Card>
   );
 }
