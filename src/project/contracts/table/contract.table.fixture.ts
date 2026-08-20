@@ -30,8 +30,9 @@ const spec: TableSpec = {
       config: {
         draft: {
           label: 'Bản nháp',
-          variant: 'outline',
-          className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+          className:
+            'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-subtext-foreground',
+          dotClassName: 'bg-muted-foreground opacity-100',
         },
         active: {
           label: 'Đang hiệu lực',
@@ -42,18 +43,20 @@ const spec: TableSpec = {
         suspended: {
           label: 'Tạm dừng',
           className:
-            'rounded-md border-transparent bg-admin-warning-bg px-2.5 py-1 text-xs text-admin-warning-text',
-          dotClassName: 'bg-admin-warning-dot opacity-100',
+            'rounded-md border-transparent bg-admin-amber-bg px-2.5 py-1 text-xs text-admin-amber-dark',
+          dotClassName: 'bg-admin-amber-primary opacity-100',
         },
         expired: {
           label: 'Hết hạn',
-          variant: 'outline',
-          className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
+          className:
+            'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-subtext-foreground',
+          dotClassName: 'bg-muted-foreground opacity-100',
         },
         terminated: {
           label: 'Đã chấm dứt',
-          variant: 'outline',
-          className: 'rounded-md px-2.5 py-1 text-xs text-destructive',
+          className:
+            'rounded-md border-transparent bg-admin-red-bg px-2.5 py-1 text-xs text-admin-red-dark',
+          dotClassName: 'bg-admin-red-primary opacity-100',
         },
       },
     },
