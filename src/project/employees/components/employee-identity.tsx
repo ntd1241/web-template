@@ -3,6 +3,7 @@ import {
   AvatarIdentityAlertsBadge,
   type AvatarIdentityAlert,
 } from '@/components/common/avatar-identity';
+import { IDENTITY_AVATAR_TONES } from '@/components/common/gradient-avatar';
 import type { Employee } from '../model/employee';
 
 export type EmployeeIdentityData = Pick<
@@ -37,6 +38,7 @@ export function EmployeeIdentity({
       name={employee.displayName}
       code={employee.employeeCode}
       avatarUrl={employee.avatarUrl}
+      tone={IDENTITY_AVATAR_TONES.employee}
       badge={<AvatarIdentityAlertsBadge alerts={alerts} />}
       className={className}
     />

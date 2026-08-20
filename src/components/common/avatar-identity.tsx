@@ -8,8 +8,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  GRADIENT_AVATAR_TONES,
   GradientAvatar,
+  IDENTITY_AVATAR_TONES,
   type GradientAvatarTone,
 } from './gradient-avatar';
 
@@ -17,6 +17,7 @@ export interface AvatarIdentityData {
   name: string;
   code: string;
   avatarUrl?: string | null;
+  tone?: GradientAvatarTone;
 }
 
 export type AvatarIdentityAlertTone = 'warning' | 'destructive' | 'info';
@@ -36,17 +37,11 @@ function getInitials(name: string) {
     .join('');
 }
 
-function getAvatarTone(name: string): GradientAvatarTone {
-  const score = name
-    .split('')
-    .reduce((total, character) => total + character.charCodeAt(0), 0);
-  return GRADIENT_AVATAR_TONES[score % GRADIENT_AVATAR_TONES.length];
-}
-
 export function AvatarIdentity({
   name,
   code,
   avatarUrl,
+  tone = IDENTITY_AVATAR_TONES.employee,
   badge,
   className,
 }: AvatarIdentityData & { badge?: ReactNode; className?: string }) {
@@ -56,7 +51,7 @@ export function AvatarIdentity({
         src={avatarUrl}
         alt={name}
         fallback={getInitials(name)}
-        tone={getAvatarTone(name)}
+        tone={tone}
         className="size-9 rounded-lg text-sm transition-transform group-hover:scale-105"
       />
       <span className="min-w-0 flex-1">

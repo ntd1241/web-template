@@ -1,4 +1,5 @@
 import { AvatarIdentity } from '@/components/common/avatar-identity';
+import { IDENTITY_AVATAR_TONES } from '@/components/common/gradient-avatar';
 import type { Customer } from '../model/customer';
 
 export type CustomerIdentityData = Pick<
@@ -18,6 +19,7 @@ export function CustomerIdentity({
       name={customer.name}
       code={customer.customerCode}
       avatarUrl={customer.imageUrl}
+      tone={IDENTITY_AVATAR_TONES.customer}
       className={className}
     />
   );

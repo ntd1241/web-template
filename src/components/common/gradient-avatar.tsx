@@ -12,6 +12,11 @@ export const GRADIENT_AVATAR_TONES = [
 
 export type GradientAvatarTone = (typeof GRADIENT_AVATAR_TONES)[number];
 
+export const IDENTITY_AVATAR_TONES = {
+  customer: 'amber',
+  employee: 'slate',
+} as const satisfies Record<'customer' | 'employee', GradientAvatarTone>;
+
 const TONE_CLASSES: Record<GradientAvatarTone, string> = {
   slate: 'from-[#ecf0f1] to-[#90a4ae] border-[#b0bec5] text-[#455a64]',
   amber: 'from-[#fff3e0] to-[#ffb74d] border-[#ffcc80] text-[#f57c00]',

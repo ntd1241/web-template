@@ -6,8 +6,8 @@ import {
   AvatarGroupTooltip,
 } from '@/components/ui/avatar-group';
 import {
-  GRADIENT_AVATAR_TONES,
   GradientAvatar,
+  IDENTITY_AVATAR_TONES,
 } from '@/components/common/gradient-avatar';
 import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import type { ContractEmployeeOption } from '../model/contract';
@@ -19,13 +19,6 @@ function getInitials(name: string) {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join('');
-}
-
-function getTone(name: string) {
-  const score = name
-    .split('')
-    .reduce((total, character) => total + character.charCodeAt(0), 0);
-  return GRADIENT_AVATAR_TONES[score % GRADIENT_AVATAR_TONES.length];
 }
 
 export function ContractResponsibleAvatarGroup({
@@ -48,7 +41,7 @@ export function ContractResponsibleAvatarGroup({
               src={employee.avatarUrl}
               alt={employee.displayName}
               fallback={getInitials(employee.displayName)}
-              tone={getTone(employee.displayName)}
+              tone={IDENTITY_AVATAR_TONES.employee}
               className="size-9 rounded-full border-2 border-background"
             />
             <AvatarGroupTooltip>

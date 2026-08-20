@@ -69,5 +69,13 @@ describe('ContractResponsibleAvatarGroup', () => {
       screen.getByRole('button', { name: 'Quản lý nhân viên phụ trách' }),
     ).toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
+
+    const fallbacks = document.querySelectorAll(
+      '[data-slot="avatar-fallback"]',
+    );
+    expect(fallbacks).toHaveLength(3);
+    expect(fallbacks[0]).toHaveClass('from-[#ecf0f1]');
+    expect(fallbacks[1]).toHaveClass('from-[#ecf0f1]');
+    expect(fallbacks[2]).toHaveClass('from-[#ecf0f1]');
   });
 });
