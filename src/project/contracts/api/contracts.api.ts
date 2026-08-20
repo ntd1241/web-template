@@ -175,6 +175,7 @@ export async function loadContractReceivablePeriodList(
         p_search: params.search?.trim() || null,
         p_status: params.status ?? null,
         p_sort: params.sort,
+        p_group_by: params.view,
         p_due_soon_days: params.dueSoonDays,
       },
       { signal },

@@ -156,7 +156,17 @@ export interface ContractReceivableTableRow {
   outstandingAmount: number;
   displayStatus: ContractChargeDisplayStatus;
   fees: ContractReceivableTableFee[];
+  groupLabel?: string | null;
+  isAggregated?: boolean;
 }
+
+export const CONTRACT_RECEIVABLE_VIEW_MODES = [
+  'period',
+  'month',
+  'year',
+] as const;
+export type ContractReceivableViewMode =
+  (typeof CONTRACT_RECEIVABLE_VIEW_MODES)[number];
 
 export type ContractReceivableSortOption =
   | 'periodStart_desc'
@@ -172,6 +182,7 @@ export interface ContractReceivablePeriodListParams {
   search?: string;
   status?: ContractChargeDisplayStatus;
   sort: ContractReceivableSortOption;
+  view: ContractReceivableViewMode;
   dueSoonDays: number;
 }
 
@@ -201,6 +212,8 @@ export interface ContractReceivablePeriodRpcRow {
   outstanding_amount: number | string;
   display_status: ContractChargeDisplayStatus;
   fees: ContractReceivablePeriodRpcFee[];
+  group_label?: string | null;
+  is_aggregated?: boolean;
 }
 
 export interface ContractReceivablePeriodRpcResponse {
@@ -237,6 +250,8 @@ export function mapContractReceivablePeriodRpcRow(
       outstandingAmount: numericValue(fee.outstanding_amount),
       currencyCode: fee.currency_code,
     })),
+    groupLabel: row.group_label,
+    isAggregated: row.is_aggregated ?? false,
   };
 }
 

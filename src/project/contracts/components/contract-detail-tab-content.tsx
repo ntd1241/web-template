@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useNumberFormat } from '@/providers/number-format-provider';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -79,6 +80,7 @@ import {
   getContractReceivableStats,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
+  type ContractReceivableViewMode,
 } from '../model/receivable';
 import { useContractPaymentHistoryColumns } from '../table/contract-payment-history.columns.generated';
 import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
@@ -98,6 +100,15 @@ const RECEIVABLE_SORT_OPTIONS: Array<{
   { value: 'dueDate_asc', label: 'Hạn thanh toán cũ nhất' },
   { value: 'amount_desc', label: 'Số tiền cao nhất' },
   { value: 'amount_asc', label: 'Số tiền thấp nhất' },
+];
+
+const RECEIVABLE_VIEW_OPTIONS: Array<{
+  value: ContractReceivableViewMode;
+  label: string;
+}> = [
+  { value: 'period', label: 'Theo kỳ' },
+  { value: 'month', label: 'Theo tháng' },
+  { value: 'year', label: 'Theo năm' },
 ];
 
 function formatDate(value: string | null | undefined) {
@@ -404,7 +415,9 @@ export function ContractReceivablesContent({
   const handlePay = useCallback((row: ContractReceivableTableRow) => {
     setPaymentRow(row);
   }, []);
-  const columns = useContractReceivableTableRowColumns({ onPay: handlePay });
+  const columns = useContractReceivableTableRowColumns({
+    onPay: filters.view === 'period' ? handlePay : undefined,
+  });
   const table = useReactTable({
     data: visibleRows,
     columns,
@@ -432,6 +445,33 @@ export function ContractReceivablesContent({
           <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
               <CardTitle>Kỳ thanh toán</CardTitle>
+              <div
+                className="flex flex-wrap gap-1.5 pt-1"
+                role="tablist"
+                aria-label="Cách hiển thị kỳ thanh toán"
+              >
+                {RECEIVABLE_VIEW_OPTIONS.map((option) => (
+                  <Badge
+                    key={option.value}
+                    asChild
+                    appearance="light"
+                    variant={
+                      filters.view === option.value ? 'primary' : 'secondary'
+                    }
+                    size="sm"
+                    className="cursor-pointer"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={filters.view === option.value}
+                      onClick={() => setFilter('view', option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </CardHeading>
             <CardToolbar className="flex-wrap">
               <SearchInput

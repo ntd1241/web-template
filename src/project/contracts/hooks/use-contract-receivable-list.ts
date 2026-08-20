@@ -5,16 +5,19 @@ import {
   type ContractChargeDisplayStatus,
   type ContractReceivablePeriodListParams,
   type ContractReceivableSortOption,
+  type ContractReceivableViewMode,
 } from '../model/receivable';
 
 export interface ContractReceivableListFilters {
   status: 'all' | ContractChargeDisplayStatus;
   sort: ContractReceivableSortOption;
+  view: ContractReceivableViewMode;
 }
 
 const INITIAL_FILTERS: ContractReceivableListFilters = {
   status: 'all',
   sort: 'periodStart_desc',
+  view: 'period',
 };
 
 export function useContractReceivableList({
@@ -37,6 +40,7 @@ export function useContractReceivableList({
     status:
       listState.filters.status === 'all' ? undefined : listState.filters.status,
     sort: listState.filters.sort,
+    view: listState.filters.view,
     dueSoonDays,
   };
   const listQuery = useQuery({

@@ -21,7 +21,7 @@ import { ContractStatusBadge } from '../components/contract-status-badge';
 import type { ContractReceivableTableRow } from '../model/receivable';
 
 export interface UseContractReceivableTableRowColumnsParams {
-  onPay: (row: ContractReceivableTableRow) => void;
+  onPay?: (row: ContractReceivableTableRow) => void;
 }
 
 export function useContractReceivableTableRowColumns(
@@ -42,7 +42,8 @@ export function useContractReceivableTableRowColumns(
         enableSorting: false,
         cell: (row) => (
           <span className="whitespace-nowrap">
-            {formatDate(row.periodStart)} – {formatDate(row.periodEnd)}
+            {row.groupLabel ??
+              `${formatDate(row.periodStart)} – ${formatDate(row.periodEnd)}`}
           </span>
         ),
       }),
@@ -82,13 +83,14 @@ export function useContractReceivableTableRowColumns(
           </div>
         ),
       }),
-      col.date({
+      col.custom({
         id: 'dueDate',
         header: 'Hạn thanh toán',
-        get: (row) => row.dueDate,
         headerClassName: 'min-w-[150px]',
         size: 170,
         enableSorting: false,
+        cell: (row) =>
+          row.isAggregated ? 'Nhiều hạn' : formatDate(row.dueDate),
       }),
       col.custom({
         id: 'amount',
@@ -138,7 +140,9 @@ export function useContractReceivableTableRowColumns(
         size: 130,
         enableSorting: false,
         cell: (row) =>
-          row.direction === 'receivable' && row.outstandingAmount > 0 ? (
+          onPay &&
+          row.direction === 'receivable' &&
+          row.outstandingAmount > 0 ? (
             <Button
               type="button"
               variant="ghost"
