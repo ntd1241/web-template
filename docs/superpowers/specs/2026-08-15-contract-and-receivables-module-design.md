@@ -246,7 +246,11 @@ Các trường chính:
 
 ```ts
 type ContractStatus =
-  'draft' | 'active' | 'suspended' | 'expired' | 'terminated';
+  | 'draft'
+  | 'active'
+  | 'suspended'
+  | 'expired'
+  | 'terminated';
 
 interface Contract {
   id: string;
@@ -280,8 +284,16 @@ Metadata quản lý hợp đồng được tách khỏi version tài chính:
 - `created_by` lưu tài khoản tạo hợp đồng và không thay đổi khi chỉnh sửa.
 - `contract_responsibles` là quan hệ nhiều-nhiều tới `employees`; khi tạo mới,
   mặc định gán nhân viên đang tạo nếu tài khoản đã liên kết với hồ sơ nhân viên.
-- `contract_attachments` lưu metadata file và `storage_path`; nội dung file nằm
-  trong bucket `tenant-assets`.
+- Hệ thống file dùng hai bảng dùng chung: `files` lưu metadata của một file vật
+  lý và `file_links` lưu quan hệ file với đối tượng nghiệp vụ. Trong giai đoạn
+  hiện tại chỉ hỗ trợ `file_links.subject_type = 'contract'`; các subject type
+  như khách hàng, nhân viên và khoản phí sẽ bổ sung sau mà không cần tạo thêm
+  bảng liên kết riêng cho từng loại. Nội dung file nằm trong bucket
+  `tenant-assets`, còn `storage_path` thuộc bản ghi `files`.
+- Migration khởi tạo hệ thống file sẽ backfill dữ liệu cũ từ
+  `contract_attachments` sang `files` và `file_links`. Bảng cũ được giữ lại
+  tạm thời để rollback/đối soát, nhưng luồng ứng dụng mới chỉ đọc và ghi qua
+  hai bảng dùng chung.
 - Nhãn dùng lại `tag_assignments` với `subject_type = 'contract'`. Input nhãn
   dùng chung nhận cấu hình `moduleCodes` và `allowCustomGroups` (mặc định `true`);
   hợp đồng truyền module `contracts`, nên hiển thị cả `Nhóm hợp đồng` và các

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { FileAttachment } from '../../files/model/file';
 
 export const CONTRACT_STATUSES = [
   'draft',
@@ -256,17 +257,7 @@ export interface ContractTagOption {
   color: string | null;
 }
 
-export interface ContractAttachment {
-  id: string;
-  fileName: string;
-  mimeType: string;
-  sizeBytes: number;
-  storagePath: string;
-  url: string;
-  uploadedBy: string | null;
-  uploadedByName: string | null;
-  createdAt: string;
-}
+export type ContractAttachment = FileAttachment;
 
 export interface ContractVersion {
   id: string;
