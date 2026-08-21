@@ -123,10 +123,10 @@ function ContractSummaryCard({
   return (
     <Card className="relative -mt-10 overflow-visible border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
       <CardContent className="p-5 sm:p-6">
-        <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-0">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_1fr] xl:gap-0">
           <EntityDetailInformationItem
             label="Khách hàng"
-            className="lg:border-e lg:border-border lg:pe-6"
+            className="xl:border-e xl:border-border xl:pe-6"
             value={
               <Link
                 to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
@@ -143,17 +143,17 @@ function ContractSummaryCard({
           />
           <EntityDetailInformationItem
             label="Ngày bắt đầu"
-            className="lg:px-6 lg:border-e lg:border-border"
+            className="xl:border-e xl:border-border xl:px-6"
             value={formatDate(contract.startDate)}
           />
           <EntityDetailInformationItem
             label="Ngày kết thúc"
-            className="lg:px-6 lg:border-e lg:border-border"
+            className="xl:border-e xl:border-border xl:px-6"
             value={formatDate(contract.endDate)}
           />
           <EntityDetailInformationItem
             label="Nhân viên phụ trách"
-            className="lg:ps-6"
+            className="xl:ps-6"
             value={
               <ContractResponsibleAvatarGroup
                 employees={contract.responsibleEmployees}
@@ -199,11 +199,20 @@ function ContractHeroActions({
           Kích hoạt
         </Button>
       ) : null}
+      <Button
+        type="button"
+        variant="outline"
+        className="border-white/25 bg-white text-primary hover:bg-white/90 hover:text-primary"
+        onClick={onShowDetails}
+      >
+        <Info />
+        Xem chi tiết
+      </Button>
       <ShortcutTooltip label="Sửa thông tin" shortcut="Alt + E">
         <Button
           type="button"
           variant="outline"
-          className="border-white/25 bg-white text-primary hover:bg-white/90 hover:text-primary"
+          className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
           onClick={onEdit}
           data-shortcut-action="edit"
         >
@@ -211,15 +220,6 @@ function ContractHeroActions({
           Sửa thông tin
         </Button>
       </ShortcutTooltip>
-      <Button
-        type="button"
-        variant="outline"
-        className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-        onClick={onShowDetails}
-      >
-        <Info />
-        Xem chi tiết
-      </Button>
       <Button
         type="button"
         variant="outline"

@@ -221,6 +221,7 @@ export interface ContractDetail extends Contract {
   receivableSummary: CustomerReceivableSummary | null;
   createdByEmployee: ContractEmployeeOption | null;
   responsibleEmployees: ContractEmployeeOption[];
+  responsibleWorkspace?: ContractResponsibleWorkspace;
   attachments: ContractAttachment[];
   tags: ContractTagOption[];
 }
@@ -471,6 +472,7 @@ export async function loadContractDetail(
     tenantSettingsRows,
     employeeOptions,
     responsibleRows,
+    responsibleWorkspace,
     attachmentRows,
     tagAssignmentRows,
     contractTagOptions,
@@ -541,6 +543,7 @@ export async function loadContractDetail(
         }),
       ),
     ),
+    loadContractResponsibleWorkspace(tenantId, contractId),
     listFilesForSubject(tenantId, 'contract', contractId),
     request<ContractTagAssignmentRow[]>(
       supabaseApi.get(
@@ -659,6 +662,7 @@ export async function loadContractDetail(
     responsibleEmployees: employeeOptions.filter((employee) =>
       responsibleEmployeeIds.has(employee.id),
     ),
+    responsibleWorkspace,
     attachments,
     tags,
   };

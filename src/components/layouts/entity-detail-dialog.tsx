@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -130,6 +131,9 @@ export function EntityDetailDialog<TData>({
       >
         <DialogHeader className="shrink-0 border-b px-6 py-5 pe-14 text-start">
           <DialogTitle id="entity-detail-dialog-title">{title}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Xem và tìm kiếm thông tin chi tiết.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="shrink-0 border-b px-2 py-1 sm:px-3 sm:py-1.5">
