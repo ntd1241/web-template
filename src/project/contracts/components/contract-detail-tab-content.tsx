@@ -22,7 +22,6 @@ import {
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useNumberFormat } from '@/providers/number-format-provider';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -58,6 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   deleteContractAttachment,
   recordContractPeriodPayment,
@@ -445,33 +445,30 @@ export function ContractReceivablesContent({
           <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
               <CardTitle>Kỳ thanh toán</CardTitle>
-              <div
-                className="flex flex-wrap gap-1.5 pt-1"
-                role="tablist"
+              <ToggleGroup
+                type="single"
+                value={filters.view}
+                onValueChange={(value) => {
+                  if (value) {
+                    setFilter('view', value as ContractReceivableViewMode);
+                  }
+                }}
+                variant="outline"
+                size="lg"
+                className="w-fit pt-1"
                 aria-label="Cách hiển thị kỳ thanh toán"
               >
                 {RECEIVABLE_VIEW_OPTIONS.map((option) => (
-                  <Badge
+                  <ToggleGroupItem
                     key={option.value}
-                    asChild
-                    appearance="light"
-                    variant={
-                      filters.view === option.value ? 'primary' : 'secondary'
-                    }
-                    size="sm"
-                    className="cursor-pointer"
+                    value={option.value}
+                    aria-label={option.label}
+                    className="data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                   >
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={filters.view === option.value}
-                      onClick={() => setFilter('view', option.value)}
-                    >
-                      {option.label}
-                    </button>
-                  </Badge>
+                    {option.label}
+                  </ToggleGroupItem>
                 ))}
-              </div>
+              </ToggleGroup>
             </CardHeading>
             <CardToolbar className="flex-wrap">
               <SearchInput
