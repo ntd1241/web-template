@@ -469,7 +469,7 @@ export function ContractCreatePage() {
               })}
             </StepperNav>
 
-            <StepperPanel className="min-h-0 flex-1 overflow-y-auto">
+            <StepperPanel className="flex min-h-0 flex-1 flex-col overflow-y-auto">
               <StepperContent value={1} className="px-6 pb-6">
                 <div className="mx-auto max-w-5xl">
                   <ContractForm
@@ -531,8 +531,11 @@ export function ContractCreatePage() {
                 </div>
               </StepperContent>
 
-              <StepperContent value={2} className="px-6 pb-6">
-                <div className="mx-auto max-w-6xl">
+              <StepperContent
+                value={2}
+                className="flex min-h-0 flex-1 flex-col px-6 pb-6"
+              >
+                <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col">
                   <ContractFeeLinesEditor
                     key={feeEditorKey}
                     ref={feeLinesEditorRef}

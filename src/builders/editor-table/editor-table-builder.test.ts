@@ -45,7 +45,7 @@ describe('buildEditorTableModule', () => {
 
   it('emits fixed viewport, horizontal min width, sticky headers and pinned actions', () => {
     expect(source).toContain(
-      '<ScrollArea className="h-[clamp(480px,62dvh,760px)]">',
+      '<ScrollArea type="always" className="h-[clamp(480px,62dvh,760px)]" viewportClassName="h-full overflow-y-auto">',
     );
     expect(source).toContain(
       '<table className="min-w-[1440px] w-full caption-bottom text-foreground text-sm">',
@@ -68,6 +68,20 @@ describe('buildEditorTableModule', () => {
     expect(source).not.toContain('type="date"');
     expect(source).toContain('const lineTotal = 0;');
     expect(source).toContain('formatCurrencyVND(lineTotal)');
+  });
+
+  it('emits feature-owned custom cell scaffolds', () => {
+    const sourceWithCustomCell = buildEditorTableModule({
+      ...orderItemsSpec,
+      columns: [
+        { kind: 'index', header: 'STT' },
+        { kind: 'custom', id: 'schedule', header: 'Lịch phát sinh' },
+      ],
+    });
+
+    expect(sourceWithCustomCell).toContain(
+      'TODO(scaffold): render the feature-owned schedule cell.',
+    );
   });
 
   it('passes shared date value format through to the date input renderer', () => {
@@ -112,7 +126,9 @@ describe('buildEditorTableModule', () => {
         ...orderItemsSpec,
         viewport: { mode: 'remaining' },
       }),
-    ).toContain('<ScrollArea className="h-full min-h-[360px] min-h-0">');
+    ).toContain(
+      '<ScrollArea type="always" className="h-full min-h-[360px] min-h-0" viewportClassName="h-full overflow-y-auto">',
+    );
 
     const withToolbar = buildEditorTableModule({
       ...orderItemsSpec,
@@ -123,7 +139,7 @@ describe('buildEditorTableModule', () => {
       '<div className="flex h-full min-h-0 min-w-0 flex-col">',
     );
     expect(withToolbar).toContain(
-      '<ScrollArea className="min-h-[360px] min-h-0 flex-1">',
+      '<ScrollArea type="always" className="min-h-[360px] min-h-0 flex-1" viewportClassName="h-full overflow-y-auto">',
     );
 
     expect(

@@ -39,13 +39,14 @@ For the current order edit pilot, prefer `remaining`.
 
 ## Supported Columns
 
-| Kind               | Output                                                  |
-| ------------------ | ------------------------------------------------------- |
-| `index`            | 1-based row number                                      |
-| `text`             | compact text/email/tel/url input cell                   |
-| `number`           | compact numeric input cell                              |
-| `date`             | compact date input cell                                 |
-| `computedCurrency` | read-only VND cell stub for page-owned row calculations |
+| Kind               | Output                                                        |
+| ------------------ | ------------------------------------------------------------- |
+| `index`            | 1-based row number                                            |
+| `text`             | compact text/email/tel/url input cell                         |
+| `number`           | compact numeric input cell                                    |
+| `date`             | compact date input cell                                       |
+| `computedCurrency` | read-only VND cell stub for page-owned row calculations       |
+| `custom`           | feature-owned cell scaffold for compound/conditional controls |
 
 The builder emits default row actions: duplicate, insert below, and delete. The
 action column is pinned to the right so it remains visible during horizontal
@@ -58,6 +59,12 @@ instead of duplicating the UI primitive mapping in the editor-table generator.
 The column schema extends the matching control schema from
 `src/builders/shared/form-field-spec.ts` and keeps table-only metadata such as
 `header`, `widthClass`, and `bulkEdit` local to this builder.
+
+Use `custom` when a cell combines multiple fields, changes its controls based
+on another field in the same row, or needs domain-specific presentation. The
+builder emits the table cell and an explicit TODO scaffold; the feature owns
+the inner controls and validation wiring while the builder continues to own
+field-array lifecycle, row actions, sticky headers, and horizontal scrolling.
 
 ## Multi Edit
 

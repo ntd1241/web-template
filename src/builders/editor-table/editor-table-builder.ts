@@ -226,6 +226,14 @@ function computedCell(
 </TableCell>`;
 }
 
+function customCell(
+  column: Extract<EditorTableColumnSpec, { kind: 'custom' }>,
+) {
+  return `<TableCell className="px-2 py-2 align-top">
+  {/* TODO(scaffold): render the feature-owned ${column.id} cell. */}
+</TableCell>`;
+}
+
 function emitHeaderBulkInput(
   column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
 ) {
@@ -503,6 +511,7 @@ function emitCells(spec: NormalizedEditorTableSpec): string {
 </TableCell>`;
     }
     if (column.kind === 'computedCurrency') return computedCell(column);
+    if (column.kind === 'custom') return customCell(column);
     return editableCell(spec, column);
   });
 
@@ -616,6 +625,7 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
   const rhfValues = editable ? 'Controller, useFieldArray' : 'useFieldArray';
 
   const lines = [
+    ...(spec.toolbar ? ["import type { ReactNode } from 'react';"] : []),
     ...(multiEdit ? ["import { useMemo, useState } from 'react';"] : []),
     `import { ${icons} } from 'lucide-react';`,
     `import { ${rhfValues} } from 'react-hook-form';`,
@@ -664,8 +674,8 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const bulkEditSetup = emitBulkEditSetup(spec);
   const scrollClass = scrollAreaClass(spec);
   const scrollAreaOpen = scrollClass
-    ? `<ScrollArea className="${scrollClass}">`
-    : '<ScrollArea>';
+    ? `<ScrollArea type="always" className="${scrollClass}" viewportClassName="h-full overflow-y-auto">`
+    : '<ScrollArea type="always">';
 
   // Gate row-action plumbing on `actions.enabled` and the per-row `errors`
   // binding on having an editable column — `noUnusedLocals` rejects either if
@@ -700,10 +710,13 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
           <h2 className="text-sm font-semibold text-foreground">${toolbar.title}</h2>
           <div className="text-xs text-muted-foreground">{fields.length} dòng</div>
         </div>
-        <Button type="button" variant="primary" onClick={handleAddRow}>
-          <Plus />
-          ${toolbar.addLabel}
-        </Button>
+        <div className="flex items-center gap-2">
+          {toolbarContent}
+          <Button type="button" variant="primary" onClick={handleAddRow}>
+            <Plus />
+            ${toolbar.addLabel}
+          </Button>
+        </div>
       </div>
 `
     : '';
@@ -721,11 +734,13 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const body = `interface ${componentName}Props {
   form: UseFormReturn<${spec.valuesType}>;
   ${createRowProp}: () => ${spec.entity};
+  ${toolbar ? 'toolbarContent?: ReactNode;' : ''}
 }
 
 export function ${componentName}({
   form,
   ${createRowProp},
+  ${toolbar ? 'toolbarContent,' : ''}
 }: ${componentName}Props) {
   const { ${fieldArrayBindings} } = useFieldArray({
     control: form.control,

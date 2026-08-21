@@ -52,12 +52,25 @@ const computedCurrencyColumn = z.object({
   widthClass,
 });
 
+/**
+ * A feature-owned cell for compound controls or conditional row content.
+ * The builder still owns the table lifecycle; the generated cell is an
+ * explicit scaffold that the feature fills with its domain controls.
+ */
+const customColumn = z.object({
+  kind: z.literal('custom'),
+  id: identifier,
+  header: z.string().min(1),
+  widthClass,
+});
+
 export const editorTableColumnSchema = z.discriminatedUnion('kind', [
   indexColumn,
   textColumn,
   numberColumn,
   dateColumn,
   computedCurrencyColumn,
+  customColumn,
 ]);
 
 export const editorTableSpecSchema = z.object({
