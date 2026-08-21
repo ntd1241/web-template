@@ -704,7 +704,7 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   // second `useFieldArray` to add rows.
   const toolbar = spec.toolbar;
   const toolbarOpen = toolbar
-    ? `    <div className="flex h-full min-h-0 min-w-0 flex-col">
+    ? `    <div className="flex h-full min-h-0 min-w-0 w-full flex-col">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-5 py-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-semibold text-foreground">${toolbar.title}</h2>

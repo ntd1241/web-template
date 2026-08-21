@@ -533,9 +533,9 @@ export function ContractCreatePage() {
 
               <StepperContent
                 value={2}
-                className="flex min-h-0 flex-1 flex-col px-6 pb-6"
+                className="flex min-h-0 flex-1 flex-col px-6"
               >
-                <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col">
+                <div className="flex min-h-0 w-full flex-1 flex-col">
                   <ContractFeeLinesEditor
                     key={feeEditorKey}
                     ref={feeLinesEditorRef}

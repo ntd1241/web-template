@@ -136,7 +136,7 @@ describe('buildEditorTableModule', () => {
       viewport: { mode: 'remaining' },
     });
     expect(withToolbar).toContain(
-      '<div className="flex h-full min-h-0 min-w-0 flex-col">',
+      '<div className="flex h-full min-h-0 min-w-0 w-full flex-col">',
     );
     expect(withToolbar).toContain(
       '<ScrollArea type="always" className="min-h-[360px] min-h-0 flex-1" viewportClassName="h-full overflow-y-auto">',
