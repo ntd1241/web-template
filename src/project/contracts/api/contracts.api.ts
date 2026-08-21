@@ -34,6 +34,10 @@ import type {
   ContractResponsibleWorkspace,
 } from '../model/contract-responsible';
 import {
+  getContractVersionChangeCheck,
+  type ContractVersionComparableLine,
+} from '../model/contract-version-change';
+import {
   mapContractChargeBalanceRow,
   mapContractReceivablePeriodRpcRow,
   mapCustomerPaymentAllocationRow,
@@ -1020,6 +1024,31 @@ export async function updateContract(
     ),
   );
   const latest = versions[0];
+  const latestLineRows = latest
+    ? await request<ContractVersionLineRow[]>(
+        supabaseApi.get(
+          '/contract_version_lines',
+          queryParams({
+            select: '*',
+            contract_version_id: `eq.${latest.id}`,
+            order: 'sort_order.asc,id.asc',
+          }),
+        ),
+      )
+    : [];
+  const versionChangeCheck = getContractVersionChangeCheck({
+    latestVersion: latest
+      ? {
+          versionNo: latest.version_no,
+          status: latest.status,
+          termsSnapshot: latest.terms_snapshot ?? {},
+        }
+      : undefined,
+    latestLines: latestLineRows.map(toComparableLine),
+    values,
+    lines: lines.map((line, sortOrder) => ({ ...line, sortOrder })),
+  });
+
   if (latest?.status === 'draft') {
     const effectiveFrom =
       contract.status === 'active' && values.startDate < todayIso()
@@ -1044,7 +1073,7 @@ export async function updateContract(
         lines.map((line, index) => toLinePayload(line, latest.id, index)),
       );
     }
-  } else {
+  } else if (versionChangeCheck.requiresNewVersion) {
     const effectiveFrom =
       values.startDate < todayIso() ? todayIso() : values.startDate;
     await insertVersion(
@@ -1062,6 +1091,26 @@ export async function updateContract(
     metadata,
   );
   return mapContractRow(contract);
+}
+
+function toComparableLine(
+  row: ContractVersionLineRow,
+): ContractVersionComparableLine {
+  return {
+    direction: row.direction,
+    name: row.name,
+    quantity: numberValue(row.quantity),
+    unitPrice: numberValue(row.unit_price),
+    billingType: row.billing_type,
+    billingUnit: row.billing_unit,
+    billingInterval: row.billing_interval,
+    chargeDate: row.charge_date,
+    dueRule: row.due_rule,
+    dueDays: row.due_days,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    sortOrder: row.sort_order,
+  };
 }
 
 export async function activateContract(contract: Contract, userId: string) {

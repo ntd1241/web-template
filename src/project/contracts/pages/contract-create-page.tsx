@@ -15,7 +15,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
-import { useNumberFormat } from '@/providers/number-format-provider';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
@@ -55,6 +54,7 @@ import {
 } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
 import { ContractAttachmentsField } from '../components/contract-attachments-field';
+import { ContractConfirmationProcessing } from '../components/contract-confirmation-processing';
 import { ContractCurrencyField } from '../components/contract-currency-field';
 import {
   ContractFeeLinesEditor,
@@ -67,6 +67,10 @@ import {
   mapContractToFormValues,
   useContractForm,
 } from '../forms/contract-form.generated';
+import {
+  getContractVersionChangeCheck,
+  type ContractVersionChangeCheck,
+} from '../model/contract-version-change';
 
 const STEPS = [
   {
@@ -113,7 +117,6 @@ export function ContractCreatePage() {
   const [searchParams] = useSearchParams();
   const { userId } = useUser();
   const { tenantId, isPending: isTenantPending } = useTenant();
-  const { formatCurrency } = useNumberFormat();
   const editingContractId = searchParams.get('edit');
   const isEditMode = Boolean(editingContractId);
   const [step, setStep] = useState(1);
@@ -130,8 +133,14 @@ export function ContractCreatePage() {
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>(
     [],
   );
+  const [versionCheckState, setVersionCheckState] = useState<
+    'idle' | 'checking' | 'complete'
+  >('idle');
+  const [versionCheck, setVersionCheck] =
+    useState<ContractVersionChangeCheck | null>(null);
   const mappedEditIdRef = useRef<string | null>(null);
   const initializedCreateResponsibleRef = useRef(false);
+  const versionCheckRunRef = useRef(0);
 
   const workspaceQuery = useQuery({
     queryKey: [
@@ -289,17 +298,6 @@ export function ContractCreatePage() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
-  const values = form.watch();
-  const customerLabel = selectedCustomer
-    ? `${selectedCustomer.name} · ${selectedCustomer.customerCode}`
-    : values.customerId
-      ? 'Đã chọn khách hàng'
-      : 'Chưa chọn';
-  const totalAmount = feeLines.reduce(
-    (total, line) => total + line.quantity * line.unitPrice,
-    0,
-  );
-
   function handleCancel() {
     if (isEditMode && editingContractId) {
       navigate(
@@ -323,12 +321,35 @@ export function ContractCreatePage() {
     if (step === 2) {
       const isValid = await feeLinesEditorRef.current?.validate();
       if (isValid) {
-        setStep(3);
-        setMaxStep((current) => Math.max(current, 3));
+        beginVersionCheck();
       } else {
         toast.error('Vui lòng kiểm tra lại các khoản phí.');
       }
     }
+  }
+
+  function beginVersionCheck() {
+    const runId = ++versionCheckRunRef.current;
+    setVersionCheck(null);
+    setVersionCheckState('checking');
+    setStep(3);
+    setMaxStep((current) => Math.max(current, 3));
+
+    window.setTimeout(() => {
+      if (runId !== versionCheckRunRef.current) return;
+
+      const latestVersion = editDetailQuery.data?.versions[0];
+      const result = getContractVersionChangeCheck({
+        latestVersion,
+        latestLines: (editDetailQuery.data?.lines ?? []).filter(
+          (line) => line.contractVersionId === latestVersion?.id,
+        ),
+        values: form.getValues(),
+        lines: feeLines.map((line, sortOrder) => ({ ...line, sortOrder })),
+      });
+      setVersionCheck(result);
+      setVersionCheckState('complete');
+    }, 450);
   }
 
   async function handleSave() {
@@ -416,7 +437,13 @@ export function ContractCreatePage() {
         <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
           <Stepper
             value={step}
-            onValueChange={(nextStep) => setStep(nextStep)}
+            onValueChange={(nextStep) => {
+              if (nextStep === 3 && step !== 3) {
+                beginVersionCheck();
+              } else {
+                setStep(nextStep);
+              }
+            }}
             variant="success"
             className="flex min-h-0 flex-1 flex-col"
           >
@@ -546,56 +573,11 @@ export function ContractCreatePage() {
                 </div>
               </StepperContent>
 
-              <StepperContent value={3} className="px-6 pb-6">
-                <div className="mx-auto max-w-5xl space-y-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <ReviewValue label="Khách hàng" value={customerLabel} />
-                    <ReviewValue
-                      label="Mã hợp đồng"
-                      value={values.contractCode}
-                    />
-                    <ReviewValue label="Tên hợp đồng" value={values.name} />
-                    <ReviewValue
-                      label="Thời hạn"
-                      value={`${values.startDate || '—'} → ${values.endDate || 'Không giới hạn'}`}
-                    />
-                    <ReviewValue
-                      label="Tự động gia hạn"
-                      value={values.autoRenew ? 'Có' : 'Không'}
-                    />
-                    <ReviewValue
-                      label="Tổng khoản phí"
-                      value={formatCurrency(totalAmount, values.currencyCode)}
-                    />
-                  </div>
-                  <Card className="bg-muted/30 shadow-none">
-                    <CardHeader className="border-0 pb-3">
-                      <CardHeading>
-                        <CardTitle className="text-sm">
-                          Danh sách khoản phí
-                        </CardTitle>
-                      </CardHeading>
-                    </CardHeader>
-                    <CardContent className="space-y-2 pt-0">
-                      {feeLines.map((line, index) => (
-                        <div
-                          key={`${index}-${line.name}`}
-                          className="flex items-center justify-between gap-3 rounded-lg bg-background px-4 py-3 text-sm"
-                        >
-                          <span className="truncate">
-                            {line.name || `Khoản phí ${index + 1}`}
-                          </span>
-                          <span className="shrink-0 font-semibold tabular-nums">
-                            {formatCurrency(
-                              line.quantity * line.unitPrice,
-                              values.currencyCode,
-                            )}
-                          </span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
+              <StepperContent value={3} className="min-h-0 flex-1 px-6 pb-6">
+                <ContractConfirmationProcessing
+                  state={versionCheckState}
+                  result={versionCheck}
+                />
               </StepperContent>
             </StepperPanel>
           </Stepper>
@@ -628,29 +610,23 @@ export function ContractCreatePage() {
                 <Button
                   type="button"
                   variant="primary"
+                  disabled={
+                    saveMutation.isPending ||
+                    (step === 3 &&
+                      (versionCheckState === 'checking' || !versionCheck))
+                  }
                   loading={saveMutation.isPending}
                   loadingText="Đang lưu..."
                   onClick={() => void handleSave()}
                 >
                   <Save />
-                  Lưu
+                  {step === 3 ? 'Xác nhận & lưu' : 'Lưu'}
                 </Button>
               </ShortcutTooltip>
             </div>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function ReviewValue({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-border px-4 py-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate text-sm font-semibold text-foreground">
-        {value || 'Chưa cập nhật'}
-      </p>
     </div>
   );
 }
