@@ -57,7 +57,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   deleteContractAttachment,
   recordContractPeriodPayment,
@@ -88,6 +87,7 @@ import {
   ContractPaymentDialog,
   type ContractPaymentSubmission,
 } from './contract-payment-dialog';
+import { ContractReceivableViewSwitcher } from './contract-receivable-view-switcher.generated';
 import { ContractStatusBadge } from './contract-status-badge';
 
 const RECEIVABLE_SORT_OPTIONS: Array<{
@@ -100,15 +100,6 @@ const RECEIVABLE_SORT_OPTIONS: Array<{
   { value: 'dueDate_asc', label: 'Hạn thanh toán cũ nhất' },
   { value: 'amount_desc', label: 'Số tiền cao nhất' },
   { value: 'amount_asc', label: 'Số tiền thấp nhất' },
-];
-
-const RECEIVABLE_VIEW_OPTIONS: Array<{
-  value: ContractReceivableViewMode;
-  label: string;
-}> = [
-  { value: 'period', label: 'Theo kỳ' },
-  { value: 'month', label: 'Theo tháng' },
-  { value: 'year', label: 'Theo năm' },
 ];
 
 function formatDate(value: string | null | undefined) {
@@ -445,30 +436,13 @@ export function ContractReceivablesContent({
           <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
             <CardHeading>
               <CardTitle>Kỳ thanh toán</CardTitle>
-              <ToggleGroup
-                type="single"
+              <ContractReceivableViewSwitcher
                 value={filters.view}
-                onValueChange={(value) => {
-                  if (value) {
-                    setFilter('view', value as ContractReceivableViewMode);
-                  }
-                }}
-                variant="outline"
-                size="lg"
-                className="w-fit pt-1"
-                aria-label="Cách hiển thị kỳ thanh toán"
-              >
-                {RECEIVABLE_VIEW_OPTIONS.map((option) => (
-                  <ToggleGroupItem
-                    key={option.value}
-                    value={option.value}
-                    aria-label={option.label}
-                    className="data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                  >
-                    {option.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+                onValueChange={(value) =>
+                  setFilter('view', value as ContractReceivableViewMode)
+                }
+                className="pt-1"
+              />
             </CardHeading>
             <CardToolbar className="flex-wrap">
               <SearchInput

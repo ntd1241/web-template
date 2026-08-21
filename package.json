@@ -20,6 +20,7 @@
     "gen:detail": "tsx tools/builders/cli/gen-detail.ts",
     "gen:chart": "tsx tools/builders/cli/gen-chart.ts",
     "gen:tooltip": "tsx tools/builders/cli/gen-tooltip.ts",
+    "gen:segmented-control": "tsx tools/builders/cli/gen-segmented-control.ts",
     "gen:account-menu": "tsx tools/builders/cli/gen-account-menu.ts",
     "prepare": "husky"
   },
