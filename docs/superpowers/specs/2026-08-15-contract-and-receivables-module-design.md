@@ -122,7 +122,17 @@ Luồng ghi nhận thanh toán:
 
 Frontend không được tự ghi lần lượt payment rồi allocations vì request có thể lỗi giữa chừng, tạo dữ liệu không nhất quán.
 
-Trong demo, `ensure_contract_charges` có thể được gọi khi mở module hoặc khi xem công nợ đến một ngày cụ thể. Khi cần tự động hóa, dùng Supabase Cron hoặc Edge Function để gọi function này định kỳ. Khi backend riêng được bổ sung, chỉ thay lớp service RPC bằng API backend; model và contract của frontend được giữ nguyên.
+Charge generation chạy server-side bằng một cron global của Supabase. Job
+`contract-charge-generation-daily` chạy lúc 01:00 UTC và gọi worker
+`run_contract_charge_generation(current_date)`. Worker duyệt các tenant đang
+active rồi gọi `ensure_contract_charges` theo từng tenant; hàm ensure vẫn phải
+idempotent nên chạy lặp không tạo occurrence trùng.
+
+Frontend chỉ đọc dữ liệu khi mở danh sách/chi tiết hợp đồng, không gọi RPC sinh
+charge như một side effect nữa. Trigger database sinh kỳ ngay khi hợp đồng
+chuyển `active` hoặc version chuyển `effective`; cron là cơ chế đảm bảo bổ sung
+cho các kỳ đến cửa sổ phát sinh. Khi thanh toán đủ một kỳ, RPC thanh toán tiếp
+tục gọi `ensure_next_contract_charge` ngay lập tức, không chờ cron.
 
 ### 3.6.1. Nguồn dữ liệu cho badge và số liệu tóm tắt trên UI
 

@@ -351,15 +351,6 @@ function numberValue(value: number | string | null | undefined) {
   return value == null ? 0 : typeof value === 'number' ? value : Number(value);
 }
 
-async function ensureCharges(tenantId: string, throughDate = todayIso()) {
-  await request<number>(
-    supabaseApi.post('/rpc/ensure_contract_charges', {
-      p_tenant_id: tenantId,
-      p_through_date: throughDate,
-    }),
-  );
-}
-
 function attachListSummary(
   contract: Contract,
   customer: CustomerOptionRow | undefined,
@@ -398,7 +389,6 @@ export async function loadContractWorkspace(
 ): Promise<ContractWorkspace> {
   assertSupabaseConfigured();
   const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
-  await ensureCharges(tenantId);
 
   const [contractRows, customerRows, balanceRows] = await Promise.all([
     request<ContractRow[]>(
@@ -457,7 +447,6 @@ export async function loadContractDetail(
 ): Promise<ContractDetail> {
   assertSupabaseConfigured();
   const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
-  await ensureCharges(tenantId);
 
   const contractRows = await request<ContractRow[]>(
     supabaseApi.get(
@@ -1124,7 +1113,6 @@ export async function activateContract(contract: Contract, userId: string) {
       },
     ),
   );
-  await ensureCharges(contract.tenantId);
   return mapContractRow(rows[0] ?? contract);
 }
 
