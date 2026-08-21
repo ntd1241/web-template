@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   FileText,
   History,
+  Info,
   LayoutDashboard,
   Paperclip,
   Pencil,
@@ -48,6 +49,7 @@ import {
   loadContractPaymentPeriodCount,
   type ContractDetail,
 } from '../api/contracts.api';
+import { ContractDetailDialog } from '../components/contract-detail-dialog';
 import {
   ContractAttachmentsContent,
   ContractOverviewContent,
@@ -172,12 +174,14 @@ function ContractHeroActions({
   onEdit,
   onDelete,
   onActivate,
+  onShowDetails,
   isActivating,
 }: {
   contract: ContractDetail;
   onEdit: () => void;
   onDelete: () => void;
   onActivate: () => void;
+  onShowDetails: () => void;
   isActivating: boolean;
 }) {
   return (
@@ -207,6 +211,15 @@ function ContractHeroActions({
           Sửa thông tin
         </Button>
       </ShortcutTooltip>
+      <Button
+        type="button"
+        variant="outline"
+        className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+        onClick={onShowDetails}
+      >
+        <Info />
+        Xem chi tiết
+      </Button>
       <Button
         type="button"
         variant="outline"
@@ -264,6 +277,7 @@ export function ContractDetailPage() {
   } = useTenant();
   const { id } = useParams<{ id: string }>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [responsibleDialogOpen, setResponsibleDialogOpen] = useState(false);
   const canManageResponsibles = hasPermission('contracts:assign');
 
@@ -453,6 +467,7 @@ export function ContractDetailPage() {
             onEdit={() => openEdit(contract)}
             onDelete={() => setDeleteDialogOpen(true)}
             onActivate={() => activateMutation.mutate()}
+            onShowDetails={() => setDetailDialogOpen(true)}
             isActivating={activateMutation.isPending}
           />
         }
@@ -474,6 +489,11 @@ export function ContractDetailPage() {
         onOpenChange={setResponsibleDialogOpen}
         tenantId={contract.tenantId}
         contractId={contract.id}
+      />
+      <ContractDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        contract={contract}
       />
     </>
   );

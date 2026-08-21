@@ -18,6 +18,7 @@
     "gen:tree": "tsx tools/builders/cli/gen-tree.ts",
     "gen:layout": "tsx tools/builders/cli/gen-layout.ts",
     "gen:detail": "tsx tools/builders/cli/gen-detail.ts",
+    "gen:detail-dialog": "tsx tools/builders/cli/gen-detail-dialog.ts",
     "gen:chart": "tsx tools/builders/cli/gen-chart.ts",
     "gen:tooltip": "tsx tools/builders/cli/gen-tooltip.ts",
     "gen:segmented-control": "tsx tools/builders/cli/gen-segmented-control.ts",

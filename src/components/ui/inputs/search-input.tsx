@@ -82,6 +82,7 @@ export function SearchInput({
         {...props}
         data-shortcut-target="page-search"
         type="search"
+        className="[&::-webkit-search-cancel-button]:appearance-none"
         value={inputValue}
         placeholder={placeholder}
         disabled={disabled}
