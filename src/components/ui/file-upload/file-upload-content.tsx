@@ -1,5 +1,12 @@
-import { useRef, useState, type DragEvent } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Check, Paperclip, Upload, X } from 'lucide-react';
+import { useDropzone, type Accept, type FileRejection } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +23,38 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+const MIME_TYPE_BY_EXTENSION: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.doc': 'application/msword',
+  '.docx':
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.xls': 'application/vnd.ms-excel',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+};
+
+function toDropzoneAccept(accept: string): Accept {
+  return accept.split(',').reduce<Accept>((result, value) => {
+    const token = value.trim().toLowerCase();
+    if (!token) return result;
+
+    if (token.startsWith('.')) {
+      const mimeType =
+        MIME_TYPE_BY_EXTENSION[token] ?? 'application/octet-stream';
+      result[mimeType] = Array.from(
+        new Set([...(result[mimeType] ?? []), token]),
+      );
+      return result;
+    }
+
+    result[token] = [];
+    return result;
+  }, {});
+}
+
 export interface FileUploadContentProps {
   onUpload: (files: File[]) => Promise<void>;
   accept?: string;
@@ -25,73 +64,104 @@ export interface FileUploadContentProps {
   uploadLabel?: string;
   className?: string;
   onUploadError?: (error: unknown) => void;
+  children?: ReactNode;
+  showUploadButton?: boolean;
 }
 
-export function FileUploadContent({
-  onUpload,
-  accept = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp',
-  maxFileSize = DEFAULT_MAX_FILE_SIZE,
-  disabled = false,
-  isUploading = false,
-  uploadLabel = 'Tải tệp lên',
-  className,
-  onUploadError,
-}: FileUploadContentProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+export interface FileUploadContentHandle {
+  openFileDialog: () => void;
+}
+
+export const FileUploadContent = forwardRef<
+  FileUploadContentHandle,
+  FileUploadContentProps
+>(function FileUploadContent(
+  {
+    onUpload,
+    accept = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp',
+    maxFileSize = DEFAULT_MAX_FILE_SIZE,
+    disabled = false,
+    isUploading = false,
+    uploadLabel = 'Tải tệp lên',
+    className,
+    onUploadError,
+    children,
+    showUploadButton = true,
+  },
+  ref,
+) {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dragDepthRef = useRef(0);
 
   const isDisabled = disabled || isUploading;
 
-  function handleIncomingFiles(nextFiles: File[]) {
-    if (nextFiles.length === 0 || isDisabled) return;
+  const handleIncomingFiles = useCallback(
+    (nextFiles: File[]) => {
+      if (nextFiles.length === 0 || isDisabled) return;
 
-    const invalidFile = nextFiles.find((file) => file.size > maxFileSize);
-    if (invalidFile) {
-      setError(
-        `Tệp "${invalidFile.name}" vượt quá dung lượng tối đa ${Math.round(maxFileSize / (1024 * 1024))}MB.`,
-      );
-      return;
-    }
+      const invalidFile = nextFiles.find((file) => file.size > maxFileSize);
+      if (invalidFile) {
+        setError(
+          `Tệp "${invalidFile.name}" vượt quá dung lượng tối đa ${Math.round(maxFileSize / (1024 * 1024))}MB.`,
+        );
+        return;
+      }
 
-    const currentKeys = new Set(pendingFiles.map(getFileKey));
-    const uniqueFiles = nextFiles.filter((file) => {
-      const key = getFileKey(file);
-      if (currentKeys.has(key)) return false;
-      currentKeys.add(key);
-      return true;
-    });
+      const currentKeys = new Set(pendingFiles.map(getFileKey));
+      const uniqueFiles = nextFiles.filter((file) => {
+        const key = getFileKey(file);
+        if (currentKeys.has(key)) return false;
+        currentKeys.add(key);
+        return true;
+      });
 
-    if (uniqueFiles.length === 0) {
-      setError('Các tệp này đã có trong danh sách chờ.');
-      return;
-    }
+      if (uniqueFiles.length === 0) {
+        setError('Các tệp này đã có trong danh sách chờ.');
+        return;
+      }
 
-    setError(null);
-    setPendingFiles((current) => [...current, ...uniqueFiles]);
-    if (inputRef.current) inputRef.current.value = '';
-  }
+      setError(null);
+      setPendingFiles((current) => [...current, ...uniqueFiles]);
+    },
+    [isDisabled, maxFileSize, pendingFiles],
+  );
 
-  function handleDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    dragDepthRef.current = 0;
-    setIsDragging(false);
-    handleIncomingFiles(Array.from(event.dataTransfer.files ?? []));
-  }
+  const handleDrop = useCallback(
+    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+      handleIncomingFiles(acceptedFiles);
 
-  function handleDragEnter(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    dragDepthRef.current += 1;
-    setIsDragging(true);
-  }
+      const rejection = fileRejections[0];
+      if (!rejection) return;
 
-  function handleDragLeave(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
-    if (dragDepthRef.current === 0) setIsDragging(false);
-  }
+      const errorCode = rejection.errors[0]?.code;
+      if (errorCode === 'file-too-large') {
+        setError(
+          `Tệp "${rejection.file.name}" vượt quá dung lượng tối đa ${Math.round(maxFileSize / (1024 * 1024))}MB.`,
+        );
+        return;
+      }
+
+      if (errorCode === 'file-invalid-type') {
+        setError(`Tệp "${rejection.file.name}" không đúng định dạng cho phép.`);
+        return;
+      }
+
+      setError(`Không thể thêm tệp "${rejection.file.name}".`);
+    },
+    [handleIncomingFiles, maxFileSize],
+  );
+
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    accept: toDropzoneAccept(accept),
+    disabled: isDisabled,
+    maxSize: maxFileSize,
+    multiple: true,
+    noClick: true,
+    noKeyboard: true,
+    onDrop: handleDrop,
+  });
+
+  useImperativeHandle(ref, () => ({ openFileDialog: open }), [open]);
 
   async function confirmUpload() {
     if (pendingFiles.length === 0 || isDisabled) return;
@@ -107,41 +177,31 @@ export function FileUploadContent({
 
   return (
     <div
-      className={cn('relative space-y-4', className)}
-      onDragEnter={handleDragEnter}
-      onDragOver={(event) => event.preventDefault()}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      data-slot="file-upload-dropzone"
+      {...getRootProps({ className: cn('relative space-y-4', className) })}
     >
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="md"
-          disabled={isDisabled}
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload />
-          {uploadLabel}
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          className="hidden"
-          accept={accept}
-          onChange={(event) =>
-            handleIncomingFiles(Array.from(event.target.files ?? []))
-          }
-        />
-      </div>
+      <input {...getInputProps()} />
+      {showUploadButton ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
+            disabled={isDisabled}
+            onClick={open}
+          >
+            <Upload />
+            {uploadLabel}
+          </Button>
+        </div>
+      ) : null}
 
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
       {pendingFiles.length > 0 ? (
-        <div className="divide-y divide-border rounded-lg border border-dashed border-primary/40 bg-primary/5">
+        <div className="m-5 divide-y divide-border rounded-lg border border-dashed border-primary/40 bg-primary/5">
           <div className="px-3 py-2 text-xs font-medium text-primary">
-            Tệp đang chờ xác nhận tải lên
+            {pendingFiles.length} tệp đang chờ xác nhận tải lên
           </div>
           {pendingFiles.map((file, index) => (
             <div
@@ -172,15 +232,7 @@ export function FileUploadContent({
               </Button>
             </div>
           ))}
-        </div>
-      ) : null}
-
-      {pendingFiles.length > 0 ? (
-        <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/20 px-3 py-3">
-          <p className="text-sm text-muted-foreground">
-            {pendingFiles.length} tệp sẵn sàng tải lên
-          </p>
-          <div className="flex items-center gap-2">
+          <div className="flex justify-end gap-2 border-t border-border bg-muted/20 px-3 py-3">
             <Button
               type="button"
               variant="ghost"
@@ -205,7 +257,9 @@ export function FileUploadContent({
         </div>
       ) : null}
 
-      {isDragging ? (
+      {children}
+
+      {isDragActive ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-primary/10 backdrop-blur-[1px]">
           <div className="rounded-xl border-2 border-dashed border-primary bg-background/95 px-8 py-6 text-center shadow-lg">
             <Upload className="mx-auto size-8 text-primary" />
@@ -220,4 +274,6 @@ export function FileUploadContent({
       ) : null}
     </div>
   );
-}
+});
+
+FileUploadContent.displayName = 'FileUploadContent';
