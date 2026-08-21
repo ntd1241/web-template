@@ -1,6 +1,7 @@
 import type { ContractFormValues, ContractVersionStatus } from './contract';
 
 export interface ContractVersionComparableLine {
+  id?: string;
   direction: 'receivable' | 'payable';
   name: string;
   quantity: number;
@@ -16,6 +17,22 @@ export interface ContractVersionComparableLine {
   sortOrder: number;
 }
 
+export interface ContractChargeChangeItem {
+  key: string;
+  name: string;
+  previousName?: string;
+  currentName?: string;
+  previousAmount?: number;
+  currentAmount?: number;
+}
+
+export interface ContractChargeChanges {
+  added: ContractChargeChangeItem[];
+  removed: ContractChargeChangeItem[];
+  changed: ContractChargeChangeItem[];
+  unchanged: ContractChargeChangeItem[];
+}
+
 export type ContractVersionChangeAction =
   | 'create'
   | 'keep-current'
@@ -26,8 +43,16 @@ export interface ContractVersionChangeCheck {
   action: ContractVersionChangeAction;
   requiresNewVersion: boolean;
   changedAreas: string[];
+  chargeChanges: ContractChargeChanges;
   previousVersionNo?: number;
   nextVersionNo?: number;
+}
+
+export interface ContractVersionTermDifference {
+  key: string;
+  previous: unknown;
+  current: unknown;
+  equal: boolean;
 }
 
 interface LatestVersionForCheck {
@@ -60,8 +85,82 @@ const LINE_KEYS: Array<keyof ContractVersionComparableLine> = [
   'dueDays',
   'startDate',
   'endDate',
-  'sortOrder',
 ];
+
+function lineAmount(line: ContractVersionComparableLine) {
+  return line.quantity * line.unitPrice;
+}
+
+function lineItem(
+  line: ContractVersionComparableLine,
+  key: string,
+  previousLine?: ContractVersionComparableLine,
+): ContractChargeChangeItem {
+  return {
+    key,
+    name: line.name || previousLine?.name || 'Khoản thu chưa đặt tên',
+    previousName: previousLine?.name,
+    currentName: line.name,
+    previousAmount: previousLine ? lineAmount(previousLine) : undefined,
+    currentAmount: lineAmount(line),
+  };
+}
+
+function removedLineItem(
+  line: ContractVersionComparableLine,
+): ContractChargeChangeItem {
+  return {
+    key: line.id ?? `removed-${line.sortOrder}-${line.name}`,
+    name: line.name || 'Khoản thu chưa đặt tên',
+    previousName: line.name,
+    previousAmount: lineAmount(line),
+  };
+}
+
+function compareChargeLines(
+  previousLines: ContractVersionComparableLine[],
+  currentLines: ContractVersionComparableLine[],
+): ContractChargeChanges {
+  const result: ContractChargeChanges = {
+    added: [],
+    removed: [],
+    changed: [],
+    unchanged: [],
+  };
+  const previousById = new Map(
+    previousLines.filter((line) => line.id).map((line) => [line.id, line]),
+  );
+  const previousBySortOrder = new Map(
+    previousLines.map((line) => [line.sortOrder, line]),
+  );
+  const matchedPreviousLines = new Set<ContractVersionComparableLine>();
+
+  currentLines.forEach((line, index) => {
+    const previous =
+      (line.id ? previousById.get(line.id) : undefined) ??
+      previousBySortOrder.get(line.sortOrder);
+    if (!previous) {
+      result.added.push(lineItem(line, `added-${index}`));
+      return;
+    }
+
+    matchedPreviousLines.add(previous);
+    const item = lineItem(line, previous.id!, previous);
+    if (LINE_KEYS.every((key) => isEqual(previous[key], line[key]))) {
+      result.unchanged.push(item);
+    } else {
+      result.changed.push(item);
+    }
+  });
+
+  previousLines.forEach((line) => {
+    if (!matchedPreviousLines.has(line)) {
+      result.removed.push(removedLineItem(line));
+    }
+  });
+
+  return result;
+}
 
 function normalize(value: unknown): unknown {
   return value === undefined ? null : value;
@@ -71,16 +170,21 @@ function isEqual(left: unknown, right: unknown): boolean {
   return JSON.stringify(normalize(left)) === JSON.stringify(normalize(right));
 }
 
-function comparableLinesEqual(
-  current: ContractVersionComparableLine[],
-  submitted: ContractVersionComparableLine[],
-) {
-  if (current.length !== submitted.length) return false;
+export function getContractVersionTermDifferences({
+  termsSnapshot,
+  values,
+}: {
+  termsSnapshot: Record<string, unknown>;
+  values: ContractFormValues;
+}): ContractVersionTermDifference[] {
+  const submittedTerms = values as unknown as Record<string, unknown>;
 
-  return current.every((line, index) => {
-    const nextLine = submitted[index];
-    return LINE_KEYS.every((key) => isEqual(line[key], nextLine?.[key]));
-  });
+  return VERSION_TERM_KEYS.map(([key]) => ({
+    key,
+    previous: termsSnapshot[key],
+    current: submittedTerms[key],
+    equal: isEqual(termsSnapshot[key], submittedTerms[key]),
+  }));
 }
 
 export function getContractVersionChangeCheck({
@@ -99,26 +203,27 @@ export function getContractVersionChangeCheck({
       action: 'create',
       requiresNewVersion: true,
       changedAreas: [],
+      chargeChanges: compareChargeLines([], lines),
     };
   }
 
   const changedAreas: string[] = [];
+  const chargeChanges = compareChargeLines(latestLines, lines);
   const terms = latestVersion.termsSnapshot ?? {};
-  const submittedTerms = values as unknown as Record<string, unknown>;
 
   if (
-    VERSION_TERM_KEYS.some(([key]) => !isEqual(terms[key], submittedTerms[key]))
+    getContractVersionTermDifferences({ termsSnapshot: terms, values }).some(
+      (difference) => !difference.equal,
+    )
   ) {
     changedAreas.push('Thông tin hợp đồng');
   }
 
-  const sortedLatestLines = [...latestLines].sort(
-    (left, right) => left.sortOrder - right.sortOrder,
-  );
-  const sortedSubmittedLines = [...lines].sort(
-    (left, right) => left.sortOrder - right.sortOrder,
-  );
-  if (!comparableLinesEqual(sortedLatestLines, sortedSubmittedLines)) {
+  if (
+    chargeChanges.added.length > 0 ||
+    chargeChanges.removed.length > 0 ||
+    chargeChanges.changed.length > 0
+  ) {
     changedAreas.push('Khoản phí');
   }
 
@@ -127,6 +232,9 @@ export function getContractVersionChangeCheck({
       action: 'update-draft',
       requiresNewVersion: false,
       changedAreas,
+      chargeChanges,
+      previousVersionNo: latestVersion.versionNo,
+      nextVersionNo: latestVersion.versionNo,
     };
   }
 
@@ -134,9 +242,11 @@ export function getContractVersionChangeCheck({
     action: changedAreas.length > 0 ? 'create-new' : 'keep-current',
     requiresNewVersion: changedAreas.length > 0,
     changedAreas,
-    previousVersionNo:
-      changedAreas.length > 0 ? latestVersion.versionNo : undefined,
+    chargeChanges,
+    previousVersionNo: latestVersion.versionNo,
     nextVersionNo:
-      changedAreas.length > 0 ? latestVersion.versionNo + 1 : undefined,
+      changedAreas.length > 0
+        ? latestVersion.versionNo + 1
+        : latestVersion.versionNo,
   };
 }

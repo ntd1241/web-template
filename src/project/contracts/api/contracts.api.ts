@@ -35,6 +35,7 @@ import type {
 } from '../model/contract-responsible';
 import {
   getContractVersionChangeCheck,
+  getContractVersionTermDifferences,
   type ContractVersionComparableLine,
 } from '../model/contract-version-change';
 import {
@@ -834,6 +835,7 @@ function toLinePayload(
 }
 
 export type ContractVersionLineValuesForApi = {
+  sourceLineId?: string;
   direction: 'receivable' | 'payable';
   name: string;
   quantity: number;
@@ -854,6 +856,7 @@ async function insertVersion(
   values: ContractFormValues,
   lines: ContractVersionLineValuesForApi[],
   versionNo: number,
+  effectiveFrom = values.startDate,
 ) {
   const versionRows = await request<ContractVersionRow[]>(
     supabaseApi.post(
@@ -862,7 +865,7 @@ async function insertVersion(
         contract_id: contractId,
         version_no: versionNo,
         status: 'draft',
-        effective_from: values.startDate,
+        effective_from: effectiveFrom,
         effective_to: null,
         change_reason:
           versionNo === 1 ? 'Khởi tạo hợp đồng' : 'Cập nhật chính sách',
@@ -1041,13 +1044,43 @@ export async function updateContract(
       ? {
           versionNo: latest.version_no,
           status: latest.status,
-          termsSnapshot: latest.terms_snapshot ?? {},
+          termsSnapshot: {
+            ...(latest.terms_snapshot ?? {}),
+            // Older versions stored the adjusted effective date here. The
+            // contract row remains the source of truth for the contract's
+            // original start date.
+            startDate: contract.start_date,
+          },
         }
       : undefined,
     latestLines: latestLineRows.map(toComparableLine),
     values,
-    lines: lines.map((line, sortOrder) => ({ ...line, sortOrder })),
+    lines: lines.map(({ sourceLineId, ...line }, sortOrder) => ({
+      ...line,
+      id: sourceLineId,
+      sortOrder,
+    })),
   });
+  console.groupCollapsed(`[ContractVersionCheck][API] contract ${contractId}`);
+  console.log('latest version', JSON.stringify(latest ?? null));
+  console.log(
+    'term differences',
+    JSON.stringify(
+      latest
+        ? getContractVersionTermDifferences({
+            termsSnapshot: latest.terms_snapshot ?? {},
+            values,
+          })
+        : [],
+    ),
+  );
+  console.log(
+    'latest lines',
+    JSON.stringify(latestLineRows.map(toComparableLine)),
+  );
+  console.log('submitted lines', JSON.stringify(lines));
+  console.log('result', JSON.stringify(versionChangeCheck));
+  console.groupEnd();
 
   if (latest?.status === 'draft') {
     const effectiveFrom =
@@ -1074,15 +1107,26 @@ export async function updateContract(
       );
     }
   } else if (versionChangeCheck.requiresNewVersion) {
+    console.log('[ContractVersionCheck][API] creating new version', {
+      previousVersionNo: latest?.version_no,
+      nextVersionNo: (latest?.version_no ?? 0) + 1,
+      changedAreas: versionChangeCheck.changedAreas,
+    });
     const effectiveFrom =
       values.startDate < todayIso() ? todayIso() : values.startDate;
     await insertVersion(
       contractId,
       userId,
-      { ...values, startDate: effectiveFrom },
+      values,
       lines,
       (latest?.version_no ?? 0) + 1,
+      effectiveFrom,
     );
+  } else {
+    console.log('[ContractVersionCheck][API] keeping current version', {
+      versionNo: latest?.version_no,
+      changedAreas: versionChangeCheck.changedAreas,
+    });
   }
   await updateContractNonVersionMetadata(
     contract.tenant_id,
@@ -1097,6 +1141,7 @@ function toComparableLine(
   row: ContractVersionLineRow,
 ): ContractVersionComparableLine {
   return {
+    id: row.id,
     direction: row.direction,
     name: row.name,
     quantity: numberValue(row.quantity),

@@ -44,6 +44,22 @@ describe('getContractVersionChangeCheck', () => {
         lines: [line],
         values: contractDefaultValues,
       }),
+    ).toMatchObject({
+      action: 'keep-current',
+      requiresNewVersion: false,
+      previousVersionNo: 1,
+      nextVersionNo: 1,
+    });
+  });
+
+  it('ignores a persisted sort-order offset when line content is unchanged', () => {
+    expect(
+      getContractVersionChangeCheck({
+        latestVersion,
+        latestLines: [{ ...line, id: 'line-1', sortOrder: 1 }],
+        lines: [{ ...line, id: 'line-1', sortOrder: 0 }],
+        values: contractDefaultValues,
+      }),
     ).toMatchObject({ action: 'keep-current', requiresNewVersion: false });
   });
 

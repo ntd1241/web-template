@@ -1,21 +1,28 @@
-import {
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  Circle,
-  CircleAlert,
-  FileCheck2,
-  LoaderCircle,
-} from 'lucide-react';
+import { ArrowRight, FileCheck2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { Badge } from '@/components/ui/badge';
-import type { ContractVersionChangeCheck } from '../model/contract-version-change';
+import {
+  ProcessingStep,
+  type ProcessingStepState,
+} from '@/components/ui/processing-step';
+import type {
+  ContractChargeChangeItem,
+  ContractChargeChanges,
+  ContractVersionChangeCheck,
+} from '../model/contract-version-change';
 
-type ProcessingState = 'idle' | 'checking' | 'complete';
+type ProcessingState =
+  | 'idle'
+  | 'checking-charges'
+  | 'checking-version'
+  | 'complete';
 
 interface ContractConfirmationProcessingProps {
   state: ProcessingState;
+  chargeChanges: ContractChargeChanges | null;
   result: ContractVersionChangeCheck | null;
+  currencyCode: string;
 }
 
 const resultCopy = {
@@ -42,13 +49,27 @@ const resultCopy = {
 
 export function ContractConfirmationProcessing({
   state,
+  chargeChanges,
   result,
+  currencyCode,
 }: ContractConfirmationProcessingProps) {
+  const { formatCurrency } = useNumberFormat();
   const resultText = result ? resultCopy[result.action] : null;
-  const isChecking = state === 'checking';
+  const chargeStepState: ProcessingStepState =
+    state === 'checking-charges'
+      ? 'processing'
+      : state === 'checking-version' || state === 'complete'
+        ? 'success'
+        : 'idle';
+  const versionStepState: ProcessingStepState =
+    state === 'checking-version'
+      ? 'processing'
+      : state === 'complete'
+        ? 'success'
+        : 'idle';
 
   return (
-    <div className="grid min-h-[420px] items-center gap-12 py-10 lg:grid-cols-[minmax(260px,0.82fr)_minmax(0,1.18fr)] lg:gap-16 lg:py-14">
+    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-8 overflow-hidden lg:grid-cols-[minmax(260px,0.82fr)_minmax(0,1.18fr)] lg:grid-rows-1 lg:items-center lg:gap-16">
       <div className="flex items-center justify-center px-6 lg:px-10">
         <div className="relative flex size-44 items-center justify-center">
           <div className="absolute size-36 rotate-[-8deg] rounded-3xl border border-primary/10 bg-primary/10" />
@@ -59,89 +80,184 @@ export function ContractConfirmationProcessing({
         </div>
       </div>
 
-      <div className="px-6 sm:px-10 lg:px-0 lg:pr-12">
+      <div className="h-full min-h-0 overflow-y-auto px-6 sm:px-10 lg:px-0 lg:pr-12">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           Tiến trình xác nhận
         </p>
-        <div className="relative mt-6 pl-1">
-          <div className="relative flex gap-4">
-            <div
-              className={cn(
-                'relative mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-transparent',
-                isChecking
-                  ? 'text-primary'
-                  : state === 'complete'
-                    ? 'text-success-foreground'
-                    : 'text-muted-foreground',
-              )}
-            >
-              {isChecking ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : state === 'complete' ? (
-                <Check className="size-4" />
-              ) : (
-                <Circle className="size-3.5" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1 pb-3">
-              <h3 className="font-medium text-foreground">
-                Kiểm tra dữ liệu hợp đồng
-              </h3>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Đối chiếu thông tin và các khoản phí với phiên bản hiện tại.
-              </p>
+        <div className="mt-6 space-y-8">
+          <ProcessingStep
+            state={chargeStepState}
+            title="Kiểm tra khoản thu"
+            description="Đối chiếu các khoản thu giữa dữ liệu hiện tại và phiên bản đang áp dụng."
+          >
+            {chargeChanges ? (
+              <div className="mt-5 space-y-4">
+                <ChangeGroup
+                  label="Thêm mới"
+                  items={chargeChanges.added}
+                  tone="success"
+                  formatCurrency={formatCurrency}
+                  currencyCode={currencyCode}
+                />
+                <ChangeGroup
+                  label="Bị xóa"
+                  items={chargeChanges.removed}
+                  tone="destructive"
+                  formatCurrency={formatCurrency}
+                  currencyCode={currencyCode}
+                />
+                <ChangeGroup
+                  label="Bị thay đổi"
+                  items={chargeChanges.changed}
+                  tone="warning"
+                  formatCurrency={formatCurrency}
+                  currencyCode={currencyCode}
+                />
+                <ChangeGroup
+                  label="Giữ nguyên"
+                  items={chargeChanges.unchanged}
+                  tone="muted"
+                  formatCurrency={formatCurrency}
+                  currencyCode={currencyCode}
+                />
+                {Object.values(chargeChanges).every(
+                  (items) => items.length === 0,
+                ) ? (
+                  <p className="text-sm text-muted-foreground">
+                    Không có khoản thu để đối chiếu.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </ProcessingStep>
 
-              {resultText && !isChecking ? (
-                result?.action === 'create-new' ? (
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <p className="font-medium text-foreground">
-                      {resultText.title}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" appearance="light" size="lg">
-                        v{result.previousVersionNo}
-                      </Badge>
-                      <ArrowRight className="size-4 text-muted-foreground" />
-                      <Badge variant="primary" appearance="light" size="lg">
-                        v{result.nextVersionNo}
-                      </Badge>
-                    </div>
+          <ProcessingStep
+            state={versionStepState}
+            title="Kiểm tra phiên bản hợp đồng"
+            description="Xác định thay đổi có cần tạo version mới hay tiếp tục dùng version hiện tại."
+          >
+            {resultText && state === 'complete' ? (
+              <div className="mt-5 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {resultText.title}
+                  </p>
+                  {result.previousVersionNo !== undefined &&
+                  result.nextVersionNo !== undefined ? (
+                    <VersionTransition
+                      previousVersionNo={result.previousVersionNo}
+                      nextVersionNo={result.nextVersionNo}
+                      isNewVersion={result.action === 'create-new'}
+                    />
+                  ) : null}
+                </div>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {resultText.description}
+                </p>
+                {result.changedAreas.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {result.changedAreas.map((area) => (
+                      <span
+                        key={area}
+                        className="text-xs font-medium text-warning-foreground"
+                      >
+                        {area}
+                      </span>
+                    ))}
                   </div>
-                ) : (
-                  <div className="mt-5 border-l-2 border-success/25 pl-4">
-                    <div className="flex items-start gap-3">
-                      {result?.requiresNewVersion ? (
-                        <CircleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
-                      ) : (
-                        <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success-foreground" />
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-medium text-foreground">
-                          {resultText.title}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                          {resultText.description}
-                        </p>
-                        {result?.changedAreas.length ? (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {result.changedAreas.map((area) => (
-                              <span
-                                key={area}
-                                className="text-xs font-medium text-warning-foreground"
-                              >
-                                {area}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                )
-              ) : null}
-            </div>
-          </div>
+                ) : null}
+              </div>
+            ) : null}
+          </ProcessingStep>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function VersionTransition({
+  previousVersionNo,
+  nextVersionNo,
+  isNewVersion,
+}: {
+  previousVersionNo: number;
+  nextVersionNo: number;
+  isNewVersion: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Badge
+        variant="secondary"
+        appearance="light"
+        size="xl"
+        shape="circle"
+        className="min-w-12 px-4 text-base tabular-nums"
+      >
+        v{previousVersionNo}
+      </Badge>
+      <ArrowRight className="size-4 text-muted-foreground" />
+      <Badge
+        variant={isNewVersion ? 'primary' : 'secondary'}
+        appearance="light"
+        size="xl"
+        shape="circle"
+        className="min-w-12 px-4 text-base tabular-nums"
+      >
+        v{nextVersionNo}
+      </Badge>
+    </div>
+  );
+}
+
+function ChangeGroup({
+  label,
+  items,
+  tone,
+  formatCurrency,
+  currencyCode,
+}: {
+  label: string;
+  items: ContractChargeChangeItem[];
+  tone: 'success' | 'destructive' | 'warning' | 'muted';
+  formatCurrency: (amount: number, currencyCode?: string) => string;
+  currencyCode: string;
+}) {
+  if (items.length === 0) return null;
+
+  const toneClass = {
+    success: 'bg-success-foreground',
+    destructive: 'bg-destructive',
+    warning: 'bg-warning',
+    muted: 'bg-muted-foreground',
+  }[tone];
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+        <span className={cn('size-1.5 rounded-full', toneClass)} />
+        {label} ({items.length})
+      </div>
+      <div className="mt-2 space-y-1.5">
+        {items.map((item) => (
+          <div
+            key={item.key}
+            className="flex min-w-0 items-center justify-between gap-4 text-sm"
+          >
+            <span className="min-w-0 truncate text-foreground">
+              {item.name}
+            </span>
+            <span className="shrink-0 tabular-nums text-muted-foreground">
+              {item.previousAmount !== undefined &&
+              item.currentAmount !== undefined &&
+              item.previousAmount !== item.currentAmount
+                ? `${formatCurrency(item.previousAmount, currencyCode)} → ${formatCurrency(item.currentAmount, currencyCode)}`
+                : formatCurrency(
+                    item.currentAmount ?? item.previousAmount ?? 0,
+                    currencyCode,
+                  )}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

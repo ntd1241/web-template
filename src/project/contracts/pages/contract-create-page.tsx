@@ -69,6 +69,8 @@ import {
 } from '../forms/contract-form.generated';
 import {
   getContractVersionChangeCheck,
+  getContractVersionTermDifferences,
+  type ContractChargeChanges,
   type ContractVersionChangeCheck,
 } from '../model/contract-version-change';
 
@@ -97,6 +99,7 @@ function toEditableLines(
   return contract.lines
     .filter((line) => line.contractVersionId === latestVersion?.id)
     .map((line) => ({
+      sourceLineId: line.id,
       direction: line.direction,
       name: line.name,
       quantity: line.quantity,
@@ -133,9 +136,11 @@ export function ContractCreatePage() {
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>(
     [],
   );
-  const [versionCheckState, setVersionCheckState] = useState<
-    'idle' | 'checking' | 'complete'
+  const [processingState, setProcessingState] = useState<
+    'idle' | 'checking-charges' | 'checking-version' | 'complete'
   >('idle');
+  const [chargeChanges, setChargeChanges] =
+    useState<ContractChargeChanges | null>(null);
   const [versionCheck, setVersionCheck] =
     useState<ContractVersionChangeCheck | null>(null);
   const mappedEditIdRef = useRef<string | null>(null);
@@ -331,7 +336,8 @@ export function ContractCreatePage() {
   function beginVersionCheck() {
     const runId = ++versionCheckRunRef.current;
     setVersionCheck(null);
-    setVersionCheckState('checking');
+    setChargeChanges(null);
+    setProcessingState('checking-charges');
     setStep(3);
     setMaxStep((current) => Math.max(current, 3));
 
@@ -340,15 +346,59 @@ export function ContractCreatePage() {
 
       const latestVersion = editDetailQuery.data?.versions[0];
       const result = getContractVersionChangeCheck({
-        latestVersion,
+        latestVersion: latestVersion
+          ? {
+              ...latestVersion,
+              // Compare against the contract's persisted start date. A
+              // version's effective date may be normalized to today while
+              // the contract start date itself remains unchanged.
+              termsSnapshot: {
+                ...latestVersion.termsSnapshot,
+                startDate: editDetailQuery.data?.startDate,
+              },
+            }
+          : undefined,
         latestLines: (editDetailQuery.data?.lines ?? []).filter(
           (line) => line.contractVersionId === latestVersion?.id,
         ),
         values: form.getValues(),
-        lines: feeLines.map((line, sortOrder) => ({ ...line, sortOrder })),
+        lines: feeLines.map(({ sourceLineId, ...line }, sortOrder) => ({
+          ...line,
+          id: sourceLineId,
+          sortOrder,
+        })),
       });
-      setVersionCheck(result);
-      setVersionCheckState('complete');
+      const termDifferences = latestVersion
+        ? getContractVersionTermDifferences({
+            termsSnapshot: {
+              ...latestVersion.termsSnapshot,
+              startDate: editDetailQuery.data?.startDate,
+            },
+            values: form.getValues(),
+          })
+        : [];
+      console.groupCollapsed(`[ContractVersionCheck][UI] run ${runId}`);
+      console.log('latest version', JSON.stringify(latestVersion ?? null));
+      console.log('term differences', JSON.stringify(termDifferences));
+      console.log(
+        'latest lines',
+        JSON.stringify(
+          (editDetailQuery.data?.lines ?? []).filter(
+            (line) => line.contractVersionId === latestVersion?.id,
+          ),
+        ),
+      );
+      console.log('submitted lines', JSON.stringify(feeLines));
+      console.log('result', JSON.stringify(result));
+      console.groupEnd();
+      setChargeChanges(result.chargeChanges);
+      setProcessingState('checking-version');
+
+      window.setTimeout(() => {
+        if (runId !== versionCheckRunRef.current) return;
+        setVersionCheck(result);
+        setProcessingState('complete');
+      }, 300);
     }, 450);
   }
 
@@ -357,12 +407,21 @@ export function ContractCreatePage() {
       setStep(1);
       return;
     }
-    const areFeeLinesValid = await feeLinesEditorRef.current?.validate();
+
+    const areFeeLinesValid = feeLinesEditorRef.current
+      ? await feeLinesEditorRef.current.validate()
+      : true;
     if (!areFeeLinesValid) {
       toast.error('Vui lòng kiểm tra lại các khoản phí.');
       setStep(2);
       return;
     }
+
+    if (step < 3) {
+      beginVersionCheck();
+      return;
+    }
+
     const values = form.getValues();
     saveMutation.mutate({
       values,
@@ -560,6 +619,7 @@ export function ContractCreatePage() {
 
               <StepperContent
                 value={2}
+                forceMount
                 className="flex min-h-0 flex-1 flex-col px-6"
               >
                 <div className="flex min-h-0 w-full flex-1 flex-col">
@@ -573,10 +633,12 @@ export function ContractCreatePage() {
                 </div>
               </StepperContent>
 
-              <StepperContent value={3} className="min-h-0 flex-1 px-6 pb-6">
+              <StepperContent value={3} className="min-h-0 flex-1 px-6">
                 <ContractConfirmationProcessing
-                  state={versionCheckState}
+                  state={processingState}
+                  chargeChanges={chargeChanges}
                   result={versionCheck}
+                  currencyCode={form.getValues('currencyCode')}
                 />
               </StepperContent>
             </StepperPanel>
@@ -606,21 +668,24 @@ export function ContractCreatePage() {
                 <ArrowRight />
               </Button>
               <div aria-hidden="true" className="mx-1 h-6 w-px bg-border" />
-              <ShortcutTooltip label="Lưu hợp đồng" shortcut="Ctrl/Cmd + S">
+              <ShortcutTooltip
+                label={step === 3 ? 'Lưu hợp đồng' : 'Xem xác nhận'}
+                shortcut="Ctrl/Cmd + S"
+              >
                 <Button
                   type="button"
                   variant="primary"
                   disabled={
                     saveMutation.isPending ||
                     (step === 3 &&
-                      (versionCheckState === 'checking' || !versionCheck))
+                      (processingState !== 'complete' || !versionCheck))
                   }
                   loading={saveMutation.isPending}
                   loadingText="Đang lưu..."
                   onClick={() => void handleSave()}
                 >
-                  <Save />
-                  {step === 3 ? 'Xác nhận & lưu' : 'Lưu'}
+                  {step === 3 ? <Save /> : <ArrowRight />}
+                  {step === 3 ? 'Xác nhận & lưu' : 'Xem xác nhận'}
                 </Button>
               </ShortcutTooltip>
             </div>
