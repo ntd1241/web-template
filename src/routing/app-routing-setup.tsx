@@ -44,6 +44,9 @@ import { NotFoundPage } from '@/pages/not-found/page';
 import { ContractCreatePage } from '@/project/contracts/pages/contract-create-page';
 import { ContractDetailPage } from '@/project/contracts/pages/contract-detail-page';
 import { ContractsPage } from '@/project/contracts/pages/contracts-page';
+import { ContractTemplateDetailPage } from '@/project/contracts/templates/contract-template-detail-page';
+import { ContractTemplateEditPage } from '@/project/contracts/templates/contract-template-edit-page';
+import { ContractTemplatesPage } from '@/project/contracts/templates/contract-templates-page';
 import { CustomerDetailPage } from '@/project/customers/pages/customer-detail-page';
 import { CustomersPage } from '@/project/customers/pages/customers-page';
 import { EmployeesPage } from '@/project/employees/pages/employees-page';
@@ -222,6 +225,22 @@ export function AppRoutingSetup() {
           <Route path={ROUTES.PROJECT.EMPLOYEES} element={<EmployeesPage />} />
           <Route path={ROUTES.PROJECT.CUSTOMERS} element={<CustomersPage />} />
           <Route path={ROUTES.PROJECT.CONTRACTS} element={<ContractsPage />} />
+          <Route
+            path={ROUTES.PROJECT.CONTRACT_TEMPLATES}
+            element={<ContractTemplatesPage />}
+          />
+          <Route
+            path={ROUTES.PROJECT.CONTRACT_TEMPLATE_CREATE}
+            element={<ContractTemplateEditPage />}
+          />
+          <Route
+            path={ROUTES.PROJECT.CONTRACT_TEMPLATE_DETAIL}
+            element={<ContractTemplateDetailPage />}
+          />
+          <Route
+            path={ROUTES.PROJECT.CONTRACT_TEMPLATE_EDIT}
+            element={<ContractTemplateEditPage />}
+          />
           <Route
             path={ROUTES.PROJECT.CONTRACT_CREATE}
             element={<ContractCreatePage />}

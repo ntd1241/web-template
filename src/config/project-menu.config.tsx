@@ -1,6 +1,7 @@
 import { ROUTES } from '@/constants/routes';
 import {
   FileText,
+  Layers3,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -39,6 +40,11 @@ export const PROJECT_MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Hợp đồng',
         icon: FileText,
         path: ROUTES.PROJECT.CONTRACTS,
+      },
+      {
+        label: 'Mẫu hợp đồng',
+        icon: Layers3,
+        path: ROUTES.PROJECT.CONTRACT_TEMPLATES,
       },
       {
         label: 'Phân quyền',

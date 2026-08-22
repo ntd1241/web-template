@@ -857,6 +857,7 @@ async function insertVersion(
   lines: ContractVersionLineValuesForApi[],
   versionNo: number,
   effectiveFrom = values.startDate,
+  sourceTemplateVersionId?: string,
 ) {
   const versionRows = await request<ContractVersionRow[]>(
     supabaseApi.post(
@@ -871,6 +872,9 @@ async function insertVersion(
           versionNo === 1 ? 'Khởi tạo hợp đồng' : 'Cập nhật chính sách',
         terms_snapshot: toContractTermsSnapshot(values),
         created_by: userId,
+        ...(sourceTemplateVersionId
+          ? { source_template_version_id: sourceTemplateVersionId }
+          : {}),
       },
       { headers: { Prefer: 'return=representation' } },
     ),
@@ -973,6 +977,7 @@ export async function createContract(
   values: ContractFormValues,
   lines: ContractVersionLineValuesForApi[],
   metadata: ContractMetadataInput,
+  source?: { templateId: string; templateVersionId: string },
 ) {
   assertSupabaseConfigured();
   const contractRows = await request<ContractRow[]>(
@@ -981,6 +986,7 @@ export async function createContract(
       {
         tenant_id: tenantId,
         created_by: userId,
+        ...(source ? { source_template_id: source.templateId } : {}),
         ...toContractPayload(values),
       },
       { headers: { Prefer: 'return=representation' } },
@@ -988,7 +994,15 @@ export async function createContract(
   );
   const contract = contractRows[0];
   if (!contract) throw new Error('Không thể tạo hợp đồng.');
-  await insertVersion(contract.id, userId, values, lines, 1);
+  await insertVersion(
+    contract.id,
+    userId,
+    values,
+    lines,
+    1,
+    values.startDate,
+    source?.templateVersionId,
+  );
   await updateContractNonVersionMetadata(
     tenantId,
     contract.id,

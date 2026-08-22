@@ -45,6 +45,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { EmployeeIdentity } from '../../employees/components/employee-identity';
+import { loadContractTemplateDetail } from '../api/contract-templates.api';
 import {
   createContract,
   loadContractCreationWorkspace,
@@ -121,7 +122,9 @@ export function ContractCreatePage() {
   const { userId } = useUser();
   const { tenantId, isPending: isTenantPending } = useTenant();
   const editingContractId = searchParams.get('edit');
+  const templateId = searchParams.get('templateId');
   const isEditMode = Boolean(editingContractId);
+  const isTemplateMode = Boolean(templateId) && !isEditMode;
   const [step, setStep] = useState(1);
   const [maxStep, setMaxStep] = useState(1);
   const [selectedCustomer, setSelectedCustomer] =
@@ -144,6 +147,7 @@ export function ContractCreatePage() {
   const [versionCheck, setVersionCheck] =
     useState<ContractVersionChangeCheck | null>(null);
   const mappedEditIdRef = useRef<string | null>(null);
+  const mappedTemplateIdRef = useRef<string | null>(null);
   const initializedCreateResponsibleRef = useRef(false);
   const versionCheckRunRef = useRef(0);
 
@@ -181,6 +185,15 @@ export function ContractCreatePage() {
       return loadContractDetail(userId, editingContractId, tenantId);
     },
     enabled: Boolean(userId && tenantId && editingContractId),
+  });
+
+  const templateQuery = useQuery({
+    queryKey: ['project', 'contract-templates', 'detail', tenantId, templateId],
+    queryFn: () => {
+      if (!tenantId || !templateId) throw new Error('Thiếu mẫu hợp đồng.');
+      return loadContractTemplateDetail(tenantId, templateId);
+    },
+    enabled: Boolean(tenantId && templateId && isTemplateMode),
   });
 
   useEffect(() => {
@@ -224,7 +237,7 @@ export function ContractCreatePage() {
   }, [editDetailQuery.data, editingContractId, form]);
 
   useEffect(() => {
-    if (editingContractId) return;
+    if (editingContractId || templateId) return;
 
     mappedEditIdRef.current = null;
     form.reset(contractDefaultValues);
@@ -237,7 +250,70 @@ export function ContractCreatePage() {
     setRemovedAttachmentIds([]);
     setStep(1);
     setMaxStep(1);
-  }, [editingContractId, form]);
+  }, [editingContractId, form, templateId]);
+
+  useEffect(() => {
+    const template = templateQuery.data;
+    if (
+      !isTemplateMode ||
+      !templateId ||
+      !template ||
+      mappedTemplateIdRef.current === templateId
+    ) {
+      return;
+    }
+
+    const startDate = contractDefaultValues.startDate;
+    const endDate = contractDefaultValues.endDate;
+    const latestVersion = template.versions[0];
+    const templateLines = template.lines
+      .filter((line) => line.templateVersionId === latestVersion?.id)
+      .map((line) => ({
+        direction: line.direction,
+        name: line.name,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        billingType: line.billingType,
+        billingUnit: line.billingType === 'recurring' ? line.billingUnit : null,
+        billingInterval:
+          line.billingType === 'recurring' ? line.billingInterval : null,
+        chargeDate: line.billingType === 'one_time' ? startDate : null,
+        dueRule: line.dueRule,
+        dueDays: line.dueDays,
+        startDate,
+        endDate,
+      }));
+
+    form.reset({
+      ...contractDefaultValues,
+      contractCode: `${template.code}-${startDate.replaceAll('-', '')}`,
+      name: template.name,
+      currencyCode: template.currencyCode,
+      autoRenew: template.autoRenewDefault,
+      note: template.note,
+      responsibleEmployeeIds: workspaceQuery.data?.defaultResponsibleEmployeeId
+        ? [workspaceQuery.data.defaultResponsibleEmployeeId]
+        : [],
+    });
+    setSelectedCustomer(undefined);
+    setFeeLines(
+      templateLines.length > 0
+        ? templateLines
+        : [createDefaultContractFeeLine(startDate)],
+    );
+    setFeeEditorKey(`template:${templateId}:${latestVersion?.id ?? 'empty'}`);
+    setAttachmentFiles([]);
+    setRemovedAttachmentIds([]);
+    setStep(1);
+    setMaxStep(1);
+    mappedTemplateIdRef.current = templateId;
+  }, [
+    form,
+    isTemplateMode,
+    templateId,
+    templateQuery.data,
+    workspaceQuery.data?.defaultResponsibleEmployeeId,
+  ]);
 
   useEffect(() => {
     if (
@@ -269,10 +345,12 @@ export function ContractCreatePage() {
       values,
       lines,
       metadata,
+      source,
     }: {
       values: Parameters<typeof createContract>[2];
       lines: ContractVersionLineValuesForApi[];
       metadata: Parameters<typeof createContract>[4];
+      source?: Parameters<typeof createContract>[5];
     }) => {
       if (!userId || !workspaceQuery.data?.tenantId) {
         throw new Error('Chưa xác định tài khoản hoặc tenant.');
@@ -292,6 +370,7 @@ export function ContractCreatePage() {
         values,
         lines,
         metadata,
+        source,
       );
     },
     onSuccess: (contract) => {
@@ -310,6 +389,10 @@ export function ContractCreatePage() {
           id: editingContractId,
         }),
       );
+      return;
+    }
+    if (isTemplateMode) {
+      navigate(ROUTES.PROJECT.CONTRACT_TEMPLATES);
       return;
     }
     navigate(ROUTES.PROJECT.CONTRACTS);
@@ -434,11 +517,24 @@ export function ContractCreatePage() {
           .map((attachment) => attachment.id),
         attachments: attachmentFiles,
       },
+      source:
+        isTemplateMode && templateQuery.data && templateId
+          ? {
+              templateId,
+              templateVersionId: templateQuery.data.versions[0]?.id ?? '',
+            }
+          : undefined,
     });
   }
 
   const isLoadingEditData = isEditMode && editDetailQuery.isPending;
-  if (isTenantPending || workspaceQuery.isPending || isLoadingEditData) {
+  const isLoadingTemplateData = isTemplateMode && templateQuery.isPending;
+  if (
+    isTenantPending ||
+    workspaceQuery.isPending ||
+    isLoadingEditData ||
+    isLoadingTemplateData
+  ) {
     return (
       <PageLoading
         label={
@@ -451,8 +547,13 @@ export function ContractCreatePage() {
     );
   }
 
-  const pageError = workspaceQuery.error ?? editDetailQuery.error;
-  if (workspaceQuery.isError || editDetailQuery.isError) {
+  const pageError =
+    workspaceQuery.error ?? editDetailQuery.error ?? templateQuery.error;
+  if (
+    workspaceQuery.isError ||
+    editDetailQuery.isError ||
+    templateQuery.isError
+  ) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <Card className="max-w-lg text-center">
@@ -460,7 +561,11 @@ export function ContractCreatePage() {
             <CardHeading>
               <CardTitle>
                 Không tải được dữ liệu{' '}
-                {isEditMode ? 'hợp đồng' : 'tạo hợp đồng'}
+                {isEditMode
+                  ? 'hợp đồng'
+                  : isTemplateMode
+                    ? 'mẫu hợp đồng'
+                    : 'tạo hợp đồng'}
               </CardTitle>
               <CardDescription className="mt-2">
                 {getApiErrorMessage(pageError)}
@@ -479,7 +584,9 @@ export function ContractCreatePage() {
               onClick={() => {
                 void (isEditMode
                   ? editDetailQuery.refetch()
-                  : workspaceQuery.refetch());
+                  : isTemplateMode
+                    ? templateQuery.refetch()
+                    : workspaceQuery.refetch());
               }}
             >
               Thử lại

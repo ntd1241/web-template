@@ -21,6 +21,15 @@ export function ProjectMainLayout() {
   const isCustomerDetail = pathname.startsWith(`${ROUTES.PROJECT.CUSTOMERS}/`);
   const isContractDetail =
     pathname.startsWith(`${ROUTES.PROJECT.CONTRACTS}/`) && !isContractCreate;
+  const isContractTemplateCreate =
+    pathname === ROUTES.PROJECT.CONTRACT_TEMPLATE_CREATE;
+  const isContractTemplateEdit =
+    pathname.startsWith(`${ROUTES.PROJECT.CONTRACT_TEMPLATES}/`) &&
+    pathname.endsWith('/edit');
+  const isContractTemplateDetail =
+    pathname.startsWith(`${ROUTES.PROJECT.CONTRACT_TEMPLATES}/`) &&
+    !isContractTemplateCreate &&
+    !isContractTemplateEdit;
   const customerId = isCustomerDetail
     ? pathname.slice(`${ROUTES.PROJECT.CUSTOMERS}/`.length).split('/')[0]
     : undefined;
@@ -53,21 +62,27 @@ export function ProjectMainLayout() {
     ? (customerDetailQuery.data?.name ?? 'Chi tiết khách hàng')
     : isContractDetail
       ? (contractDetailQuery.data?.name ?? 'Chi tiết hợp đồng')
-      : isContractEdit
-        ? 'Chỉnh sửa'
-        : isContractCreate
-          ? 'Thêm hợp đồng'
-          : pathname === ROUTES.PROJECT.EMPLOYEES
-            ? 'Nhân viên'
-            : pathname === ROUTES.PROJECT.CUSTOMERS
-              ? 'Khách hàng'
-              : pathname === ROUTES.PROJECT.SETTINGS
-                ? 'Cài đặt'
-                : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
-                  ? 'Phân quyền'
-                  : pathname === ROUTES.PROJECT.TAGS
-                    ? 'Nhãn'
-                    : 'Tổng quan';
+      : isContractTemplateCreate
+        ? 'Thêm mẫu hợp đồng'
+        : isContractTemplateEdit
+          ? 'Chỉnh sửa mẫu hợp đồng'
+          : isContractTemplateDetail
+            ? 'Chi tiết mẫu hợp đồng'
+            : isContractEdit
+              ? 'Chỉnh sửa'
+              : isContractCreate
+                ? 'Thêm hợp đồng'
+                : pathname === ROUTES.PROJECT.EMPLOYEES
+                  ? 'Nhân viên'
+                  : pathname === ROUTES.PROJECT.CUSTOMERS
+                    ? 'Khách hàng'
+                    : pathname === ROUTES.PROJECT.SETTINGS
+                      ? 'Cài đặt'
+                      : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
+                        ? 'Phân quyền'
+                        : pathname === ROUTES.PROJECT.TAGS
+                          ? 'Nhãn'
+                          : 'Tổng quan';
 
   return (
     <MainLayout
@@ -96,36 +111,53 @@ export function ProjectMainLayout() {
                   { label: breadcrumbCurrent },
                 ],
               }
-            : isContractEdit
+            : isContractTemplateDetail ||
+                isContractTemplateEdit ||
+                isContractTemplateCreate
               ? {
                   breadcrumbItems: [
                     { label: 'Trang chủ', path: '/' },
                     {
-                      label: 'Hợp đồng',
-                      path: ROUTES.PROJECT.CONTRACTS,
+                      label: 'Mẫu hợp đồng',
+                      path: ROUTES.PROJECT.CONTRACT_TEMPLATES,
                     },
-                    ...(contractDetailQuery.data
-                      ? [
-                          {
-                            label: contractDetailQuery.data.name,
-                            path: buildPath(ROUTES.PROJECT.CONTRACT_DETAIL, {
-                              id: contractDetailQuery.data.id,
-                            }),
-                          },
-                        ]
-                      : [{ label: 'Đang tải hợp đồng...' }]),
-                    { label: 'Chỉnh sửa' },
+                    ...(isContractTemplateDetail
+                      ? [{ label: breadcrumbCurrent }]
+                      : isContractTemplateEdit
+                        ? [{ label: 'Chỉnh sửa' }]
+                        : [{ label: 'Thêm mẫu hợp đồng' }]),
                   ],
                 }
-              : isContractCreate
+              : isContractEdit
                 ? {
                     breadcrumbItems: [
                       { label: 'Trang chủ', path: '/' },
-                      { label: 'Hợp đồng', path: ROUTES.PROJECT.CONTRACTS },
-                      { label: 'Thêm hợp đồng' },
+                      {
+                        label: 'Hợp đồng',
+                        path: ROUTES.PROJECT.CONTRACTS,
+                      },
+                      ...(contractDetailQuery.data
+                        ? [
+                            {
+                              label: contractDetailQuery.data.name,
+                              path: buildPath(ROUTES.PROJECT.CONTRACT_DETAIL, {
+                                id: contractDetailQuery.data.id,
+                              }),
+                            },
+                          ]
+                        : [{ label: 'Đang tải hợp đồng...' }]),
+                      { label: 'Chỉnh sửa' },
                     ],
                   }
-                : {}),
+                : isContractCreate
+                  ? {
+                      breadcrumbItems: [
+                        { label: 'Trang chủ', path: '/' },
+                        { label: 'Hợp đồng', path: ROUTES.PROJECT.CONTRACTS },
+                        { label: 'Thêm hợp đồng' },
+                      ],
+                    }
+                  : {}),
       }}
     />
   );
