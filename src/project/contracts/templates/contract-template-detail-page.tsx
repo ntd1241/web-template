@@ -1,27 +1,42 @@
+import type { ReactNode } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft,
+  CalendarClock,
   CheckCircle2,
+  CircleDollarSign,
+  FileText,
+  History,
+  ListChecks,
   Pencil,
   Plus,
   ReceiptText,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useNumberFormat } from '@/providers/number-format-provider';
 import { useTenant } from '@/providers/tenant-provider';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardHeading,
   CardTitle,
 } from '@/components/ui/card';
 import { PageLoading } from '@/components/ui/loading';
+import { PageBackButton } from '@/components/ui/page-back-button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   loadContractTemplateDetail,
   publishContractTemplateVersion,
@@ -39,33 +54,137 @@ function formatDate(value: string | null) {
 
 function TemplateFeeRow({
   line,
+  index,
   currencyCode,
 }: {
   line: ContractTemplateVersionLine;
+  index: number;
   currencyCode: string;
 }) {
   const { formatCurrency } = useNumberFormat();
   const billing =
     line.billingType === 'one_time'
-      ? `Một lần · ${formatDate(line.chargeDate)}`
+      ? 'Một lần'
       : `Mỗi ${line.billingInterval ?? 1} ${line.billingUnit === 'month' ? 'tháng' : line.billingUnit === 'quarter' ? 'quý' : 'năm'}`;
 
   return (
-    <div className="grid gap-3 border-b border-border px-4 py-3 last:border-b-0 md:grid-cols-[minmax(0,1.6fr)_0.8fr_1fr_1fr] md:items-center">
-      <div className="min-w-0">
+    <TableRow>
+      <TableCell className="w-12 tabular-nums text-muted-foreground">
+        {index + 1}
+      </TableCell>
+      <TableCell className="min-w-56">
         <div className="truncate font-medium text-foreground">{line.name}</div>
-        <div className="text-xs text-muted-foreground">{billing}</div>
-      </div>
-      <div className="text-sm text-muted-foreground">
-        {line.direction === 'receivable' ? 'Khoản thu' : 'Khoản chi'}
-      </div>
-      <div className="text-sm text-muted-foreground">
+      </TableCell>
+      <TableCell className="w-36">
+        <Badge
+          size="sm"
+          appearance="light"
+          variant={line.direction === 'receivable' ? 'success' : 'destructive'}
+        >
+          {line.direction === 'receivable' ? 'Khoản thu' : 'Khoản chi'}
+        </Badge>
+      </TableCell>
+      <TableCell className="w-36 whitespace-nowrap text-muted-foreground">
+        {billing}
+      </TableCell>
+      <TableCell className="w-44 whitespace-nowrap text-muted-foreground">
         {line.quantity} × {formatCurrency(line.unitPrice, currencyCode)}
-      </div>
-      <div className="font-semibold text-primary">
+      </TableCell>
+      <TableCell className="w-44 whitespace-nowrap text-right font-semibold text-primary">
         {formatCurrency(line.amount, currencyCode)}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function TemplateInfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="grid gap-2 px-5 py-3.5 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="size-4 text-primary" />
+        {label}
       </div>
+      <div className="min-w-0 text-sm font-medium text-foreground">{value}</div>
     </div>
+  );
+}
+
+function TemplateProfileCard({
+  template,
+  latestVersion,
+  latestLines,
+}: {
+  template: ContractTemplateDetail;
+  latestVersion: ContractTemplateDetail['versions'][number] | undefined;
+  latestLines: ContractTemplateVersionLine[];
+}) {
+  return (
+    <Card className="h-fit lg:sticky lg:top-6">
+      <CardContent className="p-6">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex size-24 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-inner">
+            <FileText className="size-12" />
+          </div>
+          <Badge
+            variant="primary"
+            appearance="light"
+            shape="circle"
+            size="lg"
+            className="mt-5"
+          >
+            Mẫu hợp đồng
+          </Badge>
+          <h2 className="mt-4 text-xl font-bold tracking-tight text-foreground">
+            {template.name}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{template.code}</p>
+          <div className="mt-3">
+            <ContractTemplateStatusBadge status={template.status} size="lg" />
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-border pt-5">
+          <p className="text-sm leading-6 text-muted-foreground">
+            {template.description || 'Chưa có mô tả cho mẫu dịch vụ này.'}
+          </p>
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 divide-x rounded-lg border border-border bg-muted/20 py-3">
+          <div className="px-2 text-center">
+            <div className="text-lg font-semibold text-foreground">
+              {latestVersion ? `v${latestVersion.versionNo}` : '—'}
+            </div>
+            <div className="mt-0.5 text-[0.6875rem] text-muted-foreground">
+              Phiên bản
+            </div>
+          </div>
+          <div className="px-2 text-center">
+            <div className="text-lg font-semibold text-foreground">
+              {latestLines.length}
+            </div>
+            <div className="mt-0.5 text-[0.6875rem] text-muted-foreground">
+              Khoản phí
+            </div>
+          </div>
+          <div className="px-2 text-center">
+            <div className="text-lg font-semibold text-foreground">
+              {template.contractCount}
+            </div>
+            <div className="mt-0.5 text-[0.6875rem] text-muted-foreground">
+              Hợp đồng
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -116,50 +235,36 @@ export function ContractTemplateDetailPage() {
     (line) => line.templateVersionId === latestVersion?.id,
   );
 
+  const editTemplate = () =>
+    navigate(
+      buildPath(ROUTES.PROJECT.CONTRACT_TEMPLATE_EDIT, {
+        id: template.id,
+      }),
+      {
+        state: {
+          returnTo: buildPath(ROUTES.PROJECT.CONTRACT_TEMPLATE_DETAIL, {
+            id: template.id,
+          }),
+        },
+      },
+    );
+
   return (
     <div className="flex min-h-full flex-col gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Button
-            variant="ghost"
-            mode="icon"
-            aria-label="Quay lại danh sách mẫu hợp đồng"
-            onClick={() => navigate(ROUTES.PROJECT.CONTRACT_TEMPLATES)}
-          >
-            <ArrowLeft />
-          </Button>
-          <div>
-            <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {template.code}
-              </span>
-              <ContractTemplateStatusBadge status={template.status} />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              {template.name}
-            </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              {template.description || 'Chưa có mô tả cho mẫu dịch vụ này.'}
-            </p>
-          </div>
-        </div>
+        <PageBackButton
+          label="Quay lại danh sách mẫu hợp đồng"
+          onClick={() => navigate(ROUTES.PROJECT.CONTRACT_TEMPLATES)}
+        />
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() =>
-              navigate(
-                buildPath(ROUTES.PROJECT.CONTRACT_TEMPLATE_EDIT, {
-                  id: template.id,
-                }),
-              )
-            }
-          >
+          <Button variant="outline" size="md" onClick={editTemplate}>
             <Pencil />
             Chỉnh sửa mẫu
           </Button>
           {template.status === 'published' ? (
             <Button
               variant="primary"
+              size="md"
               onClick={() =>
                 navigate(
                   `${ROUTES.PROJECT.CONTRACT_CREATE}?templateId=${encodeURIComponent(template.id)}`,
@@ -191,109 +296,150 @@ export function ContractTemplateDetailPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardHeading>
-            <CardTitle>Thông tin mẫu</CardTitle>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <div className="text-sm text-muted-foreground">
-              Phiên bản hiện tại
-            </div>
-            <div className="mt-1 font-semibold">
-              {latestVersion ? `v${latestVersion.versionNo}` : 'Chưa có'}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">Đơn vị tiền tệ</div>
-            <div className="mt-1 font-semibold">{template.currencyCode}</div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">
-              Tự động gia hạn mặc định
-            </div>
-            <div className="mt-1 font-semibold">
-              {template.autoRenewDefault ? 'Có' : 'Không'}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-muted-foreground">
-              Cập nhật gần nhất
-            </div>
-            <div className="mt-1 font-semibold">
-              {formatDate(template.updatedAt)}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <TemplateProfileCard
+          template={template}
+          latestVersion={latestVersion}
+          latestLines={latestLines}
+        />
 
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardHeading>
-            <CardTitle className="flex items-center gap-2">
-              <ReceiptText className="size-5 text-primary" />
-              Khoản phí phiên bản hiện tại
-            </CardTitle>
-            <CardDescription>
-              {latestLines.length} khoản phí mặc định
-            </CardDescription>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="p-0">
-          {latestLines.length > 0 ? (
-            <div>
-              {latestLines.map((line) => (
-                <TemplateFeeRow
-                  key={line.id}
-                  line={line}
-                  currencyCode={template.currencyCode}
+        <div className="min-w-0 space-y-6">
+          <Card sectionBorders="default">
+            <CardHeader>
+              <CardHeading>
+                <CardTitle>Thông tin mẫu</CardTitle>
+              </CardHeading>
+              <Button variant="outline" size="sm" onClick={editTemplate}>
+                <Pencil />
+                Chỉnh sửa
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                <TemplateInfoRow
+                  icon={FileText}
+                  label="Tên mẫu"
+                  value={template.name}
                 />
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-sm text-muted-foreground">
-              Chưa có khoản phí trong phiên bản này.
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardHeading>
-            <CardTitle>Lịch sử phiên bản</CardTitle>
-            <CardDescription>
-              Mỗi lần chỉnh sửa sau khi phát hành sẽ tạo phiên bản mẫu mới.
-            </CardDescription>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {template.versions.map((version) => (
-            <div
-              key={version.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
-            >
-              <div>
-                <div className="font-medium">v{version.versionNo}</div>
-                <div className="text-xs text-muted-foreground">
-                  Tạo ngày {formatDate(version.createdAt)}
-                </div>
+                <TemplateInfoRow
+                  icon={ListChecks}
+                  label="Mã mẫu"
+                  value={template.code}
+                />
+                <TemplateInfoRow
+                  icon={CircleDollarSign}
+                  label="Đơn vị tiền tệ"
+                  value={template.currencyCode}
+                />
+                <TemplateInfoRow
+                  icon={History}
+                  label="Phiên bản hiện tại"
+                  value={
+                    latestVersion ? `v${latestVersion.versionNo}` : 'Chưa có'
+                  }
+                />
+                <TemplateInfoRow
+                  icon={CalendarClock}
+                  label="Tự động gia hạn mặc định"
+                  value={template.autoRenewDefault ? 'Có' : 'Không'}
+                />
+                <TemplateInfoRow
+                  icon={CalendarClock}
+                  label="Cập nhật lần cuối"
+                  value={formatDate(template.updatedAt)}
+                />
+                <TemplateInfoRow
+                  icon={FileText}
+                  label="Ghi chú"
+                  value={template.note || 'Chưa có ghi chú cho người dùng mẫu.'}
+                />
               </div>
-              <ContractTemplateStatusBadge
-                status={
-                  version.status === 'published'
-                    ? 'published'
-                    : version.status === 'superseded'
-                      ? 'archived'
-                      : 'draft'
-                }
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden" sectionBorders="default">
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex items-center gap-2">
+                  <ReceiptText className="size-5 text-primary" />
+                  Khoản phí mặc định
+                </CardTitle>
+              </CardHeading>
+              <Button variant="outline" size="sm" onClick={editTemplate}>
+                <Pencil />
+                Chỉnh sửa
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              {latestLines.length > 0 ? (
+                <Table className="min-w-[900px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">STT</TableHead>
+                      <TableHead className="min-w-56">Tên khoản phí</TableHead>
+                      <TableHead className="w-36">Loại phí</TableHead>
+                      <TableHead className="w-36">Chu kỳ</TableHead>
+                      <TableHead className="w-44">Cách tính</TableHead>
+                      <TableHead className="w-44 text-right">
+                        Giá trị mặc định
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {latestLines.map((line, index) => (
+                      <TemplateFeeRow
+                        key={line.id}
+                        line={line}
+                        index={index}
+                        currencyCode={template.currencyCode}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-8 text-center text-sm text-muted-foreground">
+                  Chưa có khoản phí trong phiên bản này.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card sectionBorders="default">
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="size-5 text-primary" />
+                  Lịch sử phiên bản
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {template.versions.map((version) => (
+                <div
+                  key={version.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
+                >
+                  <div>
+                    <div className="font-medium">v{version.versionNo}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Tạo ngày {formatDate(version.createdAt)}
+                    </div>
+                  </div>
+                  <ContractTemplateStatusBadge
+                    status={
+                      version.status === 'published'
+                        ? 'published'
+                        : version.status === 'superseded'
+                          ? 'archived'
+                          : 'draft'
+                    }
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

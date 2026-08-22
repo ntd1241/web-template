@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Save } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Save } from 'lucide-react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useTenant } from '@/providers/tenant-provider';
@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PageLoading } from '@/components/ui/loading';
+import { PageBackButton } from '@/components/ui/page-back-button';
 import {
   createContractTemplate,
   loadContractTemplateDetail,
@@ -59,10 +60,17 @@ function toEditableLines(
 
 export function ContractTemplateEditPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const { userId } = useUser();
   const { tenantId } = useTenant();
   const isEditMode = Boolean(id);
+  const returnTo =
+    isEditMode &&
+    typeof location.state?.returnTo === 'string' &&
+    location.state.returnTo.length > 0
+      ? location.state.returnTo
+      : ROUTES.PROJECT.CONTRACT_TEMPLATES;
   const form = useContractTemplateForm({
     defaultValues: contractTemplateDefaultValues,
   });
@@ -150,14 +158,14 @@ export function ContractTemplateEditPage() {
     <div className="flex min-h-full flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            mode="icon"
-            aria-label="Quay lại danh sách mẫu hợp đồng"
-            onClick={() => navigate(ROUTES.PROJECT.CONTRACT_TEMPLATES)}
-          >
-            <ArrowLeft />
-          </Button>
+          <PageBackButton
+            label={
+              isEditMode
+                ? 'Quay lại thông tin mẫu hợp đồng'
+                : 'Quay lại danh sách mẫu hợp đồng'
+            }
+            onClick={() => navigate(returnTo)}
+          />
           <div>
             <h1 className="text-xl font-semibold text-foreground">
               {isEditMode ? 'Chỉnh sửa mẫu hợp đồng' : 'Thêm mẫu hợp đồng'}
@@ -165,10 +173,7 @@ export function ContractTemplateEditPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate(ROUTES.PROJECT.CONTRACT_TEMPLATES)}
-          >
+          <Button variant="outline" onClick={() => navigate(returnTo)}>
             Hủy
           </Button>
           <Button
