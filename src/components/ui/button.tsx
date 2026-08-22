@@ -11,6 +11,7 @@ const buttonVariants = cva(
       variant: {
         primary:
           'bg-primary text-primary-foreground hover:bg-primary/90 data-[state=open]:bg-primary/90',
+        blue: 'bg-admin-blue-primary text-white hover:bg-admin-blue-dark data-[state=open]:bg-admin-blue-dark',
         mono: 'bg-zinc-950 text-white dark:bg-zinc-300 dark:text-black hover:bg-zinc-950/90 dark:hover:bg-zinc-300/90 data-[state=open]:bg-zinc-950/90 dark:data-[state=open]:bg-zinc-300/90',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90 data-[state=open]:bg-destructive/90',
@@ -97,6 +98,12 @@ const buttonVariants = cva(
         className: 'shadow-xs shadow-black/5',
       },
       {
+        variant: 'blue',
+        mode: 'default',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
+      },
+      {
         variant: 'mono',
         mode: 'default',
         appearance: 'default',
@@ -130,6 +137,12 @@ const buttonVariants = cva(
       // Shadow support
       {
         variant: 'primary',
+        mode: 'icon',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
+      },
+      {
+        variant: 'blue',
         mode: 'icon',
         appearance: 'default',
         className: 'shadow-xs shadow-black/5',
@@ -259,6 +272,12 @@ const buttonVariants = cva(
         appearance: 'ghost',
         className:
           'bg-transparent text-primary/90 hover:bg-primary/5 data-[state=open]:bg-primary/5',
+      },
+      {
+        variant: 'blue',
+        appearance: 'ghost',
+        className:
+          'bg-transparent text-admin-blue-primary hover:bg-admin-blue-bg data-[state=open]:bg-admin-blue-bg',
       },
       {
         variant: 'destructive',

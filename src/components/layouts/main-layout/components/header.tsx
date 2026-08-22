@@ -275,7 +275,7 @@ export function Header() {
                     {item.label}
                   </Link>
                 ) : (
-                  <span className="text-[#0e5cd6]">{item.label}</span>
+                  <span className="text-primary">{item.label}</span>
                 )}
               </Fragment>
             ))}
@@ -296,7 +296,7 @@ export function Header() {
               <Bell className="size-4.5" />
               {unreadNotificationCount > 0 && (
                 <Badge
-                  variant="destructive"
+                  variant="primary"
                   size="xs"
                   shape="circle"
                   className="absolute -end-0.5 -top-0.5 size-4 min-w-4 p-0 text-[0.625rem] leading-none"

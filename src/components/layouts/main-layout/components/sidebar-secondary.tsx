@@ -64,7 +64,7 @@ export function SidebarSecondary() {
                           className={cn(
                             'flex h-9 w-full min-w-0 items-center gap-3 rounded-lg px-3 pe-12 text-sm font-medium text-foreground transition-colors hover:bg-field hover:text-accent-foreground',
                             active &&
-                              'bg-[#dbeafe] text-[#0e5cd6] hover:bg-[#dbeafe] hover:text-[#0e5cd6] [&_svg]:text-[#0e5cd6]',
+                              'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary [&_svg]:text-primary',
                           )}
                         >
                           <Icon className="size-4.5 shrink-0 text-foreground" />

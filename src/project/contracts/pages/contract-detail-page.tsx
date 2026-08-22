@@ -74,15 +74,15 @@ function ContractHero({
   actions: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#0b3b9e] via-[#0b57c7] to-[#2774df] text-white">
+    <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-accent to-admin-primary-bright text-white">
       <img
         src="/media/app/contract-hero-pattern.svg"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 size-full object-bottom object-cover opacity-35 mix-blend-screen"
+        className="pointer-events-none absolute inset-0 size-full object-bottom object-cover opacity-35 mix-blend-screen hue-rotate-[140deg] saturate-150"
       />
       <div className="pointer-events-none absolute -end-24 -top-36 size-[28rem] rounded-full bg-white/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-48 start-1/3 size-[32rem] rounded-full bg-cyan-300/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-48 start-1/3 size-[32rem] rounded-full bg-red-200/15 blur-3xl" />
       <div className="relative mx-auto flex min-h-[220px] max-w-[1600px] flex-col justify-end gap-8 px-4 pb-20 pt-4 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
           <div className="flex min-w-0 items-center gap-4">
