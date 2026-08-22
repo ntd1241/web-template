@@ -46,23 +46,48 @@ not in arbitrary shell spacing or button sizing.
 
 ## Column Kinds
 
-| Kind             | Field    | Output                                                              |
-| ---------------- | -------- | ------------------------------------------------------------------- |
-| `index`          | no       | 1-based row number                                                  |
-| `select`         | no       | row checkbox                                                        |
-| `text`           | yes      | string cell                                                         |
-| `number`         | yes      | Vietnamese number formatting                                        |
-| `currency`       | yes      | VND formatting                                                      |
-| `percent`        | yes      | percentage formatting                                               |
-| `date`           | yes      | date, datetime, or relative formatting                              |
-| `badge`          | yes      | generated `StatusBadge` config                                      |
-| `editableSelect` | yes      | compact Select cell, bound to the row value and committed on change |
-| `actions`        | no       | inline JSX stub; action behavior stays with the page                |
-| `custom`         | optional | inline JSX stub                                                     |
+| Kind             | Field    | Output                                                                         |
+| ---------------- | -------- | ------------------------------------------------------------------------------ |
+| `index`          | no       | 1-based row number                                                             |
+| `select`         | no       | row checkbox                                                                   |
+| `text`           | yes      | string cell                                                                    |
+| `number`         | yes      | Vietnamese number formatting                                                   |
+| `currency`       | yes      | VND formatting                                                                 |
+| `percent`        | yes      | percentage formatting                                                          |
+| `date`           | yes      | date, datetime, or relative formatting                                         |
+| `badge`          | yes      | generated `StatusBadge` config                                                 |
+| `editableSelect` | yes      | compact Select cell, bound to the row value and committed on change            |
+| `actions`        | no       | inline JSX stub, or semantic preset actions when `actionPresets` is configured |
+| `custom`         | optional | inline JSX stub                                                                |
 
 Common options include `headerClassName`, `cellClassName`, `size`, `visibility`, and `enableSorting`.
 Generated columns have sorting disabled by default; set `enableSorting: true` only after the page
 connects sorting state and its data/API behavior.
+
+### Semantic action presets
+
+Use `actionPresets` when a table uses the standard row actions. The builder emits typed callbacks and
+the shared `DataGridActionButton`, keeping the action color mapping consistent across generated tables:
+
+| Preset              | Meaning                          | Color                 |
+| ------------------- | -------------------------------- | --------------------- |
+| `primary`           | Thao tác chính, ví dụ Thanh toán | primary (màu chủ đạo) |
+| `view`              | Xem                              | blue                  |
+| `edit`              | Sửa                              | success               |
+| `delete`, `archive` | Xóa / Lưu trữ                    | destructive           |
+| `copy`, `other`     | Sao chép / chức năng khác        | info (tím)            |
+
+```ts
+{
+  kind: 'actions',
+  actionPresets: ['primary', 'view', 'edit', 'archive'],
+}
+```
+
+The generated hook receives `onPrimary`, `onView`, `onEdit`, and `onArchive` callbacks. Preset actions render as
+ghost buttons so color communicates intent without making every table row visually heavy. For
+conditional or domain-specific actions, keep the inline cell owned by the feature and use
+`DataGridActionButton` directly.
 
 ### `editableSelect`
 
@@ -158,8 +183,7 @@ repeatable flattening and grouping contract.
 
 - The spec owns columns, order, sizes, and generated serializable config.
 - Generated output is scaffold-and-own. Fill stubs in place.
-- The table builder does not prescribe add/edit/delete actions and does not own confirmation or
-  mutation state. Pages own those callbacks; destructive actions should use the shared
-  `ConfirmDialog` instead of `window.confirm`.
+- The table builder does not own confirmation or mutation state. Pages own the generated callbacks;
+  destructive actions should use the shared `ConfirmDialog` instead of `window.confirm`.
 - Never regenerate over customized output. Generate to a scratch path and reconcile manually.
 - Never hand-write a generated-looking columns file or edit generated badge config directly.

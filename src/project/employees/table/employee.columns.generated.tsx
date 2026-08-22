@@ -7,16 +7,11 @@
 import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   createColumnHelpers,
+  DataGridActionButton,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { EmployeeCell } from '../components/employee-cell';
 import { EmployeeRolesCell } from '../components/employee-roles-cell';
 import type { Employee } from '../model/employee';
@@ -99,37 +94,28 @@ export function useEmployeeColumns(
         enableSorting: false,
         cell: (row) => (
           <div className="flex justify-end gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  mode="icon"
-                  size="sm"
-                  aria-label={`Sửa nhân viên ${row.displayName}`}
-                  onClick={() => params.onEdit(row)}
-                >
-                  <Pencil className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Sửa</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  mode="icon"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  aria-label={`Xóa nhân viên ${row.displayName}`}
-                  onClick={() => params.onDelete(row)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent variant="destructive">Xóa</TooltipContent>
-            </Tooltip>
+            <DataGridActionButton
+              action="edit"
+              tooltip="Sửa"
+              type="button"
+              mode="icon"
+              size="sm"
+              aria-label={`Sửa nhân viên ${row.displayName}`}
+              onClick={() => params.onEdit(row)}
+            >
+              <Pencil className="size-4" />
+            </DataGridActionButton>
+            <DataGridActionButton
+              action="delete"
+              tooltip="Xóa"
+              type="button"
+              mode="icon"
+              size="sm"
+              aria-label={`Xóa nhân viên ${row.displayName}`}
+              onClick={() => params.onDelete(row)}
+            >
+              <Trash2 className="size-4" />
+            </DataGridActionButton>
           </div>
         ),
       }),

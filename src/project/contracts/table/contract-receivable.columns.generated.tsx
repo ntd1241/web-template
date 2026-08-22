@@ -9,8 +9,10 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { WalletCards } from 'lucide-react';
 import { formatDate } from '@/lib/date';
 import { useNumberFormat } from '@/providers/number-format-provider';
-import { Button } from '@/components/ui/button';
-import { createColumnHelpers } from '@/components/ui/data-grid-columns';
+import {
+  createColumnHelpers,
+  DataGridActionButton,
+} from '@/components/ui/data-grid-columns';
 import { Tag } from '@/components/ui/tag';
 import {
   Tooltip,
@@ -143,17 +145,17 @@ export function useContractReceivableTableRowColumns(
           onPay &&
           row.direction === 'receivable' &&
           row.outstandingAmount > 0 ? (
-            <Button
+            <DataGridActionButton
+              action="primary"
+              tooltip="Thanh toán"
               type="button"
-              variant="ghost"
               size="sm"
-              className="text-primary"
               onClick={() => onPay(row)}
               aria-label={`Thanh toán kỳ ${formatDate(row.periodStart)}`}
             >
               <WalletCards />
               Thanh toán
-            </Button>
+            </DataGridActionButton>
           ) : null,
       }),
     ];

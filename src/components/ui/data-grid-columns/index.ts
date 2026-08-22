@@ -1,5 +1,12 @@
 export { createColumnHelpers } from './column-factory';
 export {
+  DATA_GRID_ACTION_VARIANTS,
+  DataGridActionButton,
+  getDataGridActionVariant,
+  type DataGridAction,
+  type DataGridActionButtonProps,
+} from './action-button';
+export {
   StatusBadge,
   type StatusBadgeConfig,
   type StatusBadgeProps,

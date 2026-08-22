@@ -69,6 +69,64 @@ function optionArrayType(): string {
   return '{ value: string; label: string }[]';
 }
 
+const ACTION_PRESET_META = {
+  primary: { label: 'Thực hiện', icon: 'CirclePlay' },
+  view: { label: 'Xem', icon: 'Eye' },
+  edit: { label: 'Sửa', icon: 'Pencil' },
+  delete: { label: 'Xóa', icon: 'Trash2' },
+  archive: { label: 'Lưu trữ', icon: 'Archive' },
+  copy: { label: 'Sao chép', icon: 'Copy' },
+  other: { label: 'Thao tác', icon: 'MoreHorizontal' },
+} as const;
+
+type ActionPreset = keyof typeof ACTION_PRESET_META;
+
+function actionPresetColumns(columns: ColumnSpec[]) {
+  return columns.filter(
+    (column): column is Extract<ColumnSpec, { kind: 'actions' }> =>
+      column.kind === 'actions' && (column.actionPresets?.length ?? 0) > 0,
+  );
+}
+
+function actionPresets(columns: ColumnSpec[]): ActionPreset[] {
+  return [
+    ...new Set(
+      actionPresetColumns(columns).flatMap(
+        (column) => column.actionPresets ?? [],
+      ),
+    ),
+  ];
+}
+
+function actionCallbackName(action: ActionPreset): string {
+  return `on${pascalCase(action)}`;
+}
+
+function emitActionPresetCell(
+  actions: Extract<ColumnSpec, { kind: 'actions' }>,
+): string {
+  const buttons = (actions.actionPresets ?? [])
+    .map((action) => {
+      const meta = ACTION_PRESET_META[action as ActionPreset];
+      return [
+        '    <DataGridActionButton',
+        `      action=${quote(action)}`,
+        `      tooltip=${quote(meta.label)}`,
+        `      aria-label=${quote(meta.label)}`,
+        '      type="button"',
+        '      mode="icon"',
+        '      size="sm"',
+        `      onClick={() => params.${actionCallbackName(action as ActionPreset)}(row)}`,
+        '    >',
+        `      <${meta.icon} className="size-4" />`,
+        '    </DataGridActionButton>',
+      ].join('\n');
+    })
+    .join('\n');
+
+  return `cell: (row) => (\n  <div className="flex justify-end gap-1">\n${buttons}\n  </div>\n),`;
+}
+
 /** Common meta props shared by most column kinds, in a stable order. */
 function commonMetaLines(
   col: ColumnSpec & {
@@ -118,11 +176,15 @@ function emitColumnCall(col: ColumnSpec): string {
     if (col.id) lines.push(`id: ${quote(col.id)},`);
     if (col.header !== undefined) lines.push(`header: ${quote(col.header)},`);
     lines.push(...commonMetaLines(col));
-    // Inline stub the owner fills in place — keeps cell logic in this owned file.
-    lines.push(
-      '// TODO(scaffold): điền nội dung cell — vd: (row) => <Button .../>.',
-    );
-    lines.push('cell: () => null,');
+    if (col.kind === 'actions' && (col.actionPresets?.length ?? 0) > 0) {
+      lines.push(emitActionPresetCell(col));
+    } else {
+      // Inline stub the owner fills in place — keeps cell logic in this owned file.
+      lines.push(
+        '// TODO(scaffold): điền nội dung cell — vd: (row) => <Button .../>.',
+      );
+      lines.push('cell: () => null,');
+    }
     return `col.${method}(${emitObject(lines)})`;
   }
 
@@ -282,7 +344,8 @@ function editableSelectColumns(
 
 function emitHookParamsInterface(spec: TableSpec, hookName: string): string {
   const editableColumns = editableSelectColumns(spec.columns);
-  if (editableColumns.length === 0) return '';
+  const configuredActions = actionPresets(spec.columns);
+  if (editableColumns.length === 0 && configuredActions.length === 0) return '';
 
   const interfaceName = `${pascalCase(hookName)}Params`;
   const lines = editableColumns.flatMap((col) => {
@@ -294,6 +357,12 @@ function emitHookParamsInterface(spec: TableSpec, hookName: string): string {
     }
     return props;
   });
+  lines.push(
+    ...configuredActions.map(
+      (action) =>
+        `${actionCallbackName(action)}: (row: ${spec.entity}) => void;`,
+    ),
+  );
 
   return `export interface ${interfaceName} {\n${lines.map((line) => `  ${line}`).join('\n')}\n}`;
 }
@@ -311,14 +380,26 @@ function hasNumberFormatColumns(columns: ColumnSpec[]): boolean {
 function emitImports(spec: TableSpec): string {
   const hasBadge = spec.columns.some((col) => col.kind === 'badge');
   const hasFormatters = hasNumberFormatColumns(spec.columns);
+  const configuredActions = actionPresets(spec.columns);
 
   const lines = ["import { useMemo } from 'react';"];
   lines.push("import type { ColumnDef } from '@tanstack/react-table';");
-  lines.push(
-    hasBadge
-      ? "import {\n  createColumnHelpers,\n  type StatusBadgeConfig,\n} from '@/components/ui/data-grid-columns';"
-      : "import { createColumnHelpers } from '@/components/ui/data-grid-columns';",
-  );
+  if (configuredActions.length > 0) {
+    lines.push(
+      `import { ${configuredActions.map((action) => ACTION_PRESET_META[action].icon).join(', ')} } from 'lucide-react';`,
+    );
+    const symbols = ['createColumnHelpers', 'DataGridActionButton'];
+    if (hasBadge) symbols.push('type StatusBadgeConfig');
+    lines.push(
+      `import {\n${symbols.map((symbol) => `  ${symbol},`).join('\n')}\n} from '@/components/ui/data-grid-columns';`,
+    );
+  } else {
+    lines.push(
+      hasBadge
+        ? "import {\n  createColumnHelpers,\n  type StatusBadgeConfig,\n} from '@/components/ui/data-grid-columns';"
+        : "import { createColumnHelpers } from '@/components/ui/data-grid-columns';",
+    );
+  }
   if (hasFormatters) {
     lines.push(
       "import { useNumberFormat } from '@/providers/number-format-provider';",
@@ -332,11 +413,14 @@ export function buildColumnsModule(input: TableSpec): string {
   const spec = tableSpecSchema.parse(input);
   const hookName = spec.hookName ?? `use${spec.entity}Columns`;
   const hasEditableColumns = editableSelectColumns(spec.columns).length > 0;
+  const configuredActions = actionPresets(spec.columns);
+  const hasActionParams = configuredActions.length > 0;
   const hasFormatters = hasNumberFormatColumns(spec.columns);
   const paramsInterface = emitHookParamsInterface(spec, hookName);
-  const paramsSignature = hasEditableColumns
-    ? `params: ${pascalCase(hookName)}Params`
-    : '';
+  const paramsSignature =
+    hasEditableColumns || hasActionParams
+      ? `params: ${pascalCase(hookName)}Params`
+      : '';
   const calls = spec.columns
     .map((col) => indent(`${emitColumnCall(col)},`, 6))
     .join('\n');
@@ -356,7 +440,10 @@ export function buildColumnsModule(input: TableSpec): string {
     if (col.optionsFrom === 'prop') values.push(`params.${col.id}Options`);
     return values;
   });
-  const deps = [...formatterDeps, ...editableDeps];
+  const actionDeps = configuredActions.map(
+    (action) => `params.${actionCallbackName(action)}`,
+  );
+  const deps = [...formatterDeps, ...editableDeps, ...actionDeps];
   const hookMemoDeps = deps.length > 0 ? `[${deps.join(', ')}]` : '[]';
   const fn = `export function ${hookName}(${paramsSignature}): ColumnDef<${spec.entity}>[] {\n${formatterHook}  return useMemo(() => {\n${indent(memoBody, 4)}\n  }, ${hookMemoDeps});\n}`;
 

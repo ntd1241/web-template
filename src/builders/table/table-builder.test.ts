@@ -105,6 +105,34 @@ describe('buildColumnsModule', () => {
     expect(source).not.toContain('options');
   });
 
+  it('emits semantic preset actions with typed callbacks', () => {
+    const out = buildColumnsModule({
+      entity: 'Product',
+      modelImport: '../model/product',
+      columns: [
+        {
+          kind: 'actions',
+          actionPresets: ['primary', 'view', 'edit', 'delete', 'copy'],
+        },
+      ],
+    });
+
+    expect(out).toContain(
+      "import { CirclePlay, Eye, Pencil, Trash2, Copy } from 'lucide-react';",
+    );
+    expect(out).toContain('  DataGridActionButton,');
+    expect(out).toContain('onPrimary: (row: Product) => void;');
+    expect(out).toContain('onView: (row: Product) => void;');
+    expect(out).toContain('onEdit: (row: Product) => void;');
+    expect(out).toContain('onDelete: (row: Product) => void;');
+    expect(out).toContain("action='primary'");
+    expect(out).toContain("action='view'");
+    expect(out).toContain("action='edit'");
+    expect(out).toContain("action='delete'");
+    expect(out).toContain("action='copy'");
+    expect(out).toContain('params.onView(row)');
+  });
+
   it('quotes badge config keys that are not valid identifiers', () => {
     const out = buildColumnsModule({
       entity: 'Material',

@@ -8,8 +8,10 @@ import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Archive, Eye, Pencil } from 'lucide-react';
 import { useNumberFormat } from '@/providers/number-format-provider';
-import { Button } from '@/components/ui/button';
-import { createColumnHelpers } from '@/components/ui/data-grid-columns';
+import {
+  createColumnHelpers,
+  DataGridActionButton,
+} from '@/components/ui/data-grid-columns';
 import type { ContractTemplate } from '../model/contract-template';
 import { ContractTemplateStatusBadge } from './contract-template-status-badge';
 
@@ -105,39 +107,41 @@ export function useContractTemplateColumns(
         enableSorting: false,
         cell: (row) => (
           <div className="flex justify-end gap-1">
-            <Button
+            <DataGridActionButton
+              action="view"
+              tooltip="Xem"
               type="button"
-              variant="ghost"
               mode="icon"
               size="sm"
               aria-label={`Xem mẫu ${row.name}`}
               onClick={() => params.onView(row)}
             >
               <Eye className="size-4" />
-            </Button>
+            </DataGridActionButton>
             {row.status !== 'archived' ? (
               <>
-                <Button
+                <DataGridActionButton
+                  action="edit"
+                  tooltip="Sửa"
                   type="button"
-                  variant="ghost"
                   mode="icon"
                   size="sm"
                   aria-label={`Sửa mẫu ${row.name}`}
                   onClick={() => params.onEdit(row)}
                 >
                   <Pencil className="size-4" />
-                </Button>
-                <Button
+                </DataGridActionButton>
+                <DataGridActionButton
+                  action="archive"
+                  tooltip="Lưu trữ"
                   type="button"
-                  variant="ghost"
                   mode="icon"
                   size="sm"
-                  className="text-destructive hover:text-destructive"
                   aria-label={`Lưu trữ mẫu ${row.name}`}
                   onClick={() => params.onArchive(row)}
                 >
                   <Archive className="size-4" />
-                </Button>
+                </DataGridActionButton>
               </>
             ) : null}
           </div>

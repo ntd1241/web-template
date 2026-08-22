@@ -14,13 +14,10 @@ import {
   Tag as TagIcon,
   Trash2,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { createColumnHelpers } from '@/components/ui/data-grid-columns';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  createColumnHelpers,
+  DataGridActionButton,
+} from '@/components/ui/data-grid-columns';
 import { TagGroupIcon } from '../components/tag-group-icon';
 import type { Tag } from '../model/tag';
 
@@ -173,55 +170,42 @@ export function useTagColumns(params: UseTagColumnsParams): ColumnDef<Tag>[] {
             onClick={(event) => event.stopPropagation()}
           >
             {row.isGroup ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-label={`Thêm nhãn cho nhóm ${row.name}`}
-                    onClick={() => params.onAddTag(row)}
-                  >
-                    <Plus className="size-3.5" />
-                    Thêm nhãn
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Thêm nhãn</TooltipContent>
-              </Tooltip>
+              <DataGridActionButton
+                action="other"
+                tooltip="Thêm nhãn"
+                type="button"
+                size="sm"
+                aria-label={`Thêm nhãn cho nhóm ${row.name}`}
+                onClick={() => params.onAddTag(row)}
+              >
+                <Plus className="size-3.5" />
+                Thêm nhãn
+              </DataGridActionButton>
             ) : null}
             {!row.isSystem ? (
               <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      mode="icon"
-                      size="sm"
-                      aria-label={`Sửa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
-                      onClick={() => params.onEdit(row)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Sửa</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      mode="icon"
-                      size="sm"
-                      aria-label={`Xóa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => params.onDelete(row)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent variant="destructive">Xóa</TooltipContent>
-                </Tooltip>
+                <DataGridActionButton
+                  action="edit"
+                  tooltip="Sửa"
+                  type="button"
+                  mode="icon"
+                  size="sm"
+                  aria-label={`Sửa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
+                  onClick={() => params.onEdit(row)}
+                >
+                  <Pencil className="size-4" />
+                </DataGridActionButton>
+                <DataGridActionButton
+                  action="delete"
+                  tooltip="Xóa"
+                  type="button"
+                  mode="icon"
+                  size="sm"
+                  aria-label={`Xóa ${row.isGroup ? 'nhóm' : 'nhãn'} ${row.name}`}
+                  onClick={() => params.onDelete(row)}
+                >
+                  <Trash2 className="size-4" />
+                </DataGridActionButton>
               </>
             ) : null}
           </div>

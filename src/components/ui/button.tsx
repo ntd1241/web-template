@@ -12,6 +12,9 @@ const buttonVariants = cva(
         primary:
           'bg-primary text-primary-foreground hover:bg-primary/90 data-[state=open]:bg-primary/90',
         blue: 'bg-admin-blue-primary text-white hover:bg-admin-blue-dark data-[state=open]:bg-admin-blue-dark',
+        success:
+          'bg-[var(--color-success-accent,var(--color-green-600))] text-white hover:opacity-90 data-[state=open]:opacity-90',
+        info: 'bg-[var(--color-info-accent,var(--color-violet-600))] text-white hover:opacity-90 data-[state=open]:opacity-90',
         mono: 'bg-zinc-950 text-white dark:bg-zinc-300 dark:text-black hover:bg-zinc-950/90 dark:hover:bg-zinc-300/90 data-[state=open]:bg-zinc-950/90 dark:data-[state=open]:bg-zinc-300/90',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90 data-[state=open]:bg-destructive/90',
@@ -104,6 +107,18 @@ const buttonVariants = cva(
         className: 'shadow-xs shadow-black/5',
       },
       {
+        variant: 'success',
+        mode: 'default',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
+      },
+      {
+        variant: 'info',
+        mode: 'default',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
+      },
+      {
         variant: 'mono',
         mode: 'default',
         appearance: 'default',
@@ -143,6 +158,18 @@ const buttonVariants = cva(
       },
       {
         variant: 'blue',
+        mode: 'icon',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
+      },
+      {
+        variant: 'success',
+        mode: 'icon',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
+      },
+      {
+        variant: 'info',
         mode: 'icon',
         appearance: 'default',
         className: 'shadow-xs shadow-black/5',
@@ -278,6 +305,18 @@ const buttonVariants = cva(
         appearance: 'ghost',
         className:
           'bg-transparent text-admin-blue-primary hover:bg-admin-blue-bg data-[state=open]:bg-admin-blue-bg',
+      },
+      {
+        variant: 'success',
+        appearance: 'ghost',
+        className:
+          'bg-transparent text-[var(--color-success-accent,var(--color-green-600))] hover:bg-[var(--color-success-soft,var(--color-green-50))] data-[state=open]:bg-[var(--color-success-soft,var(--color-green-50))]',
+      },
+      {
+        variant: 'info',
+        appearance: 'ghost',
+        className:
+          'bg-transparent text-[var(--color-info-accent,var(--color-violet-600))] hover:bg-[var(--color-info-soft,var(--color-violet-50))] data-[state=open]:bg-[var(--color-info-soft,var(--color-violet-50))]',
       },
       {
         variant: 'destructive',
