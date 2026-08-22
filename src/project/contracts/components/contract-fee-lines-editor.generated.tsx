@@ -129,10 +129,12 @@ function ContractFeeBillingCell({
   form,
   index,
   error,
+  showOneTimeChargeDate,
 }: {
   form: UseFormReturn<ContractFeeLinesFormValues>;
   index: number;
   error?: string;
+  showOneTimeChargeDate: boolean;
 }) {
   const billingType = useController({
     control: form.control,
@@ -223,7 +225,7 @@ function ContractFeeBillingCell({
               </SelectContent>
             </Select>
           </>
-        ) : (
+        ) : showOneTimeChargeDate ? (
           <DatePickerInput
             value={chargeDate.field.value ?? line.startDate}
             onChange={chargeDate.field.onChange}
@@ -234,7 +236,7 @@ function ContractFeeBillingCell({
             aria-label={`Ngày phát sinh dòng ${index + 1}`}
             aria-invalid={Boolean(error)}
           />
-        )}
+        ) : null}
       </div>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
@@ -311,12 +313,14 @@ interface ContractFeeLinesEditorTableProps {
   form: UseFormReturn<ContractFeeLinesFormValues>;
   createRow: () => ContractFeeLineFormValue;
   toolbarContent?: ReactNode;
+  showOneTimeChargeDate?: boolean;
 }
 
 export function ContractFeeLinesEditorTable({
   form,
   createRow,
   toolbarContent,
+  showOneTimeChargeDate = true,
 }: ContractFeeLinesEditorTableProps) {
   const { formatCurrency } = useNumberFormat();
   const { fields, append, insert, remove } = useFieldArray({
@@ -495,6 +499,7 @@ export function ContractFeeLinesEditorTable({
                           errors?.billingUnit?.message ??
                           errors?.chargeDate?.message
                         }
+                        showOneTimeChargeDate={showOneTimeChargeDate}
                       />
                     </TableCell>
                     <TableCell className="px-2 py-2 align-top">

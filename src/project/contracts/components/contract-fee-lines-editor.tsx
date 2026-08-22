@@ -62,6 +62,7 @@ interface ContractFeeLinesEditorProps {
   lines: ContractVersionLineValuesForApi[];
   onChange: (lines: ContractVersionLineValuesForApi[]) => void;
   currencyField?: ReactNode;
+  showOneTimeChargeDate?: boolean;
 }
 
 function toApiLines(
@@ -73,7 +74,10 @@ function toApiLines(
 export const ContractFeeLinesEditor = forwardRef<
   ContractFeeLinesEditorRef,
   ContractFeeLinesEditorProps
->(function ContractFeeLinesEditor({ lines, onChange, currencyField }, ref) {
+>(function ContractFeeLinesEditor(
+  { lines, onChange, currencyField, showOneTimeChargeDate = true },
+  ref,
+) {
   const form = useForm<ContractFeeLinesFormValues>({
     resolver: zodResolver(contractFeeLinesFormSchema),
     mode: 'onChange',
@@ -106,6 +110,7 @@ export const ContractFeeLinesEditor = forwardRef<
           <ContractFeeLinesEditorTable
             form={form}
             toolbarContent={currencyField}
+            showOneTimeChargeDate={showOneTimeChargeDate}
             createRow={() => ({
               ...createDefaultContractFeeLine(defaultStartDate),
               sortOrder: form.getValues('lines').length,

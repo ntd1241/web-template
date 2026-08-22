@@ -207,6 +207,7 @@ export function ContractTemplateEditPage() {
             ref={feeLinesEditorRef}
             lines={feeLines}
             onChange={setFeeLines}
+            showOneTimeChargeDate={false}
           />
         </CardContent>
       </Card>
