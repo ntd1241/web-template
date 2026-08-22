@@ -9,6 +9,16 @@ const spec = {
       icon: 'Info',
       fieldProp: 'generalFields',
       searchTextProp: 'generalSearchText',
+      searchMatchCountProp: 'generalSearchMatchCount',
+    },
+    {
+      value: 'fees',
+      label: 'Khoản phí',
+      icon: 'ReceiptText',
+      contentMode: 'custom',
+      contentProp: 'feesContent',
+      searchTextProp: 'feesSearchText',
+      searchMatchCountProp: 'feesSearchMatchCount',
     },
   ],
 } as const;

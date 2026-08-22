@@ -6,6 +6,7 @@
 import type { ReactNode } from 'react';
 import { FileText, Info } from 'lucide-react';
 import {
+  countMatchingEntityDetailDialogFields,
   EntityDetailDialog,
   EntityDetailDialogTable,
   type EntityDetailDialogField,
@@ -25,6 +26,9 @@ export interface CustomerDetailDialogProps<TData> {
   contractsPanel: (context: EntityDetailDialogTabContext<TData>) => ReactNode;
   generalSearchText?: (data: TData) => string;
   contractsSearchText?: (data: TData) => string;
+  contractsSearchMatchCount?: (
+    context: EntityDetailDialogTabContext<TData>,
+  ) => number;
   className?: string;
 }
 export function CustomerDetailDialog<TData>({
@@ -37,6 +41,7 @@ export function CustomerDetailDialog<TData>({
   contractsPanel,
   generalSearchText,
   contractsSearchText,
+  contractsSearchMatchCount,
   className,
 }: CustomerDetailDialogProps<TData>) {
   const tabs: EntityDetailDialogTab<TData>[] = [
@@ -45,6 +50,11 @@ export function CustomerDetailDialog<TData>({
       label: 'Thông tin chung',
       icon: Info,
       searchText: generalSearchText,
+      getMatchCount: (context) =>
+        countMatchingEntityDetailDialogFields(
+          generalFields(context),
+          context.matches,
+        ),
       content: (context) => (
         <EntityDetailDialogTable
           fields={generalFields(context)}
@@ -57,6 +67,7 @@ export function CustomerDetailDialog<TData>({
       label: 'Hợp đồng',
       icon: FileText,
       searchText: contractsSearchText,
+      getMatchCount: contractsSearchMatchCount,
       content: contractsPanel,
     },
   ];

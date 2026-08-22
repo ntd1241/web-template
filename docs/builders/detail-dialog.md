@@ -39,9 +39,15 @@ Both receive:
 }
 ```
 
-`matches` uses the shared accent-insensitive fuzzy matcher. The dialog filters
-visible tabs using `searchTextProp`; table fields are filtered automatically and
+`matches` uses the shared accent-insensitive fuzzy matcher. All configured tabs
+remain visible while searching; table fields are filtered automatically and
 custom content remains responsible for its own row-level filtering.
+
+When a tab should show the number of matching items while searching, declare
+`searchMatchCountProp`. The callback receives the same context and should return
+the number of matching rows/items. The shared dialog renders a solid count badge
+next to the tab label while a search is active when the count is greater than
+zero.
 
 Generate with:
 

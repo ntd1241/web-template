@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { fuzzyMatch } from '@/lib/fuzzy-search';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,15 @@ export interface EntityDetailDialogField {
   label: string;
   value: ReactNode;
   searchText?: unknown;
+}
+
+export function countMatchingEntityDetailDialogFields(
+  fields: EntityDetailDialogField[],
+  matches: (value: unknown) => boolean,
+) {
+  return fields.filter((field) =>
+    matches(`${field.label} ${String(field.searchText ?? '')}`),
+  ).length;
 }
 
 export function EntityDetailDialogTable({
@@ -65,6 +75,7 @@ export interface EntityDetailDialogTab<TData> {
   icon?: LucideIcon;
   badge?: ReactNode;
   searchText?: (data: TData) => string;
+  getMatchCount?: (context: EntityDetailDialogTabContext<TData>) => number;
   content: (context: EntityDetailDialogTabContext<TData>) => ReactNode;
 }
 
@@ -99,13 +110,7 @@ export function EntityDetailDialog<TData>({
     setSearchQuery('');
   }, [initialTab, open]);
 
-  const visibleTabs = useMemo(() => {
-    if (!data || !searchQuery.trim()) return tabs;
-
-    return tabs.filter(
-      (tab) => !tab.searchText || fuzzyMatch(searchQuery, tab.searchText(data)),
-    );
-  }, [data, searchQuery, tabs]);
+  const visibleTabs = tabs;
 
   useEffect(() => {
     if (visibleTabs.some((tab) => tab.value === activeTab)) return;
@@ -113,11 +118,31 @@ export function EntityDetailDialog<TData>({
   }, [activeTab, visibleTabs]);
 
   const activeTabData = visibleTabs.find((tab) => tab.value === activeTab);
+  const shouldShowTabBar =
+    visibleTabs.length > 1 ||
+    (searchQuery.trim().length > 0 &&
+      visibleTabs.length === 1 &&
+      tabs.length > 1);
+  const tabMatchCounts = useMemo(() => {
+    if (!data || !searchQuery.trim()) return new Map<string, number>();
+
+    const context: EntityDetailDialogTabContext<TData> = {
+      data,
+      searchQuery,
+      matches: (value: unknown) => fuzzyMatch(searchQuery, value),
+    };
+    return new Map(
+      visibleTabs.flatMap((tab) => {
+        if (!tab.getMatchCount) return [];
+        return [[tab.value, Math.max(0, tab.getMatchCount(context))] as const];
+      }),
+    );
+  }, [data, searchQuery, visibleTabs]);
   const renderActiveContent = () =>
     activeTabData?.content({
       data: data as TData,
       searchQuery,
-      matches: (value) => fuzzyMatch(searchQuery, value),
+      matches: (value: unknown) => fuzzyMatch(searchQuery, value),
     });
 
   return (
@@ -156,7 +181,7 @@ export function EntityDetailDialog<TData>({
           <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
             Không tìm thấy thông tin phù hợp.
           </div>
-        ) : visibleTabs.length === 1 ? (
+        ) : !shouldShowTabBar ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
             {renderActiveContent()}
           </div>
@@ -173,6 +198,7 @@ export function EntityDetailDialog<TData>({
             >
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
+                const matchCount = tabMatchCounts.get(tab.value);
 
                 return (
                   <TabsTrigger key={tab.value} value={tab.value}>
@@ -180,6 +206,17 @@ export function EntityDetailDialog<TData>({
                     {tab.label}
                     {tab.badge ? (
                       <span className="ms-1.5">{tab.badge}</span>
+                    ) : null}
+                    {matchCount !== undefined && matchCount > 0 ? (
+                      <Badge
+                        variant="primary"
+                        size="sm"
+                        shape="circle"
+                        className="ms-1.5 min-w-5 px-1"
+                        aria-label={`${matchCount} kết quả khớp`}
+                      >
+                        {matchCount}
+                      </Badge>
                     ) : null}
                   </TabsTrigger>
                 );

@@ -17,6 +17,7 @@ const spec = {
       contentMode: 'custom',
       contentProp: 'contractsPanel',
       searchTextProp: 'contractsSearchText',
+      searchMatchCountProp: 'contractsSearchMatchCount',
     },
   ],
 } as const;

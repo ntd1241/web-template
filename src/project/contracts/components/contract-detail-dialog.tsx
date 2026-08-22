@@ -1,15 +1,27 @@
 import { formatDate, formatDateTime } from '@/lib/date';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { type EntityDetailDialogField } from '@/components/layouts/entity-detail-dialog';
+import { Tag } from '@/components/ui/tag';
+import {
+  countMatchingEntityDetailDialogFields,
+  type EntityDetailDialogField,
+  type EntityDetailDialogTabContext,
+} from '@/components/layouts/entity-detail-dialog';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import type { ContractDetail } from '../api/contracts.api';
-import { CONTRACT_STATUS_LABELS } from '../model/contract';
+import {
+  BILLING_TYPE_LABELS,
+  BILLING_UNIT_LABELS,
+  CONTRACT_CASHFLOW_DIRECTION_LABELS,
+  CONTRACT_STATUS_LABELS,
+  type ContractVersionLine,
+} from '../model/contract';
 import type {
   ContractResponsibleEmployee,
   ContractResponsibleWorkspace,
@@ -102,6 +114,129 @@ function buildGeneralSearchText(contract: ContractDetail) {
     contract.note,
     'cập nhật lần cuối',
     contract.updatedAt,
+  );
+}
+
+function getCurrentContractFeeLines(contract: ContractDetail) {
+  const currentVersionId = contract.versions[0]?.id;
+
+  return contract.lines
+    .filter((line) => line.contractVersionId === currentVersionId)
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
+function getFeeScheduleText(line: ContractVersionLine) {
+  if (line.billingType === 'one_time') {
+    return joinSearchText(
+      BILLING_TYPE_LABELS.one_time,
+      formatDate(line.chargeDate ?? line.startDate),
+    );
+  }
+
+  return joinSearchText(
+    BILLING_TYPE_LABELS.recurring,
+    'Mỗi',
+    line.billingInterval,
+    line.billingUnit ? BILLING_UNIT_LABELS[line.billingUnit] : null,
+  );
+}
+
+function getFeeSearchText(line: ContractVersionLine) {
+  return joinSearchText(
+    line.name,
+    CONTRACT_CASHFLOW_DIRECTION_LABELS[line.direction],
+    line.direction,
+    line.quantity,
+    line.unitPrice,
+    line.amount,
+    getFeeScheduleText(line),
+    line.startDate,
+    line.endDate,
+    line.dueRule,
+    line.dueDays,
+  );
+}
+
+function buildFeesSearchText(contract: ContractDetail) {
+  const currentVersion = contract.versions[0];
+
+  return joinSearchText(
+    'khoản phí phí hợp đồng',
+    currentVersion ? `v${currentVersion.versionNo}` : null,
+    getCurrentContractFeeLines(contract).map(getFeeSearchText),
+  );
+}
+
+function ContractFeeDirectionTag({
+  direction,
+}: Pick<ContractVersionLine, 'direction'>) {
+  const isReceivable = direction === 'receivable';
+
+  return (
+    <Tag size="sm" shape="circle" color={isReceivable ? '#16a34a' : '#dc2626'}>
+      {CONTRACT_CASHFLOW_DIRECTION_LABELS[direction]}
+    </Tag>
+  );
+}
+
+function ContractFeesContent({
+  contract,
+  matches,
+}: {
+  contract: ContractDetail;
+  matches: (value: unknown) => boolean;
+}) {
+  const { formatCurrency } = useNumberFormat();
+  const feeLines = getCurrentContractFeeLines(contract).filter((line) =>
+    matches(getFeeSearchText(line)),
+  );
+
+  if (feeLines.length === 0) {
+    return (
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        {getCurrentContractFeeLines(contract).length === 0
+          ? 'Chưa có khoản phí trong phiên bản hiện tại.'
+          : 'Không có khoản phí phù hợp trong mục này.'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-3 p-4 sm:grid-cols-2">
+      {feeLines.map((line) => (
+        <div
+          key={line.id}
+          className="min-w-0 rounded-lg border border-border bg-background p-4"
+        >
+          <div className="flex min-w-0 items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-foreground">
+                {line.name}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {getFeeScheduleText(line)}
+              </p>
+            </div>
+            <ContractFeeDirectionTag direction={line.direction} />
+          </div>
+          <div className="mt-4 flex items-end justify-between gap-3 border-t border-border/70 pt-3">
+            <div className="text-xs text-muted-foreground">
+              <div>
+                {line.quantity} ×{' '}
+                {formatCurrency(line.unitPrice, contract.currencyCode)}
+              </div>
+              <div className="mt-1">
+                Áp dụng từ {formatDate(line.startDate)}
+                {line.endDate ? ` đến ${formatDate(line.endDate)}` : ''}
+              </div>
+            </div>
+            <p className="shrink-0 text-right font-semibold tabular-nums text-foreground">
+              {formatCurrency(line.amount, contract.currencyCode)}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -281,6 +416,25 @@ function ContractGeneralFields({
   ];
 }
 
+function countMatchingGeneralFields({
+  data,
+  matches,
+}: EntityDetailDialogTabContext<ContractDetail>) {
+  return countMatchingEntityDetailDialogFields(
+    ContractGeneralFields({ contract: data }),
+    matches,
+  );
+}
+
+function countMatchingFees({
+  data,
+  matches,
+}: EntityDetailDialogTabContext<ContractDetail>) {
+  return getCurrentContractFeeLines(data).filter((line) =>
+    matches(getFeeSearchText(line)),
+  ).length;
+}
+
 export function ContractDetailDialog({
   open,
   onOpenChange,
@@ -298,7 +452,13 @@ export function ContractDetailDialog({
       data={contract}
       searchPlaceholder="Tìm theo tên, mã, khách hàng..."
       generalFields={({ data }) => ContractGeneralFields({ contract: data })}
+      feesContent={({ data, matches }) => (
+        <ContractFeesContent contract={data} matches={matches} />
+      )}
       generalSearchText={buildGeneralSearchText}
+      feesSearchText={buildFeesSearchText}
+      generalSearchMatchCount={countMatchingGeneralFields}
+      feesSearchMatchCount={countMatchingFees}
     />
   );
 }

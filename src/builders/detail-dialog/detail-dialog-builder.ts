@@ -58,6 +58,12 @@ function emitProps(spec: ResolvedDetailDialogSpec): string {
     ...spec.tabs
       .filter((tab) => tab.searchTextProp)
       .map((tab) => `  ${tab.searchTextProp}?: (data: TData) => string;`),
+    ...spec.tabs
+      .filter((tab) => tab.searchMatchCountProp)
+      .map(
+        (tab) =>
+          `  ${tab.searchMatchCountProp}?: (context: EntityDetailDialogTabContext<TData>) => number;`,
+      ),
     '  className?: string;',
     '}',
   ].join('\n');
@@ -70,11 +76,16 @@ function emitTabDefinitions(spec: ResolvedDetailDialogSpec): string {
       const searchText = tab.searchTextProp
         ? `, searchText: ${tab.searchTextProp}`
         : '';
+      const searchMatchCount = tab.searchMatchCountProp
+        ? `, getMatchCount: ${tab.searchMatchCountProp}`
+        : tab.contentMode === 'table'
+          ? `, getMatchCount: (context) => countMatchingEntityDetailDialogFields(${fieldProp(tab)}(context), context.matches)`
+          : '';
       const content =
         tab.contentMode === 'table'
           ? `content: (context) => (\n        <EntityDetailDialogTable\n          fields={${fieldProp(tab)}(context)}\n          matches={context.matches}\n        />\n      )`
           : `content: ${contentProp(tab)}`;
-      return `    { value: ${quote(tab.value)}, label: ${quote(tab.label)}${icon}${searchText}, ${content} },`;
+      return `    { value: ${quote(tab.value)}, label: ${quote(tab.label)}${icon}${searchText}${searchMatchCount}, ${content} },`;
     })
     .join('\n');
 
@@ -96,6 +107,9 @@ function emitComponent(spec: ResolvedDetailDialogSpec): string {
     ...spec.tabs
       .filter((tab) => tab.searchTextProp)
       .map((tab) => tab.searchTextProp as string),
+    ...spec.tabs
+      .filter((tab) => tab.searchMatchCountProp)
+      .map((tab) => tab.searchMatchCountProp as string),
     'className',
   ];
   const defaultTab = spec.defaultTab ?? spec.tabs[0].value;
@@ -124,11 +138,14 @@ function emitComponent(spec: ResolvedDetailDialogSpec): string {
 
 export function buildDetailDialogModule(input: DetailDialogSpec): string {
   const spec = detailDialogSpecSchema.parse(input);
+  const hasAutoTableMatchCount = spec.tabs.some(
+    (tab) => tab.contentMode === 'table' && !tab.searchMatchCountProp,
+  );
   const body = [
     banner(spec.specPath),
     "import type { ReactNode } from 'react';",
     emitIconImports(spec),
-    "import {\n  EntityDetailDialog,\n  EntityDetailDialogTable,\n  type EntityDetailDialogField,\n  type EntityDetailDialogTab,\n  type EntityDetailDialogTabContext,\n} from '@/components/layouts/entity-detail-dialog';",
+    `import {\n  EntityDetailDialog,\n  EntityDetailDialogTable,${hasAutoTableMatchCount ? '\n  countMatchingEntityDetailDialogFields,' : ''}\n  type EntityDetailDialogField,\n  type EntityDetailDialogTab,\n  type EntityDetailDialogTabContext,\n} from '@/components/layouts/entity-detail-dialog';`,
     '',
     emitProps(spec),
     '',

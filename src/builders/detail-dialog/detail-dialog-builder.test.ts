@@ -19,6 +19,7 @@ const baseSpec = {
       label: 'Lịch sử',
       contentMode: 'custom',
       contentProp: 'historyPanel',
+      searchMatchCountProp: 'historySearchMatchCount',
     },
   ],
 } satisfies DetailDialogSpec;
@@ -33,6 +34,11 @@ describe('detail-dialog-builder', () => {
     );
     expect(source).toContain('overviewSearchText?: (data: TData) => string;');
     expect(source).toContain('historyPanel:');
+    expect(source).toContain(
+      'historySearchMatchCount?: (context: EntityDetailDialogTabContext<TData>) => number;',
+    );
+    expect(source).toContain('getMatchCount: historySearchMatchCount');
+    expect(source).toContain('countMatchingEntityDetailDialogFields');
     expect(source).toContain('<EntityDetailDialogTable');
     expect(source).toContain('import { Info } from');
     expect(source).toContain("defaultTab='overview'");
@@ -96,6 +102,24 @@ describe('detail-dialog-builder', () => {
         ],
       }),
     ).toThrow(/searchTextProp bị trùng/);
+
+    expect(() =>
+      detailDialogSpecSchema.parse({
+        ...baseSpec,
+        tabs: [
+          {
+            value: 'overview',
+            label: 'Tổng quan',
+            searchMatchCountProp: 'count',
+          },
+          {
+            value: 'history',
+            label: 'Lịch sử',
+            searchMatchCountProp: 'count',
+          },
+        ],
+      }),
+    ).toThrow(/searchMatchCountProp bị trùng/);
 
     expect(() =>
       detailDialogSpecSchema.parse({

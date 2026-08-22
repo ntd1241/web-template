@@ -9,6 +9,7 @@ const tabSchema = z.object({
   fieldProp: identifierSchema.optional(),
   contentProp: identifierSchema.optional(),
   searchTextProp: identifierSchema.optional(),
+  searchMatchCountProp: identifierSchema.optional(),
 });
 
 export const detailDialogSpecSchema = z
@@ -22,6 +23,7 @@ export const detailDialogSpecSchema = z
     const values = new Set<string>();
     const contentProps = new Set<string>();
     const searchTextProps = new Set<string>();
+    const searchMatchCountProps = new Set<string>();
 
     spec.tabs.forEach((tab, index) => {
       if (values.has(tab.value)) {
@@ -55,6 +57,17 @@ export const detailDialogSpecSchema = z
           });
         }
         searchTextProps.add(tab.searchTextProp);
+      }
+
+      if (tab.searchMatchCountProp) {
+        if (searchMatchCountProps.has(tab.searchMatchCountProp)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `searchMatchCountProp bị trùng: ${tab.searchMatchCountProp}`,
+            path: ['tabs', index, 'searchMatchCountProp'],
+          });
+        }
+        searchMatchCountProps.add(tab.searchMatchCountProp);
       }
     });
 

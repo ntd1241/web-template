@@ -4,7 +4,7 @@
  * To change the tab structure, edit the spec and re-gen to a scratch path first.
  */
 import type { ReactNode } from 'react';
-import { Info } from 'lucide-react';
+import { Info, ReceiptText } from 'lucide-react';
 import {
   EntityDetailDialog,
   EntityDetailDialogTable,
@@ -22,7 +22,15 @@ export interface ContractDetailDialogShellProps<TData> {
   generalFields: (
     context: EntityDetailDialogTabContext<TData>,
   ) => EntityDetailDialogField[];
+  feesContent: (context: EntityDetailDialogTabContext<TData>) => ReactNode;
   generalSearchText?: (data: TData) => string;
+  feesSearchText?: (data: TData) => string;
+  generalSearchMatchCount?: (
+    context: EntityDetailDialogTabContext<TData>,
+  ) => number;
+  feesSearchMatchCount?: (
+    context: EntityDetailDialogTabContext<TData>,
+  ) => number;
   className?: string;
 }
 export function ContractDetailDialogShell<TData>({
@@ -32,7 +40,11 @@ export function ContractDetailDialogShell<TData>({
   data,
   searchPlaceholder,
   generalFields,
+  feesContent,
   generalSearchText,
+  feesSearchText,
+  generalSearchMatchCount,
+  feesSearchMatchCount,
   className,
 }: ContractDetailDialogShellProps<TData>) {
   const tabs: EntityDetailDialogTab<TData>[] = [
@@ -41,12 +53,21 @@ export function ContractDetailDialogShell<TData>({
       label: 'Thông tin chung',
       icon: Info,
       searchText: generalSearchText,
+      getMatchCount: generalSearchMatchCount,
       content: (context) => (
         <EntityDetailDialogTable
           fields={generalFields(context)}
           matches={context.matches}
         />
       ),
+    },
+    {
+      value: 'fees',
+      label: 'Khoản phí',
+      icon: ReceiptText,
+      searchText: feesSearchText,
+      getMatchCount: feesSearchMatchCount,
+      content: feesContent,
     },
   ];
 
