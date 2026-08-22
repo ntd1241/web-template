@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { loadActiveCurrencies } from '../api/currencies.api';
 import {
   loadCurrentTenantSettings,
   updateTenantSettings,
@@ -46,6 +47,7 @@ import {
   TenantSettingsForm,
   useTenantSettingsForm,
 } from '../forms/tenant-form.generated';
+import { toCurrencyOptions } from '../model/currency';
 import type { TenantSettingsValues } from '../model/tenant-settings';
 
 const tabs = [
@@ -72,6 +74,11 @@ export function ProjectSettingsPage() {
     },
     enabled: Boolean(userId && tenantId),
   });
+  const currenciesQuery = useQuery({
+    queryKey: ['project', 'currencies', 'active'],
+    queryFn: loadActiveCurrencies,
+  });
+  const currencyCodeOptions = toCurrencyOptions(currenciesQuery.data ?? []);
   const form = useTenantSettingsForm();
   const currentSettingsRef = useRef<Record<string, unknown>>({});
   const hydratedTenantIdRef = useRef<string | null>(null);
@@ -118,7 +125,6 @@ export function ProjectSettingsPage() {
         paymentReminderDays: values.paymentReminderDays,
         chargeGenerationLeadDays: values.chargeGenerationLeadDays,
         numberLocale: values.numberLocale,
-        currencyCode: values.currencyCode,
         compactDisplay: values.compactDisplay,
       };
       form.reset(values);
@@ -261,6 +267,7 @@ export function ProjectSettingsPage() {
                       form={form}
                       onSubmit={(values) => tenantMutation.mutate(values)}
                       onLogoUrlFileChange={setLogoFile}
+                      currencyCodeOptions={currencyCodeOptions}
                       id="project-tenant-settings-form"
                     />
                   )}

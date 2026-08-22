@@ -13,14 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { CurrencyOption } from '../../model/currency';
 import type { ContractFormValues } from '../model/contract';
-
-const CURRENCY_OPTIONS = [{ value: 'VND', label: 'VND - Việt Nam đồng' }];
 
 export function ContractCurrencyField({
   form,
+  options,
 }: {
   form: UseFormReturn<ContractFormValues>;
+  options: CurrencyOption[];
 }) {
   return (
     <Form {...form}>
@@ -36,7 +37,7 @@ export function ContractCurrencyField({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {CURRENCY_OPTIONS.map((option) => (
+                {options.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>

@@ -5,6 +5,7 @@ import { Save } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,8 @@ import {
 } from '@/components/ui/card';
 import { PageLoading } from '@/components/ui/loading';
 import { PageBackButton } from '@/components/ui/page-back-button';
+import { loadActiveCurrencies } from '../../api/currencies.api';
+import { toCurrencyOptions } from '../../model/currency';
 import {
   createContractTemplate,
   loadContractTemplateDetail,
@@ -64,6 +67,7 @@ export function ContractTemplateEditPage() {
   const { id } = useParams<{ id: string }>();
   const { userId } = useUser();
   const { tenantId } = useTenant();
+  const { currencyCode: defaultCurrencyCode } = useNumberFormat();
   const isEditMode = Boolean(id);
   const returnTo =
     isEditMode &&
@@ -89,11 +93,19 @@ export function ContractTemplateEditPage() {
     },
     enabled: Boolean(tenantId && id),
   });
+  const currenciesQuery = useQuery({
+    queryKey: ['project', 'currencies', 'active'],
+    queryFn: loadActiveCurrencies,
+  });
+  const currencyCodeOptions = toCurrencyOptions(currenciesQuery.data ?? []);
 
   useEffect(() => {
     if (!isEditMode) {
       mappedIdRef.current = null;
-      form.reset(contractTemplateDefaultValues);
+      form.reset({
+        ...contractTemplateDefaultValues,
+        currencyCode: defaultCurrencyCode,
+      });
       setFeeLines([createDefaultContractFeeLine(todayIso())]);
       return;
     }
@@ -105,7 +117,7 @@ export function ContractTemplateEditPage() {
       lines.length > 0 ? lines : [createDefaultContractFeeLine(todayIso())],
     );
     mappedIdRef.current = id ?? null;
-  }, [detailQuery.data, form, id, isEditMode]);
+  }, [defaultCurrencyCode, detailQuery.data, form, id, isEditMode]);
 
   const saveMutation = useMutation({
     mutationFn: async ({
@@ -197,6 +209,7 @@ export function ContractTemplateEditPage() {
           <ContractTemplateForm
             form={form}
             onSubmit={() => void handleSave()}
+            currencyCodeOptions={currencyCodeOptions}
           />
         </CardContent>
       </Card>

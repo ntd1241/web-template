@@ -5,6 +5,8 @@ import {
   NumberFormatProvider,
   useNumberFormat,
 } from './number-format-provider';
+import { TenantProvider } from './tenant-provider';
+import { UserProvider } from './user-provider';
 
 function NumberFormatProbe() {
   const { formatCurrency, formatNumber, inputSeparators } = useNumberFormat();
@@ -26,15 +28,19 @@ describe('NumberFormatProvider', () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <NumberFormatProvider
-          settings={{
-            locale: 'en-US',
-            currencyCode: 'USD',
-            compactDisplay: 'short',
-          }}
-        >
-          <NumberFormatProbe />
-        </NumberFormatProvider>
+        <UserProvider>
+          <TenantProvider>
+            <NumberFormatProvider
+              settings={{
+                locale: 'en-US',
+                currencyCode: 'USD',
+                compactDisplay: 'short',
+              }}
+            >
+              <NumberFormatProbe />
+            </NumberFormatProvider>
+          </TenantProvider>
+        </UserProvider>
       </QueryClientProvider>,
     );
 

@@ -15,6 +15,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { useNumberFormat } from '@/providers/number-format-provider';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { loadActiveCurrencies } from '../../api/currencies.api';
 import { EmployeeIdentity } from '../../employees/components/employee-identity';
+import { toCurrencyOptions } from '../../model/currency';
 import { loadContractTemplateDetail } from '../api/contract-templates.api';
 import {
   createContract,
@@ -121,6 +124,7 @@ export function ContractCreatePage() {
   const [searchParams] = useSearchParams();
   const { userId } = useUser();
   const { tenantId, isPending: isTenantPending } = useTenant();
+  const { currencyCode: defaultCurrencyCode } = useNumberFormat();
   const editingContractId = searchParams.get('edit');
   const templateId = searchParams.get('templateId');
   const isEditMode = Boolean(editingContractId);
@@ -168,6 +172,11 @@ export function ContractCreatePage() {
     },
     enabled: Boolean(userId && tenantId),
   });
+  const currenciesQuery = useQuery({
+    queryKey: ['project', 'currencies', 'active'],
+    queryFn: loadActiveCurrencies,
+  });
+  const currencyCodeOptions = toCurrencyOptions(currenciesQuery.data ?? []);
 
   const editDetailQuery = useQuery({
     queryKey: [
@@ -240,7 +249,10 @@ export function ContractCreatePage() {
     if (editingContractId || templateId) return;
 
     mappedEditIdRef.current = null;
-    form.reset(contractDefaultValues);
+    form.reset({
+      ...contractDefaultValues,
+      currencyCode: defaultCurrencyCode,
+    });
     setSelectedCustomer(undefined);
     setFeeLines([
       createDefaultContractFeeLine(contractDefaultValues.startDate),
@@ -250,7 +262,7 @@ export function ContractCreatePage() {
     setRemovedAttachmentIds([]);
     setStep(1);
     setMaxStep(1);
-  }, [editingContractId, form, templateId]);
+  }, [defaultCurrencyCode, editingContractId, form, templateId]);
 
   useEffect(() => {
     const template = templateQuery.data;
@@ -735,7 +747,12 @@ export function ContractCreatePage() {
                     ref={feeLinesEditorRef}
                     lines={feeLines}
                     onChange={setFeeLines}
-                    currencyField={<ContractCurrencyField form={form} />}
+                    currencyField={
+                      <ContractCurrencyField
+                        form={form}
+                        options={currencyCodeOptions}
+                      />
+                    }
                   />
                 </div>
               </StepperContent>

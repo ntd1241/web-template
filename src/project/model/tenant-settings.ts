@@ -57,6 +57,7 @@ export interface TenantSettingsRow {
   name: string;
   legal_name: string | null;
   logo_url: string | null;
+  default_currency_code: string | null;
   settings: Record<string, unknown>;
 }
 
@@ -93,7 +94,7 @@ export function mapTenantSettingsRow(
     paymentReminderDays: getPaymentReminderDays(row.settings),
     chargeGenerationLeadDays: getChargeGenerationLeadDays(row.settings),
     numberLocale: getNumberLocale(row.settings),
-    currencyCode: getCurrencyCode(row.settings),
+    currencyCode: getCurrencyCode(row.settings, row.default_currency_code),
     compactDisplay: getCompactDisplay(row.settings),
   };
 }
@@ -136,8 +137,9 @@ export function getNumberLocale(
 
 export function getCurrencyCode(
   settings: Record<string, unknown> | null | undefined,
+  columnValue?: unknown,
 ) {
-  const value = settings?.currencyCode;
+  const value = columnValue ?? settings?.currencyCode;
   return typeof value === 'string' && /^[A-Z]{3}$/.test(value)
     ? value
     : DEFAULT_NUMBER_FORMAT_CURRENCY_CODE;

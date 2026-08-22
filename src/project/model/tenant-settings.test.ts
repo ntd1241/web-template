@@ -25,6 +25,7 @@ describe('tenant charge generation settings', () => {
       name: 'Tenant',
       legal_name: null,
       logo_url: null,
+      default_currency_code: null,
       settings: {
         paymentReminderDays: 7,
         chargeGenerationLeadDays: 14,
@@ -33,6 +34,19 @@ describe('tenant charge generation settings', () => {
 
     expect(values.paymentReminderDays).toBe(7);
     expect(values.chargeGenerationLeadDays).toBe(14);
+  });
+
+  it('prefers the tenant currency column over the legacy settings value', () => {
+    const values = mapTenantSettingsRow({
+      id: 'tenant-1',
+      name: 'Tenant',
+      legal_name: null,
+      logo_url: null,
+      default_currency_code: 'USD',
+      settings: { currencyCode: 'VND' },
+    });
+
+    expect(values.currencyCode).toBe('USD');
   });
 
   it('rejects a negative lead window', () => {

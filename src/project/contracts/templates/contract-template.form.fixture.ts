@@ -27,11 +27,7 @@ const spec: FormSpec = {
       name: 'currencyCode',
       label: 'Đơn vị tiền tệ',
       width: 'normal',
-      options: [
-        { value: 'VND', label: 'VND - Việt Nam đồng' },
-        { value: 'USD', label: 'USD - Đô la Mỹ' },
-        { value: 'EUR', label: 'EUR - Euro' },
-      ],
+      optionsFrom: 'prop',
     },
     {
       kind: 'switch',

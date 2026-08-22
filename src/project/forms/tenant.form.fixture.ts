@@ -97,11 +97,11 @@ const spec: FormSpec = {
       ],
     },
     {
-      kind: 'text',
+      kind: 'select',
       name: 'currencyCode',
-      label: 'Mã tiền tệ mặc định',
+      label: 'Đơn vị tiền tệ mặc định',
       width: 'normal',
-      placeholder: 'VND',
+      optionsFrom: 'prop',
     },
     {
       kind: 'select',

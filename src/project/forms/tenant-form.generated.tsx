@@ -97,6 +97,7 @@ interface TenantSettingsFormProps {
   form: UseFormReturn<TenantSettingsValues>;
   onSubmit: (values: TenantSettingsValues) => void;
   id?: string;
+  currencyCodeOptions: { value: string; label: string }[];
   onLogoUrlFileChange?: (file: File | null) => void;
 }
 
@@ -104,6 +105,7 @@ export function TenantSettingsForm({
   form,
   onSubmit,
   id = 'tenantSettings-form',
+  currencyCodeOptions,
   onLogoUrlFileChange,
 }: TenantSettingsFormProps) {
   return (
@@ -327,10 +329,21 @@ export function TenantSettingsForm({
             name="currencyCode"
             render={({ field }) => (
               <FormItem className="md:col-span-6">
-                <FormLabel>Mã tiền tệ mặc định</FormLabel>
-                <FormControl>
-                  <Input placeholder="VND" variant="md" {...field} />
-                </FormControl>
+                <FormLabel>Đơn vị tiền tệ mặc định</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {currencyCodeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -374,6 +387,7 @@ interface TenantSettingsFormDialogProps {
   onSubmit: (values: TenantSettingsValues) => void;
   isSaving?: boolean;
   title?: string;
+  currencyCodeOptions: { value: string; label: string }[];
   onLogoUrlFileChange?: (file: File | null) => void;
 }
 
@@ -385,6 +399,7 @@ export function TenantSettingsFormDialog({
   onSubmit,
   isSaving = false,
   title,
+  currencyCodeOptions,
   onLogoUrlFileChange,
 }: TenantSettingsFormDialogProps) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
@@ -435,6 +450,7 @@ export function TenantSettingsFormDialog({
               form={form}
               onSubmit={onSubmit}
               id="tenantSettings-form"
+              currencyCodeOptions={currencyCodeOptions}
               onLogoUrlFileChange={onLogoUrlFileChange}
             />
           </div>

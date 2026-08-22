@@ -5,7 +5,6 @@ import {
   DEFAULT_NUMBER_FORMAT_CURRENCY_CODE,
   DEFAULT_NUMBER_FORMAT_LOCALE,
   getCompactDisplay,
-  getCurrencyCode,
   getNumberLocale,
 } from '@/project/model/tenant-settings';
 import { useQuery } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ import { useTenant } from './tenant-provider';
 import { useUser } from './user-provider';
 
 export interface NumberFormatContextValue extends NumberFormatters {
+  currencyCode: string;
   isLoading: boolean;
   isError: boolean;
 }
@@ -58,11 +58,16 @@ export function NumberFormatProvider({
     return {
       locale: getNumberLocale(rawSettings) ?? DEFAULT_NUMBER_FORMAT_LOCALE,
       currencyCode:
-        getCurrencyCode(rawSettings) ?? DEFAULT_NUMBER_FORMAT_CURRENCY_CODE,
+        tenantSettingsQuery.data?.values.currencyCode ??
+        DEFAULT_NUMBER_FORMAT_CURRENCY_CODE,
       compactDisplay:
         getCompactDisplay(rawSettings) ?? DEFAULT_NUMBER_FORMAT_COMPACT_DISPLAY,
     };
-  }, [settingsOverride, tenantSettingsQuery.data?.settings]);
+  }, [
+    settingsOverride,
+    tenantSettingsQuery.data?.settings,
+    tenantSettingsQuery.data?.values.currencyCode,
+  ]);
 
   const formatters = useMemo(
     () => createNumberFormatters(settings),
@@ -72,11 +77,13 @@ export function NumberFormatProvider({
   const value = useMemo<NumberFormatContextValue>(
     () => ({
       ...formatters,
+      currencyCode: settings.currencyCode,
       isLoading: !settingsOverride && tenantSettingsQuery.isPending,
       isError: !settingsOverride && tenantSettingsQuery.isError,
     }),
     [
       formatters,
+      settings.currencyCode,
       settingsOverride,
       tenantSettingsQuery.isError,
       tenantSettingsQuery.isPending,
@@ -96,6 +103,7 @@ export function useNumberFormat(): NumberFormatContextValue {
 
   return {
     ...fallbackFormatters,
+    currencyCode: fallbackFormatters.settings.currencyCode,
     isLoading: false,
     isError: false,
   };

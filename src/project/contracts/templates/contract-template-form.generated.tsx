@@ -45,12 +45,6 @@ import {
 } from '../model/contract-template';
 import type { ContractTemplate } from '../model/contract-template';
 
-const currencyCodeOptions = [
-  { value: 'VND', label: 'VND - Việt Nam đồng' },
-  { value: 'USD', label: 'USD - Đô la Mỹ' },
-  { value: 'EUR', label: 'EUR - Euro' },
-];
-
 export const contractTemplateDefaultValues: ContractTemplateFormValues = {
   code: '',
   name: '',
@@ -90,12 +84,14 @@ interface ContractTemplateFormProps {
   form: UseFormReturn<ContractTemplateFormValues>;
   onSubmit: (values: ContractTemplateFormValues) => void;
   id?: string;
+  currencyCodeOptions: { value: string; label: string }[];
 }
 
 export function ContractTemplateForm({
   form,
   onSubmit,
   id = 'contractTemplate-form',
+  currencyCodeOptions,
 }: ContractTemplateFormProps) {
   return (
     <Form {...form}>
@@ -217,6 +213,7 @@ interface ContractTemplateFormDialogProps {
   onSubmit: (values: ContractTemplateFormValues) => void;
   isSaving?: boolean;
   title?: string;
+  currencyCodeOptions: { value: string; label: string }[];
 }
 
 export function ContractTemplateFormDialog({
@@ -227,6 +224,7 @@ export function ContractTemplateFormDialog({
   onSubmit,
   isSaving = false,
   title,
+  currencyCodeOptions,
 }: ContractTemplateFormDialogProps) {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -273,6 +271,7 @@ export function ContractTemplateFormDialog({
               form={form}
               onSubmit={onSubmit}
               id="contractTemplate-form"
+              currencyCodeOptions={currencyCodeOptions}
             />
           </div>
 

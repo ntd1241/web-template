@@ -61,7 +61,7 @@ export async function loadCurrentTenantSettings(
     supabaseApi.get(
       '/tenants',
       queryParams({
-        select: 'id,name,legal_name,logo_url,settings',
+        select: 'id,name,legal_name,logo_url,default_currency_code,settings',
         id: `eq.${tenantId}`,
         limit: '1',
       }),
@@ -94,8 +94,13 @@ export async function updateTenantSettings(
         name: values.name,
         legal_name: values.legalName || null,
         logo_url: values.logoUrl || null,
+        default_currency_code: values.currencyCode,
         settings: {
-          ...currentSettings,
+          ...(() => {
+            const { currencyCode: _legacyCurrencyCode, ...settings } =
+              currentSettings;
+            return settings;
+          })(),
           description: values.description,
           address: values.address,
           email: values.email,
@@ -105,7 +110,6 @@ export async function updateTenantSettings(
           paymentReminderDays: values.paymentReminderDays,
           chargeGenerationLeadDays: values.chargeGenerationLeadDays,
           numberLocale: values.numberLocale,
-          currencyCode: values.currencyCode,
           compactDisplay: values.compactDisplay,
         },
       },
