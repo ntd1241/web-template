@@ -1,16 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-  type PaginationState,
-} from '@tanstack/react-table';
+import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useTenant } from '@/providers/tenant-provider';
-import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,23 +20,13 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
-import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Tag as TagBadge } from '@/components/ui/tag';
 import {
   createCustomer,
   deleteCustomer,
   loadCustomerRegionOptions,
-  loadCustomerTagFilter,
-  loadCustomerWorkspace,
   updateCustomer,
   uploadCustomerImage,
 } from '../api/customers.api';
@@ -50,6 +34,7 @@ import {
   CustomerFormDialog,
   useCustomerForm,
 } from '../forms/customer-form.generated';
+import { useCustomerList } from '../hooks/use-customer-list';
 import {
   emptyCustomerForm,
   mapCustomerToFormValues,
@@ -57,19 +42,11 @@ import {
   type CustomerFormValues,
 } from '../model/customer';
 import { useCustomerColumns } from '../table/customer.columns.generated';
-
-const EMPTY_CUSTOMERS: Customer[] = [];
+import { CustomerFilterBar } from '../table/customer.filters.generated';
 
 export function CustomersPage() {
-  const { userId } = useUser();
   const { tenantId } = useTenant();
   const queryClient = useQueryClient();
-  const [keyword, setKeyword] = useState('');
-  const [customerTagId, setCustomerTagId] = useState('all');
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(
@@ -78,81 +55,33 @@ export function CustomersPage() {
   const [customerImageFile, setCustomerImageFile] = useState<File | null>(null);
   const form = useCustomerForm();
 
-  const workspaceQuery = useQuery({
-    queryKey: ['project', 'customers', userId, tenantId],
-    queryFn: () => {
-      if (!userId || !tenantId) {
-        throw new Error('Chưa xác định tổ chức hiện tại.');
-      }
-      return loadCustomerWorkspace(userId, tenantId);
-    },
-    enabled: Boolean(userId && tenantId),
-  });
-
-  const customerTagFilterQuery = useQuery({
-    queryKey: [
-      'project',
-      'customers',
-      'tag-filter',
-      userId,
-      workspaceQuery.data?.tenantId,
-    ],
-    queryFn: () => loadCustomerTagFilter(workspaceQuery.data!.tenantId),
-    enabled: Boolean(workspaceQuery.data?.tenantId),
-  });
+  const {
+    customers,
+    total,
+    keyword,
+    setKeyword,
+    filters,
+    setFilter,
+    pagination,
+    onPaginationChange,
+    tenantQuery,
+    workspaceQuery,
+    customerTagOptions,
+    customerTagOptionsQuery,
+  } = useCustomerList();
 
   const customerRegionQuery = useQuery({
     queryKey: ['project', 'customers', 'regions'],
     queryFn: loadCustomerRegionOptions,
   });
 
-  const customers = useMemo(() => {
-    const source = workspaceQuery.data?.customers ?? EMPTY_CUSTOMERS;
-    const normalized = keyword.trim().toLowerCase();
-    const selectedCustomerIds =
-      customerTagId === 'all'
-        ? null
-        : new Set(
-            customerTagFilterQuery.data?.customerIdsByTagId[customerTagId] ??
-              [],
-          );
-
-    return source.filter((customer) => {
-      if (selectedCustomerIds && !selectedCustomerIds.has(customer.id)) {
-        return false;
-      }
-      if (!normalized) return true;
-      return [
-        customer.customerCode,
-        customer.name,
-        customer.phone,
-        customer.email,
-        customer.addressDetail,
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(normalized);
-    });
-  }, [
-    customerTagFilterQuery.data?.customerIdsByTagId,
-    customerTagId,
-    keyword,
-    workspaceQuery.data?.customers,
-  ]);
-
-  const customerTagOptions = customerTagFilterQuery.data?.options ?? [];
-  const selectedCustomerTag = customerTagOptions.find(
-    (option) => option.value === customerTagId,
-  );
-
   const invalidateCustomers = () =>
     queryClient.invalidateQueries({
-      queryKey: ['project', 'customers', userId],
+      queryKey: ['project', 'customers'],
     });
 
   const saveMutation = useMutation({
     mutationFn: async (values: CustomerFormValues) => {
-      const tenantId = workspaceQuery.data?.tenantId;
       if (!tenantId) throw new Error('Chưa xác định tenant.');
 
       if (editingCustomer) {
@@ -225,12 +154,16 @@ export function CustomersPage() {
     columns,
     getRowId: (row) => row.id,
     state: { pagination },
-    onPaginationChange: setPagination,
-    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange,
+    manualPagination: true,
+    pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
   });
 
-  if (workspaceQuery.isError) {
+  const listError = tenantQuery.error ?? workspaceQuery.error;
+  const isListLoading = tenantQuery.isPending || workspaceQuery.isLoading;
+
+  if (tenantQuery.isError || workspaceQuery.isError) {
     return (
       <div className="p-6">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
@@ -238,10 +171,16 @@ export function CustomersPage() {
           <div>
             <CardTitle>Không tải được danh sách khách hàng</CardTitle>
             <CardDescription className="mt-1">
-              {getApiErrorMessage(workspaceQuery.error)}
+              {getApiErrorMessage(listError)}
             </CardDescription>
           </div>
-          <Button variant="outline" onClick={() => workspaceQuery.refetch()}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              void tenantQuery.refetch();
+              void workspaceQuery.refetch();
+            }}
+          >
             Thử lại
           </Button>
         </Card>
@@ -253,8 +192,8 @@ export function CustomersPage() {
     <div className="flex h-full min-h-0 flex-col p-6">
       <DataGrid
         table={table}
-        recordCount={customers.length}
-        isLoading={workspaceQuery.isLoading}
+        recordCount={total}
+        isLoading={isListLoading}
         emptyMessage="Chưa có khách hàng"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
@@ -263,52 +202,47 @@ export function CustomersPage() {
               <CardTitle>Quản lý khách hàng</CardTitle>
             </CardHeading>
             <CardToolbar className="flex-wrap">
-              <SearchInput
-                className="w-64"
-                placeholder="Tìm theo tên hoặc mã khách hàng"
-                value={keyword}
-                debounceMs={0}
-                onSearch={setKeyword}
-              />
-              <Select
-                value={customerTagId}
-                onValueChange={(value) => {
-                  setCustomerTagId(value);
-                  setPagination((current) => ({ ...current, pageIndex: 0 }));
+              <CustomerFilterBar
+                keyword={keyword}
+                onKeywordChange={setKeyword}
+                tag={filters.tagId}
+                onTagChange={(value) => setFilter('tagId', value)}
+                tagOptions={[
+                  { value: 'all', label: 'Tất cả nhóm' },
+                  ...customerTagOptions.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                  })),
+                ]}
+                tagRenderOption={(option) => {
+                  const tag = customerTagOptions.find(
+                    (item) => item.value === option.value,
+                  );
+                  return tag ? (
+                    <TagBadge color={tag.color} size="sm">
+                      {tag.label}
+                    </TagBadge>
+                  ) : (
+                    option.label
+                  );
                 }}
-                disabled={customerTagFilterQuery.isLoading}
-              >
-                <SelectTrigger className="w-48" aria-label="Nhóm khách hàng">
-                  <SelectValue label="Nhóm" placeholder="Nhóm khách hàng">
-                    {customerTagId === 'all' ? (
-                      'Tất cả'
-                    ) : selectedCustomerTag ? (
-                      <TagBadge color={selectedCustomerTag.color} size="sm">
-                        {selectedCustomerTag.label}
-                      </TagBadge>
-                    ) : (
-                      'Nhóm khách hàng'
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả nhóm</SelectItem>
-                  {customerTagOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      textValue={option.label}
-                    >
-                      <TagBadge color={option.color} size="sm">
-                        {option.label}
-                      </TagBadge>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                tagRenderValue={(option) => {
+                  const tag = customerTagOptions.find(
+                    (item) => item.value === option?.value,
+                  );
+                  return tag ? (
+                    <TagBadge color={tag.color} size="sm">
+                      {tag.label}
+                    </TagBadge>
+                  ) : (
+                    option?.label
+                  );
+                }}
+                disabled={customerTagOptionsQuery.isLoading}
+              />
               <Button
                 variant="outline"
-                onClick={() => workspaceQuery.refetch()}
+                onClick={() => void workspaceQuery.refetch()}
               >
                 <RefreshCw />
                 Làm mới

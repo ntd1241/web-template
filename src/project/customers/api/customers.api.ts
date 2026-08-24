@@ -8,6 +8,9 @@ import { CUSTOMER_TAG_GROUP_CODE } from '../../tags/model/tag';
 import type {
   Customer,
   CustomerFormValues,
+  CustomerListParams,
+  CustomerListResult,
+  CustomerListRpcRow,
   CustomerRow,
   CustomerTagFilterData,
 } from '../model/customer';
@@ -39,8 +42,17 @@ interface RegionRow {
   name: string;
 }
 
+interface CustomerListRpcResponse {
+  items: CustomerListRpcRow[];
+  total: number | string;
+}
+
 function queryParams(params: Record<string, string>) {
   return { params };
+}
+
+function numberValue(value: number | string | null | undefined) {
+  return value == null ? 0 : typeof value === 'number' ? value : Number(value);
 }
 
 async function request<T>(promise: Promise<unknown>): Promise<T> {
@@ -144,6 +156,32 @@ export async function loadCustomerWorkspace(
   );
 
   return { tenantId, customers: rows.map(mapCustomerRow) };
+}
+
+export async function loadCustomerList(
+  tenantId: string,
+  params: CustomerListParams,
+  signal?: AbortSignal,
+): Promise<CustomerListResult> {
+  assertSupabaseConfigured();
+  const response = await request<CustomerListRpcResponse>(
+    supabaseApi.post(
+      '/rpc/list_customers',
+      {
+        p_tenant_id: tenantId,
+        p_page: params.page,
+        p_page_size: params.pageSize,
+        p_search: params.search?.trim() || null,
+        p_tag_id: params.tagId ?? null,
+      },
+      { signal },
+    ),
+  );
+
+  return {
+    customers: response.items.map(mapCustomerRow),
+    total: numberValue(response.total),
+  };
 }
 
 export async function loadCustomerDetail(

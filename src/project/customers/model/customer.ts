@@ -83,6 +83,22 @@ export interface CustomerRow {
   note: string;
 }
 
+export interface CustomerListParams {
+  page: number;
+  pageSize: number;
+  search?: string;
+  tagId?: string;
+}
+
+export interface CustomerListResult {
+  customers: Customer[];
+  total: number;
+}
+
+export interface CustomerListRpcRow extends CustomerRow {
+  created_at: string;
+}
+
 export interface CustomerTagFilterData {
   options: TagFilterOption[];
   customerIdsByTagId: Record<string, string[]>;
