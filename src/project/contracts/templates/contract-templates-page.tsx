@@ -21,23 +21,25 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
-import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { archiveContractTemplate } from '../api/contract-templates.api';
 import {
+  CONTRACT_TEMPLATE_STATUS_LABELS,
   CONTRACT_TEMPLATE_STATUSES,
   type ContractTemplate,
 } from '../model/contract-template';
 import { ContractTemplateStatusBadge } from './contract-template-status-badge';
 import { useContractTemplateColumns } from './contract-template.columns.generated';
+import { ContractTemplateFilterBar } from './contract-template.filters.generated';
 import { useContractTemplateList } from './use-contract-template-list';
+
+const CONTRACT_TEMPLATE_FILTER_STATUS_OPTIONS = [
+  { value: 'all', label: 'Tất cả trạng thái' },
+  ...CONTRACT_TEMPLATE_STATUSES.map((status) => ({
+    value: status,
+    label: CONTRACT_TEMPLATE_STATUS_LABELS[status],
+  })),
+];
 
 export function ContractTemplatesPage() {
   const navigate = useNavigate();
@@ -133,31 +135,35 @@ export function ContractTemplatesPage() {
               </CardDescription>
             </CardHeading>
             <CardToolbar className="flex-wrap">
-              <SearchInput
-                className="w-72"
-                placeholder="Tìm theo mã hoặc tên mẫu"
-                value={keyword}
-                debounceMs={300}
-                onSearch={setKeyword}
-              />
-              <Select
-                value={filters.status}
-                onValueChange={(value) =>
+              <ContractTemplateFilterBar
+                keyword={keyword}
+                onKeywordChange={setKeyword}
+                status={filters.status}
+                onStatusChange={(value) =>
                   setFilter('status', value as typeof filters.status)
                 }
-              >
-                <SelectTrigger className="w-44" aria-label="Trạng thái mẫu">
-                  <SelectValue label="Trạng thái" placeholder="Trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  {CONTRACT_TEMPLATE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      <ContractTemplateStatusBadge status={status} size="sm" />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                statusOptions={CONTRACT_TEMPLATE_FILTER_STATUS_OPTIONS}
+                statusRenderOption={(option) =>
+                  option.value === 'all' ? (
+                    option.label
+                  ) : (
+                    <ContractTemplateStatusBadge
+                      status={option.value}
+                      size="sm"
+                    />
+                  )
+                }
+                statusRenderValue={(option) =>
+                  option?.value === 'all' ? (
+                    option.label
+                  ) : option ? (
+                    <ContractTemplateStatusBadge
+                      status={option.value}
+                      size="sm"
+                    />
+                  ) : null
+                }
+              />
               <Button
                 variant="outline"
                 onClick={() => void listQuery.refetch()}

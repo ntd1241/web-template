@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { buildListQueryParams } from '@/lib/list-query-params';
 import { useTableListState } from '@/hooks/use-table-list-state';
 import { loadContractReceivablePeriodList } from '../api/contracts.api';
 import {
@@ -33,14 +34,24 @@ export function useContractReceivableList({
     initialFilters: INITIAL_FILTERS,
     initialPageSize: 10,
   });
+  const queryParams = buildListQueryParams(listState, {
+    filters: {
+      status: { omit: ['all'] },
+      sort: {},
+      view: {},
+    },
+  });
   const listParams: ContractReceivablePeriodListParams = {
-    page: listState.pagination.pageIndex + 1,
-    pageSize: listState.pagination.pageSize,
-    search: listState.keyword.trim() || undefined,
+    page: queryParams.page,
+    pageSize: queryParams.pageSize,
+    search:
+      typeof queryParams.search === 'string' ? queryParams.search : undefined,
     status:
-      listState.filters.status === 'all' ? undefined : listState.filters.status,
-    sort: listState.filters.sort,
-    view: listState.filters.view,
+      typeof queryParams.status === 'string'
+        ? (queryParams.status as ContractChargeDisplayStatus)
+        : undefined,
+    sort: queryParams.sort as ContractReceivableSortOption,
+    view: queryParams.view as ContractReceivableViewMode,
     dueSoonDays,
   };
   const listQuery = useQuery({

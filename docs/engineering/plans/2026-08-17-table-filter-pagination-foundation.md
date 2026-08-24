@@ -17,8 +17,8 @@ filter, sort và pagination mà không lặp lại state ở từng page.
 - Chuyển pilot Hợp đồng sang server-side query với tổng bản ghi từ database.
 - Giữ `DataGridPagination` là component trình bày; không đưa query hoặc
   business logic vào component này.
-- Chưa tạo filter builder. Sau pilot sẽ đánh giá các filter field thực tế trước
-  khi đóng thành builder.
+- Tạo filter builder độc lập cho toolbar search/select và query params builder
+  để chuẩn hóa state trước khi đi vào từng API adapter.
 
 ## Ranh giới trách nhiệm
 
@@ -28,6 +28,12 @@ Table builder
 
 useTableListState
   -> keyword, filters, sorting, pageIndex, pageSize
+
+filter builder
+  -> filter toolbar UI và typed callbacks
+
+list query params builder
+  -> trim/omit/serialize search, filters, sort và pagination
 
 client list selector / query hook
   -> filter, sort, paginate, fetch và total
@@ -100,13 +106,21 @@ Chưa bật mặc định trong pilot. URL codec sẽ là bước riêng sau khi
 sách filter nào cần deep-link/back-forward. Không serialize một object `extra`
 tùy ý vào URL.
 
-### 4. Builder
+### 4. Filter builder và query params builder
 
-Chưa tạo `filter builder` trong đợt đầu. Filter không luôn tương ứng 1-1 với
-column: tag, khoảng ngày, trạng thái ẩn hoặc filter tác động nhiều field đều là
-các trường hợp phổ biến. Sau khi ít nhất ba bảng dùng chung filter field, có thể
-thêm metadata `filters` vào spec hoặc tạo builder riêng chỉ sinh filter config
-và form; builder vẫn không sở hữu fetch/query/mutation.
+`filter builder` là builder độc lập với table builder. Nó sinh wrapper typed
+quanh `FilterToolbar`, chỉ sở hữu thứ tự field, label, placeholder, option tĩnh
+và callback renderer. Feature vẫn sở hữu filter type, badge renderer và reset
+behavior thông qua `useTableListState`.
+
+`buildListQueryParams` là helper thuần, nhận state chuẩn và spec mapping để
+chuẩn hóa `page`, `pageSize`, search, filter và sort. Kết quả này chưa biết
+Supabase/RPC; API adapter của từng feature chuyển tiếp sang `p_*` hoặc format
+backend tương ứng. Vì vậy thay đổi wire format backend chỉ cần sửa adapter.
+
+Builder không sở hữu fetch/query/mutation/business rule. Filter không bắt buộc
+tương ứng 1-1 với column: tag, khoảng ngày, trạng thái ẩn hoặc filter tác động
+nhiều field vẫn do feature định nghĩa.
 
 ## Pilot: bảng Hợp đồng
 
@@ -131,16 +145,8 @@ và form; builder vẫn không sở hữu fetch/query/mutation.
   kết quả.
 - `npm run build` pass.
 
-## Bước tiếp theo
+### Bước tiếp theo
 
-Sau pilot, áp dụng cùng hook và server-side contract cho Customers và Employees.
-Chỉ khi hai bảng này không cần thêm ngoại lệ lớn mới quyết định tạo filter
-builder.
-
-### Mốc nhắc lại filter builder
-
-Khi có ít nhất **3 bảng** dùng chung các loại filter thực tế (ví dụ search,
-select trạng thái và sort), quay lại đánh giá và triển khai `filter builder`.
-Builder khi đó chỉ sinh filter UI/config và reset behavior; không sở hữu query,
-fetch API/RPC, mutation hoặc business rule. Trước mốc này, mỗi feature dùng
-`useTableListState` và tự định nghĩa filter UI theo nghiệp vụ của bảng.
+Migrate Customers và Employees sang server-side bằng cùng `useTableListState`,
+filter builder và query params builder. Các filter đặc thù như tag hoặc phòng
+ban sẽ khai báo ở feature, còn transport mapper tiếp tục nằm trong API adapter.

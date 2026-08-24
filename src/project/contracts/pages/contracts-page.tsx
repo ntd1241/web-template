@@ -22,21 +22,26 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
-import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { deleteContract } from '../api/contracts.api';
 import { ContractStatusBadge } from '../components/contract-status-badge';
 import { useContractList } from '../hooks/use-contract-list';
-import { CONTRACT_STATUSES, type Contract } from '../model/contract';
+import {
+  CONTRACT_STATUS_LABELS,
+  CONTRACT_STATUSES,
+  type Contract,
+} from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
+import { ContractFilterBar } from '../table/contract.filters.generated';
+
+const CONTRACT_FILTER_STATUS_OPTIONS = [
+  { value: 'all', label: 'Tất cả trạng thái' },
+  ...CONTRACT_STATUSES.map((status) => ({
+    value: status,
+    label: CONTRACT_STATUS_LABELS[status],
+  })),
+];
 
 export function ContractsPage() {
   const navigate = useNavigate();
@@ -137,34 +142,29 @@ export function ContractsPage() {
               <CardTitle>Quản lý hợp đồng</CardTitle>
             </CardHeading>
             <CardToolbar className="flex-wrap">
-              <SearchInput
-                className="w-72"
-                placeholder="Tìm theo mã, tên hoặc khách hàng"
-                value={keyword}
-                debounceMs={300}
-                onSearch={setKeyword}
-              />
-              <Select
-                value={filters.status}
-                onValueChange={(value) =>
+              <ContractFilterBar
+                keyword={keyword}
+                onKeywordChange={setKeyword}
+                status={filters.status}
+                onStatusChange={(value) =>
                   setFilter('status', value as typeof filters.status)
                 }
-              >
-                <SelectTrigger
-                  className="w-44"
-                  aria-label="Trạng thái hợp đồng"
-                >
-                  <SelectValue label="Trạng thái" placeholder="Trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  {CONTRACT_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      <ContractStatusBadge status={status} size="sm" />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                statusOptions={CONTRACT_FILTER_STATUS_OPTIONS}
+                statusRenderOption={(option) =>
+                  option.value === 'all' ? (
+                    option.label
+                  ) : (
+                    <ContractStatusBadge status={option.value} size="sm" />
+                  )
+                }
+                statusRenderValue={(option) =>
+                  option?.value === 'all' ? (
+                    option.label
+                  ) : option ? (
+                    <ContractStatusBadge status={option.value} size="sm" />
+                  ) : null
+                }
+              />
               <Button
                 variant="outline"
                 onClick={() => workspaceQuery.refetch()}

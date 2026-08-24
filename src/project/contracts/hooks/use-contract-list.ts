@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { buildListQueryParams } from '@/lib/list-query-params';
 import { useTableListState } from '@/hooks/use-table-list-state';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
@@ -17,12 +18,20 @@ export function useContractList() {
     initialPageSize: 10,
   });
 
+  const queryParams = buildListQueryParams(listState, {
+    filters: {
+      status: { omit: ['all'] },
+    },
+  });
   const listParams: ContractListParams = {
-    page: listState.pagination.pageIndex + 1,
-    pageSize: listState.pagination.pageSize,
-    search: listState.keyword.trim() || undefined,
+    page: queryParams.page,
+    pageSize: queryParams.pageSize,
+    search:
+      typeof queryParams.search === 'string' ? queryParams.search : undefined,
     status:
-      listState.filters.status === 'all' ? undefined : listState.filters.status,
+      typeof queryParams.status === 'string'
+        ? (queryParams.status as ContractStatus)
+        : undefined,
   };
 
   const listQuery = useQuery({

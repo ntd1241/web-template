@@ -28,6 +28,7 @@ and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 | `chart` | Recharts chart component with series, axes, legend, tooltip, and optional point callbacks | `ChartSpec` (`@/builders/chart`) | `npm run gen:chart -- <spec> <out>` | building repeatable chart variants | [`docs/builders/chart.md`](../../docs/builders/chart.md) |
 | `tooltip` | Chart tooltip wrapper and optional shared style provider | `TooltipSpec` (`@/builders/tooltip`) | `npm run gen:tooltip -- <spec> <out>` | standardizing tooltip presentation across charts | [`docs/builders/tooltip.md`](../../docs/builders/tooltip.md) |
 | `segmented-control` | Single-selection segmented control wrapper using `ToggleGroup` | `SegmentedControlSpec` (`@/builders/segmented-control`) | `npm run gen:segmented-control -- <spec> <out>` | repeated view or mode switchers with connected options | [`docs/builders/segmented-control.md`](../../docs/builders/segmented-control.md) |
+| `filter` | Search/select filter toolbar wrappers with typed callbacks and renderer slots | `FilterSpec` (`@/builders/filter`) | `npm run gen:filter -- <spec> <out>` | repeated server-side list filter toolbars | [`docs/builders/filter.md`](../../docs/builders/filter.md) |
 
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_

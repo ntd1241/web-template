@@ -44,7 +44,6 @@ import {
   FileUploadContent,
   type FileUploadContentHandle,
 } from '@/components/ui/file-upload/file-upload-content';
-import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -79,6 +78,7 @@ import {
   buildContractPaymentPeriodChartData,
 } from '../model/contract-chart';
 import {
+  CONTRACT_CHARGE_DISPLAY_STATUS_LABELS,
   CONTRACT_CHARGE_DISPLAY_STATUSES,
   getContractReceivableStats,
   type ContractPaymentHistory,
@@ -87,6 +87,7 @@ import {
 } from '../model/receivable';
 import { useContractPaymentHistoryColumns } from '../table/contract-payment-history.columns.generated';
 import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
+import { ContractReceivableFilterBar } from '../table/contract-receivable.filters.generated';
 import {
   ContractPaymentDialog,
   type ContractPaymentSubmission,
@@ -104,6 +105,14 @@ const RECEIVABLE_SORT_OPTIONS: Array<{
   { value: 'dueDate_asc', label: 'Hạn thanh toán cũ nhất' },
   { value: 'amount_desc', label: 'Số tiền cao nhất' },
   { value: 'amount_asc', label: 'Số tiền thấp nhất' },
+];
+
+const RECEIVABLE_FILTER_STATUS_OPTIONS = [
+  { value: 'all', label: 'Tất cả trạng thái' },
+  ...CONTRACT_CHARGE_DISPLAY_STATUSES.map((status) => ({
+    value: status,
+    label: CONTRACT_CHARGE_DISPLAY_STATUS_LABELS[status],
+  })),
 ];
 
 function formatDate(value: string | null | undefined) {
@@ -449,42 +458,42 @@ export function ContractReceivablesContent({
               />
             </CardHeading>
             <CardToolbar className="flex-wrap">
-              <SearchInput
-                className="w-72"
-                placeholder="Tìm theo khoản phí hoặc ngày"
-                value={keyword}
-                debounceMs={250}
-                onSearch={setKeyword}
-              />
-              <Select
-                value={filters.status}
-                onValueChange={(value) =>
+              <ContractReceivableFilterBar
+                keyword={keyword}
+                onKeywordChange={setKeyword}
+                status={filters.status}
+                onStatusChange={(value) =>
                   setFilter(
                     'status',
                     value as ContractReceivableListFilters['status'],
                   )
                 }
-              >
-                <SelectTrigger
-                  className="w-48"
-                  aria-label="Lọc trạng thái kỳ thanh toán"
-                >
-                  <SelectValue label="Trạng thái" placeholder="Trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  {CONTRACT_CHARGE_DISPLAY_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      <ContractStatusBadge
-                        status={status}
-                        direction="receivable"
-                        size="sm"
-                        showDot
-                      />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                statusOptions={RECEIVABLE_FILTER_STATUS_OPTIONS}
+                statusRenderOption={(option) =>
+                  option.value === 'all' ? (
+                    option.label
+                  ) : (
+                    <ContractStatusBadge
+                      status={option.value}
+                      direction="receivable"
+                      size="sm"
+                      showDot
+                    />
+                  )
+                }
+                statusRenderValue={(option) =>
+                  option?.value === 'all' ? (
+                    option.label
+                  ) : option ? (
+                    <ContractStatusBadge
+                      status={option.value}
+                      direction="receivable"
+                      size="sm"
+                      showDot
+                    />
+                  ) : null
+                }
+              />
               <Select
                 value={filters.sort}
                 onValueChange={(value) =>
