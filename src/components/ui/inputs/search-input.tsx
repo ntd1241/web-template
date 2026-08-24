@@ -22,6 +22,7 @@ export function SearchInput({
   placeholder = 'Tìm kiếm...',
   className,
   variant,
+  background,
   disabled,
   ...props
 }: SearchInputProps) {
@@ -75,7 +76,8 @@ export function SearchInput({
   return (
     <InputWrapper
       variant={variant}
-      className={cn('bg-field text-foreground', className)}
+      background={background}
+      className={cn('text-foreground', className)}
     >
       <Search className="text-muted-foreground" aria-hidden="true" />
       <Input

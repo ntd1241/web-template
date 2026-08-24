@@ -25,23 +25,12 @@ import { DataGridTable } from '@/components/ui/data-grid-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { deleteContract } from '../api/contracts.api';
-import { ContractStatusBadge } from '../components/contract-status-badge';
 import { useContractList } from '../hooks/use-contract-list';
 import {
-  CONTRACT_STATUS_LABELS,
-  CONTRACT_STATUSES,
   type Contract,
 } from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
-
-const CONTRACT_FILTER_STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  ...CONTRACT_STATUSES.map((status) => ({
-    value: status,
-    label: CONTRACT_STATUS_LABELS[status],
-  })),
-];
 
 export function ContractsPage() {
   const navigate = useNavigate();
@@ -56,11 +45,14 @@ export function ContractsPage() {
     keyword,
     setKeyword,
     filters,
+    setFilters,
     setFilter,
     pagination,
     onPaginationChange,
     tenantQuery,
     workspaceQuery,
+    customerOptions,
+    customerOptionsQuery,
   } = useContractList();
 
   const deleteMutation = useMutation({
@@ -88,6 +80,32 @@ export function ContractsPage() {
   const columns = useContractColumns({
     onEdit: openEdit,
     onDelete: setDeletingContract,
+    contractSearch: filters.contractSearch,
+    onContractSearchChange: (value) => setFilter('contractSearch', value),
+    customerId: filters.customerId,
+    customerOptions,
+    customerOptionsLoading: customerOptionsQuery.isPending,
+    onCustomerIdChange: (value) => setFilter('customerId', value),
+    statuses: filters.status,
+    onStatusChange: (value) => setFilter('status', value),
+    outstandingMin: filters.outstandingMin,
+    outstandingMax: filters.outstandingMax,
+    onOutstandingChange: (value) => {
+      setFilters((current) => ({
+        ...current,
+        outstandingMin: value.min,
+        outstandingMax: value.max,
+      }));
+    },
+    nextDueFrom: filters.nextDueFrom,
+    nextDueTo: filters.nextDueTo,
+    onNextDueChange: (value) => {
+      setFilters((current) => ({
+        ...current,
+        nextDueFrom: value.from ?? '',
+        nextDueTo: value.to ?? '',
+      }));
+    },
   });
   const table = useReactTable({
     data: contracts,
@@ -145,32 +163,15 @@ export function ContractsPage() {
               <ContractFilterBar
                 keyword={keyword}
                 onKeywordChange={setKeyword}
-                status={filters.status}
-                onStatusChange={(value) =>
-                  setFilter('status', value as typeof filters.status)
-                }
-                statusOptions={CONTRACT_FILTER_STATUS_OPTIONS}
-                statusRenderOption={(option) =>
-                  option.value === 'all' ? (
-                    option.label
-                  ) : (
-                    <ContractStatusBadge status={option.value} size="sm" />
-                  )
-                }
-                statusRenderValue={(option) =>
-                  option?.value === 'all' ? (
-                    option.label
-                  ) : option ? (
-                    <ContractStatusBadge status={option.value} size="sm" />
-                  ) : null
-                }
               />
               <Button
                 variant="outline"
+                mode="icon"
+                aria-label="Làm mới"
+                title="Làm mới"
                 onClick={() => workspaceQuery.refetch()}
               >
                 <RefreshCw />
-                Làm mới
               </Button>
               <ShortcutTooltip label="Thêm hợp đồng" shortcut="Alt + N">
                 <Button

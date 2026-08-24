@@ -194,7 +194,7 @@ export function SelectSearch<T = unknown>({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) border-border bg-popover p-0 text-foreground"
+        className="w-(--radix-popover-trigger-width) min-w-[220px] border-border bg-popover p-0 text-foreground"
         align="start"
       >
         <Command shouldFilter={false} className="bg-popover text-foreground">

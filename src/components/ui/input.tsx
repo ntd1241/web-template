@@ -15,6 +15,10 @@ const inputVariants = cva(
   `,
   {
     variants: {
+      background: {
+        field: 'bg-field',
+        background: 'bg-background',
+      },
       variant: {
         lg: 'h-10 px-4 text-sm rounded-md file:pe-4 file:me-4',
         md: 'h-8.5 px-3 text-[0.8125rem] leading-(--text-sm--line-height) rounded-md file:pe-3 file:me-3',
@@ -24,6 +28,7 @@ const inputVariants = cva(
       },
     },
     defaultVariants: {
+      background: 'field',
       variant: 'md',
     },
   },
@@ -123,6 +128,7 @@ function Input({
   className,
   type,
   variant,
+  background,
   warning = false,
   ...props
 }: React.ComponentProps<'input'> &
@@ -132,7 +138,7 @@ function Input({
       data-slot="input"
       type={type}
       className={cn(
-        inputVariants({ variant }),
+        inputVariants({ variant, background }),
         warning &&
           'border-[var(--color-warning-accent,var(--color-yellow-500))] focus-visible:border-[var(--color-warning-accent,var(--color-yellow-500))] focus-visible:ring-[var(--color-warning-accent,var(--color-yellow-500))]/30',
         className,
@@ -173,13 +179,17 @@ function InputGroup({
 function InputWrapper({
   className,
   variant,
+  background,
   ...props
-}: React.ComponentProps<'div'> & VariantProps<typeof inputWrapperVariants>) {
+}: React.ComponentProps<'div'> &
+  VariantProps<typeof inputWrapperVariants> & {
+    background?: 'field' | 'background';
+  }) {
   return (
     <div
       data-slot="input-wrapper"
       className={cn(
-        inputVariants({ variant }),
+        inputVariants({ variant, background }),
         inputWrapperVariants({ variant }),
         className,
       )}

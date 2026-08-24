@@ -147,7 +147,10 @@ export function MultiSelect<T = unknown>({
 
           if (renderSelectedOption) {
             return (
-              <span key={option.value} className="inline-flex max-w-32 min-w-0">
+              <span
+                key={option.value}
+                className="inline-flex max-w-full min-w-0 shrink"
+              >
                 {renderSelectedOption(option, () => handleRemove(option.value))}
               </span>
             );
@@ -179,7 +182,10 @@ export function MultiSelect<T = unknown>({
           );
         })}
         {overflowCount > 0 ? (
-          <Badge variant="outline" className="text-muted-foreground">
+          <Badge
+            variant="outline"
+            className="shrink-0 text-muted-foreground"
+          >
             +{overflowCount}
           </Badge>
         ) : null}
@@ -247,7 +253,7 @@ export function MultiSelect<T = unknown>({
         )}
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) border-border bg-popover p-0 text-foreground"
+        className="w-(--radix-popover-trigger-width) min-w-[220px] border-border bg-popover p-0 text-foreground"
         align="start"
         onOpenAutoFocus={(event) => {
           if (searchMode === 'inline') event.preventDefault();

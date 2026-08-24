@@ -235,7 +235,14 @@ export interface ContractListParams {
   page: number;
   pageSize: number;
   search?: string;
-  status?: ContractStatus;
+  contractSearch?: string;
+  statuses?: ContractStatus[];
+  customerId?: string;
+  customerCode?: string;
+  outstandingMin?: number;
+  outstandingMax?: number;
+  nextDueFrom?: string;
+  nextDueTo?: string;
 }
 
 export interface ContractListResult {

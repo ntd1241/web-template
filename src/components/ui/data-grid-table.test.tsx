@@ -61,4 +61,27 @@ describe('DataGridTable loading state', () => {
       document.querySelector('[data-slot="skeleton"]'),
     ).not.toBeInTheDocument();
   });
+
+  it('renders an inline header filter below the column label', () => {
+    render(
+      <LoadingTable
+        columns={[
+          {
+            id: 'name',
+            accessorKey: 'name',
+            header: 'Tên',
+            meta: {
+              headerFilter: (
+                <input aria-label="Lọc theo tên" data-testid="header-filter" />
+              ),
+            },
+          },
+        ]}
+      />,
+    );
+
+    const header = screen.getByRole('columnheader');
+    expect(header).toHaveTextContent('Tên');
+    expect(header).toContainElement(screen.getByTestId('header-filter'));
+  });
 });

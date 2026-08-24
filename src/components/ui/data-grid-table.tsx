@@ -124,6 +124,7 @@ function DataGridTableHeadRowCell<TData>({
   const { props } = useDataGrid();
 
   const { column } = header;
+  const headerFilter = column.columnDef.meta?.headerFilter;
   const isPinned = column.getIsPinned();
   const isLastLeftPinned =
     isPinned === 'left' && column.getIsLastColumn('left');
@@ -151,8 +152,9 @@ function DataGridTableHeadRowCell<TData>({
         isLastLeftPinned ? 'left' : isFirstRightPinned ? 'right' : undefined
       }
       className={cn(
-        'relative h-10 text-left rtl:text-right align-middle text-xs font-bold normal-case tracking-[0.01em] text-secondary-foreground [&:has([role=checkbox])]:pe-0',
+        'relative text-left rtl:text-right align-middle text-xs font-bold normal-case tracking-[0.01em] text-secondary-foreground [&:has([role=checkbox])]:pe-0',
         headerCellSpacing,
+        headerFilter ? 'h-auto min-h-10 py-2' : 'h-10',
         props.tableLayout?.cellBorder && 'border-e',
         props.tableLayout?.columnsResizable &&
           column.getCanResize() &&
@@ -167,7 +169,12 @@ function DataGridTableHeadRowCell<TData>({
           : '',
       )}
     >
-      {children}
+      <div className="flex min-w-0 flex-col gap-1.5">
+        {children}
+        {headerFilter ? (
+          <div className="min-w-0 font-normal">{headerFilter}</div>
+        ) : null}
+      </div>
     </th>
   );
 }

@@ -15,9 +15,17 @@ import {
   DataGridActionButton,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
+import type { CustomerSelectOption } from '../../customers/api/customers.api';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { ContractCell } from '../components/contract-cell';
 import type { Contract } from '../model/contract';
+import {
+  ContractCustomerColumnFilter,
+  ContractNextDueDateColumnFilter,
+  ContractOutstandingColumnFilter,
+  ContractStatusColumnFilter,
+  ContractTextColumnFilter,
+} from './contract-column-filters';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
   draft: {
@@ -55,6 +63,22 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
 export interface UseContractColumnsParams {
   onEdit: (contract: Contract) => void;
   onDelete: (contract: Contract) => void;
+  contractSearch: string;
+  onContractSearchChange: (value: string) => void;
+  customerId: string;
+  customerOptions: CustomerSelectOption[];
+  customerOptionsLoading?: boolean;
+  onCustomerIdChange: (value: string) => void;
+  statuses: import('../model/contract').ContractStatus[];
+  onStatusChange: (
+    value: import('../model/contract').ContractStatus[],
+  ) => void;
+  outstandingMin?: number;
+  outstandingMax?: number;
+  onOutstandingChange: (value: { min?: number; max?: number }) => void;
+  nextDueFrom: string;
+  nextDueTo: string;
+  onNextDueChange: (value: { from?: string; to?: string }) => void;
 }
 
 export function useContractColumns(
@@ -73,6 +97,12 @@ export function useContractColumns(
       col.custom({
         id: 'contract',
         header: 'Hợp đồng',
+        headerFilter: (
+          <ContractTextColumnFilter
+            value={params.contractSearch}
+            onChange={params.onContractSearchChange}
+          />
+        ),
         headerClassName: 'min-w-[320px]',
         size: 340,
         enableSorting: false,
@@ -81,6 +111,14 @@ export function useContractColumns(
       col.custom({
         id: 'customer',
         header: 'Khách hàng',
+        headerFilter: (
+          <ContractCustomerColumnFilter
+            customerId={params.customerId}
+            customerOptions={params.customerOptions}
+            customerOptionsLoading={params.customerOptionsLoading}
+            onCustomerIdChange={params.onCustomerIdChange}
+          />
+        ),
         headerClassName: 'min-w-[240px]',
         size: 280,
         enableSorting: false,
@@ -109,8 +147,13 @@ export function useContractColumns(
         header: 'Trạng thái',
         get: (row) => row.status,
         config: statusBadgeConfig,
+        headerFilter: (
+          <ContractStatusColumnFilter
+            value={params.statuses}
+            onChange={params.onStatusChange}
+          />
+        ),
         headerClassName: 'w-[140px]',
-        cellClassName: 'px-3',
         size: 140,
         enableSorting: false,
       }),
@@ -118,6 +161,12 @@ export function useContractColumns(
         id: 'totalOutstanding',
         header: 'Còn phải thu',
         get: (row) => row.totalOutstanding,
+        headerFilter: (
+          <ContractOutstandingColumnFilter
+            value={{ min: params.outstandingMin, max: params.outstandingMax }}
+            onChange={params.onOutstandingChange}
+          />
+        ),
         headerClassName: 'w-[150px]',
         cellClassName: 'px-3',
         size: 150,
@@ -127,6 +176,12 @@ export function useContractColumns(
         id: 'nextDueDate',
         header: 'Hạn gần nhất',
         get: (row) => row.nextDueDate,
+        headerFilter: (
+          <ContractNextDueDateColumnFilter
+            value={{ from: params.nextDueFrom, to: params.nextDueTo }}
+            onChange={params.onNextDueChange}
+          />
+        ),
         headerClassName: 'w-[160px]',
         size: 160,
         enableSorting: false,

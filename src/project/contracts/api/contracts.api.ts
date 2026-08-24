@@ -126,6 +126,7 @@ export async function loadContractList(
   signal?: AbortSignal,
 ): Promise<ContractListResult> {
   assertSupabaseConfigured();
+  const selectedStatuses = params.statuses ?? [];
   const response = await request<ContractListRpcResponse>(
     supabaseApi.post(
       '/rpc/list_contracts',
@@ -134,7 +135,16 @@ export async function loadContractList(
         p_page: params.page,
         p_page_size: params.pageSize,
         p_search: params.search?.trim() || null,
-        p_status: params.status ?? null,
+        ...(params.contractSearch?.trim()
+          ? { p_contract_search: params.contractSearch.trim() }
+          : {}),
+        p_statuses: selectedStatuses,
+        p_customer_id: params.customerId ?? null,
+        p_customer_code: params.customerCode?.trim() || null,
+        p_outstanding_min: params.outstandingMin ?? null,
+        p_outstanding_max: params.outstandingMax ?? null,
+        p_next_due_from: params.nextDueFrom ?? null,
+        p_next_due_to: params.nextDueTo ?? null,
       },
       { signal },
     ),

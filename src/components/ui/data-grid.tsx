@@ -14,6 +14,7 @@ declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     headerTitle?: string;
     headerClassName?: string;
+    headerFilter?: ReactNode;
     cellClassName?: string;
     skeleton?: ReactNode;
     expandedContent?: (row: TData) => ReactNode;

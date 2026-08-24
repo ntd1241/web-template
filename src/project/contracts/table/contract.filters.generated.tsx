@@ -2,22 +2,11 @@
  * Scaffolded by filter-builder from `src/project/contracts/table/contract.filters.fixture.ts`. Run npm run gen:filter — do NOT hand-write this file.
  * You own this file now — keep domain state, renderers, and API mapping outside the builder.
  */
-import type { ReactNode } from 'react';
-import {
-  FilterToolbar,
-  type FilterToolbarOption,
-} from '@/components/ui/filter-toolbar';
-
-export type StatusFilterOption = FilterToolbarOption;
+import { FilterToolbar } from '@/components/ui/filter-toolbar';
 
 export interface ContractFilterBarProps {
   keyword: string;
   onKeywordChange: (value: string) => void;
-  status: string;
-  onStatusChange: (value: string) => void;
-  statusOptions: readonly StatusFilterOption[];
-  statusRenderOption?: (option: StatusFilterOption) => ReactNode;
-  statusRenderValue?: (option: StatusFilterOption | undefined) => ReactNode;
   disabled?: boolean;
   className?: string;
 }
@@ -25,11 +14,6 @@ export interface ContractFilterBarProps {
 export function ContractFilterBar({
   keyword,
   onKeywordChange,
-  status,
-  onStatusChange,
-  statusOptions,
-  statusRenderOption,
-  statusRenderValue,
   disabled = false,
   className,
 }: ContractFilterBarProps) {
@@ -45,19 +29,6 @@ export function ContractFilterBar({
           className: 'w-72',
           debounceMs: 300,
           disabled,
-        },
-        {
-          kind: 'select',
-          value: status,
-          onValueChange: onStatusChange,
-          options: statusOptions ?? [],
-          label: 'Trạng thái',
-          placeholder: 'Trạng thái',
-          ariaLabel: 'Trạng thái hợp đồng',
-          className: 'w-44',
-          disabled,
-          renderOption: statusRenderOption,
-          renderValue: statusRenderValue,
         },
       ]}
     />

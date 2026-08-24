@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { Check } from 'lucide-react';
 import { searchMatch } from '@/lib/search';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   CommandEmpty,
   CommandGroup,
@@ -105,11 +105,12 @@ export function MultiSelectList<T>({
                     option.disabled && 'text-disabled-foreground',
                   )}
                 >
-                  <Check
-                    className={cn(
-                      'size-4 text-primary',
-                      isSelected ? 'opacity-100' : 'opacity-0',
-                    )}
+                  <Checkbox
+                    checked={isSelected}
+                    disabled={option.disabled}
+                    aria-label={`Chọn ${nodeToString(option.label) || option.value}`}
+                    tabIndex={-1}
+                    className="pointer-events-none size-4"
                   />
                   <span className="min-w-0 flex-1 truncate">
                     {option.label}

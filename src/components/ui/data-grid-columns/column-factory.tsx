@@ -35,6 +35,7 @@ interface BaseColumnOptions<TRow extends object> {
   id: ColumnId;
   header: ReactNode;
   headerClassName?: string;
+  headerFilter?: ReactNode;
   cellClassName?: string;
   visibility?: boolean;
   enableSorting?: boolean;
@@ -126,15 +127,18 @@ function renderHeader<TRow extends object>(
 function createMeta<TRow extends object>({
   header,
   headerClassName,
+  headerFilter,
   cellClassName,
 }: {
   header: ReactNode;
   headerClassName?: string;
+  headerFilter?: ReactNode;
   cellClassName?: string;
 }): ColumnDef<TRow>['meta'] {
   return {
     headerTitle: typeof header === 'string' ? header : undefined,
     headerClassName,
+    headerFilter,
     cellClassName,
   };
 }
@@ -144,6 +148,7 @@ function createAccessorColumn<TRow extends object, TValue>({
   header,
   get,
   headerClassName,
+  headerFilter,
   cellClassName,
   visibility,
   enableSorting,
@@ -163,7 +168,12 @@ function createAccessorColumn<TRow extends object, TValue>({
     size,
     minSize,
     maxSize,
-    meta: createMeta({ header, headerClassName, cellClassName }),
+    meta: createMeta({
+      header,
+      headerClassName,
+      headerFilter,
+      cellClassName,
+    }),
   };
 }
 

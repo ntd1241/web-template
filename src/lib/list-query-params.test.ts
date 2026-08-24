@@ -7,6 +7,7 @@ import {
 interface Filters {
   status: 'all' | 'active';
   tagId: string;
+  customerCode: string;
 }
 
 describe('buildListQueryParams', () => {
@@ -14,7 +15,7 @@ describe('buildListQueryParams', () => {
     const result = buildListQueryParams<Filters>(
       {
         keyword: '  abc  ',
-        filters: { status: 'active', tagId: 'all' },
+        filters: { status: 'active', tagId: 'all', customerCode: 'KH-001' },
         pagination: { pageIndex: 2, pageSize: 25 },
         sorting: [{ id: 'createdAt', desc: true }],
       },
@@ -22,6 +23,7 @@ describe('buildListQueryParams', () => {
         filters: {
           status: { param: 'p_status', omit: ['all'] },
           tagId: { param: 'p_tag_id', omit: ['all'] },
+          customerCode: { param: 'p_customer_code' },
         },
         search: { param: 'p_search' },
         sort: { param: 'p_sort' },
@@ -33,6 +35,7 @@ describe('buildListQueryParams', () => {
       pageSize: 25,
       p_search: 'abc',
       p_status: 'active',
+      p_customer_code: 'KH-001',
       p_sort: 'createdAt_desc',
     });
   });
