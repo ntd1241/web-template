@@ -14,6 +14,16 @@ import {
 } from '@/components/ui/data-grid-columns';
 import { CustomerCell } from '../components/customer-cell';
 import { BUSINESS_TYPE_LABELS, type Customer } from '../model/customer';
+import {
+  CUSTOMER_BUSINESS_TYPE_FILTER_OPTIONS,
+  CUSTOMER_STATUS_FILTER_OPTIONS,
+} from './customer-column-filters';
+import {
+  CustomerBusinessTypeColumnFilter,
+  CustomerContactColumnFilter,
+  CustomerStatusColumnFilter,
+  CustomerTextColumnFilter,
+} from './customer-column-filters.generated';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
   active: {
@@ -33,6 +43,14 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
 export interface UseCustomerColumnsParams {
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
+  customerSearch: string;
+  onCustomerSearchChange: (value: string) => void;
+  businessTypes: string[];
+  onBusinessTypesChange: (value: string[]) => void;
+  contactSearch: string;
+  onContactSearchChange: (value: string) => void;
+  statuses: string[];
+  onStatusesChange: (value: string[]) => void;
 }
 
 export function useCustomerColumns(
@@ -45,6 +63,12 @@ export function useCustomerColumns(
       col.custom({
         id: 'name',
         header: 'Khách hàng',
+        headerFilter: (
+          <CustomerTextColumnFilter
+            value={params.customerSearch}
+            onChange={params.onCustomerSearchChange}
+          />
+        ),
         headerClassName: 'min-w-[240px]',
         enableSorting: false,
         cell: (row) => <CustomerCell customer={row} />,
@@ -52,6 +76,13 @@ export function useCustomerColumns(
       col.custom({
         id: 'businessType',
         header: 'Loại hình đơn vị',
+        headerFilter: (
+          <CustomerBusinessTypeColumnFilter
+            value={params.businessTypes}
+            options={CUSTOMER_BUSINESS_TYPE_FILTER_OPTIONS}
+            onChange={params.onBusinessTypesChange}
+          />
+        ),
         headerClassName: 'min-w-[160px]',
         enableSorting: false,
         cell: (row) => (
@@ -63,6 +94,12 @@ export function useCustomerColumns(
       col.custom({
         id: 'contact',
         header: 'Liên hệ',
+        headerFilter: (
+          <CustomerContactColumnFilter
+            value={params.contactSearch}
+            onChange={params.onContactSearchChange}
+          />
+        ),
         headerClassName: 'min-w-[220px]',
         enableSorting: false,
         cell: (row) => (
@@ -81,6 +118,14 @@ export function useCustomerColumns(
         header: 'Trạng thái',
         get: (row) => row.status,
         config: statusBadgeConfig,
+        headerFilter: (
+          <CustomerStatusColumnFilter
+            value={params.statuses}
+            options={CUSTOMER_STATUS_FILTER_OPTIONS}
+            onChange={params.onStatusesChange}
+          />
+        ),
+        headerClassName: 'min-w-[170px]',
         enableSorting: false,
       }),
       col.actions({

@@ -101,7 +101,16 @@ export interface ContractTemplateListParams {
   page: number;
   pageSize: number;
   search?: string;
-  status?: ContractTemplateStatus;
+  templateSearch?: string;
+  statuses?: ContractTemplateStatus[];
+  lineCountMin?: number;
+  lineCountMax?: number;
+  contractCountMin?: number;
+  contractCountMax?: number;
+  versionNoMin?: number;
+  versionNoMax?: number;
+  updatedFrom?: string;
+  updatedTo?: string;
 }
 
 export interface ContractTemplateListResult {

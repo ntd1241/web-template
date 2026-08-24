@@ -25,11 +25,16 @@ function banner(specPath?: string): string {
  */`;
 }
 
-function componentName(spec: ResolvedColumnFilterSpec, field: ColumnFilterField) {
+function componentName(
+  spec: ResolvedColumnFilterSpec,
+  field: ColumnFilterField,
+) {
   return `${spec.componentName}${pascalCase(field.name)}ColumnFilter`;
 }
 
-function optionsType(field: Extract<ColumnFilterField, { type: 'selectSearch' | 'multiSelect' }>) {
+function optionsType(
+  field: Extract<ColumnFilterField, { type: 'selectSearch' | 'multiSelect' }>,
+) {
   return field.type === 'selectSearch'
     ? 'SearchSelectOption'
     : 'MultiSelectOption';
@@ -56,7 +61,9 @@ function emitStaticOptions(
 }
 
 function emitProps(field: ColumnFilterField): string[] {
-  const lines = [`export interface ${pascalCase(field.name)}ColumnFilterProps {`];
+  const lines = [
+    `export interface ${pascalCase(field.name)}ColumnFilterProps {`,
+  ];
 
   if (field.type === 'search') {
     lines.push('  value: string;', '  onChange: (value: string) => void;');
@@ -101,11 +108,7 @@ function emitComponent(
   const classNameExpression = fieldClassName
     ? `cn(${quote(fieldClassName)}, className)`
     : 'className';
-  const lines = [
-    `export function ${fnName}({`,
-    '  value,',
-    '  onChange,',
-  ];
+  const lines = [`export function ${fnName}({`, '  value,', '  onChange,'];
 
   if (field.type === 'selectSearch') {
     lines.push(
@@ -120,7 +123,12 @@ function emitComponent(
     );
   }
 
-  lines.push('  disabled = false,', '  className,', `}: ${propsName}) {`, '  return (');
+  lines.push(
+    '  disabled = false,',
+    '  className,',
+    `}: ${propsName}) {`,
+    '  return (',
+  );
 
   if (field.type === 'search') {
     lines.push(
@@ -181,7 +189,7 @@ function emitComponent(
       '        value={value}',
       '        onChange={onChange}',
       `        label={${quote(field.label)}}`,
-      `        placeholder={${field.placeholder ? quote(field.placeholder) : "'Mọi giá trị'"}}`,
+      `        placeholder={${field.placeholder ? quote(field.placeholder) : "''"}}`,
       '        disabled={disabled}',
       '      />',
       '    </div>',
@@ -193,7 +201,7 @@ function emitComponent(
       '        value={value}',
       '        onChange={onChange}',
       `        label={${quote(field.label)}}`,
-      `        placeholder={${field.placeholder ? quote(field.placeholder) : "'Mọi ngày'"}}`,
+      `        placeholder={${field.placeholder ? quote(field.placeholder) : "''"}}`,
       '        disabled={disabled}',
       '      />',
       '    </div>',
@@ -209,7 +217,9 @@ function emitImports(spec: ResolvedColumnFilterSpec): string[] {
   const lines = ["import { cn } from '@/lib/utils';"];
 
   if (imports.has('search')) {
-    lines.push("import { SearchInput } from '@/components/ui/inputs/search-input';");
+    lines.push(
+      "import { SearchInput } from '@/components/ui/inputs/search-input';",
+    );
   }
   if (imports.has('selectSearch')) {
     lines.push(
@@ -239,8 +249,12 @@ export function buildColumnFilterModule(input: ColumnFilterSpec): string {
   const spec = columnFilterSpecSchema.parse(input);
   const staticOptions = spec.fields
     .filter(
-      (field): field is Extract<ColumnFilterField, { type: 'selectSearch' | 'multiSelect' }> =>
-        field.type === 'selectSearch' || field.type === 'multiSelect',
+      (
+        field,
+      ): field is Extract<
+        ColumnFilterField,
+        { type: 'selectSearch' | 'multiSelect' }
+      > => field.type === 'selectSearch' || field.type === 'multiSelect',
     )
     .map((field) => emitStaticOptions(spec, field))
     .filter(Boolean);
@@ -250,10 +264,7 @@ export function buildColumnFilterModule(input: ColumnFilterSpec): string {
     ...emitImports(spec),
     '',
     ...staticOptions.flatMap((block) => [block, '']),
-    ...spec.fields.flatMap((field) => [
-      ...emitProps(field),
-      '',
-    ]),
+    ...spec.fields.flatMap((field) => [...emitProps(field), '']),
     ...spec.fields.flatMap((field) => emitComponent(spec, field)),
   ]
     .join('\n')

@@ -13,12 +13,33 @@ import {
   DataGridActionButton,
 } from '@/components/ui/data-grid-columns';
 import type { ContractTemplate } from '../model/contract-template';
+import { CONTRACT_TEMPLATE_STATUS_FILTER_OPTIONS } from './contract-template-column-filters';
+import {
+  ContractTemplateContractCountColumnFilter,
+  ContractTemplateLineCountColumnFilter,
+  ContractTemplateStatusColumnFilter,
+  ContractTemplateTextColumnFilter,
+  ContractTemplateUpdatedAtColumnFilter,
+  ContractTemplateVersionNoColumnFilter,
+} from './contract-template-column-filters.generated';
 import { ContractTemplateStatusBadge } from './contract-template-status-badge';
 
 export interface UseContractTemplateColumnsParams {
   onView: (template: ContractTemplate) => void;
   onEdit: (template: ContractTemplate) => void;
   onArchive: (template: ContractTemplate) => void;
+  templateSearch: string;
+  onTemplateSearchChange: (value: string) => void;
+  statuses: string[];
+  onStatusesChange: (value: string[]) => void;
+  lineCount: { min?: number; max?: number };
+  onLineCountChange: (value: { min?: number; max?: number }) => void;
+  contractCount: { min?: number; max?: number };
+  onContractCountChange: (value: { min?: number; max?: number }) => void;
+  versionNo: { min?: number; max?: number };
+  onVersionNoChange: (value: { min?: number; max?: number }) => void;
+  updatedAt: { from?: string; to?: string };
+  onUpdatedAtChange: (value: { from?: string; to?: string }) => void;
 }
 
 export function useContractTemplateColumns(
@@ -37,6 +58,12 @@ export function useContractTemplateColumns(
       col.custom({
         id: 'template',
         header: 'Mẫu hợp đồng',
+        headerFilter: (
+          <ContractTemplateTextColumnFilter
+            value={params.templateSearch}
+            onChange={params.onTemplateSearchChange}
+          />
+        ),
         headerClassName: 'min-w-[300px]',
         size: 340,
         enableSorting: false,
@@ -54,6 +81,13 @@ export function useContractTemplateColumns(
       col.custom({
         id: 'status',
         header: 'Trạng thái',
+        headerFilter: (
+          <ContractTemplateStatusColumnFilter
+            value={params.statuses}
+            options={CONTRACT_TEMPLATE_STATUS_FILTER_OPTIONS}
+            onChange={params.onStatusesChange}
+          />
+        ),
         headerClassName: 'w-[150px]',
         size: 150,
         enableSorting: false,
@@ -63,6 +97,12 @@ export function useContractTemplateColumns(
         id: 'lineCount',
         header: 'Khoản phí',
         get: (row) => row.lineCount,
+        headerFilter: (
+          <ContractTemplateLineCountColumnFilter
+            value={params.lineCount}
+            onChange={params.onLineCountChange}
+          />
+        ),
         headerClassName: 'w-[120px]',
         size: 120,
         enableSorting: false,
@@ -71,6 +111,12 @@ export function useContractTemplateColumns(
         id: 'contractCount',
         header: 'Hợp đồng đã tạo',
         get: (row) => row.contractCount,
+        headerFilter: (
+          <ContractTemplateContractCountColumnFilter
+            value={params.contractCount}
+            onChange={params.onContractCountChange}
+          />
+        ),
         headerClassName: 'w-[160px]',
         size: 160,
         enableSorting: false,
@@ -78,6 +124,12 @@ export function useContractTemplateColumns(
       col.custom({
         id: 'version',
         header: 'Phiên bản',
+        headerFilter: (
+          <ContractTemplateVersionNoColumnFilter
+            value={params.versionNo}
+            onChange={params.onVersionNoChange}
+          />
+        ),
         headerClassName: 'w-[130px]',
         size: 130,
         enableSorting: false,
@@ -94,6 +146,12 @@ export function useContractTemplateColumns(
         id: 'updatedAt',
         header: 'Cập nhật gần nhất',
         get: (row) => row.updatedAt,
+        headerFilter: (
+          <ContractTemplateUpdatedAtColumnFilter
+            value={params.updatedAt}
+            onChange={params.onUpdatedAtChange}
+          />
+        ),
         headerClassName: 'w-[170px]',
         size: 170,
         enableSorting: false,

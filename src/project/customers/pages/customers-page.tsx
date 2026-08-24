@@ -148,6 +148,16 @@ export function CustomersPage() {
   const columns = useCustomerColumns({
     onEdit: openEdit,
     onDelete: setDeletingCustomer,
+    customerSearch: filters.customerSearch,
+    onCustomerSearchChange: (value) => setFilter('customerSearch', value),
+    businessTypes: filters.businessTypes,
+    onBusinessTypesChange: (value) =>
+      setFilter('businessTypes', value as typeof filters.businessTypes),
+    contactSearch: filters.contactSearch,
+    onContactSearchChange: (value) => setFilter('contactSearch', value),
+    statuses: filters.statuses,
+    onStatusesChange: (value) =>
+      setFilter('statuses', value as typeof filters.statuses),
   });
   const table = useReactTable({
     data: customers,

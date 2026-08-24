@@ -87,6 +87,10 @@ export interface CustomerListParams {
   page: number;
   pageSize: number;
   search?: string;
+  customerSearch?: string;
+  businessTypes?: BusinessType[];
+  contactSearch?: string;
+  statuses?: CustomerStatus[];
   tagId?: string;
 }
 

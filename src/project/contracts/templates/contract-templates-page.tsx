@@ -86,6 +86,48 @@ export function ContractTemplatesPage() {
         }),
       ),
     onArchive: setArchivingTemplate,
+    templateSearch: filters.templateSearch,
+    onTemplateSearchChange: (value) => setFilter('templateSearch', value),
+    statuses: filters.statuses,
+    onStatusesChange: (value) => {
+      setFilter('statuses', value as typeof filters.statuses);
+      setFilter(
+        'status',
+        value.length === 1 ? (value[0] as typeof filters.status) : 'all',
+      );
+    },
+    lineCount: {
+      min: filters.lineCountMin,
+      max: filters.lineCountMax,
+    },
+    onLineCountChange: (value) => {
+      setFilter('lineCountMin', value.min);
+      setFilter('lineCountMax', value.max);
+    },
+    contractCount: {
+      min: filters.contractCountMin,
+      max: filters.contractCountMax,
+    },
+    onContractCountChange: (value) => {
+      setFilter('contractCountMin', value.min);
+      setFilter('contractCountMax', value.max);
+    },
+    versionNo: {
+      min: filters.versionNoMin,
+      max: filters.versionNoMax,
+    },
+    onVersionNoChange: (value) => {
+      setFilter('versionNoMin', value.min);
+      setFilter('versionNoMax', value.max);
+    },
+    updatedAt: {
+      from: filters.updatedFrom,
+      to: filters.updatedTo,
+    },
+    onUpdatedAtChange: (value) => {
+      setFilter('updatedFrom', value.from ?? '');
+      setFilter('updatedTo', value.to ?? '');
+    },
   });
   const table = useReactTable({
     data: templates,
@@ -140,7 +182,14 @@ export function ContractTemplatesPage() {
                 onKeywordChange={setKeyword}
                 status={filters.status}
                 onStatusChange={(value) =>
-                  setFilter('status', value as typeof filters.status)
+                  (() => {
+                    const nextStatus = value as typeof filters.status;
+                    setFilter('status', nextStatus);
+                    setFilter(
+                      'statuses',
+                      nextStatus === 'all' ? [] : [nextStatus],
+                    );
+                  })()
                 }
                 statusOptions={CONTRACT_TEMPLATE_FILTER_STATUS_OPTIONS}
                 statusRenderOption={(option) =>

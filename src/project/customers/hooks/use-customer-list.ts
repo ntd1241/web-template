@@ -3,21 +3,47 @@ import { buildListQueryParams } from '@/lib/list-query-params';
 import { useTableListState } from '@/hooks/use-table-list-state';
 import { useTenant } from '@/providers/tenant-provider';
 import { loadCustomerList, loadCustomerTagFilter } from '../api/customers.api';
-import type { CustomerListParams } from '../model/customer';
+import {
+  BUSINESS_TYPES,
+  CUSTOMER_STATUSES,
+  type BusinessType,
+  type CustomerListParams,
+  type CustomerStatus,
+} from '../model/customer';
 
 export interface CustomerListFilters {
+  customerSearch: string;
+  businessTypes: BusinessType[];
+  contactSearch: string;
+  statuses: CustomerStatus[];
   tagId: string;
 }
 
 export function useCustomerList() {
   const tenantState = useTenant();
   const listState = useTableListState<CustomerListFilters>({
-    initialFilters: { tagId: 'all' },
+    initialFilters: {
+      customerSearch: '',
+      businessTypes: [],
+      contactSearch: '',
+      statuses: [],
+      tagId: 'all',
+    },
     initialPageSize: 10,
   });
 
   const queryParams = buildListQueryParams(listState, {
     filters: {
+      customerSearch: { omit: [''] },
+      businessTypes: {
+        param: 'businessTypes',
+        serialize: (value) => (value.length > 0 ? value.join(',') : undefined),
+      },
+      contactSearch: { omit: [''] },
+      statuses: {
+        param: 'statuses',
+        serialize: (value) => (value.length > 0 ? value.join(',') : undefined),
+      },
       tagId: { omit: ['all', ''] },
     },
   });
@@ -27,6 +53,30 @@ export function useCustomerList() {
     pageSize: queryParams.pageSize,
     search:
       typeof queryParams.search === 'string' ? queryParams.search : undefined,
+    customerSearch:
+      typeof queryParams.customerSearch === 'string'
+        ? queryParams.customerSearch
+        : undefined,
+    businessTypes:
+      typeof queryParams.businessTypes === 'string'
+        ? queryParams.businessTypes
+            .split(',')
+            .filter((value): value is BusinessType =>
+              BUSINESS_TYPES.includes(value as BusinessType),
+            )
+        : undefined,
+    contactSearch:
+      typeof queryParams.contactSearch === 'string'
+        ? queryParams.contactSearch
+        : undefined,
+    statuses:
+      typeof queryParams.statuses === 'string'
+        ? queryParams.statuses
+            .split(',')
+            .filter((value): value is CustomerStatus =>
+              CUSTOMER_STATUSES.includes(value as CustomerStatus),
+            )
+        : undefined,
     tagId:
       typeof queryParams.tagId === 'string' ? queryParams.tagId : undefined,
   };
