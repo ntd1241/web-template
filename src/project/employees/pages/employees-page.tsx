@@ -1,16 +1,10 @@
-import { useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-  type PaginationState,
-} from '@tanstack/react-table';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useTenant } from '@/providers/tenant-provider';
-import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,22 +20,12 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
-import { SearchInput } from '@/components/ui/inputs/search-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Tag as TagBadge } from '@/components/ui/tag';
 import {
   createEmployee,
   deleteEmployee,
-  loadEmployeeTagFilter,
-  loadEmployeeWorkspace,
   updateEmployee,
 } from '../api/employees.api';
 import {
@@ -54,18 +38,13 @@ import {
   type Employee,
   type EmployeeFormValues,
 } from '../model/employee';
+import { useEmployeeList } from '../hooks/use-employee-list';
 import { useEmployeeColumns } from '../table/employee.columns.generated';
+import { EmployeeFilterBar } from '../table/employee.filters.generated';
 
 export function EmployeesPage() {
-  const { userId } = useUser();
   const { tenantId } = useTenant();
   const queryClient = useQueryClient();
-  const [keyword, setKeyword] = useState('');
-  const [employeeTagId, setEmployeeTagId] = useState('all');
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(
@@ -73,76 +52,31 @@ export function EmployeesPage() {
   );
   const form = useEmployeeForm();
 
-  const workspaceQuery = useQuery({
-    queryKey: ['project', 'employees', userId, tenantId],
-    queryFn: () => {
-      if (!userId || !tenantId) {
-        throw new Error('Chưa xác định tổ chức hiện tại.');
-      }
-      return loadEmployeeWorkspace(userId, tenantId);
-    },
-    enabled: Boolean(userId && tenantId),
-  });
-
-  const employeeTagFilterQuery = useQuery({
-    queryKey: [
-      'project',
-      'employees',
-      'tag-filter',
-      userId,
-      workspaceQuery.data?.tenantId,
-    ],
-    queryFn: () => loadEmployeeTagFilter(workspaceQuery.data!.tenantId),
-    enabled: Boolean(workspaceQuery.data?.tenantId),
-  });
-
-  const employees = useMemo(() => {
-    const source = workspaceQuery.data?.employees ?? [];
-    const normalized = keyword.trim().toLowerCase();
-    const selectedEmployeeIds =
-      employeeTagId === 'all'
-        ? null
-        : new Set(
-            employeeTagFilterQuery.data?.employeeIdsByTagId[employeeTagId] ??
-              [],
-          );
-
-    return source.filter((employee) => {
-      if (selectedEmployeeIds && !selectedEmployeeIds.has(employee.id)) {
-        return false;
-      }
-      if (!normalized) return true;
-      return [
-        employee.employeeCode,
-        employee.displayName,
-        employee.department,
-        employee.jobTitle,
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(normalized);
-    });
-  }, [
-    employeeTagFilterQuery.data?.employeeIdsByTagId,
-    employeeTagId,
+  const {
+    employees,
+    total,
     keyword,
-    workspaceQuery.data?.employees,
-  ]);
-
-  const employeeTagOptions = employeeTagFilterQuery.data?.options ?? [];
-  const selectedEmployeeTag = employeeTagOptions.find(
-    (option) => option.value === employeeTagId,
-  );
+    setKeyword,
+    filters,
+    setFilter,
+    pagination,
+    onPaginationChange,
+    tenantQuery,
+    workspaceQuery,
+    employeeTagOptions,
+    employeeTagOptionsQuery,
+    employeeRoleOptions,
+    employeeRoleOptionsQuery,
+  } = useEmployeeList();
 
   const invalidateEmployees = () =>
     queryClient.invalidateQueries({
-      queryKey: ['project', 'employees', userId],
+      queryKey: ['project', 'employees'],
     });
 
   const saveMutation = useMutation({
     mutationFn: (values: EmployeeFormValues) => {
       if (editingEmployee) return updateEmployee(editingEmployee.id, values);
-      const tenantId = workspaceQuery.data?.tenantId;
       if (!tenantId) throw new Error('Chưa xác định tenant.');
       return createEmployee(tenantId, values);
     },
@@ -180,18 +114,36 @@ export function EmployeesPage() {
   const columns = useEmployeeColumns({
     onEdit: openEdit,
     onDelete: setDeletingEmployee,
+    employeeSearch: keyword,
+    onEmployeeSearchChange: setKeyword,
+    roleIds: filters.roleIds,
+    roleOptions: employeeRoleOptions,
+    roleOptionsLoading: employeeRoleOptionsQuery.isLoading,
+    onRoleIdsChange: (value) => setFilter('roleIds', value),
+    statuses: filters.statuses,
+    onStatusesChange: (value) => setFilter('statuses', value),
+    accountLinked: filters.accountLinked === 'all' ? '' : filters.accountLinked,
+    onAccountLinkedChange: (value) =>
+      setFilter(
+        'accountLinked',
+        value === '' ? 'all' : (value as 'linked' | 'unlinked'),
+      ),
   });
   const table = useReactTable({
     data: employees,
     columns,
     getRowId: (row) => row.id,
     state: { pagination },
-    onPaginationChange: setPagination,
-    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange,
+    manualPagination: true,
+    pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
   });
 
-  if (workspaceQuery.isError) {
+  const listError = tenantQuery.error ?? workspaceQuery.error;
+  const isListLoading = tenantQuery.isPending || workspaceQuery.isLoading;
+
+  if (tenantQuery.isError || workspaceQuery.isError) {
     return (
       <div className="p-6">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
@@ -199,10 +151,16 @@ export function EmployeesPage() {
           <div>
             <CardTitle>Không tải được danh sách nhân viên</CardTitle>
             <CardDescription className="mt-1">
-              {getApiErrorMessage(workspaceQuery.error)}
+              {getApiErrorMessage(listError)}
             </CardDescription>
           </div>
-          <Button variant="outline" onClick={() => workspaceQuery.refetch()}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              void tenantQuery.refetch();
+              void workspaceQuery.refetch();
+            }}
+          >
             Thử lại
           </Button>
         </Card>
@@ -214,8 +172,8 @@ export function EmployeesPage() {
     <div className="flex h-full min-h-0 flex-col p-6">
       <DataGrid
         table={table}
-        recordCount={employees.length}
-        isLoading={workspaceQuery.isLoading}
+        recordCount={total}
+        isLoading={isListLoading}
         emptyMessage="Chưa có nhân viên"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
@@ -224,55 +182,50 @@ export function EmployeesPage() {
               <CardTitle>Quản lý nhân viên</CardTitle>
             </CardHeading>
             <CardToolbar className="flex-wrap">
-              <SearchInput
-                className="w-64"
-                placeholder="Tìm theo tên hoặc mã nhân viên"
-                value={keyword}
-                debounceMs={0}
-                onSearch={setKeyword}
-              />
-              <Select
-                value={employeeTagId}
-                onValueChange={(value) => {
-                  setEmployeeTagId(value);
-                  setPagination((current) => ({ ...current, pageIndex: 0 }));
+              <EmployeeFilterBar
+                tag={filters.tagId}
+                onTagChange={(value) => setFilter('tagId', value)}
+                tagOptions={[
+                  { value: 'all', label: 'Tất cả nhóm' },
+                  ...employeeTagOptions.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                  })),
+                ]}
+                renderTagOption={(option) => {
+                  const tag = employeeTagOptions.find(
+                    (item) => item.value === option.value,
+                  );
+                  return tag ? (
+                    <TagBadge color={tag.color} size="sm">
+                      {tag.label}
+                    </TagBadge>
+                  ) : (
+                    option.label
+                  );
                 }}
-                disabled={employeeTagFilterQuery.isLoading}
-              >
-                <SelectTrigger className="w-48" aria-label="Nhóm nhân viên">
-                  <SelectValue label="Nhóm" placeholder="Nhóm nhân viên">
-                    {employeeTagId === 'all' ? (
-                      'Tất cả'
-                    ) : selectedEmployeeTag ? (
-                      <TagBadge color={selectedEmployeeTag.color} size="sm">
-                        {selectedEmployeeTag.label}
-                      </TagBadge>
-                    ) : (
-                      'Nhóm nhân viên'
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả nhóm</SelectItem>
-                  {employeeTagOptions.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      textValue={option.label}
-                    >
-                      <TagBadge color={option.color} size="sm">
-                        {option.label}
-                      </TagBadge>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                renderTagValue={(option) => {
+                  const tag = employeeTagOptions.find(
+                    (item) => item.value === option?.value,
+                  );
+                  return tag ? (
+                    <TagBadge color={tag.color} size="sm">
+                      {tag.label}
+                    </TagBadge>
+                  ) : (
+                    option?.label
+                  );
+                }}
+                disabled={employeeTagOptionsQuery.isLoading}
+              />
               <Button
                 variant="outline"
-                onClick={() => workspaceQuery.refetch()}
+                mode="icon"
+                aria-label="Làm mới"
+                title="Làm mới"
+                onClick={() => void workspaceQuery.refetch()}
               >
                 <RefreshCw />
-                Làm mới
               </Button>
               <ShortcutTooltip label="Thêm nhân viên" shortcut="Alt + N">
                 <Button

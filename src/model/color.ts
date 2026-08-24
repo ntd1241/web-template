@@ -18,14 +18,23 @@ export const COLOR_LABELS: Record<AppColor, string> = {
   slate: 'Xám',
 };
 
-export const COLOR_SWATCH_CLASSES: Record<AppColor, string> = {
-  blue: 'border-admin-blue-primary bg-admin-blue-primary',
-  violet: 'border-admin-violet-primary bg-admin-violet-primary',
-  red: 'border-admin-red-primary bg-admin-red-primary',
-  green: 'border-admin-success-text bg-admin-success-text',
-  amber: 'border-admin-amber-primary bg-admin-amber-primary',
-  slate: 'border-muted-foreground bg-muted-foreground',
+/** The only color-specific fill token used by solid color badges/swatches. */
+export const COLOR_PRIMARY_CLASSES: Record<AppColor, string> = {
+  blue: 'bg-admin-blue-primary',
+  violet: 'bg-admin-violet-primary',
+  red: 'bg-admin-red-primary',
+  green: 'bg-admin-success-text',
+  amber: 'bg-admin-amber-primary',
+  slate: 'bg-muted-foreground',
 };
+
+export const COLOR_SWATCH_CLASSES: Record<AppColor, string> =
+  Object.fromEntries(
+    APP_COLORS.map((color) => [
+      color,
+      `border-transparent ${COLOR_PRIMARY_CLASSES[color]}`,
+    ]),
+  ) as Record<AppColor, string>;
 
 export const COLOR_TEXT_CLASSES: Record<AppColor, string> = {
   blue: 'text-admin-blue-dark',
@@ -38,55 +47,29 @@ export const COLOR_TEXT_CLASSES: Record<AppColor, string> = {
 
 export type ColorBadgeAppearance = 'default' | 'light' | 'outline' | 'ghost';
 
+const COLOR_BADGE_COMMON_CLASSES: Record<
+  Exclude<ColorBadgeAppearance, 'default'>,
+  string
+> = {
+  light: 'border-current/20 bg-current/10',
+  outline: 'border-current/40 bg-transparent',
+  ghost: 'border-transparent bg-transparent hover:bg-current/10',
+};
+
 export const COLOR_BADGE_CLASSES: Record<
   AppColor,
   Record<ColorBadgeAppearance, string>
-> = {
-  blue: {
-    default: 'border-transparent bg-admin-blue-primary text-white',
-    light: 'border-admin-blue-light bg-admin-blue-bg text-admin-blue-dark',
-    outline: 'border-admin-blue-light bg-transparent text-admin-blue-dark',
-    ghost:
-      'border-transparent bg-transparent text-admin-blue-dark hover:bg-admin-blue-bg',
-  },
-  violet: {
-    default: 'border-transparent bg-admin-violet-primary text-white',
-    light:
-      'border-admin-violet-border bg-admin-violet-bg text-admin-violet-dark',
-    outline: 'border-admin-violet-border bg-transparent text-admin-violet-dark',
-    ghost:
-      'border-transparent bg-transparent text-admin-violet-dark hover:bg-admin-violet-bg',
-  },
-  red: {
-    default: 'border-transparent bg-admin-red-primary text-white',
-    light: 'border-admin-red-light bg-admin-red-bg text-admin-red-dark',
-    outline: 'border-admin-red-light bg-transparent text-admin-red-dark',
-    ghost:
-      'border-transparent bg-transparent text-admin-red-dark hover:bg-admin-red-bg',
-  },
-  green: {
-    default: 'border-transparent bg-admin-success-text text-white',
-    light:
-      'border-admin-success-bg bg-admin-success-bg text-admin-success-text',
-    outline: 'border-admin-success-bg bg-transparent text-admin-success-text',
-    ghost:
-      'border-transparent bg-transparent text-admin-success-text hover:bg-admin-success-bg',
-  },
-  amber: {
-    default: 'border-transparent bg-admin-amber-primary text-white',
-    light: 'border-admin-amber-border bg-admin-amber-bg text-admin-amber-dark',
-    outline: 'border-admin-amber-border bg-transparent text-admin-amber-dark',
-    ghost:
-      'border-transparent bg-transparent text-admin-amber-dark hover:bg-admin-amber-bg',
-  },
-  slate: {
-    default: 'border-transparent bg-muted-foreground text-white',
-    light: 'border-border bg-muted text-muted-foreground',
-    outline: 'border-border bg-transparent text-muted-foreground',
-    ghost:
-      'border-transparent bg-transparent text-muted-foreground hover:bg-muted',
-  },
-};
+> = Object.fromEntries(
+  APP_COLORS.map((color) => [
+    color,
+    {
+      default: `border-transparent ${COLOR_PRIMARY_CLASSES[color]} text-white`,
+      light: `${COLOR_BADGE_COMMON_CLASSES.light} ${COLOR_TEXT_CLASSES[color]}`,
+      outline: `${COLOR_BADGE_COMMON_CLASSES.outline} ${COLOR_TEXT_CLASSES[color]}`,
+      ghost: `${COLOR_BADGE_COMMON_CLASSES.ghost} ${COLOR_TEXT_CLASSES[color]}`,
+    },
+  ]),
+) as Record<AppColor, Record<ColorBadgeAppearance, string>>;
 
 export function getColorBadgeClass(
   color: AppColor,

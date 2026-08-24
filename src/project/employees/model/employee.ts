@@ -32,6 +32,12 @@ export interface EmployeeRole {
   color: RoleColor;
 }
 
+export interface EmployeeRoleOption {
+  id: string;
+  name: string;
+  color: RoleColor;
+}
+
 export interface Employee {
   id: string;
   tenantId: string;
@@ -64,6 +70,26 @@ export interface EmployeeRow {
   status: EmployeeStatus;
   joined_at: string | null;
   note: string;
+}
+
+export interface EmployeeListRpcRow extends EmployeeRow {
+  avatar_url: string | null;
+  roles: EmployeeRole[];
+}
+
+export interface EmployeeListParams {
+  page: number;
+  pageSize: number;
+  search?: string;
+  statuses?: EmployeeStatus[];
+  roleIds?: string[];
+  accountLinked?: boolean;
+  tagId?: string;
+}
+
+export interface EmployeeListResult {
+  employees: Employee[];
+  total: number;
 }
 
 export interface EmployeeAvatarRow {

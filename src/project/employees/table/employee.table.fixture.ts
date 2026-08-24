@@ -51,9 +51,10 @@ const spec: TableSpec = {
         },
         false: {
           label: 'Chưa liên kết',
-          variant: 'outline',
-          className: 'rounded-md px-2.5 py-1 text-xs text-muted-foreground',
-          dotClassName: 'bg-admin-neutral-400 opacity-100',
+          variant: 'warning',
+          className:
+            'rounded-md border-transparent bg-admin-amber-bg px-2.5 py-1 text-xs text-admin-amber-dark',
+          dotClassName: 'bg-admin-amber-primary opacity-100',
         },
       },
     },

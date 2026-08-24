@@ -4,6 +4,10 @@ import type {
   Employee,
   EmployeeAvatarRow,
   EmployeeFormValues,
+  EmployeeListParams,
+  EmployeeListResult,
+  EmployeeListRpcRow,
+  EmployeeRoleOption,
   EmployeeRole,
   EmployeeRow,
   EmployeeStatus,
@@ -25,12 +29,21 @@ interface EmployeeRoleRow {
   color: EmployeeRole['color'];
 }
 
+interface EmployeeListRpcResponse {
+  items: EmployeeListRpcRow[];
+  total: number | string;
+}
+
 function queryParams(params: Record<string, string>) {
   return { params };
 }
 
 async function request<T>(promise: Promise<unknown>): Promise<T> {
   return (await promise) as T;
+}
+
+function numberValue(value: number | string | null | undefined) {
+  return value == null ? 0 : typeof value === 'number' ? value : Number(value);
 }
 
 export interface EmployeeWorkspace {
@@ -58,6 +71,54 @@ interface EmployeeTagAssignmentRow {
 export interface EmployeeTagFilterData {
   options: Array<{ value: string; label: string; color: string | null }>;
   employeeIdsByTagId: Record<string, string[]>;
+}
+
+export async function loadEmployeeList(
+  tenantId: string,
+  params: EmployeeListParams,
+  signal?: AbortSignal,
+): Promise<EmployeeListResult> {
+  assertSupabaseConfigured();
+  const response = await request<EmployeeListRpcResponse>(
+    supabaseApi.post(
+      '/rpc/list_employees',
+      {
+        p_tenant_id: tenantId,
+        p_page: params.page,
+        p_page_size: params.pageSize,
+        p_search: params.search?.trim() || null,
+        p_statuses: params.statuses ?? [],
+        p_role_ids: params.roleIds ?? [],
+        p_account_linked: params.accountLinked ?? null,
+        p_tag_id: params.tagId ?? null,
+      },
+      { signal },
+    ),
+  );
+
+  return {
+    employees: response.items.map((row) =>
+      mapEmployeeRow(row, row.avatar_url, row.roles ?? []),
+    ),
+    total: numberValue(response.total),
+  };
+}
+
+export async function loadEmployeeRoleOptions(
+  tenantId: string,
+): Promise<EmployeeRoleOption[]> {
+  assertSupabaseConfigured();
+  return request<EmployeeRoleOption[]>(
+    supabaseApi.get(
+      '/roles',
+      queryParams({
+        select: 'id,name,color',
+        tenant_id: `eq.${tenantId}`,
+        is_active: 'eq.true',
+        order: 'name.asc,id.asc',
+      }),
+    ),
+  );
 }
 
 async function resolveTenantId(userId: string) {
