@@ -27,6 +27,7 @@ interface RangeFilterPopoverProps {
   summary: string;
   placeholder: string;
   ariaLabel: string;
+  disabled?: boolean;
   onClear: () => void;
   children: ReactNode;
 }
@@ -36,6 +37,7 @@ function RangeFilterPopover({
   summary,
   placeholder,
   ariaLabel,
+  disabled = false,
   onClear,
   children,
 }: RangeFilterPopoverProps) {
@@ -47,6 +49,7 @@ function RangeFilterPopover({
           variant="outline"
           size="sm"
           aria-label={ariaLabel}
+          disabled={disabled}
           className="h-7 min-h-7 w-full shrink-0 justify-between gap-1 px-2.5 text-xs font-normal"
         >
           <span
@@ -71,6 +74,7 @@ function RangeFilterPopover({
                 size="sm"
                 className="w-full justify-center"
                 onClick={onClear}
+                disabled={disabled}
               >
                 Xóa bộ lọc
               </Button>
@@ -87,11 +91,13 @@ export function NumberRangeFilter({
   onChange,
   placeholder = 'Mọi giá trị',
   label = 'Khoảng giá trị',
+  disabled = false,
 }: {
   value: NumberRangeValue;
   onChange: (value: NumberRangeValue) => void;
   placeholder?: string;
   label?: string;
+  disabled?: boolean;
 }) {
   const { formatCompactCurrency } = useNumberFormat();
   const active = value.min !== undefined || value.max !== undefined;
@@ -108,6 +114,7 @@ export function NumberRangeFilter({
       summary={summary}
       placeholder={placeholder}
       ariaLabel={label}
+      disabled={disabled}
       onClear={() => onChange({})}
     >
       <div className="space-y-1.5">
@@ -118,6 +125,7 @@ export function NumberRangeFilter({
             variant="md"
             placeholder="Từ"
             value={value.min}
+            disabled={disabled}
             onValueChange={(min) => onChange({ ...value, min })}
             className="text-left"
           />
@@ -126,6 +134,7 @@ export function NumberRangeFilter({
             variant="md"
             placeholder="Đến"
             value={value.max}
+            disabled={disabled}
             onValueChange={(max) => onChange({ ...value, max })}
             className="text-left"
           />
@@ -140,11 +149,13 @@ export function DateRangeFilter({
   onChange,
   placeholder = 'Mọi ngày',
   label = 'Khoảng ngày',
+  disabled = false,
 }: {
   value: DateRangeValue;
   onChange: (value: DateRangeValue) => void;
   placeholder?: string;
   label?: string;
+  disabled?: boolean;
 }) {
   const active = Boolean(value.from || value.to);
   const summary =
@@ -160,6 +171,7 @@ export function DateRangeFilter({
       summary={summary}
       placeholder={placeholder}
       ariaLabel={label}
+      disabled={disabled}
       onClear={() => onChange({})}
     >
       <div className="space-y-1.5">
@@ -171,6 +183,7 @@ export function DateRangeFilter({
             variant="md"
             placeholder="Từ ngày"
             value={value.from}
+            disabled={disabled}
             valueMode="iso-date"
             onChange={(from) =>
               onChange({
@@ -185,6 +198,7 @@ export function DateRangeFilter({
             variant="md"
             placeholder="Đến ngày"
             value={value.to}
+            disabled={disabled}
             valueMode="iso-date"
             onChange={(to) =>
               onChange({

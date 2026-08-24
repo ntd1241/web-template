@@ -20,12 +20,17 @@ import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { ContractCell } from '../components/contract-cell';
 import type { Contract } from '../model/contract';
 import {
+  CONTRACT_STATUS_FILTER_OPTIONS,
+  renderContractCustomerFilterTrigger,
+  toContractCustomerFilterOption,
+} from './contract-column-filters';
+import {
   ContractCustomerColumnFilter,
-  ContractNextDueDateColumnFilter,
+  ContractNextDueColumnFilter,
   ContractOutstandingColumnFilter,
   ContractStatusColumnFilter,
   ContractTextColumnFilter,
-} from './contract-column-filters';
+} from './contract-column-filters.generated';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
   draft: {
@@ -113,10 +118,16 @@ export function useContractColumns(
         header: 'Khách hàng',
         headerFilter: (
           <ContractCustomerColumnFilter
-            customerId={params.customerId}
-            customerOptions={params.customerOptions}
-            customerOptionsLoading={params.customerOptionsLoading}
-            onCustomerIdChange={params.onCustomerIdChange}
+            value={params.customerId}
+            options={params.customerOptions.map(toContractCustomerFilterOption)}
+            loading={params.customerOptionsLoading}
+            disabled={
+              Boolean(params.customerOptionsLoading) &&
+              params.customerOptions.length === 0
+            }
+            triggerContent={renderContractCustomerFilterTrigger}
+            renderOption={(option) => option.label}
+            onChange={params.onCustomerIdChange}
           />
         ),
         headerClassName: 'min-w-[240px]',
@@ -150,7 +161,10 @@ export function useContractColumns(
         headerFilter: (
           <ContractStatusColumnFilter
             value={params.statuses}
-            onChange={params.onStatusChange}
+            options={CONTRACT_STATUS_FILTER_OPTIONS}
+            onChange={(value) =>
+              params.onStatusChange(value as typeof params.statuses)
+            }
           />
         ),
         headerClassName: 'w-[140px]',
@@ -177,7 +191,7 @@ export function useContractColumns(
         header: 'Hạn gần nhất',
         get: (row) => row.nextDueDate,
         headerFilter: (
-          <ContractNextDueDateColumnFilter
+          <ContractNextDueColumnFilter
             value={{ from: params.nextDueFrom, to: params.nextDueTo }}
             onChange={params.onNextDueChange}
           />

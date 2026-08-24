@@ -29,6 +29,7 @@ and consider whether a new builder is warranted (`docs/builders/authoring.md`).
 | `tooltip` | Chart tooltip wrapper and optional shared style provider | `TooltipSpec` (`@/builders/tooltip`) | `npm run gen:tooltip -- <spec> <out>` | standardizing tooltip presentation across charts | [`docs/builders/tooltip.md`](../../docs/builders/tooltip.md) |
 | `segmented-control` | Single-selection segmented control wrapper using `ToggleGroup` | `SegmentedControlSpec` (`@/builders/segmented-control`) | `npm run gen:segmented-control -- <spec> <out>` | repeated view or mode switchers with connected options | [`docs/builders/segmented-control.md`](../../docs/builders/segmented-control.md) |
 | `filter` | Search/select filter toolbar wrappers with typed callbacks and renderer slots | `FilterSpec` (`@/builders/filter`) | `npm run gen:filter -- <spec> <out>` | repeated server-side list filter toolbars | [`docs/builders/filter.md`](../../docs/builders/filter.md) |
+| `column-filter` | Compact text, searchable select, multi-select, number-range, and date-range controls for data-grid header filters | `ColumnFilterSpec` (`@/builders/column-filter`) | `npm run gen:column-filter -- <spec> <out>` | repeated filters rendered beneath table column labels | [`docs/builders/column-filter.md`](../../docs/builders/column-filter.md) |
 
 _(Future builders — page/orchestrator — add a row here. A programmatic `tools/builders/registry.ts`
 arrives with the Phase 3 orchestrator; this table is the agent-facing index until then.)_

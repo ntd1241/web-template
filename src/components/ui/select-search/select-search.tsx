@@ -34,6 +34,7 @@ export interface SelectSearchProps<T = unknown> {
   options: Array<SearchSelectOption<T>>;
   placeholder?: string;
   searchPlaceholder?: string;
+  ariaLabel?: string;
   emptyMessage?: string;
   disabled?: boolean;
   manualFilter?: boolean;
@@ -104,6 +105,7 @@ export function SelectSearch<T = unknown>({
   options,
   placeholder = 'Chọn...',
   searchPlaceholder = 'Tìm...',
+  ariaLabel,
   emptyMessage = 'Không có kết quả',
   disabled = false,
   manualFilter = false,
@@ -179,6 +181,7 @@ export function SelectSearch<T = unknown>({
           type="button"
           role="combobox"
           aria-expanded={isOpen}
+          aria-label={ariaLabel}
           aria-busy={loading}
           disabled={disabled}
           variant="outline"
