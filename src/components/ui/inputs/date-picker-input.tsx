@@ -9,6 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input, type inputVariants } from '@/components/ui/input';
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
@@ -83,9 +84,13 @@ export function DatePickerInput({
     [value, valueMode],
   );
   const [dateText, setDateText] = useState(() => formatDateInput(selectedDate));
+  const [calendarDate, setCalendarDate] = useState<Date | undefined>(
+    selectedDate,
+  );
 
   useEffect(() => {
     setDateText(formatDateInput(selectedDate));
+    setCalendarDate(selectedDate);
   }, [selectedDate]);
 
   const emitChange = (date: Date | undefined) => {
@@ -100,7 +105,21 @@ export function DatePickerInput({
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
     setDateText(nextValue);
-    emitChange(parseDateInput(nextValue));
+
+    // Keep incomplete/temporarily invalid text local while the user is editing.
+    // Emitting undefined here would update the controlled form value and cause
+    // the input to reset before the user can finish typing the date.
+    if (!nextValue.trim()) {
+      setCalendarDate(undefined);
+      emitChange(undefined);
+      return;
+    }
+
+    const parsedDate = parseDateInput(nextValue);
+    if (parsedDate) {
+      setCalendarDate(parsedDate);
+      emitChange(parsedDate);
+    }
   };
 
   const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
@@ -115,46 +134,51 @@ export function DatePickerInput({
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
 
+    setCalendarDate(date);
     emitChange(date);
     setDateText(formatDateInput(date));
     setIsOpen(false);
   };
 
   return (
-    <div className="relative w-full">
-      <Input
-        {...props}
-        inputMode="numeric"
-        placeholder={placeholder}
-        value={dateText}
-        variant={variant}
-        className={cn('pe-9', className)}
-        onBlur={handleBlur}
-        onChange={handleTextChange}
-      />
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label={calendarLabel}
-            className={cn(
-              'absolute inset-y-px end-px inline-flex w-8 items-center justify-center rounded-e-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30',
-              !selectedDate && 'text-muted-foreground',
-            )}
-          >
-            <CalendarDays className="size-4" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            locale={vi}
-            selected={selectedDate}
-            onSelect={handleSelect}
-            autoFocus
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverAnchor asChild>
+        <div className="relative w-full">
+          <Input
+            {...props}
+            inputMode="numeric"
+            placeholder={placeholder}
+            value={dateText}
+            variant={variant}
+            className={cn('pe-9', className)}
+            onBlur={handleBlur}
+            onChange={handleTextChange}
           />
-        </PopoverContent>
-      </Popover>
-    </div>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label={calendarLabel}
+              className={cn(
+                'absolute inset-y-px end-px inline-flex w-8 items-center justify-center rounded-e-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30',
+                !selectedDate && 'text-muted-foreground',
+              )}
+            >
+              <CalendarDays className="size-4" />
+            </button>
+          </PopoverTrigger>
+        </div>
+      </PopoverAnchor>
+      <PopoverContent className="w-auto p-0" align="end">
+        <Calendar
+          key={calendarDate ? format(calendarDate, ISO_DATE_FORMAT) : 'empty'}
+          mode="single"
+          locale={vi}
+          defaultMonth={calendarDate}
+          selected={calendarDate}
+          onSelect={handleSelect}
+          autoFocus
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

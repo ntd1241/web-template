@@ -44,6 +44,49 @@ describe('DatePickerInput', () => {
     expect(handleChange).toHaveBeenCalledWith('2026-06-20');
   });
 
+  it('keeps the current text while an existing date is edited', () => {
+    const handleChange = vi.fn();
+
+    render(
+      <DatePickerInput
+        aria-label="Ngày bắt đầu"
+        value="2026-01-01"
+        valueMode="iso-date"
+        onChange={handleChange}
+      />,
+    );
+
+    const input = screen.getByRole('textbox', { name: 'Ngày bắt đầu' });
+    fireEvent.change(input, { target: { value: '01/011/2026' } });
+
+    expect(input).toHaveValue('01/011/2026');
+    expect(handleChange).not.toHaveBeenCalled();
+
+    fireEvent.change(input, { target: { value: '01/11/2026' } });
+
+    expect(handleChange).toHaveBeenCalledWith('2026-11-01');
+  });
+
+  it('updates the open calendar when a valid date is typed', () => {
+    render(
+      <DatePickerInput
+        aria-label="Ngày kết thúc"
+        calendarLabel="Chọn ngày kết thúc"
+        value="2026-08-17"
+        valueMode="iso-date"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Chọn ngày kết thúc' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Ngày kết thúc' }), {
+      target: { value: '01/12/2025' },
+    });
+
+    expect(
+      document.querySelector('[data-day="2025-12-01"][data-selected]'),
+    ).toBeInTheDocument();
+  });
+
   it('opens the calendar popover from the input icon', () => {
     render(
       <DatePickerInput
