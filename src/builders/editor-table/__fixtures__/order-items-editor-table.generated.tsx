@@ -50,233 +50,241 @@ export function OrderItemsEditorTable({
   };
 
   return (
-    <ScrollArea className="h-[clamp(480px,62dvh,760px)]">
-      <table className="min-w-[1440px] w-full caption-bottom text-foreground text-sm">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="sticky top-0 z-20 bg-muted w-14">
-              STT
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-36">
-              Mã hàng
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
-              Tên hàng hóa
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-32 text-right">
-              Số lượng
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-40 text-right">
-              Đơn giá
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-40">
-              Hạn dùng
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-40 text-right">
-              Thành tiền
-            </TableHead>
-            <TableHead className="sticky top-0 right-0 z-30 bg-muted w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {fields.length === 0 ? (
+    <ScrollArea
+      type="always"
+      className="min-w-0 h-[clamp(480px,62dvh,760px)]"
+      viewportClassName="h-full min-w-0 overflow-y-auto"
+    >
+      <div className="min-w-[1440px]">
+        <table className="w-full caption-bottom text-foreground text-sm">
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={8} className="h-28 text-center">
-                <div className="flex flex-col items-center gap-3">
-                  <span className="text-muted-foreground">Chưa có dữ liệu</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAddRow}
-                  >
-                    <Plus />
-                    Thêm dòng
-                  </Button>
-                </div>
-              </TableCell>
+              <TableHead className="sticky top-0 z-20 bg-muted w-14">
+                STT
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted w-36">
+                Mã hàng
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
+                Tên hàng hóa
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted w-32 text-right">
+                Số lượng
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted w-40 text-right">
+                Đơn giá
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted w-40">
+                Hạn dùng
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted w-40 text-right">
+                Thành tiền
+              </TableHead>
+              <TableHead className="sticky top-0 right-0 z-30 bg-muted w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
             </TableRow>
-          ) : (
-            fields.map((field, index) => {
-              const row = watchedRows[index] as OrderItem | undefined;
-              const errors = form.formState.errors.items?.[index];
-              void row;
-              const lineTotal = 0;
-              // TODO(scaffold): replace lineTotal with the real computed value for this row.
+          </TableHeader>
+          <TableBody>
+            {fields.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="h-28 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-muted-foreground">
+                      Chưa có dữ liệu
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddRow}
+                    >
+                      <Plus />
+                      Thêm dòng
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              fields.map((field, index) => {
+                const row = watchedRows[index] as OrderItem | undefined;
+                const errors = form.formState.errors.items?.[index];
+                void row;
+                const lineTotal = 0;
+                // TODO(scaffold): replace lineTotal with the real computed value for this row.
 
-              return (
-                <TableRow key={field.fieldId}>
-                  <TableCell className="px-4 py-2 text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`items.${index}.sku`}
-                      render={({ field: inputField }) => (
-                        <Input
-                          {...inputField}
-                          aria-label={`Mã hàng dòng ${index + 1}`}
-                          aria-invalid={!!errors?.sku}
-                          variant="sm"
-                        />
+                return (
+                  <TableRow key={field.fieldId}>
+                    <TableCell className="px-4 py-2 text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`items.${index}.sku`}
+                        render={({ field: inputField }) => (
+                          <Input
+                            {...inputField}
+                            aria-label={`Mã hàng dòng ${index + 1}`}
+                            aria-invalid={!!errors?.sku}
+                            variant="sm"
+                          />
+                        )}
+                      />
+                      {errors?.sku && (
+                        <div className="mt-1 text-xs text-destructive">
+                          {errors?.sku?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.sku && (
-                      <div className="mt-1 text-xs text-destructive">
-                        {errors?.sku?.message}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`items.${index}.name`}
-                      render={({ field: inputField }) => (
-                        <Input
-                          {...inputField}
-                          aria-label={`Tên hàng hóa dòng ${index + 1}`}
-                          aria-invalid={!!errors?.name}
-                          variant="sm"
-                        />
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`items.${index}.name`}
+                        render={({ field: inputField }) => (
+                          <Input
+                            {...inputField}
+                            aria-label={`Tên hàng hóa dòng ${index + 1}`}
+                            aria-invalid={!!errors?.name}
+                            variant="sm"
+                          />
+                        )}
+                      />
+                      {errors?.name && (
+                        <div className="mt-1 text-xs text-destructive">
+                          {errors?.name?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.name && (
-                      <div className="mt-1 text-xs text-destructive">
-                        {errors?.name?.message}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`items.${index}.quantity`}
-                      render={({ field: inputField }) => (
-                        <Input
-                          aria-label={`Số lượng dòng ${index + 1}`}
-                          aria-invalid={!!errors?.quantity}
-                          className="text-right tabular-nums"
-                          min={0}
-                          type="number"
-                          value={inputField.value}
-                          variant="sm"
-                          onBlur={inputField.onBlur}
-                          onChange={(event) =>
-                            inputField.onChange(
-                              Number.isNaN(event.target.valueAsNumber)
-                                ? 0
-                                : event.target.valueAsNumber,
-                            )
-                          }
-                        />
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`items.${index}.quantity`}
+                        render={({ field: inputField }) => (
+                          <Input
+                            aria-label={`Số lượng dòng ${index + 1}`}
+                            aria-invalid={!!errors?.quantity}
+                            className="text-right tabular-nums"
+                            min={0}
+                            type="number"
+                            value={inputField.value}
+                            variant="sm"
+                            onBlur={inputField.onBlur}
+                            onChange={(event) =>
+                              inputField.onChange(
+                                Number.isNaN(event.target.valueAsNumber)
+                                  ? 0
+                                  : event.target.valueAsNumber,
+                              )
+                            }
+                          />
+                        )}
+                      />
+                      {errors?.quantity && (
+                        <div className="mt-1 text-right text-xs text-destructive">
+                          {errors?.quantity?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.quantity && (
-                      <div className="mt-1 text-right text-xs text-destructive">
-                        {errors?.quantity?.message}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`items.${index}.unitPrice`}
-                      render={({ field: inputField }) => (
-                        <Input
-                          aria-label={`Đơn giá dòng ${index + 1}`}
-                          aria-invalid={!!errors?.unitPrice}
-                          className="text-right tabular-nums"
-                          min={0}
-                          type="number"
-                          value={inputField.value}
-                          variant="sm"
-                          onBlur={inputField.onBlur}
-                          onChange={(event) =>
-                            inputField.onChange(
-                              Number.isNaN(event.target.valueAsNumber)
-                                ? 0
-                                : event.target.valueAsNumber,
-                            )
-                          }
-                        />
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`items.${index}.unitPrice`}
+                        render={({ field: inputField }) => (
+                          <Input
+                            aria-label={`Đơn giá dòng ${index + 1}`}
+                            aria-invalid={!!errors?.unitPrice}
+                            className="text-right tabular-nums"
+                            min={0}
+                            type="number"
+                            value={inputField.value}
+                            variant="sm"
+                            onBlur={inputField.onBlur}
+                            onChange={(event) =>
+                              inputField.onChange(
+                                Number.isNaN(event.target.valueAsNumber)
+                                  ? 0
+                                  : event.target.valueAsNumber,
+                              )
+                            }
+                          />
+                        )}
+                      />
+                      {errors?.unitPrice && (
+                        <div className="mt-1 text-right text-xs text-destructive">
+                          {errors?.unitPrice?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.unitPrice && (
-                      <div className="mt-1 text-right text-xs text-destructive">
-                        {errors?.unitPrice?.message}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`items.${index}.expiryDate`}
-                      render={({ field: inputField }) => (
-                        <DatePickerInput
-                          aria-label={`Hạn dùng dòng ${index + 1}`}
-                          aria-invalid={!!errors?.expiryDate}
-                          calendarLabel={`Chọn hạn dùng dòng ${index + 1}`}
-                          value={inputField.value}
-                          valueMode="iso-date"
-                          variant="sm"
-                          onBlur={inputField.onBlur}
-                          onChange={inputField.onChange}
-                        />
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`items.${index}.expiryDate`}
+                        render={({ field: inputField }) => (
+                          <DatePickerInput
+                            aria-label={`Hạn dùng dòng ${index + 1}`}
+                            aria-invalid={!!errors?.expiryDate}
+                            calendarLabel={`Chọn hạn dùng dòng ${index + 1}`}
+                            value={inputField.value}
+                            valueMode="iso-date"
+                            variant="sm"
+                            onBlur={inputField.onBlur}
+                            onChange={inputField.onChange}
+                          />
+                        )}
+                      />
+                      {errors?.expiryDate && (
+                        <div className="mt-1 text-xs text-destructive">
+                          {errors?.expiryDate?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.expiryDate && (
-                      <div className="mt-1 text-xs text-destructive">
-                        {errors?.expiryDate?.message}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-right tabular-nums">
+                      {/* TODO(scaffold): calculate lineTotal from row. */}
+                      {formatCurrencyVND(lineTotal)}
+                    </TableCell>
+                    <TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          aria-label={`Nhân đôi dòng ${index + 1}`}
+                          title="Nhân đôi"
+                          type="button"
+                          variant="ghost"
+                          mode="icon"
+                          size="sm"
+                          onClick={() => handleDuplicateRow(index)}
+                        >
+                          <Copy />
+                        </Button>
+                        <Button
+                          aria-label={`Thêm dòng dưới dòng ${index + 1}`}
+                          title="Thêm dòng dưới"
+                          type="button"
+                          variant="ghost"
+                          mode="icon"
+                          size="sm"
+                          onClick={() => handleAddRowBelow(index)}
+                        >
+                          <Plus />
+                        </Button>
+                        <Button
+                          aria-label={`Xóa dòng ${index + 1}`}
+                          title="Xóa"
+                          type="button"
+                          variant="destructive"
+                          appearance="ghost"
+                          mode="icon"
+                          size="sm"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 />
+                        </Button>
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-4 py-2 text-right tabular-nums">
-                    {/* TODO(scaffold): calculate lineTotal from row. */}
-                    {formatCurrencyVND(lineTotal)}
-                  </TableCell>
-                  <TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        aria-label={`Nhân đôi dòng ${index + 1}`}
-                        title="Nhân đôi"
-                        type="button"
-                        variant="ghost"
-                        mode="icon"
-                        size="sm"
-                        onClick={() => handleDuplicateRow(index)}
-                      >
-                        <Copy />
-                      </Button>
-                      <Button
-                        aria-label={`Thêm dòng dưới dòng ${index + 1}`}
-                        title="Thêm dòng dưới"
-                        type="button"
-                        variant="ghost"
-                        mode="icon"
-                        size="sm"
-                        onClick={() => handleAddRowBelow(index)}
-                      >
-                        <Plus />
-                      </Button>
-                      <Button
-                        aria-label={`Xóa dòng ${index + 1}`}
-                        title="Xóa"
-                        type="button"
-                        variant="destructive"
-                        appearance="ghost"
-                        mode="icon"
-                        size="sm"
-                        onClick={() => remove(index)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </table>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </table>
+      </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
   );

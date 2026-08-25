@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
@@ -37,6 +37,17 @@ export type ContractFeeLineFormValue = ContractVersionLineValuesForApi & {
 export type ContractFeeLinesFormValues = {
   lines: ContractFeeLineFormValue[];
 };
+
+function serializeLines(
+  lines: Array<ContractVersionLineValuesForApi | ContractFeeLineFormValue>,
+) {
+  return JSON.stringify(
+    lines.map((line, index) => ({
+      ...line,
+      sortOrder: index,
+    })),
+  );
+}
 
 const contractFeeLineValidationSchema = z.preprocess(
   (value) =>
@@ -90,9 +101,39 @@ export const ContractFeeLinesEditor = forwardRef<
     name: 'lines',
   });
   const defaultStartDate = lines[0]?.startDate ?? '';
+  const externalLinesSignatureRef = useRef(serializeLines(lines));
+  const applyingExternalLinesRef = useRef(false);
 
   useEffect(() => {
-    onChange(toApiLines(watchedLines ?? []));
+    const nextLines = lines.map((line, index) => ({
+      ...line,
+      sortOrder: index,
+    }));
+    const nextSignature = serializeLines(nextLines);
+    const externalLinesChanged =
+      nextSignature !== externalLinesSignatureRef.current;
+
+    if (externalLinesChanged) {
+      externalLinesSignatureRef.current = nextSignature;
+      if (serializeLines(form.getValues('lines')) !== nextSignature) {
+        applyingExternalLinesRef.current = true;
+        form.reset({ lines: nextLines });
+      }
+    }
+  }, [form, lines]);
+
+  useEffect(() => {
+    if (applyingExternalLinesRef.current) {
+      applyingExternalLinesRef.current = false;
+      return;
+    }
+
+    const currentLines = watchedLines ?? [];
+    const currentSignature = serializeLines(currentLines);
+    if (currentSignature !== externalLinesSignatureRef.current) {
+      externalLinesSignatureRef.current = currentSignature;
+      onChange(toApiLines(currentLines));
+    }
   }, [onChange, watchedLines]);
 
   useImperativeHandle(
@@ -105,8 +146,8 @@ export const ContractFeeLinesEditor = forwardRef<
 
   return (
     <Form {...form}>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="mt-3 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
+      <div className="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col">
+        <div className="mt-3 flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg border border-border">
           <ContractFeeLinesEditorTable
             form={form}
             toolbarContent={currencyField}

@@ -45,10 +45,10 @@ describe('buildEditorTableModule', () => {
 
   it('emits fixed viewport, horizontal min width, sticky headers and pinned actions', () => {
     expect(source).toContain(
-      '<ScrollArea type="always" className="h-[clamp(480px,62dvh,760px)]" viewportClassName="h-full overflow-y-auto">',
+      '<ScrollArea type="always" className="min-w-0 h-[clamp(480px,62dvh,760px)]" viewportClassName="h-full min-w-0 overflow-y-auto">',
     );
     expect(source).toContain(
-      '<table className="min-w-[1440px] w-full caption-bottom text-foreground text-sm">',
+      '<div className="min-w-[1440px]">\n        <table className="w-full caption-bottom text-foreground text-sm">',
     );
     expect(source).toContain('<ScrollBar orientation="horizontal" />');
     expect(source).toContain('sticky top-0 z-20 bg-muted'); // column headers
@@ -127,7 +127,7 @@ describe('buildEditorTableModule', () => {
         viewport: { mode: 'remaining' },
       }),
     ).toContain(
-      '<ScrollArea type="always" className="h-full min-h-[360px] min-h-0" viewportClassName="h-full overflow-y-auto">',
+      '<ScrollArea type="always" className="min-w-0 h-full min-h-[360px] min-h-0" viewportClassName="h-full min-w-0 overflow-y-auto">',
     );
 
     const withToolbar = buildEditorTableModule({
@@ -139,7 +139,7 @@ describe('buildEditorTableModule', () => {
       '<div className="flex h-full min-h-0 min-w-0 w-full flex-col">',
     );
     expect(withToolbar).toContain(
-      '<ScrollArea type="always" className="min-h-[360px] min-h-0 flex-1" viewportClassName="h-full overflow-y-auto">',
+      '<ScrollArea type="always" className="min-w-0 min-h-[360px] min-h-0 flex-1" viewportClassName="h-full min-w-0 overflow-y-auto">',
     );
 
     expect(

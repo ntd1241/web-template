@@ -345,8 +345,8 @@ export function ContractFeeLinesEditorTable({
 
   return (
     <div className="flex h-full min-h-0 min-w-0 w-full flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-5 py-4">
-        <div className="flex flex-col gap-1">
+      <div className="flex min-w-0 shrink-0 flex-wrap items-center justify-between gap-4 border-b border-border px-5 py-4">
+        <div className="flex min-w-0 flex-col gap-1">
           <h2 className="text-sm font-semibold text-foreground">
             Các khoản phí
           </h2>
@@ -354,7 +354,7 @@ export function ContractFeeLinesEditorTable({
             {fields.length} dòng
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           {toolbarContent}
           <Button type="button" variant="primary" onClick={handleAddRow}>
             <Plus />
@@ -364,197 +364,199 @@ export function ContractFeeLinesEditorTable({
       </div>
       <ScrollArea
         type="always"
-        className="min-h-[360px] min-h-0 flex-1"
-        viewportClassName="h-full overflow-y-auto"
+        className="min-w-0 min-h-[360px] min-h-0 flex-1"
+        viewportClassName="h-full min-w-0 overflow-y-auto"
       >
-        <table className="min-w-[1320px] w-full caption-bottom text-foreground text-sm">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="sticky top-0 z-20 bg-muted w-14">
-                STT
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted w-28">
-                Loại
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
-                Tên khoản phí
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted w-28">
-                Số lượng
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted w-40">
-                Đơn giá
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted w-40">
-                Thành tiền
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted w-64">
-                Phát sinh / Chu kỳ
-              </TableHead>
-              <TableHead className="sticky top-0 z-20 bg-muted w-52">
-                Hạn thanh toán
-              </TableHead>
-              <TableHead className="sticky top-0 right-0 z-30 bg-muted w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fields.length === 0 ? (
+        <div className="min-w-[1320px]">
+          <table className="w-full caption-bottom text-foreground text-sm">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={9} className="h-28 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <span className="text-muted-foreground">
-                      Chưa có dữ liệu
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAddRow}
-                    >
-                      <Plus />
-                      Thêm dòng
-                    </Button>
-                  </div>
-                </TableCell>
+                <TableHead className="sticky top-0 z-20 bg-muted w-14">
+                  STT
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted w-28">
+                  Loại
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
+                  Tên khoản phí
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted w-28">
+                  Số lượng
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted w-40">
+                  Đơn giá
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted w-40">
+                  Thành tiền
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted w-64">
+                  Phát sinh / Chu kỳ
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-muted w-52">
+                  Hạn thanh toán
+                </TableHead>
+                <TableHead className="sticky top-0 right-0 z-30 bg-muted w-28 text-right shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.45)]"></TableHead>
               </TableRow>
-            ) : (
-              fields.map((field, index) => {
-                const row = watchedRows[index] as
-                  | ContractFeeLineFormValue
-                  | undefined;
-                const errors = form.formState.errors.lines?.[index];
-                void row;
-
-                return (
-                  <TableRow key={field.fieldId}>
-                    <TableCell className="px-4 py-2 text-muted-foreground">
-                      {index + 1}
-                    </TableCell>
-                    <TableCell className="px-2 py-2 align-top">
-                      <ContractFeeDirectionCell
-                        form={form}
-                        index={index}
-                        error={errors?.direction?.message}
-                      />
-                    </TableCell>
-                    <TableCell className="px-2 py-2">
-                      <Controller
-                        control={form.control}
-                        name={`lines.${index}.name`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            {...inputField}
-                            aria-label={`Tên khoản phí dòng ${index + 1}`}
-                            aria-invalid={!!errors?.name}
-                            variant="sm"
-                          />
-                        )}
-                      />
-                      {errors?.name && (
-                        <div className="mt-1 text-xs text-destructive">
-                          {errors?.name?.message}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-2 py-2 align-top">
-                      <ContractFeeNumberCell
-                        form={form}
-                        index={index}
-                        name="quantity"
-                        label="Số lượng"
-                        min={0}
-                        error={errors?.quantity?.message}
-                      />
-                    </TableCell>
-                    <TableCell className="px-2 py-2 align-top">
-                      <ContractFeeNumberCell
-                        form={form}
-                        index={index}
-                        name="unitPrice"
-                        label="Đơn giá"
-                        min={0}
-                        error={errors?.unitPrice?.message}
-                      />
-                    </TableCell>
-                    <TableCell className="px-2 py-2 align-top">
-                      <span
-                        className={cn(
-                          'block pt-2 text-right text-sm font-semibold tabular-nums',
-                          row?.direction === 'receivable'
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-rose-600 dark:text-rose-400',
-                        )}
-                      >
-                        {formatCurrency(
-                          (row?.quantity ?? 0) * (row?.unitPrice ?? 0),
-                        )}
+            </TableHeader>
+            <TableBody>
+              {fields.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-28 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <span className="text-muted-foreground">
+                        Chưa có dữ liệu
                       </span>
-                    </TableCell>
-                    <TableCell className="px-2 py-2 align-top">
-                      <ContractFeeBillingCell
-                        form={form}
-                        index={index}
-                        error={
-                          errors?.billingType?.message ??
-                          errors?.billingInterval?.message ??
-                          errors?.billingUnit?.message ??
-                          errors?.chargeDate?.message
-                        }
-                        showOneTimeChargeDate={showOneTimeChargeDate}
-                      />
-                    </TableCell>
-                    <TableCell className="px-2 py-2 align-top">
-                      <ContractFeeDueCell
-                        form={form}
-                        index={index}
-                        error={
-                          errors?.dueRule?.message ?? errors?.dueDays?.message
-                        }
-                      />
-                    </TableCell>
-                    <TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          aria-label={`Nhân đôi dòng ${index + 1}`}
-                          title="Nhân đôi"
-                          type="button"
-                          variant="ghost"
-                          mode="icon"
-                          size="sm"
-                          onClick={() => handleDuplicateRow(index)}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddRow}
+                      >
+                        <Plus />
+                        Thêm dòng
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                fields.map((field, index) => {
+                  const row = watchedRows[index] as
+                    | ContractFeeLineFormValue
+                    | undefined;
+                  const errors = form.formState.errors.lines?.[index];
+                  void row;
+
+                  return (
+                    <TableRow key={field.fieldId}>
+                      <TableCell className="px-4 py-2 text-muted-foreground">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="px-2 py-2 align-top">
+                        <ContractFeeDirectionCell
+                          form={form}
+                          index={index}
+                          error={errors?.direction?.message}
+                        />
+                      </TableCell>
+                      <TableCell className="px-2 py-2">
+                        <Controller
+                          control={form.control}
+                          name={`lines.${index}.name`}
+                          render={({ field: inputField }) => (
+                            <Input
+                              {...inputField}
+                              aria-label={`Tên khoản phí dòng ${index + 1}`}
+                              aria-invalid={!!errors?.name}
+                              variant="sm"
+                            />
+                          )}
+                        />
+                        {errors?.name && (
+                          <div className="mt-1 text-xs text-destructive">
+                            {errors?.name?.message}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-2 py-2 align-top">
+                        <ContractFeeNumberCell
+                          form={form}
+                          index={index}
+                          name="quantity"
+                          label="Số lượng"
+                          min={0}
+                          error={errors?.quantity?.message}
+                        />
+                      </TableCell>
+                      <TableCell className="px-2 py-2 align-top">
+                        <ContractFeeNumberCell
+                          form={form}
+                          index={index}
+                          name="unitPrice"
+                          label="Đơn giá"
+                          min={0}
+                          error={errors?.unitPrice?.message}
+                        />
+                      </TableCell>
+                      <TableCell className="px-2 py-2 align-top">
+                        <span
+                          className={cn(
+                            'block pt-2 text-right text-sm font-semibold tabular-nums',
+                            row?.direction === 'receivable'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-rose-600 dark:text-rose-400',
+                          )}
                         >
-                          <Copy />
-                        </Button>
-                        <Button
-                          aria-label={`Thêm dòng dưới dòng ${index + 1}`}
-                          title="Thêm dòng dưới"
-                          type="button"
-                          variant="ghost"
-                          mode="icon"
-                          size="sm"
-                          onClick={() => handleAddRowBelow(index)}
-                        >
-                          <Plus />
-                        </Button>
-                        <Button
-                          aria-label={`Xóa dòng ${index + 1}`}
-                          title="Xóa"
-                          type="button"
-                          variant="destructive"
-                          appearance="ghost"
-                          mode="icon"
-                          size="sm"
-                          onClick={() => remove(index)}
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </table>
+                          {formatCurrency(
+                            (row?.quantity ?? 0) * (row?.unitPrice ?? 0),
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-2 py-2 align-top">
+                        <ContractFeeBillingCell
+                          form={form}
+                          index={index}
+                          error={
+                            errors?.billingType?.message ??
+                            errors?.billingInterval?.message ??
+                            errors?.billingUnit?.message ??
+                            errors?.chargeDate?.message
+                          }
+                          showOneTimeChargeDate={showOneTimeChargeDate}
+                        />
+                      </TableCell>
+                      <TableCell className="px-2 py-2 align-top">
+                        <ContractFeeDueCell
+                          form={form}
+                          index={index}
+                          error={
+                            errors?.dueRule?.message ?? errors?.dueDays?.message
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            aria-label={`Nhân đôi dòng ${index + 1}`}
+                            title="Nhân đôi"
+                            type="button"
+                            variant="ghost"
+                            mode="icon"
+                            size="sm"
+                            onClick={() => handleDuplicateRow(index)}
+                          >
+                            <Copy />
+                          </Button>
+                          <Button
+                            aria-label={`Thêm dòng dưới dòng ${index + 1}`}
+                            title="Thêm dòng dưới"
+                            type="button"
+                            variant="ghost"
+                            mode="icon"
+                            size="sm"
+                            onClick={() => handleAddRowBelow(index)}
+                          >
+                            <Plus />
+                          </Button>
+                          <Button
+                            aria-label={`Xóa dòng ${index + 1}`}
+                            title="Xóa"
+                            type="button"
+                            variant="destructive"
+                            appearance="ghost"
+                            mode="icon"
+                            size="sm"
+                            onClick={() => remove(index)}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </table>
+        </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>

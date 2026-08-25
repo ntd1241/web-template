@@ -583,6 +583,28 @@ export interface CustomerReceivableSummary {
   unappliedCredit: number;
 }
 
+export type ContractFinancialProgressBase = 'contract_value' | 'incurred';
+
+export interface ContractFinancialSummary {
+  totalContractValue: number | null;
+  totalIncurred: number;
+  totalPaid: number;
+  totalOutstanding: number;
+  overdueOutstanding: number;
+  progressBase: ContractFinancialProgressBase;
+  progressPercent: number;
+}
+
+export interface ContractFinancialSummaryRpcRow {
+  total_contract_value: number | string | null;
+  total_incurred: number | string;
+  total_paid: number | string;
+  total_outstanding: number | string;
+  overdue_outstanding: number | string;
+  progress_base: ContractFinancialProgressBase;
+  progress_percent: number | string;
+}
+
 export interface ContractChargeRow {
   id: string;
   tenant_id: string;
@@ -725,6 +747,23 @@ export function mapCustomerReceivableSummaryRow(
     totalOutstanding: numericValue(row.total_outstanding),
     overdueOutstanding: numericValue(row.overdue_outstanding),
     unappliedCredit: numericValue(row.unapplied_credit),
+  };
+}
+
+export function mapContractFinancialSummary(
+  row: ContractFinancialSummaryRpcRow,
+): ContractFinancialSummary {
+  return {
+    totalContractValue:
+      row.total_contract_value === null
+        ? null
+        : numericValue(row.total_contract_value),
+    totalIncurred: numericValue(row.total_incurred),
+    totalPaid: numericValue(row.total_paid),
+    totalOutstanding: numericValue(row.total_outstanding),
+    overdueOutstanding: numericValue(row.overdue_outstanding),
+    progressBase: row.progress_base,
+    progressPercent: numericValue(row.progress_percent),
   };
 }
 

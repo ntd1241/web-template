@@ -39,104 +39,112 @@ export function LeanRowEditorTable({
   };
 
   return (
-    <ScrollArea>
-      <table className="min-w-[640px] w-full caption-bottom text-foreground text-sm">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="sticky top-0 z-20 bg-muted w-14">
-              STT
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
-              Tên
-            </TableHead>
-            <TableHead className="sticky top-0 z-20 bg-muted w-32 text-right">
-              Số lượng
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {fields.length === 0 ? (
+    <ScrollArea
+      type="always"
+      className="min-w-0"
+      viewportClassName="h-full min-w-0 overflow-y-auto"
+    >
+      <div className="min-w-[640px]">
+        <table className="w-full caption-bottom text-foreground text-sm">
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={3} className="h-28 text-center">
-                <div className="flex flex-col items-center gap-3">
-                  <span className="text-muted-foreground">Chưa có dữ liệu</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAddRow}
-                  >
-                    <Plus />
-                    Thêm dòng
-                  </Button>
-                </div>
-              </TableCell>
+              <TableHead className="sticky top-0 z-20 bg-muted w-14">
+                STT
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted min-w-56">
+                Tên
+              </TableHead>
+              <TableHead className="sticky top-0 z-20 bg-muted w-32 text-right">
+                Số lượng
+              </TableHead>
             </TableRow>
-          ) : (
-            fields.map((field, index) => {
-              const row = watchedRows[index] as LeanRow | undefined;
-              const errors = form.formState.errors.rows?.[index];
-              void row;
+          </TableHeader>
+          <TableBody>
+            {fields.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-28 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-muted-foreground">
+                      Chưa có dữ liệu
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddRow}
+                    >
+                      <Plus />
+                      Thêm dòng
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              fields.map((field, index) => {
+                const row = watchedRows[index] as LeanRow | undefined;
+                const errors = form.formState.errors.rows?.[index];
+                void row;
 
-              return (
-                <TableRow key={field.fieldId}>
-                  <TableCell className="px-4 py-2 text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`rows.${index}.name`}
-                      render={({ field: inputField }) => (
-                        <Input
-                          {...inputField}
-                          aria-label={`Tên dòng ${index + 1}`}
-                          aria-invalid={!!errors?.name}
-                          variant="sm"
-                        />
+                return (
+                  <TableRow key={field.fieldId}>
+                    <TableCell className="px-4 py-2 text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`rows.${index}.name`}
+                        render={({ field: inputField }) => (
+                          <Input
+                            {...inputField}
+                            aria-label={`Tên dòng ${index + 1}`}
+                            aria-invalid={!!errors?.name}
+                            variant="sm"
+                          />
+                        )}
+                      />
+                      {errors?.name && (
+                        <div className="mt-1 text-xs text-destructive">
+                          {errors?.name?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.name && (
-                      <div className="mt-1 text-xs text-destructive">
-                        {errors?.name?.message}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <Controller
-                      control={form.control}
-                      name={`rows.${index}.quantity`}
-                      render={({ field: inputField }) => (
-                        <Input
-                          aria-label={`Số lượng dòng ${index + 1}`}
-                          aria-invalid={!!errors?.quantity}
-                          className="text-right tabular-nums"
-                          min={0}
-                          type="number"
-                          value={inputField.value}
-                          variant="sm"
-                          onBlur={inputField.onBlur}
-                          onChange={(event) =>
-                            inputField.onChange(
-                              Number.isNaN(event.target.valueAsNumber)
-                                ? 0
-                                : event.target.valueAsNumber,
-                            )
-                          }
-                        />
+                    </TableCell>
+                    <TableCell className="px-2 py-2">
+                      <Controller
+                        control={form.control}
+                        name={`rows.${index}.quantity`}
+                        render={({ field: inputField }) => (
+                          <Input
+                            aria-label={`Số lượng dòng ${index + 1}`}
+                            aria-invalid={!!errors?.quantity}
+                            className="text-right tabular-nums"
+                            min={0}
+                            type="number"
+                            value={inputField.value}
+                            variant="sm"
+                            onBlur={inputField.onBlur}
+                            onChange={(event) =>
+                              inputField.onChange(
+                                Number.isNaN(event.target.valueAsNumber)
+                                  ? 0
+                                  : event.target.valueAsNumber,
+                              )
+                            }
+                          />
+                        )}
+                      />
+                      {errors?.quantity && (
+                        <div className="mt-1 text-right text-xs text-destructive">
+                          {errors?.quantity?.message}
+                        </div>
                       )}
-                    />
-                    {errors?.quantity && (
-                      <div className="mt-1 text-right text-xs text-destructive">
-                        {errors?.quantity?.message}
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </table>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </table>
+      </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
   );

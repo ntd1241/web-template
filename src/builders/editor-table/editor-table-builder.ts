@@ -49,10 +49,10 @@ function scrollAreaClass(spec: NormalizedEditorTableSpec): string {
 
   if (spec.viewport.mode === 'remaining') {
     return spec.toolbar
-      ? 'min-h-[360px] min-h-0 flex-1'
-      : 'h-full min-h-[360px] min-h-0';
+      ? 'min-w-0 min-h-[360px] min-h-0 flex-1'
+      : 'min-w-0 h-full min-h-[360px] min-h-0';
   }
-  if (spec.viewport.mode === 'natural') return '';
+  if (spec.viewport.mode === 'natural') return 'min-w-0';
 
   const height = spec.viewport.height ?? 'lg';
   const fixedHeights: Record<typeof height, string> = {
@@ -60,7 +60,7 @@ function scrollAreaClass(spec: NormalizedEditorTableSpec): string {
     md: 'h-[clamp(400px,52dvh,600px)]',
     lg: 'h-[clamp(480px,62dvh,760px)]',
   };
-  return fixedHeights[height];
+  return `min-w-0 ${fixedHeights[height]}`;
 }
 
 function fieldError(column: Extract<EditorTableColumnSpec, { name: string }>) {
@@ -674,7 +674,7 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const bulkEditSetup = emitBulkEditSetup(spec);
   const scrollClass = scrollAreaClass(spec);
   const scrollAreaOpen = scrollClass
-    ? `<ScrollArea type="always" className="${scrollClass}" viewportClassName="h-full overflow-y-auto">`
+    ? `<ScrollArea type="always" className="${scrollClass}" viewportClassName="h-full min-w-0 overflow-y-auto">`
     : '<ScrollArea type="always">';
 
   // Gate row-action plumbing on `actions.enabled` and the per-row `errors`
@@ -705,12 +705,12 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const toolbar = spec.toolbar;
   const toolbarOpen = toolbar
     ? `    <div className="flex h-full min-h-0 min-w-0 w-full flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-5 py-4">
-        <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 shrink-0 flex-wrap items-center justify-between gap-4 border-b border-border px-5 py-4">
+        <div className="flex min-w-0 flex-col gap-1">
           <h2 className="text-sm font-semibold text-foreground">${toolbar.title}</h2>
           <div className="text-xs text-muted-foreground">{fields.length} dòng</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           {toolbarContent}
           <Button type="button" variant="primary" onClick={handleAddRow}>
             <Plus />
@@ -755,7 +755,8 @@ export function ${componentName}({
 ${actionHandlers}${bulkEditSetup}
   return (
 ${returnOpen}
-      <table className="${spec.tableMinWidthClass} w-full caption-bottom text-foreground text-sm">
+      <div className="${spec.tableMinWidthClass}">
+        <table className="w-full caption-bottom text-foreground text-sm">
         <TableHeader>
           <TableRow>
 ${indent(emitHeaders(spec), 12)}
@@ -787,7 +788,8 @@ ${indent(emitCells(spec), 18)}
             })
           )}
         </TableBody>
-      </table>
+        </table>
+      </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
 ${returnClose}

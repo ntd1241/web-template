@@ -81,7 +81,6 @@ import {
 import {
   CONTRACT_CHARGE_DISPLAY_STATUS_LABELS,
   CONTRACT_CHARGE_DISPLAY_STATUSES,
-  getContractReceivableStats,
   type ContractPaymentHistory,
   type ContractReceivableTableRow,
   type ContractReceivableViewMode,
@@ -208,12 +207,13 @@ function formatTimestampDate(value: string) {
 
 function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
   const { formatCurrency } = useNumberFormat();
-  const stats = getContractReceivableStats(contract.charges);
-  const remainingAmount = stats.totalOutstanding;
-  const progress =
-    stats.totalBilled > 0
-      ? Math.min(100, Math.max(0, (stats.totalPaid / stats.totalBilled) * 100))
-      : 0;
+  const summary = contract.financialSummary;
+  const headlineTotal = summary.totalContractValue ?? summary.totalIncurred;
+  const headlineLabel =
+    summary.totalContractValue === null
+      ? 'Tổng đã phát sinh'
+      : 'Tổng giá trị hợp đồng';
+  const progress = summary.progressPercent;
   const formattedProgress = new Intl.NumberFormat('vi-VN', {
     maximumFractionDigits: 2,
   }).format(progress);
@@ -231,20 +231,23 @@ function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
           <PaymentMetric
             icon={FileText}
             iconTone="info"
-            label="Tổng đã lập"
-            value={formatCurrency(stats.totalBilled, contract.currencyCode)}
+            label={headlineLabel}
+            value={formatCurrency(headlineTotal, contract.currencyCode)}
           />
           <PaymentMetric
             icon={CircleCheck}
             iconTone="success"
             label="Đã thanh toán"
-            value={formatCurrency(stats.totalPaid, contract.currencyCode)}
+            value={formatCurrency(summary.totalPaid, contract.currencyCode)}
           />
           <PaymentMetric
             icon={WalletCards}
             iconTone="warning"
             label="Còn phải thu"
-            value={formatCurrency(remainingAmount, contract.currencyCode)}
+            value={formatCurrency(
+              summary.totalOutstanding,
+              contract.currencyCode,
+            )}
             emphasis
           />
           <PaymentMetric
@@ -252,7 +255,7 @@ function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
             iconTone="danger"
             label="Quá hạn"
             value={formatCurrency(
-              stats.overdueOutstanding,
+              summary.overdueOutstanding,
               contract.currencyCode,
             )}
           />
@@ -275,7 +278,8 @@ function ContractFinancialOverview({ contract }: { contract: ContractDetail }) {
             <strong className="font-semibold text-emerald-600">
               {formattedProgress}%
             </strong>{' '}
-            đã thanh toán
+            đã thanh toán /{' '}
+            {formatCurrency(headlineTotal, contract.currencyCode)}
           </span>
           <span>Cập nhật đến {formatTimestampDate(latestFinancialUpdate)}</span>
         </div>

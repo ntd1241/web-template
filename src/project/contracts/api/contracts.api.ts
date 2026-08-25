@@ -40,6 +40,7 @@ import {
 } from '../model/contract-version-change';
 import {
   mapContractChargeBalanceRow,
+  mapContractFinancialSummary,
   mapContractPaymentCandidateRpcRow,
   mapContractReceivablePeriodRpcRow,
   mapCustomerPaymentAllocationRow,
@@ -47,6 +48,8 @@ import {
   mapCustomerReceivableSummaryRow,
   type ContractChargeBalance,
   type ContractChargeBalanceRow,
+  type ContractFinancialSummary,
+  type ContractFinancialSummaryRpcRow,
   type ContractPaymentCandidate,
   type ContractPaymentCandidateRpcResponse,
   type ContractPaymentHistory,
@@ -242,6 +245,7 @@ export interface ContractDetail extends Contract {
   versions: ContractVersion[];
   lines: ContractVersionLine[];
   charges: ContractChargeBalance[];
+  financialSummary: ContractFinancialSummary;
   payments: ContractPaymentHistory[];
   receivableSummary: CustomerReceivableSummary | null;
   createdByEmployee: ContractEmployeeOption | null;
@@ -494,6 +498,7 @@ export async function loadContractDetail(
     balanceRows,
     paymentRows,
     summaryRows,
+    financialSummary,
     tenantSettingsRows,
     employeeOptions,
     responsibleRows,
@@ -546,6 +551,12 @@ export async function loadContractDetail(
           customer_id: `eq.${contract.customer_id}`,
         }),
       ),
+    ),
+    request<ContractFinancialSummaryRpcRow>(
+      supabaseApi.post('/rpc/get_contract_financial_summary', {
+        p_tenant_id: tenantId,
+        p_contract_id: contractId,
+      }),
     ),
     request<TenantSettingsRow[]>(
       supabaseApi.get(
@@ -679,6 +690,7 @@ export async function loadContractDetail(
     versions,
     lines: lineRows.map(mapContractVersionLineRow),
     charges,
+    financialSummary: mapContractFinancialSummary(financialSummary),
     payments,
     receivableSummary: summaryRows[0]
       ? mapCustomerReceivableSummaryRow(summaryRows[0])
