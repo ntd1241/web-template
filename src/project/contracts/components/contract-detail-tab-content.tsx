@@ -95,6 +95,7 @@ import {
 import { ContractPaymentScopeDialog } from './contract-payment-scope-dialog';
 import { ContractReceivableViewSwitcher } from './contract-receivable-view-switcher.generated';
 import { ContractStatusBadge } from './contract-status-badge';
+import { ContractVersionBadge } from './contract-version-badge';
 
 const RECEIVABLE_SORT_OPTIONS: Array<{
   value: ContractReceivableSortOption;
@@ -666,8 +667,11 @@ export function ContractVersionsContent({
                 key={version.id}
                 className="border-b border-border last:border-0"
               >
-                <td className="px-5 py-3 font-semibold">
-                  v{version.versionNo}
+                <td className="px-5 py-3">
+                  <ContractVersionBadge
+                    versionNo={version.versionNo}
+                    status={version.status}
+                  />
                 </td>
                 <td className="px-5 py-3">
                   {formatDate(version.effectiveFrom)}

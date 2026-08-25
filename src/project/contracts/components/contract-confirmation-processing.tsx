@@ -1,7 +1,6 @@
 import { ArrowRight, FileCheck2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNumberFormat } from '@/providers/number-format-provider';
-import { Badge } from '@/components/ui/badge';
 import {
   ProcessingStep,
   type ProcessingStepState,
@@ -11,6 +10,7 @@ import type {
   ContractChargeChanges,
   ContractVersionChangeCheck,
 } from '../model/contract-version-change';
+import { ContractVersionBadge } from './contract-version-badge';
 
 type ProcessingState =
   | 'idle'
@@ -148,6 +148,7 @@ export function ContractConfirmationProcessing({
                       previousVersionNo={result.previousVersionNo}
                       nextVersionNo={result.nextVersionNo}
                       isNewVersion={result.action === 'create-new'}
+                      isDraft={result.action === 'update-draft'}
                     />
                   ) : null}
                 </div>
@@ -179,32 +180,29 @@ function VersionTransition({
   previousVersionNo,
   nextVersionNo,
   isNewVersion,
+  isDraft,
 }: {
   previousVersionNo: number;
   nextVersionNo: number;
   isNewVersion: boolean;
+  isDraft: boolean;
 }) {
+  const previousStatus = isDraft ? 'draft' : 'effective';
+  const nextStatus = isNewVersion ? 'draft' : previousStatus;
+
   return (
     <div className="flex items-center gap-2">
-      <Badge
-        variant="secondary"
-        appearance="light"
+      <ContractVersionBadge
         size="xl"
-        shape="circle"
-        className="min-w-12 px-4 text-base tabular-nums"
-      >
-        v{previousVersionNo}
-      </Badge>
+        versionNo={previousVersionNo}
+        status={previousStatus}
+      />
       <ArrowRight className="size-4 text-muted-foreground" />
-      <Badge
-        variant={isNewVersion ? 'primary' : 'secondary'}
-        appearance="light"
+      <ContractVersionBadge
         size="xl"
-        shape="circle"
-        className="min-w-12 px-4 text-base tabular-nums"
-      >
-        v{nextVersionNo}
-      </Badge>
+        versionNo={nextVersionNo}
+        status={nextStatus}
+      />
     </div>
   );
 }

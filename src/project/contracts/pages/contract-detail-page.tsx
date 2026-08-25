@@ -59,6 +59,7 @@ import {
   ContractVersionsContent,
 } from '../components/contract-detail-tab-content';
 import { ContractPaymentScopeDialog } from '../components/contract-payment-scope-dialog';
+import { ContractRenewalDialog } from '../components/contract-renewal-dialog';
 import { ContractResponsibleAvatarGroup } from '../components/contract-responsible-avatar-group';
 import { ContractResponsibleDialog } from '../components/contract-responsible-dialog';
 import { ContractStatusBadge } from '../components/contract-status-badge';
@@ -179,6 +180,7 @@ function ContractHeroActions({
   onActivate,
   onShowDetails,
   onPay,
+  onRenew,
   isActivating,
   isPaying,
 }: {
@@ -188,6 +190,7 @@ function ContractHeroActions({
   onActivate: () => void;
   onShowDetails: () => void;
   onPay: () => void;
+  onRenew: () => void;
   isActivating: boolean;
   isPaying: boolean;
 }) {
@@ -226,6 +229,17 @@ function ContractHeroActions({
         <WalletCards />
         Thanh toán
       </Button>
+      {contract.status === 'active' || contract.status === 'expired' ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          onClick={onRenew}
+        >
+          <RefreshCw />
+          Gia hạn
+        </Button>
+      ) : null}
       <ShortcutTooltip label="Sửa thông tin" shortcut="Alt + E">
         <Button
           type="button"
@@ -298,6 +312,8 @@ export function ContractDetailPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [responsibleDialogOpen, setResponsibleDialogOpen] = useState(false);
   const [contractPaymentDialogOpen, setContractPaymentDialogOpen] =
+    useState(false);
+  const [contractRenewalDialogOpen, setContractRenewalDialogOpen] =
     useState(false);
   const canManageResponsibles = hasPermission('contracts:assign');
 
@@ -516,6 +532,7 @@ export function ContractDetailPage() {
             onActivate={() => activateMutation.mutate()}
             onShowDetails={() => setDetailDialogOpen(true)}
             onPay={() => setContractPaymentDialogOpen(true)}
+            onRenew={() => setContractRenewalDialogOpen(true)}
             isActivating={activateMutation.isPending}
             isPaying={contractPaymentMutation.isPending}
           />
@@ -558,6 +575,11 @@ export function ContractDetailPage() {
           }
         }}
         onSubmit={(submission) => contractPaymentMutation.mutate(submission)}
+      />
+      <ContractRenewalDialog
+        open={contractRenewalDialogOpen}
+        onOpenChange={setContractRenewalDialogOpen}
+        contract={contract}
       />
     </>
   );
