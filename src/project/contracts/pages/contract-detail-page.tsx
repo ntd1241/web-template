@@ -47,6 +47,7 @@ import {
   deleteContract,
   loadContractDetail,
   loadContractPaymentPeriodCount,
+  recordContractPayment,
   type ContractDetail,
 } from '../api/contracts.api';
 import { ContractDetailDialog } from '../components/contract-detail-dialog';
@@ -57,9 +58,11 @@ import {
   ContractReceivablesContent,
   ContractVersionsContent,
 } from '../components/contract-detail-tab-content';
+import { ContractPaymentScopeDialog } from '../components/contract-payment-scope-dialog';
 import { ContractResponsibleAvatarGroup } from '../components/contract-responsible-avatar-group';
 import { ContractResponsibleDialog } from '../components/contract-responsible-dialog';
 import { ContractStatusBadge } from '../components/contract-status-badge';
+import type { ContractPaymentSubmission } from '../model/receivable';
 
 function formatDate(value: string | null) {
   if (!value) return 'Không giới hạn';
@@ -175,14 +178,18 @@ function ContractHeroActions({
   onDelete,
   onActivate,
   onShowDetails,
+  onPay,
   isActivating,
+  isPaying,
 }: {
   contract: ContractDetail;
   onEdit: () => void;
   onDelete: () => void;
   onActivate: () => void;
   onShowDetails: () => void;
+  onPay: () => void;
   isActivating: boolean;
+  isPaying: boolean;
 }) {
   return (
     <>
@@ -207,6 +214,17 @@ function ContractHeroActions({
       >
         <Info />
         Xem chi tiết
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="border-white/25 bg-white text-primary hover:bg-white/90 hover:text-primary"
+        loading={isPaying}
+        loadingText="Đang tải..."
+        onClick={onPay}
+      >
+        <WalletCards />
+        Thanh toán
       </Button>
       <ShortcutTooltip label="Sửa thông tin" shortcut="Alt + E">
         <Button
@@ -279,6 +297,8 @@ export function ContractDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [responsibleDialogOpen, setResponsibleDialogOpen] = useState(false);
+  const [contractPaymentDialogOpen, setContractPaymentDialogOpen] =
+    useState(false);
   const canManageResponsibles = hasPermission('contracts:assign');
 
   const contractQuery = useQuery({
@@ -331,6 +351,33 @@ export function ContractDetailPage() {
     },
     onSuccess: async () => {
       toast.success('Đã kích hoạt hợp đồng.');
+      await invalidate();
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+
+  const contractPaymentMutation = useMutation({
+    mutationFn: (submission: ContractPaymentSubmission) => {
+      if (!userId || !contractQuery.data) {
+        throw new Error('Thiếu thông tin thanh toán hợp đồng.');
+      }
+      return recordContractPayment(
+        userId,
+        contractQuery.data.id,
+        contractQuery.data.customer.id,
+        contractQuery.data.currencyCode,
+        {
+          scope: 'contract',
+          amount: submission.amount,
+          allocations: submission.allocations,
+          monthAllocations: submission.monthAllocations,
+        },
+        contractQuery.data.tenantId,
+      );
+    },
+    onSuccess: async () => {
+      toast.success('Đã ghi nhận thanh toán hợp đồng.');
+      setContractPaymentDialogOpen(false);
       await invalidate();
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
@@ -468,7 +515,9 @@ export function ContractDetailPage() {
             onDelete={() => setDeleteDialogOpen(true)}
             onActivate={() => activateMutation.mutate()}
             onShowDetails={() => setDetailDialogOpen(true)}
+            onPay={() => setContractPaymentDialogOpen(true)}
             isActivating={activateMutation.isPending}
+            isPaying={contractPaymentMutation.isPending}
           />
         }
         onManageResponsibles={() => setResponsibleDialogOpen(true)}
@@ -494,6 +543,21 @@ export function ContractDetailPage() {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         contract={contract}
+      />
+      <ContractPaymentScopeDialog
+        open={contractPaymentDialogOpen}
+        scope="contract"
+        tenantId={contract.tenantId}
+        userId={userId ?? ''}
+        contractId={contract.id}
+        currencyCode={contract.currencyCode}
+        isSubmitting={contractPaymentMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open && !contractPaymentMutation.isPending) {
+            setContractPaymentDialogOpen(false);
+          }
+        }}
+        onSubmit={(submission) => contractPaymentMutation.mutate(submission)}
       />
     </>
   );

@@ -2,7 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { loadContractReceivablePeriodList } from '../api/contracts.api';
+import {
+  loadContractPaymentCandidates,
+  loadContractReceivablePeriodList,
+} from '../api/contracts.api';
 import type { ContractReceivableTableRow } from '../model/receivable';
 import { ContractReceivablesContent } from './contract-detail-tab-content';
 import { ContractPaymentDialog } from './contract-payment-dialog';
@@ -13,11 +16,13 @@ vi.mock('../api/contracts.api', async () => {
   );
   return {
     ...actual,
+    loadContractPaymentCandidates: vi.fn(),
     loadContractReceivablePeriodList: vi.fn(),
   };
 });
 
 const loadReceivablePeriods = vi.mocked(loadContractReceivablePeriodList);
+const loadPaymentCandidates = vi.mocked(loadContractPaymentCandidates);
 
 function createPeriodRow(
   overrides: Partial<ContractReceivableTableRow> = {},
@@ -54,6 +59,32 @@ function renderReceivables(rows: ContractReceivableTableRow[]) {
   });
 
   loadReceivablePeriods.mockResolvedValue({ rows, total: rows.length });
+  loadPaymentCandidates.mockResolvedValue({
+    items: rows.flatMap((row) =>
+      row.fees
+        .filter((fee) => !fee.isProjected && fee.outstandingAmount > 0)
+        .map((fee) => ({
+          chargeId: fee.chargeId,
+          feeName: fee.name,
+          periodStart: row.periodStart,
+          periodEnd: row.periodEnd,
+          dueDate: row.dueDate,
+          amount: fee.amount,
+          paidAmount: 0,
+          outstandingAmount: fee.outstandingAmount,
+          currencyCode: fee.currencyCode,
+        })),
+    ),
+    total: rows.length,
+    totalAmount: rows.reduce((sum, row) => sum + row.amount, 0),
+    paidAmount: rows.reduce((sum, row) => sum + row.paidAmount, 0),
+    unappliedCredit: 0,
+    months: [],
+    outstandingAmount: rows.reduce(
+      (sum, row) => sum + row.outstandingAmount,
+      0,
+    ),
+  });
 
   return render(
     <QueryClientProvider client={queryClient}>

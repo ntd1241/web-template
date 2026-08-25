@@ -120,9 +120,81 @@ export interface ContractReceivableTableFee {
   isProjected?: boolean;
 }
 
+export interface ContractPaymentCandidate {
+  chargeId: string;
+  feeName: string;
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  amount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  currencyCode: string;
+}
+
+export type ContractPaymentScope = 'month' | 'contract';
+
+export interface ContractPaymentCandidateRpcRow {
+  charge_id: string;
+  fee_name: string;
+  period_start: string;
+  period_end: string;
+  due_date: string;
+  amount: number | string;
+  paid_amount: number | string;
+  outstanding_amount: number | string;
+  currency_code: string;
+}
+
+export interface ContractPaymentCandidateRpcResponse {
+  items: ContractPaymentCandidateRpcRow[];
+  total: number | string;
+  total_amount: number | string;
+  paid_amount: number | string;
+  outstanding_amount: number | string;
+  unapplied_credit: number | string;
+  months: ContractPaymentMonthRpcRow[];
+}
+
+export interface ContractPaymentMonthRpcRow {
+  month_start: string;
+  month_end: string;
+  amount: number | string;
+  paid_amount: number | string;
+  outstanding_amount: number | string;
+  due_outstanding_amount: number | string;
+  is_due: boolean;
+}
+
+export function mapContractPaymentCandidateRpcRow(
+  row: ContractPaymentCandidateRpcRow,
+): ContractPaymentCandidate {
+  return {
+    chargeId: row.charge_id,
+    feeName: row.fee_name,
+    periodStart: row.period_start,
+    periodEnd: row.period_end,
+    dueDate: row.due_date,
+    amount: numericValue(row.amount),
+    paidAmount: numericValue(row.paid_amount),
+    outstandingAmount: numericValue(row.outstanding_amount),
+    currencyCode: row.currency_code,
+  };
+}
+
 export interface ContractPaymentAllocation {
   chargeId: string;
   allocatedAmount: number;
+}
+
+export interface ContractPaymentSubmission {
+  amount: number;
+  allocations: ContractPaymentAllocation[];
+  monthAllocations?: Array<{
+    monthStart: string;
+    allocatedAmount: number;
+  }>;
+  unappliedAmount?: number;
 }
 
 export function roundCurrencyAmount(value: number) {
@@ -464,6 +536,7 @@ export interface CustomerPayment {
   id: string;
   tenantId: string;
   customerId: string;
+  contractId: string | null;
   receivedAt: string;
   amount: number;
   currencyCode: string;
@@ -475,6 +548,7 @@ export interface CustomerPayment {
   reversedAt: string | null;
   reversalReason: string | null;
   createdAt: string;
+  unappliedAmount: number;
 }
 
 export interface CustomerPaymentAllocation {
@@ -536,6 +610,7 @@ export interface CustomerPaymentRow {
   id: string;
   tenant_id: string;
   customer_id: string;
+  contract_id: string | null;
   received_at: string;
   amount: number | string;
   currency_code: string;
@@ -547,6 +622,7 @@ export interface CustomerPaymentRow {
   reversed_at: string | null;
   reversal_reason: string | null;
   created_at: string;
+  unapplied_amount: number | string;
 }
 
 export interface CustomerPaymentAllocationRow {
@@ -609,6 +685,7 @@ export function mapCustomerPaymentRow(
     id: row.id,
     tenantId: row.tenant_id,
     customerId: row.customer_id,
+    contractId: row.contract_id,
     receivedAt: row.received_at,
     amount: numericValue(row.amount),
     currencyCode: row.currency_code,
@@ -620,6 +697,7 @@ export function mapCustomerPaymentRow(
     reversedAt: row.reversed_at,
     reversalReason: row.reversal_reason,
     createdAt: row.created_at,
+    unappliedAmount: numericValue(row.unapplied_amount),
   };
 }
 

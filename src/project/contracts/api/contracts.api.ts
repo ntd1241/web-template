@@ -40,13 +40,18 @@ import {
 } from '../model/contract-version-change';
 import {
   mapContractChargeBalanceRow,
+  mapContractPaymentCandidateRpcRow,
   mapContractReceivablePeriodRpcRow,
   mapCustomerPaymentAllocationRow,
   mapCustomerPaymentRow,
   mapCustomerReceivableSummaryRow,
   type ContractChargeBalance,
   type ContractChargeBalanceRow,
+  type ContractPaymentCandidate,
+  type ContractPaymentCandidateRpcResponse,
   type ContractPaymentHistory,
+  type ContractPaymentMonthRpcRow,
+  type ContractPaymentScope,
   type ContractReceivablePeriodListParams,
   type ContractReceivablePeriodListResult,
   type ContractReceivablePeriodRpcResponse,
@@ -658,7 +663,10 @@ export async function loadContractDetail(
       ...payment,
       allocations: allocationsByPaymentId.get(payment.id) ?? [],
     }))
-    .filter((payment) => payment.allocations.length > 0);
+    .filter(
+      (payment) =>
+        payment.allocations.length > 0 || payment.contractId === contract.id,
+    );
 
   return {
     ...mapContractRow(contract),
@@ -746,6 +754,123 @@ export interface RecordContractPeriodPaymentInput {
     chargeId: string;
     allocatedAmount: number;
   }>;
+}
+
+export interface LoadContractPaymentCandidatesResult {
+  items: ContractPaymentCandidate[];
+  total: number;
+  totalAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  unappliedCredit: number;
+  months: Array<{
+    monthStart: string;
+    monthEnd: string;
+    amount: number;
+    paidAmount: number;
+    outstandingAmount: number;
+    dueOutstandingAmount: number;
+    isDue: boolean;
+  }>;
+}
+
+export async function loadContractPaymentCandidates(
+  userId: string,
+  contractId: string,
+  scope: ContractPaymentScope,
+  scopeStart?: string,
+  scopeEnd?: string,
+  tenantIdOverride?: string,
+): Promise<LoadContractPaymentCandidatesResult> {
+  assertSupabaseConfigured();
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
+  const response = await request<ContractPaymentCandidateRpcResponse>(
+    supabaseApi.post('/rpc/list_contract_payment_candidates_scoped', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+      p_scope: scope,
+      p_scope_start: scopeStart ?? null,
+      p_scope_end: scopeEnd ?? null,
+    }),
+  );
+
+  return {
+    items: (response.items ?? []).map(mapContractPaymentCandidateRpcRow),
+    total: numberValue(response.total),
+    totalAmount: numberValue(response.total_amount),
+    paidAmount: numberValue(response.paid_amount),
+    outstandingAmount: numberValue(response.outstanding_amount),
+    unappliedCredit: numberValue(response.unapplied_credit),
+    months: (response.months ?? []).map(
+      (month: ContractPaymentMonthRpcRow) => ({
+        monthStart: month.month_start,
+        monthEnd: month.month_end,
+        amount: numberValue(month.amount),
+        paidAmount: numberValue(month.paid_amount),
+        outstandingAmount: numberValue(month.outstanding_amount),
+        dueOutstandingAmount: numberValue(month.due_outstanding_amount),
+        isDue: month.is_due,
+      }),
+    ),
+  };
+}
+
+export interface RecordContractPaymentInput {
+  scope: ContractPaymentScope;
+  scopeStart?: string;
+  scopeEnd?: string;
+  amount: number;
+  allocations: Array<{
+    chargeId: string;
+    allocatedAmount: number;
+  }>;
+  monthAllocations?: Array<{
+    monthStart: string;
+    allocatedAmount: number;
+  }>;
+}
+
+export async function recordContractPayment(
+  userId: string,
+  contractId: string,
+  customerId: string,
+  currencyCode: string,
+  input: RecordContractPaymentInput,
+  tenantIdOverride?: string,
+): Promise<RecordContractPeriodPaymentRpcRow> {
+  assertSupabaseConfigured();
+  const tenantId = tenantIdOverride ?? (await resolveTenantId(userId));
+  const response = await request<
+    RecordContractPeriodPaymentRpcRow[] | RecordContractPeriodPaymentRpcRow
+  >(
+    supabaseApi.post('/rpc/record_contract_payment_scoped', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+      p_customer_id: customerId,
+      p_currency_code: currencyCode,
+      p_amount: input.amount,
+      p_received_at: new Date().toISOString(),
+      p_payment_method: 'other',
+      p_reference: '',
+      p_note: '',
+      p_allocations:
+        input.scope === 'contract'
+          ? (input.monthAllocations ?? []).map((allocation) => ({
+              month_start: allocation.monthStart,
+              allocated_amount: allocation.allocatedAmount,
+            }))
+          : input.allocations.map((allocation) => ({
+              charge_id: allocation.chargeId,
+              allocated_amount: allocation.allocatedAmount,
+            })),
+      p_scope: input.scope,
+      p_scope_start: input.scopeStart ?? null,
+      p_scope_end: input.scopeEnd ?? null,
+    }),
+  );
+  const row = Array.isArray(response) ? response[0] : response;
+  if (!row) throw new Error('Không nhận được kết quả ghi nhận thanh toán.');
+  return row;
 }
 
 interface RecordContractPeriodPaymentRpcRow {

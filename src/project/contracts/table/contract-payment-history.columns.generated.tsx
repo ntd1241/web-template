@@ -52,32 +52,53 @@ export function useContractPaymentHistoryColumns(): ColumnDef<ContractPaymentHis
         headerClassName: 'min-w-[360px]',
         size: 420,
         enableSorting: false,
-        cell: (row) => (
-          <div className="min-w-[360px] space-y-2">
-            {row.allocations.map((allocation) => (
-              <div
-                key={allocation.id}
-                className="flex items-center justify-between gap-4 rounded-md bg-muted/50 px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {allocation.feeName}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {formatDate(allocation.periodStart)} –{' '}
-                    {formatDate(allocation.periodEnd)}
+        cell: (row) =>
+          row.allocations.length > 0 ? (
+            <div className="min-w-[360px] space-y-2">
+              {row.allocations.map((allocation) => (
+                <div
+                  key={allocation.id}
+                  className="flex items-center justify-between gap-4 rounded-md bg-muted/50 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {allocation.feeName}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatDate(allocation.periodStart)} –{' '}
+                      {formatDate(allocation.periodEnd)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                    {formatCurrency(
+                      allocation.allocatedAmount,
+                      allocation.currencyCode,
+                    )}
+                  </span>
+                </div>
+              ))}
+              {row.unappliedAmount > 0 ? (
+                <div className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2">
+                  <p className="text-xs font-medium text-warning-foreground">
+                    Số dư chưa phân bổ:{' '}
+                    {formatCurrency(row.unappliedAmount, row.currencyCode)}
                   </p>
                 </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                  {formatCurrency(
-                    allocation.allocatedAmount,
-                    allocation.currencyCode,
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        ),
+              ) : null}
+            </div>
+          ) : (
+            <div className="min-w-[360px] rounded-md bg-muted/50 px-3 py-2">
+              <p className="text-sm font-medium text-foreground">
+                Số dư chưa phân bổ
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Khoản dư được giữ lại cho hợp đồng
+              </p>
+              <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">
+                {formatCurrency(row.unappliedAmount, row.currencyCode)}
+              </p>
+            </div>
+          ),
       }),
       col.custom({
         id: 'paymentMethod',

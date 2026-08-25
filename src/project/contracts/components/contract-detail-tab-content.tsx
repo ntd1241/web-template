@@ -62,6 +62,7 @@ import {
 } from '@/components/ui/table';
 import {
   deleteContractAttachment,
+  recordContractPayment,
   recordContractPeriodPayment,
   uploadContractAttachments,
 } from '../api/contracts.api';
@@ -92,6 +93,7 @@ import {
   ContractPaymentDialog,
   type ContractPaymentSubmission,
 } from './contract-payment-dialog';
+import { ContractPaymentScopeDialog } from './contract-payment-scope-dialog';
 import { ContractReceivableViewSwitcher } from './contract-receivable-view-switcher.generated';
 import { ContractStatusBadge } from './contract-status-badge';
 
@@ -396,6 +398,10 @@ export function ContractReceivablesContent({
   } = useContractReceivableList({ tenantId, contractId, dueSoonDays });
   const [paymentRow, setPaymentRow] =
     useState<ContractReceivableTableRow | null>(null);
+  const [monthPaymentScope, setMonthPaymentScope] = useState<{
+    start: string;
+    end: string;
+  } | null>(null);
   const paymentMutation = useMutation({
     mutationFn: (submission: ContractPaymentSubmission) => {
       if (!paymentRow) throw new Error('Chưa chọn kỳ thanh toán.');
@@ -421,11 +427,43 @@ export function ContractReceivablesContent({
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
-  const handlePay = useCallback((row: ContractReceivableTableRow) => {
-    setPaymentRow(row);
-  }, []);
+  const monthPaymentMutation = useMutation({
+    mutationFn: (submission: ContractPaymentSubmission) => {
+      if (!monthPaymentScope) throw new Error('Chưa chọn tháng thanh toán.');
+      return recordContractPayment(
+        userId,
+        contractId,
+        customerId,
+        currencyCode,
+        {
+          scope: 'month',
+          scopeStart: monthPaymentScope.start,
+          scopeEnd: monthPaymentScope.end,
+          amount: submission.amount,
+          allocations: submission.allocations,
+        },
+        tenantId,
+      );
+    },
+    onSuccess: async () => {
+      toast.success('Đã ghi nhận thanh toán cho tháng.');
+      setMonthPaymentScope(null);
+      await onPaymentRecorded();
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+  const handlePay = useCallback(
+    (row: ContractReceivableTableRow) => {
+      if (filters.view === 'month') {
+        setMonthPaymentScope({ start: row.periodStart, end: row.periodEnd });
+        return;
+      }
+      setPaymentRow(row);
+    },
+    [filters.view],
+  );
   const columns = useContractReceivableTableRowColumns({
-    onPay: handlePay,
+    onPay: filters.view === 'year' ? undefined : handlePay,
   });
   const table = useReactTable({
     data: visibleRows,
@@ -561,6 +599,23 @@ export function ContractReceivablesContent({
           if (!open && !paymentMutation.isPending) setPaymentRow(null);
         }}
         onSubmit={(submission) => paymentMutation.mutate(submission)}
+      />
+      <ContractPaymentScopeDialog
+        open={monthPaymentScope !== null}
+        scope="month"
+        tenantId={tenantId}
+        userId={userId}
+        contractId={contractId}
+        scopeStart={monthPaymentScope?.start}
+        scopeEnd={monthPaymentScope?.end}
+        currencyCode={currencyCode}
+        isSubmitting={monthPaymentMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open && !monthPaymentMutation.isPending) {
+            setMonthPaymentScope(null);
+          }
+        }}
+        onSubmit={(submission) => monthPaymentMutation.mutate(submission)}
       />
     </>
   );

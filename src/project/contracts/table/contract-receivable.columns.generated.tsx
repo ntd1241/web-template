@@ -150,7 +150,6 @@ export function useContractReceivableTableRowColumns(
           onPay &&
           row.direction === 'receivable' &&
           !row.isProjected &&
-          row.source !== 'mixed' &&
           row.outstandingAmount > 0 ? (
             <DataGridActionButton
               action="primary"
