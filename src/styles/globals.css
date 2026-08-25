@@ -13,17 +13,17 @@
   --app-root-font-size: 16px;
   font-size: var(--app-root-font-size);
 
-  --admin-primary: var(--color-red-600);
-  --admin-primary-dark: var(--color-red-700);
-  --admin-primary-darker: var(--color-red-800);
-  --admin-primary-bright: var(--color-red-500);
-  --admin-primary-tint: var(--color-red-300);
-  --admin-primary-border: var(--color-red-200);
-  --admin-primary-soft: var(--color-red-100);
-  --admin-primary-foam: var(--color-red-50);
-  --admin-primary-bg: var(--color-red-50);
-  --admin-primary-bg-light: var(--color-red-50);
-  --admin-primary-bg-pale: #fffcfc;
+  --admin-primary: var(--admin-blue-primary);
+  --admin-primary-dark: var(--admin-blue-dark);
+  --admin-primary-darker: var(--admin-blue-darkest);
+  --admin-primary-bright: var(--admin-blue-bright);
+  --admin-primary-tint: var(--admin-blue-light);
+  --admin-primary-border: var(--admin-blue-border);
+  --admin-primary-soft: #d4e6ff;
+  --admin-primary-foam: #dbeafe;
+  --admin-primary-bg: var(--admin-blue-bg);
+  --admin-primary-bg-light: #f3f8ff;
+  --admin-primary-bg-pale: #f7faff;
   --admin-blue-darkest: #0a47a8;
   --admin-blue-dark: #0e5cd6;
   --admin-blue-primary: #1677ff;
@@ -114,7 +114,7 @@
   --muted: var(--color-zinc-900);
   --muted-foreground: var(--color-zinc-400);
   --field: var(--color-zinc-900);
-  --accent: var(--color-red-950);
+  --accent: var(--admin-primary-darker);
   --accent-foreground: var(--admin-primary-tint);
   --destructive: var(--admin-red-primary);
   --destructive-foreground: var(--color-white);
