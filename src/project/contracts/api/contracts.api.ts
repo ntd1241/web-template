@@ -163,7 +163,7 @@ export async function loadContractList(
   };
 }
 
-export async function loadContractReceivablePeriodList(
+export async function loadContractReceivablePlanList(
   tenantId: string,
   contractId: string,
   params: ContractReceivablePeriodListParams,
@@ -172,7 +172,7 @@ export async function loadContractReceivablePeriodList(
   assertSupabaseConfigured();
   const response = await request<ContractReceivablePeriodRpcResponse>(
     supabaseApi.post(
-      '/rpc/list_contract_receivable_periods_scoped',
+      '/rpc/list_contract_receivable_plan_scoped',
       {
         p_tenant_id: tenantId,
         p_contract_id: contractId,
@@ -183,6 +183,7 @@ export async function loadContractReceivablePeriodList(
         p_sort: params.sort,
         p_group_by: params.view,
         p_due_soon_days: params.dueSoonDays,
+        p_year: params.year,
       },
       { signal },
     ),
@@ -193,6 +194,10 @@ export async function loadContractReceivablePeriodList(
     total: numberValue(response.total),
   };
 }
+
+// Kept as a compatibility alias for existing consumers while the endpoint
+// evolves from persisted periods to the combined actual/projected plan.
+export const loadContractReceivablePeriodList = loadContractReceivablePlanList;
 
 export interface ContractCreationWorkspace {
   tenantId: string;

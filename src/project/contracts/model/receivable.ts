@@ -16,6 +16,7 @@ export const CONTRACT_CHARGE_STATUSES = [
 export type ContractChargeStatus = (typeof CONTRACT_CHARGE_STATUSES)[number];
 
 export const CONTRACT_CHARGE_DISPLAY_STATUSES = [
+  'projected',
   'upcoming',
   'unpaid',
   'partially_paid',
@@ -50,6 +51,7 @@ export const CONTRACT_CHARGE_DISPLAY_STATUS_LABELS: Record<
   ContractChargeDisplayStatus,
   string
 > = {
+  projected: 'Dự kiến',
   upcoming: 'Sắp tới hạn',
   unpaid: 'Chưa thu',
   partially_paid: 'Đã thu một phần',
@@ -115,6 +117,7 @@ export interface ContractReceivableTableFee {
   amount: number;
   outstandingAmount: number;
   currencyCode: string;
+  isProjected?: boolean;
 }
 
 export interface ContractPaymentAllocation {
@@ -158,6 +161,9 @@ export interface ContractReceivableTableRow {
   fees: ContractReceivableTableFee[];
   groupLabel?: string | null;
   isAggregated?: boolean;
+  isProjected?: boolean;
+  source?: 'actual' | 'projected' | 'mixed';
+  plannedOutstandingAmount?: number;
 }
 
 export const CONTRACT_RECEIVABLE_VIEW_MODES = [
@@ -184,6 +190,7 @@ export interface ContractReceivablePeriodListParams {
   sort: ContractReceivableSortOption;
   view: ContractReceivableViewMode;
   dueSoonDays: number;
+  year: number;
 }
 
 export interface ContractReceivablePeriodListResult {
@@ -198,6 +205,7 @@ export interface ContractReceivablePeriodRpcFee {
   amount: number | string;
   outstanding_amount: number | string;
   currency_code: string;
+  is_projected?: boolean;
 }
 
 export interface ContractReceivablePeriodRpcRow {
@@ -214,6 +222,11 @@ export interface ContractReceivablePeriodRpcRow {
   fees: ContractReceivablePeriodRpcFee[];
   group_label?: string | null;
   is_aggregated?: boolean;
+  is_projected?: boolean;
+  source?: 'actual' | 'projected' | 'mixed';
+  actual_amount?: number | string;
+  projected_amount?: number | string;
+  planned_outstanding_amount?: number | string;
 }
 
 export interface ContractReceivablePeriodRpcResponse {
@@ -249,9 +262,15 @@ export function mapContractReceivablePeriodRpcRow(
       amount: numericValue(fee.amount),
       outstandingAmount: numericValue(fee.outstanding_amount),
       currencyCode: fee.currency_code,
+      isProjected: fee.is_projected ?? false,
     })),
     groupLabel: row.group_label,
     isAggregated: row.is_aggregated ?? false,
+    isProjected: row.is_projected ?? false,
+    source: row.source ?? 'actual',
+    plannedOutstandingAmount: numericValue(
+      row.planned_outstanding_amount ?? row.outstanding_amount,
+    ),
   };
 }
 

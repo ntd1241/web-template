@@ -14,7 +14,7 @@ const spec: FilterSpec = {
       name: 'status',
       label: 'Trạng thái',
       placeholder: 'Trạng thái',
-      ariaLabel: 'Trạng thái kỳ thanh toán',
+      ariaLabel: 'Lọc trạng thái kỳ thanh toán',
       className: 'w-48',
       optionsSource: 'prop',
     },

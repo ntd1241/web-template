@@ -113,10 +113,15 @@ export function useContractReceivableTableRowColumns(
         cell: (row) => (
           <span
             className={
-              row.outstandingAmount > 0 ? 'text-destructive' : 'text-foreground'
+              (row.plannedOutstandingAmount ?? row.outstandingAmount) > 0
+                ? 'text-destructive'
+                : 'text-foreground'
             }
           >
-            {formatCurrency(row.outstandingAmount, row.currencyCode)}
+            {formatCurrency(
+              row.plannedOutstandingAmount ?? row.outstandingAmount,
+              row.currencyCode,
+            )}
           </span>
         ),
       }),
@@ -144,6 +149,8 @@ export function useContractReceivableTableRowColumns(
         cell: (row) =>
           onPay &&
           row.direction === 'receivable' &&
+          !row.isProjected &&
+          row.source !== 'mixed' &&
           row.outstandingAmount > 0 ? (
             <DataGridActionButton
               action="primary"

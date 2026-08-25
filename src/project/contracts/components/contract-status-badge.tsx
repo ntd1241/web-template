@@ -26,6 +26,7 @@ type ContractBadgeStatus =
   | string;
 
 const STATUS_COLORS: Record<string, string> = {
+  projected: '#64748b',
   active: '#16a34a',
   effective: '#16a34a',
   paid: '#16a34a',
@@ -88,6 +89,7 @@ const CASHFLOW_STATUS_LABELS: Record<
   Partial<Record<ContractChargeDisplayStatus, string>>
 > = {
   receivable: {
+    projected: 'Dự kiến thu',
     upcoming: 'Sắp tới hạn thu',
     unpaid: 'Chưa thu',
     partially_paid: 'Đã thu một phần',
@@ -97,6 +99,7 @@ const CASHFLOW_STATUS_LABELS: Record<
     voided: 'Đã hủy',
   },
   payable: {
+    projected: 'Dự kiến trả',
     upcoming: 'Sắp tới hạn trả',
     unpaid: 'Chưa trả',
     partially_paid: 'Đã trả một phần',

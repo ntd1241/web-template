@@ -115,6 +115,11 @@ const RECEIVABLE_FILTER_STATUS_OPTIONS = [
   })),
 ];
 
+const RECEIVABLE_PLAN_YEARS = Array.from(
+  { length: 8 },
+  (_, index) => new Date().getFullYear() - 2 + index,
+);
+
 function formatDate(value: string | null | undefined) {
   if (!value) return 'Chưa cập nhật';
   return new Intl.DateTimeFormat('vi-VN').format(new Date(`${value}T00:00:00`));
@@ -420,7 +425,7 @@ export function ContractReceivablesContent({
     setPaymentRow(row);
   }, []);
   const columns = useContractReceivableTableRowColumns({
-    onPay: filters.view === 'period' ? handlePay : undefined,
+    onPay: handlePay,
   });
   const table = useReactTable({
     data: visibleRows,
@@ -458,6 +463,21 @@ export function ContractReceivablesContent({
               />
             </CardHeading>
             <CardToolbar className="flex-wrap">
+              <Select
+                value={String(filters.year)}
+                onValueChange={(value) => setFilter('year', Number(value))}
+              >
+                <SelectTrigger className="w-28" aria-label="Năm kế hoạch">
+                  <SelectValue placeholder="Năm" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECEIVABLE_PLAN_YEARS.map((year) => (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <ContractReceivableFilterBar
                 keyword={keyword}
                 onKeywordChange={setKeyword}

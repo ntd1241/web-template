@@ -53,7 +53,7 @@ export function ContractReceivableFilterBar({
           options: statusOptions ?? [],
           label: 'Trạng thái',
           placeholder: 'Trạng thái',
-          ariaLabel: 'Trạng thái kỳ thanh toán',
+          ariaLabel: 'Lọc trạng thái kỳ thanh toán',
           className: 'w-48',
           disabled,
           renderOption: statusRenderOption,

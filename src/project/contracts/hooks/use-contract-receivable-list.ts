@@ -13,12 +13,14 @@ export interface ContractReceivableListFilters {
   status: 'all' | ContractChargeDisplayStatus;
   sort: ContractReceivableSortOption;
   view: ContractReceivableViewMode;
+  year: number;
 }
 
 const INITIAL_FILTERS: ContractReceivableListFilters = {
   status: 'all',
   sort: 'periodStart_desc',
-  view: 'period',
+  view: 'month',
+  year: new Date().getFullYear(),
 };
 
 export function useContractReceivableList({
@@ -39,6 +41,7 @@ export function useContractReceivableList({
       status: { omit: ['all'] },
       sort: {},
       view: {},
+      year: {},
     },
   });
   const listParams: ContractReceivablePeriodListParams = {
@@ -53,12 +56,13 @@ export function useContractReceivableList({
     sort: queryParams.sort as ContractReceivableSortOption,
     view: queryParams.view as ContractReceivableViewMode,
     dueSoonDays,
+    year: Number(queryParams.year),
   };
   const listQuery = useQuery({
     queryKey: [
       'project',
       'contracts',
-      'receivable-periods',
+      'receivable-plan',
       tenantId,
       contractId,
       listParams,
