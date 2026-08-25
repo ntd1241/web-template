@@ -659,31 +659,24 @@ begin
   set unapplied_amount = greatest(v_amount - v_total_allocated, 0)
   where id = v_payment_id;
 
-  for v_charge in
-    update public.contract_charges charge
-    set status = case
-      when balances.paid_amount >= charge.amount then 'paid'::public.contract_charge_status
-      when balances.paid_amount > 0 then 'partially_paid'::public.contract_charge_status
-      else 'open'::public.contract_charge_status
-    end
-    from (
-      select
-        allocation.charge_id,
-        sum(case when payment.status = 'posted' then allocation.allocated_amount else 0 end)
-          as paid_amount
-      from public.customer_payment_allocations allocation
-      join public.customer_payments payment
-        on payment.id = allocation.payment_id
-      where allocation.payment_id = v_payment_id
-      group by allocation.charge_id
-    ) balances
-    where charge.id = balances.charge_id
-    returning charge.id, charge.status
-  loop
-    if v_charge.status = 'paid' then
-      perform public.ensure_next_contract_charge(v_charge.id);
-    end if;
-  end loop;
+  update public.contract_charges charge
+  set status = case
+    when balances.paid_amount >= charge.amount then 'paid'::public.contract_charge_status
+    when balances.paid_amount > 0 then 'partially_paid'::public.contract_charge_status
+    else 'open'::public.contract_charge_status
+  end
+  from (
+    select
+      allocation.charge_id,
+      sum(case when payment.status = 'posted' then allocation.allocated_amount else 0 end)
+        as paid_amount
+    from public.customer_payment_allocations allocation
+    join public.customer_payments payment
+      on payment.id = allocation.payment_id
+    where allocation.payment_id = v_payment_id
+    group by allocation.charge_id
+  ) balances
+  where charge.id = balances.charge_id;
 
   return query select v_payment_id, v_total_allocated, greatest(v_amount - v_total_allocated, 0);
 end;
