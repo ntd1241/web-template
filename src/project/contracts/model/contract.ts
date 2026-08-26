@@ -18,6 +18,13 @@ export const CONTRACT_VERSION_STATUSES = [
 ] as const;
 export type ContractVersionStatus = (typeof CONTRACT_VERSION_STATUSES)[number];
 
+export const CONTRACT_VERSION_KINDS = [
+  'initial',
+  'amendment',
+  'renewal',
+] as const;
+export type ContractVersionKind = (typeof CONTRACT_VERSION_KINDS)[number];
+
 export const BILLING_TYPES = ['recurring', 'one_time'] as const;
 export type BillingType = (typeof BILLING_TYPES)[number];
 
@@ -271,6 +278,7 @@ export interface ContractVersion {
   contractId: string;
   versionNo: number;
   status: ContractVersionStatus;
+  versionKind: ContractVersionKind;
   effectiveFrom: string;
   effectiveTo: string | null;
   changeReason: string;
@@ -324,6 +332,7 @@ export interface ContractVersionRow {
   contract_id: string;
   version_no: number;
   status: ContractVersionStatus;
+  version_kind?: ContractVersionKind;
   effective_from: string;
   effective_to: string | null;
   change_reason: string;
@@ -386,6 +395,8 @@ export function mapContractVersionRow(
     contractId: row.contract_id,
     versionNo: row.version_no,
     status: row.status,
+    versionKind:
+      row.version_kind ?? (row.version_no === 1 ? 'initial' : 'amendment'),
     effectiveFrom: row.effective_from,
     effectiveTo: row.effective_to,
     changeReason: row.change_reason,

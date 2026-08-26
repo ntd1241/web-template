@@ -8,7 +8,6 @@ import {
   parseISO,
 } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import type {
   ContractDetail,
+  ContractRenewalInput,
   ContractVersionLineValuesForApi,
 } from '../api/contracts.api';
 import { ContractFeeLinesEditor } from './contract-fee-lines-editor';
@@ -85,34 +85,44 @@ function getDefaultDuration(contract: ContractDetail) {
 
 function createRenewalLines(
   contract: ContractDetail,
+  versionId: string | null,
 ): ContractVersionLineValuesForApi[] {
-  return contract.lines.map((line) => ({
-    direction: line.direction,
-    name: line.name,
-    quantity: line.quantity,
-    unitPrice: line.unitPrice,
-    billingType: line.billingType,
-    billingUnit: line.billingUnit,
-    billingInterval: line.billingInterval,
-    chargeDate: line.chargeDate,
-    dueRule: line.dueRule,
-    dueDays: line.dueDays,
-    startDate: line.startDate,
-    endDate: line.endDate,
-  }));
+  if (!versionId) return [];
+
+  return contract.activeLines
+    .filter((line) => line.contractVersionId === versionId)
+    .map((line) => ({
+      direction: line.direction,
+      name: line.name,
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+      billingType: line.billingType,
+      billingUnit: line.billingUnit,
+      billingInterval: line.billingInterval,
+      chargeDate: line.chargeDate,
+      dueRule: line.dueRule,
+      dueDays: line.dueDays,
+      startDate: line.startDate,
+      endDate: line.endDate,
+    }));
 }
 
 export interface ContractRenewalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contract: ContractDetail;
+  isSubmitting?: boolean;
+  onConfirm: (input: ContractRenewalInput) => void | Promise<void>;
 }
 
 export function ContractRenewalDialog({
   open,
   onOpenChange,
   contract,
+  isSubmitting = false,
+  onConfirm,
 }: ContractRenewalDialogProps) {
+  const currentVersion = contract.activeVersion;
   const [durationValue, setDurationValue] = useState(() =>
     getDefaultDuration(contract),
   );
@@ -128,13 +138,8 @@ export function ContractRenewalDialog({
     ),
   );
   const [lines, setLines] = useState<ContractVersionLineValuesForApi[]>(() =>
-    createRenewalLines(contract),
+    createRenewalLines(contract, currentVersion?.id ?? null),
   );
-  const currentVersion =
-    contract.versions.find((version) => version.status === 'effective') ??
-    contract.versions.find((version) => version.status === 'draft') ??
-    contract.versions[0] ??
-    null;
   const nextVersionNo =
     Math.max(0, ...contract.versions.map((version) => version.versionNo)) + 1;
 
@@ -148,7 +153,8 @@ export function ContractRenewalDialog({
     setDurationUnit('month');
     setStartDate(defaultStartDate);
     setEndDate(addDuration(defaultStartDate, defaultDuration, 'month'));
-    setLines(createRenewalLines(contract));
+    const nextCurrentVersion = contract.activeVersion;
+    setLines(createRenewalLines(contract, nextCurrentVersion?.id ?? null));
   }, [contract, open]);
 
   function updateDuration(value: number, unit = durationUnit) {
@@ -166,7 +172,8 @@ export function ContractRenewalDialog({
   );
 
   function handleConfirm() {
-    toast.info('Đây là UI mô phỏng; chưa lưu gia hạn vào hệ thống.');
+    if (!canConfirm || isSubmitting) return;
+    void onConfirm({ startDate, endDate, lines });
   }
 
   return (
@@ -298,6 +305,7 @@ export function ContractRenewalDialog({
           <Button
             type="button"
             variant="outline"
+            disabled={isSubmitting}
             onClick={() => onOpenChange(false)}
           >
             Hủy
@@ -305,7 +313,8 @@ export function ContractRenewalDialog({
           <Button
             type="button"
             variant="primary"
-            disabled={!canConfirm}
+            disabled={!canConfirm || isSubmitting}
+            loading={isSubmitting}
             onClick={handleConfirm}
           >
             <RefreshCw /> Xác nhận gia hạn

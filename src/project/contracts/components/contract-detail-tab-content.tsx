@@ -671,6 +671,9 @@ export function ContractVersionsContent({
                   <ContractVersionBadge
                     versionNo={version.versionNo}
                     status={version.status}
+                    label={
+                      version.versionKind === 'renewal' ? 'Gia hạn' : undefined
+                    }
                   />
                 </td>
                 <td className="px-5 py-3">

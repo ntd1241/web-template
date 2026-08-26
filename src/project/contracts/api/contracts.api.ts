@@ -25,6 +25,7 @@ import {
   type ContractRow,
   type ContractTagOption,
   type ContractVersion,
+  type ContractVersionKind,
   type ContractVersionLine,
   type ContractVersionLineRow,
   type ContractVersionRow,
@@ -243,7 +244,9 @@ export interface ContractDetail extends Contract {
   paymentReminderDays: number;
   customer: Customer;
   versions: ContractVersion[];
+  activeVersion: ContractVersion | null;
   lines: ContractVersionLine[];
+  activeLines: ContractVersionLine[];
   charges: ContractChargeBalance[];
   financialSummary: ContractFinancialSummary;
   payments: ContractPaymentHistory[];
@@ -631,6 +634,12 @@ export async function loadContractDetail(
   }
 
   const charges = balanceRows.map(mapContractChargeBalanceRow);
+  const mappedLines = lineRows.map(mapContractVersionLineRow);
+  const activeVersion =
+    versions.find((version) => version.status === 'effective') ?? null;
+  const activeLines = activeVersion
+    ? mappedLines.filter((line) => line.contractVersionId === activeVersion.id)
+    : [];
   const allocationRows =
     charges.length > 0
       ? await request<CustomerPaymentAllocationRow[]>(
@@ -688,7 +697,9 @@ export async function loadContractDetail(
     customerCode: customer.customerCode,
     customer,
     versions,
-    lines: lineRows.map(mapContractVersionLineRow),
+    activeVersion,
+    lines: mappedLines,
+    activeLines,
     charges,
     financialSummary: mapContractFinancialSummary(financialSummary),
     payments,
@@ -1002,6 +1013,23 @@ export type ContractVersionLineValuesForApi = {
   endDate: string | null;
 };
 
+export interface ContractRenewalInput {
+  startDate: string;
+  endDate: string;
+  lines: ContractVersionLineValuesForApi[];
+}
+
+export interface ContractRenewalResult {
+  contractId: string;
+  versionId: string;
+  versionNo: number;
+  versionKind: ContractVersionKind;
+  status: 'active';
+  effectiveFrom: string;
+  effectiveTo: string;
+  generatedChargeCount: number;
+}
+
 async function insertVersion(
   contractId: string,
   userId: string,
@@ -1017,6 +1045,7 @@ async function insertVersion(
       {
         contract_id: contractId,
         version_no: versionNo,
+        version_kind: versionNo === 1 ? 'initial' : 'amendment',
         status: 'draft',
         effective_from: effectiveFrom,
         effective_to: null,
@@ -1301,6 +1330,38 @@ export async function updateContract(
     metadata,
   );
   return mapContractRow(contract);
+}
+
+export async function renewContract(
+  tenantId: string,
+  contractId: string,
+  input: ContractRenewalInput,
+): Promise<ContractRenewalResult> {
+  assertSupabaseConfigured();
+  const response = await request<ContractRenewalResult>(
+    supabaseApi.post('/rpc/renew_contract_scoped', {
+      p_tenant_id: tenantId,
+      p_contract_id: contractId,
+      p_start_date: input.startDate,
+      p_end_date: input.endDate,
+      p_lines: input.lines.map((line) => {
+        const normalizedLine = normalizeContractVersionLineForSubmit(line);
+        return {
+          direction: normalizedLine.direction,
+          name: normalizedLine.name,
+          quantity: normalizedLine.quantity,
+          unit_price: normalizedLine.unitPrice,
+          billing_type: normalizedLine.billingType,
+          billing_unit: normalizedLine.billingUnit,
+          billing_interval: normalizedLine.billingInterval,
+          due_rule: normalizedLine.dueRule,
+          due_days: normalizedLine.dueDays,
+        };
+      }),
+    }),
+  );
+
+  return response;
 }
 
 function toComparableLine(

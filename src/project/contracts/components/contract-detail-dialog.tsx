@@ -92,9 +92,9 @@ function buildGeneralSearchText(contract: ContractDetail) {
     contract.customer.customerCode,
     CONTRACT_STATUS_LABELS[contract.status],
     'ngày bắt đầu',
-    contract.startDate,
+    contract.activeVersion?.effectiveFrom ?? contract.startDate,
     'ngày kết thúc',
-    contract.endDate,
+    contract.activeVersion?.effectiveTo ?? contract.endDate,
     'tự động gia hạn',
     contract.autoRenew ? 'có yes true' : 'không no false',
     'tiền tệ',
@@ -118,11 +118,9 @@ function buildGeneralSearchText(contract: ContractDetail) {
 }
 
 function getCurrentContractFeeLines(contract: ContractDetail) {
-  const currentVersionId = contract.versions[0]?.id;
-
-  return contract.lines
-    .filter((line) => line.contractVersionId === currentVersionId)
-    .sort((left, right) => left.sortOrder - right.sortOrder);
+  return [...contract.activeLines].sort(
+    (left, right) => left.sortOrder - right.sortOrder,
+  );
 }
 
 function getFeeScheduleText(line: ContractVersionLine) {
@@ -158,7 +156,7 @@ function getFeeSearchText(line: ContractVersionLine) {
 }
 
 function buildFeesSearchText(contract: ContractDetail) {
-  const currentVersion = contract.versions[0];
+  const currentVersion = contract.activeVersion;
 
   return joinSearchText(
     'khoản phí phí hợp đồng',
@@ -343,13 +341,17 @@ function ContractGeneralFields({
     },
     {
       label: 'Ngày bắt đầu',
-      value: formatDate(contract.startDate),
-      searchText: contract.startDate,
+      value: formatDate(
+        contract.activeVersion?.effectiveFrom ?? contract.startDate,
+      ),
+      searchText: contract.activeVersion?.effectiveFrom ?? contract.startDate,
     },
     {
       label: 'Ngày kết thúc',
-      value: contract.endDate ? formatDate(contract.endDate) : 'Không giới hạn',
-      searchText: contract.endDate ?? 'Không giới hạn',
+      value: contract.activeVersion?.effectiveTo
+        ? formatDate(contract.activeVersion.effectiveTo)
+        : 'Không giới hạn',
+      searchText: contract.activeVersion?.effectiveTo ?? 'Không giới hạn',
     },
     {
       label: 'Tự động gia hạn',

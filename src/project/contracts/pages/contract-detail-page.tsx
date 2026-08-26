@@ -48,7 +48,9 @@ import {
   loadContractDetail,
   loadContractPaymentPeriodCount,
   recordContractPayment,
+  renewContract,
   type ContractDetail,
+  type ContractRenewalInput,
 } from '../api/contracts.api';
 import { ContractDetailDialog } from '../components/contract-detail-dialog';
 import {
@@ -124,6 +126,10 @@ function ContractSummaryCard({
   onManageResponsibles: () => void;
   canManageResponsibles: boolean;
 }) {
+  const activeStartDate =
+    contract.activeVersion?.effectiveFrom ?? contract.startDate;
+  const activeEndDate = contract.activeVersion?.effectiveTo ?? null;
+
   return (
     <Card className="relative -mt-10 overflow-visible border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
       <CardContent className="p-5 sm:p-6">
@@ -148,12 +154,12 @@ function ContractSummaryCard({
           <EntityDetailInformationItem
             label="Ngày bắt đầu"
             className="xl:border-e xl:border-border xl:px-6"
-            value={formatDate(contract.startDate)}
+            value={formatDate(activeStartDate)}
           />
           <EntityDetailInformationItem
             label="Ngày kết thúc"
             className="xl:border-e xl:border-border xl:px-6"
-            value={formatDate(contract.endDate)}
+            value={formatDate(activeEndDate)}
           />
           <EntityDetailInformationItem
             label="Nhân viên phụ trách"
@@ -399,6 +405,25 @@ export function ContractDetailPage() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
+  const contractRenewalMutation = useMutation({
+    mutationFn: (input: ContractRenewalInput) => {
+      if (!contractQuery.data) {
+        throw new Error('Thiếu thông tin hợp đồng để gia hạn.');
+      }
+      return renewContract(
+        contractQuery.data.tenantId,
+        contractQuery.data.id,
+        input,
+      );
+    },
+    onSuccess: async () => {
+      toast.success('Đã gia hạn hợp đồng.');
+      setContractRenewalDialogOpen(false);
+      await invalidate();
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+
   function openEdit(contract: ContractDetail) {
     navigate(
       `${ROUTES.PROJECT.CONTRACT_CREATE}?edit=${encodeURIComponent(contract.id)}`,
@@ -578,8 +603,14 @@ export function ContractDetailPage() {
       />
       <ContractRenewalDialog
         open={contractRenewalDialogOpen}
-        onOpenChange={setContractRenewalDialogOpen}
+        isSubmitting={contractRenewalMutation.isPending}
+        onOpenChange={(open) => {
+          if (!contractRenewalMutation.isPending) {
+            setContractRenewalDialogOpen(open);
+          }
+        }}
         contract={contract}
+        onConfirm={(input) => contractRenewalMutation.mutate(input)}
       />
     </>
   );
