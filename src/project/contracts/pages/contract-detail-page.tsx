@@ -43,10 +43,10 @@ import {
 } from '@/components/layouts/entity-detail-layout';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import {
+  createContractRenewalDraft,
   deleteContract,
   loadContractPaymentPeriodCount,
   recordContractPayment,
-  renewContract,
   type ContractDetail,
   type ContractRenewalInput,
 } from '../api/contracts.api';
@@ -378,14 +378,18 @@ export function ContractDetailPage() {
       if (!contractQuery.data) {
         throw new Error('Thiếu thông tin hợp đồng để gia hạn.');
       }
-      return renewContract(
+      return createContractRenewalDraft(
         contractQuery.data.tenantId,
         contractQuery.data.id,
         input,
       );
     },
-    onSuccess: async () => {
-      toast.success('Đã gia hạn hợp đồng.');
+    onSuccess: async (result) => {
+      toast.success(
+        result.overrodeDraft
+          ? `Đã cập nhật bản nháp gia hạn v${result.versionNo}.`
+          : `Đã tạo bản nháp gia hạn v${result.versionNo}.`,
+      );
       setContractRenewalDialogOpen(false);
       await invalidate();
     },

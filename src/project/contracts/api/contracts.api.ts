@@ -1017,6 +1017,7 @@ export interface ContractRenewalInput {
   startDate: string;
   endDate: string;
   lines: ContractVersionLineValuesForApi[];
+  overrideDraft?: boolean;
 }
 
 export interface ContractRenewalResult {
@@ -1024,10 +1025,11 @@ export interface ContractRenewalResult {
   versionId: string;
   versionNo: number;
   versionKind: ContractVersionKind;
-  status: 'active';
+  status: 'draft';
   effectiveFrom: string;
   effectiveTo: string;
   generatedChargeCount: number;
+  overrodeDraft: boolean;
 }
 
 async function insertVersion(
@@ -1328,18 +1330,19 @@ export async function updateContract(
   return mapContractRow(contract);
 }
 
-export async function renewContract(
+export async function createContractRenewalDraft(
   tenantId: string,
   contractId: string,
   input: ContractRenewalInput,
 ): Promise<ContractRenewalResult> {
   assertSupabaseConfigured();
   const response = await request<ContractRenewalResult>(
-    supabaseApi.post('/rpc/renew_contract_scoped', {
+    supabaseApi.post('/rpc/create_contract_renewal_draft_scoped', {
       p_tenant_id: tenantId,
       p_contract_id: contractId,
       p_start_date: input.startDate,
       p_end_date: input.endDate,
+      p_override_draft: input.overrideDraft ?? false,
       p_lines: input.lines.map((line) => {
         const normalizedLine = normalizeContractVersionLineForSubmit(line);
         return {
@@ -1449,7 +1452,12 @@ export async function activateContract(
   const rows = await request<ContractRow[]>(
     supabaseApi.patch(
       '/contracts',
-      { status: 'active' },
+      {
+        status: 'active',
+        ...(draft.version_kind === 'renewal' && draft.effective_to
+          ? { end_date: draft.effective_to }
+          : {}),
+      },
       {
         ...queryParams({ id: `eq.${contract.id}` }),
         headers: { Prefer: 'return=representation' },

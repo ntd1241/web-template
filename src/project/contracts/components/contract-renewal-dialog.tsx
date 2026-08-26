@@ -9,6 +9,7 @@ import {
 } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Dialog,
   DialogBody,
@@ -140,11 +141,23 @@ export function ContractRenewalDialog({
   const [lines, setLines] = useState<ContractVersionLineValuesForApi[]>(() =>
     createRenewalLines(contract, currentVersion?.id ?? null),
   );
+  const existingDraft = contract.versions.find(
+    (version) => version.status === 'draft',
+  );
   const nextVersionNo =
+    existingDraft?.versionNo ??
     Math.max(0, ...contract.versions.map((version) => version.versionNo)) + 1;
+  const [overrideConfirmOpen, setOverrideConfirmOpen] = useState(false);
+  const [pendingInput, setPendingInput] = useState<ContractRenewalInput | null>(
+    null,
+  );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setOverrideConfirmOpen(false);
+      setPendingInput(null);
+      return;
+    }
 
     const defaultDuration = getDefaultDuration(contract);
     const defaultStartDate = getDefaultStartDate(contract);
@@ -173,7 +186,13 @@ export function ContractRenewalDialog({
 
   function handleConfirm() {
     if (!canConfirm || isSubmitting) return;
-    void onConfirm({ startDate, endDate, lines });
+    const input = { startDate, endDate, lines };
+    if (existingDraft) {
+      setPendingInput(input);
+      setOverrideConfirmOpen(true);
+      return;
+    }
+    void onConfirm(input);
   }
 
   return (
@@ -218,6 +237,13 @@ export function ContractRenewalDialog({
                 }
               />
             </div>
+
+            {existingDraft ? (
+              <p className="text-sm text-destructive">
+                Hợp đồng đang có bản nháp v{existingDraft.versionNo}. Xác nhận
+                gia hạn sẽ ghi đè nội dung bản nháp này.
+              </p>
+            ) : null}
 
             <section className="space-y-4">
               <div className="grid gap-4 md:grid-cols-3">
@@ -317,10 +343,23 @@ export function ContractRenewalDialog({
             loading={isSubmitting}
             onClick={handleConfirm}
           >
-            <RefreshCw /> Xác nhận gia hạn
+            <RefreshCw /> Tạo bản nháp gia hạn
           </Button>
         </DialogFooter>
       </DialogContent>
+      <ConfirmDialog
+        open={overrideConfirmOpen}
+        onOpenChange={setOverrideConfirmOpen}
+        title="Ghi đè bản nháp gia hạn?"
+        description={`Bản nháp v${existingDraft?.versionNo ?? ''} sẽ được cập nhật bằng thông tin gia hạn mới.`}
+        confirmLabel="Ghi đè bản nháp"
+        onConfirm={() => {
+          if (!pendingInput || isSubmitting) return;
+          setOverrideConfirmOpen(false);
+          setPendingInput(null);
+          void onConfirm({ ...pendingInput, overrideDraft: true });
+        }}
+      />
     </Dialog>
   );
 }
