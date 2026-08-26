@@ -34,6 +34,7 @@ import {
 } from '@/components/layouts/entity-detail-layout';
 import { deleteCustomer, loadCustomerDetail } from '../api/customers.api';
 import { CustomerAvatar } from '../components/customer-avatar';
+import { CustomerContractsTable } from '../components/customer-contracts-table';
 import { CustomerDetailLayout } from '../components/customer-detail-layout.generated';
 import {
   CUSTOMER_DETAIL_TAB_CONTENT,
@@ -256,12 +257,7 @@ export function CustomerDetailPage() {
             onDelete={() => setDeleteDialogOpen(true)}
           />
         }
-        contractsContent={
-          <CustomerDetailTabContent
-            customer={customer}
-            tab={CUSTOMER_DETAIL_TAB_CONTENT[0]}
-          />
-        }
+        contractsContent={<CustomerContractsTable customerId={customer.id} />}
         employeesContent={
           <CustomerDetailTabContent
             customer={customer}

@@ -49,6 +49,7 @@ function emitProps(spec: ResolvedDetailDialogSpec): string {
     '  onOpenChange: (open: boolean) => void;',
     '  title: ReactNode;',
     '  data: TData | null;',
+    '  isLoading?: boolean;',
     '  searchPlaceholder?: string;',
     ...spec.tabs.map((tab) =>
       tab.contentMode === 'table'
@@ -102,6 +103,7 @@ function emitComponent(spec: ResolvedDetailDialogSpec): string {
     'onOpenChange',
     'title',
     'data',
+    'isLoading',
     'searchPlaceholder',
     ...spec.tabs.map((tab) => slotProp(tab)),
     ...spec.tabs
@@ -126,6 +128,7 @@ function emitComponent(spec: ResolvedDetailDialogSpec): string {
     '      onOpenChange={onOpenChange}',
     '      title={title}',
     '      data={data}',
+    '      isLoading={isLoading}',
     '      tabs={tabs}',
     `      defaultTab=${quote(defaultTab)}`,
     '      searchPlaceholder={searchPlaceholder}',

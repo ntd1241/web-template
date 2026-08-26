@@ -441,10 +441,12 @@ export function ContractDetailDialog({
   open,
   onOpenChange,
   contract,
+  isLoading = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contract: ContractDetail | null;
+  isLoading?: boolean;
 }) {
   return (
     <ContractDetailDialogShell<ContractDetail>
@@ -452,6 +454,7 @@ export function ContractDetailDialog({
       onOpenChange={onOpenChange}
       title="Chi tiết hợp đồng"
       data={contract}
+      isLoading={isLoading}
       searchPlaceholder="Tìm theo tên, mã, khách hàng..."
       generalFields={({ data }) => ContractGeneralFields({ contract: data })}
       feesContent={({ data, matches }) => (

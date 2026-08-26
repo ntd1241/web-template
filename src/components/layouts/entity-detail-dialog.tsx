@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { SearchInput } from '@/components/ui/inputs/search-input';
+import { SectionLoading } from '@/components/ui/loading';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export interface EntityDetailDialogTabContext<TData> {
@@ -84,6 +85,7 @@ export interface EntityDetailDialogProps<TData> {
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
   data: TData | null;
+  isLoading?: boolean;
   tabs: EntityDetailDialogTab<TData>[];
   defaultTab?: string;
   searchPlaceholder?: string;
@@ -95,6 +97,7 @@ export function EntityDetailDialog<TData>({
   onOpenChange,
   title,
   data,
+  isLoading = false,
   tabs,
   defaultTab,
   searchPlaceholder = 'Tìm trong thông tin chi tiết...',
@@ -173,7 +176,12 @@ export function EntityDetailDialog<TData>({
           />
         </div>
 
-        {!data ? (
+        {isLoading ? (
+          <SectionLoading
+            className="min-h-0 flex-1 rounded-none bg-transparent"
+            label="Đang tải dữ liệu..."
+          />
+        ) : !data ? (
           <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
             Chưa có dữ liệu để hiển thị.
           </div>

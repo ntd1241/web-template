@@ -18,6 +18,7 @@ export interface ContractDetailDialogShellProps<TData> {
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
   data: TData | null;
+  isLoading?: boolean;
   searchPlaceholder?: string;
   generalFields: (
     context: EntityDetailDialogTabContext<TData>,
@@ -38,6 +39,7 @@ export function ContractDetailDialogShell<TData>({
   onOpenChange,
   title,
   data,
+  isLoading,
   searchPlaceholder,
   generalFields,
   feesContent,
@@ -77,6 +79,7 @@ export function ContractDetailDialogShell<TData>({
       onOpenChange={onOpenChange}
       title={title}
       data={data}
+      isLoading={isLoading}
       tabs={tabs}
       defaultTab="general"
       searchPlaceholder={searchPlaceholder}

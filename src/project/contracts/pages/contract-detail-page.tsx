@@ -45,7 +45,6 @@ import { CustomerIdentity } from '../../customers/components/customer-identity';
 import {
   activateContract,
   deleteContract,
-  loadContractDetail,
   loadContractPaymentPeriodCount,
   recordContractPayment,
   renewContract,
@@ -65,6 +64,7 @@ import { ContractRenewalDialog } from '../components/contract-renewal-dialog';
 import { ContractResponsibleAvatarGroup } from '../components/contract-responsible-avatar-group';
 import { ContractResponsibleDialog } from '../components/contract-responsible-dialog';
 import { ContractStatusBadge } from '../components/contract-status-badge';
+import { useContractDetailQuery } from '../hooks/use-contract-detail-query';
 import type { ContractPaymentSubmission } from '../model/receivable';
 
 function formatDate(value: string | null) {
@@ -323,16 +323,7 @@ export function ContractDetailPage() {
     useState(false);
   const canManageResponsibles = hasPermission('contracts:assign');
 
-  const contractQuery = useQuery({
-    queryKey: ['project', 'contracts', 'detail', userId, id, tenantId],
-    queryFn: () => {
-      if (!userId || !id || !tenantId) {
-        throw new Error('Thiếu thông tin hợp đồng.');
-      }
-      return loadContractDetail(userId, id, tenantId);
-    },
-    enabled: Boolean(userId && id && tenantId),
-  });
+  const contractQuery = useContractDetailQuery(id);
 
   const paymentPeriodCountQuery = useQuery({
     queryKey: [
