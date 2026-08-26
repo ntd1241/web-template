@@ -60,6 +60,13 @@ export const CONTRACT_VERSION_STATUS_LABELS: Record<
   cancelled: 'Đã hủy',
 };
 
+export const CONTRACT_VERSION_KIND_LABELS: Record<ContractVersionKind, string> =
+  {
+    initial: 'Khởi tạo',
+    amendment: 'Điều chỉnh',
+    renewal: 'Gia hạn',
+  };
+
 export const BILLING_TYPE_LABELS: Record<BillingType, string> = {
   recurring: 'Định kỳ',
   one_time: 'Một lần',
@@ -279,7 +286,7 @@ export interface ContractVersion {
   versionNo: number;
   status: ContractVersionStatus;
   versionKind: ContractVersionKind;
-  effectiveFrom: string;
+  effectiveFrom: string | null;
   effectiveTo: string | null;
   changeReason: string;
   termsSnapshot: Record<string, unknown>;
@@ -333,7 +340,7 @@ export interface ContractVersionRow {
   version_no: number;
   status: ContractVersionStatus;
   version_kind?: ContractVersionKind;
-  effective_from: string;
+  effective_from: string | null;
   effective_to: string | null;
   change_reason: string;
   terms_snapshot: Record<string, unknown>;

@@ -12,6 +12,14 @@ const spec = {
       searchMatchCountProp: 'generalSearchMatchCount',
     },
     {
+      value: 'version',
+      label: 'Phiên bản',
+      icon: 'History',
+      fieldProp: 'versionFields',
+      searchTextProp: 'versionSearchText',
+      searchMatchCountProp: 'versionSearchMatchCount',
+    },
+    {
       value: 'fees',
       label: 'Khoản phí',
       icon: 'ReceiptText',

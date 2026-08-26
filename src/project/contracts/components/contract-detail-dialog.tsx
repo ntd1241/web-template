@@ -20,6 +20,9 @@ import {
   BILLING_UNIT_LABELS,
   CONTRACT_CASHFLOW_DIRECTION_LABELS,
   CONTRACT_STATUS_LABELS,
+  CONTRACT_VERSION_KIND_LABELS,
+  CONTRACT_VERSION_STATUS_LABELS,
+  type ContractVersion,
   type ContractVersionLine,
 } from '../model/contract';
 import type {
@@ -28,6 +31,7 @@ import type {
 } from '../model/contract-responsible';
 import { ContractDetailDialogShell } from './contract-detail-dialog.generated';
 import { ContractStatusBadge } from './contract-status-badge';
+import { ContractVersionBadge } from './contract-version-badge';
 
 function joinSearchText(...values: unknown[]) {
   return values
@@ -62,7 +66,93 @@ function getResponsibleWorkspace(
   };
 }
 
-function buildGeneralSearchText(contract: ContractDetail) {
+function getDisplayedVersion(
+  contract: ContractDetail,
+  selectedVersion?: ContractVersion | null,
+) {
+  return (
+    selectedVersion ?? contract.activeVersion ?? contract.versions[0] ?? null
+  );
+}
+
+function getVersionFields(
+  version: ContractVersion | null,
+): EntityDetailDialogField[] {
+  if (!version) return [];
+
+  return [
+    {
+      label: 'Phiên bản',
+      value: (
+        <ContractVersionBadge
+          versionNo={version.versionNo}
+          status={version.status}
+          label={
+            version.versionKind === 'renewal'
+              ? CONTRACT_VERSION_KIND_LABELS.renewal
+              : undefined
+          }
+        />
+      ),
+      searchText: `v${version.versionNo}`,
+    },
+    {
+      label: 'Loại phiên bản',
+      value: CONTRACT_VERSION_KIND_LABELS[version.versionKind],
+      searchText: CONTRACT_VERSION_KIND_LABELS[version.versionKind],
+    },
+    {
+      label: 'Trạng thái phiên bản',
+      value: <ContractStatusBadge status={version.status} />,
+      searchText: CONTRACT_VERSION_STATUS_LABELS[version.status],
+    },
+    {
+      label:
+        version.status === 'draft'
+          ? 'Ngày dự kiến áp dụng'
+          : 'Ngày bắt đầu phiên bản',
+      value: version.effectiveFrom
+        ? formatDate(version.effectiveFrom)
+        : 'Chưa đặt ngày áp dụng',
+      searchText: version.effectiveFrom ?? 'Chưa đặt ngày áp dụng',
+    },
+    {
+      label: 'Ngày kết thúc phiên bản',
+      value: version.effectiveTo
+        ? formatDate(version.effectiveTo)
+        : 'Không giới hạn',
+      searchText: version.effectiveTo ?? 'Không giới hạn',
+    },
+    {
+      label: 'Lý do thay đổi phiên bản',
+      value: version.changeReason || 'Không có lý do thay đổi',
+      searchText: version.changeReason,
+    },
+    {
+      label: 'Ngày phát hành phiên bản',
+      value: version.publishedAt
+        ? formatDateTime(version.publishedAt)
+        : 'Chưa phát hành',
+      searchText: version.publishedAt ?? 'Chưa phát hành',
+    },
+    {
+      label: 'Ngày tạo phiên bản',
+      value: formatDateTime(version.createdAt),
+      searchText: version.createdAt,
+    },
+    {
+      label: 'Cập nhật phiên bản',
+      value: formatDateTime(version.updatedAt),
+      searchText: version.updatedAt,
+    },
+  ];
+}
+
+function buildGeneralSearchText(
+  contract: ContractDetail,
+  selectedVersion?: ContractVersion | null,
+) {
+  const version = getDisplayedVersion(contract, selectedVersion);
   const workspace = getResponsibleWorkspace(contract);
   const responsibleEmployees = workspace.employees.filter((employee) =>
     workspace.assignments.some(
@@ -114,6 +204,28 @@ function buildGeneralSearchText(contract: ContractDetail) {
     contract.note,
     'cập nhật lần cuối',
     contract.updatedAt,
+    'phiên bản',
+    version?.versionNo,
+  );
+}
+
+function buildVersionSearchText(
+  contract: ContractDetail,
+  selectedVersion?: ContractVersion | null,
+) {
+  const version = getDisplayedVersion(contract, selectedVersion);
+
+  return joinSearchText(
+    'phiên bản',
+    version?.versionNo,
+    version ? CONTRACT_VERSION_KIND_LABELS[version.versionKind] : null,
+    version ? CONTRACT_VERSION_STATUS_LABELS[version.status] : null,
+    version?.effectiveFrom,
+    version?.effectiveTo,
+    version?.changeReason,
+    version?.publishedAt,
+    version?.createdAt,
+    version?.updatedAt,
   );
 }
 
@@ -315,12 +427,17 @@ function ResponsibleEmployeesList({ contract }: { contract: ContractDetail }) {
 
 function ContractGeneralFields({
   contract,
+  selectedVersion,
 }: {
   contract: ContractDetail;
+  selectedVersion?: ContractVersion | null;
 }): EntityDetailDialogField[] {
   const workspace = getResponsibleWorkspace(contract);
+  const version = getDisplayedVersion(contract, selectedVersion);
+  const versionBadgeField = version ? getVersionFields(version)[0] : null;
 
   return [
+    ...(versionBadgeField ? [versionBadgeField] : []),
     {
       label: 'Trạng thái',
       value: <ContractStatusBadge status={contract.status} />,
@@ -421,9 +538,25 @@ function ContractGeneralFields({
 function countMatchingGeneralFields({
   data,
   matches,
-}: EntityDetailDialogTabContext<ContractDetail>) {
+  selectedVersion,
+}: EntityDetailDialogTabContext<ContractDetail> & {
+  selectedVersion?: ContractVersion | null;
+}) {
   return countMatchingEntityDetailDialogFields(
-    ContractGeneralFields({ contract: data }),
+    ContractGeneralFields({ contract: data, selectedVersion }),
+    matches,
+  );
+}
+
+function countMatchingVersionFields({
+  data,
+  matches,
+  selectedVersion,
+}: EntityDetailDialogTabContext<ContractDetail> & {
+  selectedVersion?: ContractVersion | null;
+}) {
+  return countMatchingEntityDetailDialogFields(
+    getVersionFields(getDisplayedVersion(data, selectedVersion)),
     matches,
   );
 }
@@ -441,11 +574,13 @@ export function ContractDetailDialog({
   open,
   onOpenChange,
   contract,
+  selectedVersion,
   isLoading = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contract: ContractDetail | null;
+  selectedVersion?: ContractVersion | null;
   isLoading?: boolean;
 }) {
   return (
@@ -456,13 +591,28 @@ export function ContractDetailDialog({
       data={contract}
       isLoading={isLoading}
       searchPlaceholder="Tìm theo tên, mã, khách hàng..."
-      generalFields={({ data }) => ContractGeneralFields({ contract: data })}
+      generalFields={({ data }) =>
+        ContractGeneralFields({ contract: data, selectedVersion })
+      }
+      versionFields={({ data }) =>
+        getVersionFields(getDisplayedVersion(data, selectedVersion))
+      }
       feesContent={({ data, matches }) => (
         <ContractFeesContent contract={data} matches={matches} />
       )}
-      generalSearchText={buildGeneralSearchText}
+      generalSearchText={(data) =>
+        buildGeneralSearchText(data, selectedVersion)
+      }
+      versionSearchText={(data) =>
+        buildVersionSearchText(data, selectedVersion)
+      }
       feesSearchText={buildFeesSearchText}
-      generalSearchMatchCount={countMatchingGeneralFields}
+      generalSearchMatchCount={({ data, matches }) =>
+        countMatchingGeneralFields({ data, matches, selectedVersion })
+      }
+      versionSearchMatchCount={({ data, matches }) =>
+        countMatchingVersionFields({ data, matches, selectedVersion })
+      }
       feesSearchMatchCount={countMatchingFees}
     />
   );

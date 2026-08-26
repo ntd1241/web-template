@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PageLoading } from '@/components/ui/loading';
-import { PageBackButton } from '@/components/ui/page-back-button';
+import { PageHeader } from '@/components/ui/page-header';
 import { loadActiveCurrencies } from '../../api/currencies.api';
 import { toCurrencyOptions } from '../../model/currency';
 import {
@@ -168,36 +168,30 @@ export function ContractTemplateEditPage() {
 
   return (
     <div className="flex min-h-full flex-col gap-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <PageBackButton
-            label={
-              isEditMode
-                ? 'Quay lại thông tin mẫu hợp đồng'
-                : 'Quay lại danh sách mẫu hợp đồng'
-            }
-            onClick={() => navigate(returnTo)}
-          />
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">
-              {isEditMode ? 'Chỉnh sửa mẫu hợp đồng' : 'Thêm mẫu hợp đồng'}
-            </h1>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate(returnTo)}>
-            Hủy
-          </Button>
-          <Button
-            variant="primary"
-            loading={saveMutation.isPending}
-            onClick={() => void handleSave()}
-          >
-            <Save />
-            Lưu mẫu
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={isEditMode ? 'Chỉnh sửa mẫu hợp đồng' : 'Thêm mẫu hợp đồng'}
+        backLabel={
+          isEditMode
+            ? 'Quay lại thông tin mẫu hợp đồng'
+            : 'Quay lại danh sách mẫu hợp đồng'
+        }
+        onBack={() => navigate(returnTo)}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => navigate(returnTo)}>
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              loading={saveMutation.isPending}
+              onClick={() => void handleSave()}
+            >
+              <Save />
+              Lưu mẫu
+            </Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader className="pb-3">

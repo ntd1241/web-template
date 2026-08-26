@@ -45,6 +45,8 @@ Concrete APIs: [`components/data-grid.md`](./components/data-grid.md).
 ## Forms And Dialogs
 
 - Labels remain visible; placeholders are examples or hints, not replacements for labels.
+- Không ghi text description trừ khi được yêu cầu.
+- Không tự ý bọc card các input; gắn input vào form một cách bình thường như các input khác.
 - Required state and Vietnamese validation messages are explicit.
 - Default to a compact two-column desktop grid and one column on narrow screens.
 - Place destructive actions away from the primary submit action.

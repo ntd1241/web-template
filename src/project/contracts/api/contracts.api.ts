@@ -1036,7 +1036,7 @@ async function insertVersion(
   values: ContractFormValues,
   lines: ContractVersionLineValuesForApi[],
   versionNo: number,
-  effectiveFrom = values.startDate,
+  effectiveFrom: string | null = null,
   sourceTemplateVersionId?: string,
 ) {
   const versionRows = await request<ContractVersionRow[]>(
@@ -1159,6 +1159,7 @@ export async function createContract(
   lines: ContractVersionLineValuesForApi[],
   metadata: ContractMetadataInput,
   source?: { templateId: string; templateVersionId: string },
+  versionEffectiveFrom: string | null = null,
 ) {
   assertSupabaseConfigured();
   const contractRows = await request<ContractRow[]>(
@@ -1181,7 +1182,7 @@ export async function createContract(
     values,
     lines,
     1,
-    values.startDate,
+    versionEffectiveFrom,
     source?.templateVersionId,
   );
   await updateContractNonVersionMetadata(
@@ -1199,6 +1200,7 @@ export async function updateContract(
   values: ContractFormValues,
   lines: ContractVersionLineValuesForApi[],
   metadata: ContractMetadataInput,
+  versionEffectiveFrom: string | null = null,
 ) {
   assertSupabaseConfigured();
   const contractRows = await request<ContractRow[]>(
@@ -1278,14 +1280,10 @@ export async function updateContract(
   console.groupEnd();
 
   if (latest?.status === 'draft') {
-    const effectiveFrom =
-      contract.status === 'active' && values.startDate < todayIso()
-        ? todayIso()
-        : values.startDate;
     await supabaseApi.patch(
       '/contract_versions',
       {
-        effective_from: effectiveFrom,
+        effective_from: versionEffectiveFrom,
         terms_snapshot: toContractTermsSnapshot(values),
         updated_at: new Date().toISOString(),
       },
@@ -1307,15 +1305,13 @@ export async function updateContract(
       nextVersionNo: (latest?.version_no ?? 0) + 1,
       changedAreas: versionChangeCheck.changedAreas,
     });
-    const effectiveFrom =
-      values.startDate < todayIso() ? todayIso() : values.startDate;
     await insertVersion(
       contractId,
       userId,
       values,
       lines,
       (latest?.version_no ?? 0) + 1,
-      effectiveFrom,
+      versionEffectiveFrom,
     );
   } else {
     console.log('[ContractVersionCheck][API] keeping current version', {
@@ -1385,7 +1381,12 @@ function toComparableLine(
   };
 }
 
-export async function activateContract(contract: Contract, userId: string) {
+export async function activateContract(
+  contract: ContractDetail,
+  userId: string,
+  versionId?: string,
+  options?: { effectiveFrom?: string },
+) {
   assertSupabaseConfigured();
   const versions = await request<ContractVersionRow[]>(
     supabaseApi.get(
@@ -1397,14 +1398,24 @@ export async function activateContract(contract: Contract, userId: string) {
       }),
     ),
   );
-  const draft = versions.find((version) => version.status === 'draft');
+  const draft = versions.find(
+    (version) =>
+      version.status === 'draft' &&
+      (versionId === undefined || version.id === versionId),
+  );
   if (!draft) throw new Error('Hợp đồng chưa có phiên bản nháp để kích hoạt.');
+
+  const effectiveFrom =
+    options?.effectiveFrom ?? draft.effective_from ?? todayIso();
 
   const currentEffective = versions.find(
     (version) => version.status === 'effective',
   );
   if (currentEffective) {
-    if (draft.effective_from <= currentEffective.effective_from) {
+    if (
+      !currentEffective.effective_from ||
+      effectiveFrom <= currentEffective.effective_from
+    ) {
       throw new Error(
         'Ngày hiệu lực phiên bản mới phải sau ngày hiệu lực phiên bản hiện tại.',
       );
@@ -1413,10 +1424,17 @@ export async function activateContract(contract: Contract, userId: string) {
       '/contract_versions',
       {
         status: 'superseded',
-        effective_to: previousIsoDate(draft.effective_from),
+        effective_to: previousIsoDate(effectiveFrom),
         updated_at: new Date().toISOString(),
       },
       queryParams({ id: `eq.${currentEffective.id}` }),
+    );
+  }
+  if (draft.effective_from !== effectiveFrom) {
+    await supabaseApi.patch(
+      '/contract_versions',
+      { effective_from: effectiveFrom, updated_at: new Date().toISOString() },
+      queryParams({ id: `eq.${draft.id}` }),
     );
   }
   await supabaseApi.patch(
@@ -1439,6 +1457,37 @@ export async function activateContract(contract: Contract, userId: string) {
     ),
   );
   return mapContractRow(rows[0] ?? contract);
+}
+
+export async function updateContractVersionEffectiveDate(
+  contract: ContractDetail,
+  versionId: string,
+  effectiveFrom: string | null,
+) {
+  assertSupabaseConfigured();
+  const draft = contract.versions?.find((version) => version.id === versionId);
+  if (!draft || draft.status !== 'draft') {
+    throw new Error('Chỉ có thể chỉnh ngày dự kiến của phiên bản nháp.');
+  }
+
+  const currentEffective = contract.versions?.find(
+    (version) => version.status === 'effective',
+  );
+  if (
+    effectiveFrom &&
+    currentEffective?.effectiveFrom &&
+    effectiveFrom <= currentEffective.effectiveFrom
+  ) {
+    throw new Error(
+      'Ngày dự kiến áp dụng phải sau ngày hiệu lực của phiên bản hiện tại.',
+    );
+  }
+
+  await supabaseApi.patch(
+    '/contract_versions',
+    { effective_from: effectiveFrom, updated_at: new Date().toISOString() },
+    queryParams({ id: `eq.${versionId}`, status: 'eq.draft' }),
+  );
 }
 
 export async function deleteContract(contractId: string) {

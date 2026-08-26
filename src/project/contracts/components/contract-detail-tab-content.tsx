@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ReactNode } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { ROUTES } from '@/constants/routes';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getCoreRowModel,
   getPaginationRowModel,
@@ -20,9 +21,11 @@ import {
   Upload,
   WalletCards,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useNumberFormat } from '@/providers/number-format-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -41,9 +44,17 @@ import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   FileUploadContent,
   type FileUploadContentHandle,
 } from '@/components/ui/file-upload/file-upload-content';
+import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -61,9 +72,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  activateContract,
   deleteContractAttachment,
   recordContractPayment,
   recordContractPeriodPayment,
+  updateContractVersionEffectiveDate,
   uploadContractAttachments,
 } from '../api/contracts.api';
 import type { ContractDetail } from '../api/contracts.api';
@@ -74,6 +87,7 @@ import {
   type ContractReceivableListFilters,
   type ContractReceivableSortOption,
 } from '../hooks/use-contract-receivable-list';
+import type { ContractVersion } from '../model/contract';
 import {
   buildContractFeeReceivableChartData,
   buildContractPaymentPeriodChartData,
@@ -88,6 +102,7 @@ import {
 import { useContractPaymentHistoryColumns } from '../table/contract-payment-history.columns.generated';
 import { useContractReceivableTableRowColumns } from '../table/contract-receivable.columns.generated';
 import { ContractReceivableFilterBar } from '../table/contract-receivable.filters.generated';
+import { useContractVersionColumns } from '../table/contract-version.columns.generated';
 import {
   ContractPaymentDialog,
   type ContractPaymentSubmission,
@@ -95,7 +110,6 @@ import {
 import { ContractPaymentScopeDialog } from './contract-payment-scope-dialog';
 import { ContractReceivableViewSwitcher } from './contract-receivable-view-switcher.generated';
 import { ContractStatusBadge } from './contract-status-badge';
-import { ContractVersionBadge } from './contract-version-badge';
 
 const RECEIVABLE_SORT_OPTIONS: Array<{
   value: ContractReceivableSortOption;
@@ -628,9 +642,82 @@ export function ContractReceivablesContent({
 
 export function ContractVersionsContent({
   contract,
+  onView,
 }: {
   contract: ContractDetail;
+  onView: (version: ContractVersion) => void;
 }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { userId } = useUser();
+  const [versionToApply, setVersionToApply] = useState<ContractVersion | null>(
+    null,
+  );
+  const [versionToEditDate, setVersionToEditDate] =
+    useState<ContractVersion | null>(null);
+  const [effectiveDateDraft, setEffectiveDateDraft] = useState<string | null>(
+    null,
+  );
+  const applyMutation = useMutation({
+    mutationFn: (version: ContractVersion) => {
+      if (!userId) throw new Error('Chưa xác định tài khoản đăng nhập.');
+      return activateContract(contract, userId, version.id, {
+        effectiveFrom: new Date().toISOString().slice(0, 10),
+      });
+    },
+    onSuccess: async (_, version) => {
+      toast.success(`Đã áp dụng phiên bản v${version.versionNo}.`);
+      setVersionToApply(null);
+      await queryClient.invalidateQueries({
+        queryKey: ['project', 'contracts'],
+      });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+  const effectiveDateMutation = useMutation({
+    mutationFn: async () => {
+      if (!versionToEditDate) throw new Error('Chưa chọn phiên bản nháp.');
+      return updateContractVersionEffectiveDate(
+        contract,
+        versionToEditDate.id,
+        effectiveDateDraft,
+      );
+    },
+    onSuccess: async () => {
+      toast.success('Đã cập nhật ngày dự kiến áp dụng.');
+      setVersionToEditDate(null);
+      await queryClient.invalidateQueries({
+        queryKey: ['project', 'contracts'],
+      });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const columns = useContractVersionColumns({
+    onView,
+    onPrimary: setVersionToApply,
+    onEdit: () =>
+      navigate(
+        `${ROUTES.PROJECT.CONTRACT_CREATE}?edit=${encodeURIComponent(contract.id)}`,
+      ),
+    onEditDate: (version) => {
+      setVersionToEditDate(version);
+      setEffectiveDateDraft(version.effectiveFrom);
+    },
+  });
+  const table = useReactTable({
+    data: contract.versions,
+    columns,
+    getRowId: (row) => row.id,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   if (contract.versions.length === 0) {
     return (
       <CardEmptyState
@@ -640,57 +727,99 @@ export function ContractVersionsContent({
       />
     );
   }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardHeading>
-          <CardTitle>Lịch sử phiên bản</CardTitle>
-          <CardDescription>
-            Chính sách được lưu thành snapshot để không làm thay đổi lịch sử
-            công nợ.
-          </CardDescription>
-        </CardHeading>
-      </CardHeader>
-      <CardTable>
-        <table className="w-full min-w-[680px] text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-5 py-3 font-medium">Phiên bản</th>
-              <th className="px-5 py-3 font-medium">Có hiệu lực từ</th>
-              <th className="px-5 py-3 font-medium">Lý do thay đổi</th>
-              <th className="px-5 py-3 font-medium">Trạng thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contract.versions.map((version) => (
-              <tr
-                key={version.id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-5 py-3">
-                  <ContractVersionBadge
-                    versionNo={version.versionNo}
-                    status={version.status}
-                    label={
-                      version.versionKind === 'renewal' ? 'Gia hạn' : undefined
-                    }
-                  />
-                </td>
-                <td className="px-5 py-3">
-                  {formatDate(version.effectiveFrom)}
-                </td>
-                <td className="px-5 py-3 text-muted-foreground">
-                  {version.changeReason || '—'}
-                </td>
-                <td className="px-5 py-3">
-                  <ContractStatusBadge status={version.status} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </CardTable>
-    </Card>
+    <DataGrid
+      table={table}
+      recordCount={contract.versions.length}
+      emptyMessage="Chưa có phiên bản"
+    >
+      <Card className="min-h-0 overflow-hidden">
+        <CardHeader>
+          <CardHeading>
+            <CardTitle>Lịch sử phiên bản</CardTitle>
+          </CardHeading>
+        </CardHeader>
+        <CardTable className="min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <div className="min-w-[920px]">
+              <DataGridTable />
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </CardTable>
+        <CardFooter className="justify-between">
+          <DataGridPagination />
+        </CardFooter>
+      </Card>
+      <ConfirmDialog
+        open={versionToApply !== null}
+        onOpenChange={(open) => {
+          if (!open && !applyMutation.isPending) setVersionToApply(null);
+        }}
+        title="Áp dụng phiên bản ngay?"
+        description={`Phiên bản v${versionToApply?.versionNo ?? ''} sẽ trở thành phiên bản đang áp dụng và phiên bản hiện tại sẽ được thay thế nếu có.`}
+        confirmLabel="Áp dụng ngay"
+        onConfirm={() => {
+          if (versionToApply && !applyMutation.isPending) {
+            applyMutation.mutate(versionToApply);
+          }
+        }}
+      />
+      <Dialog
+        open={versionToEditDate !== null}
+        onOpenChange={(open) => {
+          if (!open && !effectiveDateMutation.isPending) {
+            setVersionToEditDate(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Đổi ngày dự kiến áp dụng v{versionToEditDate?.versionNo ?? ''}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <p className="text-sm font-medium text-foreground">
+              Ngày dự kiến áp dụng
+            </p>
+            <DatePickerInput
+              value={effectiveDateDraft}
+              valueMode="iso-date"
+              onChange={(value) =>
+                setEffectiveDateDraft(typeof value === 'string' ? value : null)
+              }
+              calendarLabel="Chọn ngày dự kiến áp dụng"
+              variant="md"
+            />
+            <p className="text-xs text-muted-foreground">
+              Để trống nếu chưa muốn lên lịch áp dụng. Phiên bản vẫn là bản nháp
+              cho đến khi được áp dụng.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={effectiveDateMutation.isPending}
+              onClick={() => setVersionToEditDate(null)}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={effectiveDateMutation.isPending}
+              loadingText="Đang lưu..."
+              onClick={() => effectiveDateMutation.mutate()}
+            >
+              Lưu ngày
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </DataGrid>
   );
 }
 

@@ -4,7 +4,7 @@
  * To change the tab structure, edit the spec and re-gen to a scratch path first.
  */
 import type { ReactNode } from 'react';
-import { Info, ReceiptText } from 'lucide-react';
+import { History, Info, ReceiptText } from 'lucide-react';
 import {
   EntityDetailDialog,
   EntityDetailDialogTable,
@@ -23,10 +23,17 @@ export interface ContractDetailDialogShellProps<TData> {
   generalFields: (
     context: EntityDetailDialogTabContext<TData>,
   ) => EntityDetailDialogField[];
+  versionFields: (
+    context: EntityDetailDialogTabContext<TData>,
+  ) => EntityDetailDialogField[];
   feesContent: (context: EntityDetailDialogTabContext<TData>) => ReactNode;
   generalSearchText?: (data: TData) => string;
+  versionSearchText?: (data: TData) => string;
   feesSearchText?: (data: TData) => string;
   generalSearchMatchCount?: (
+    context: EntityDetailDialogTabContext<TData>,
+  ) => number;
+  versionSearchMatchCount?: (
     context: EntityDetailDialogTabContext<TData>,
   ) => number;
   feesSearchMatchCount?: (
@@ -42,10 +49,13 @@ export function ContractDetailDialogShell<TData>({
   isLoading,
   searchPlaceholder,
   generalFields,
+  versionFields,
   feesContent,
   generalSearchText,
+  versionSearchText,
   feesSearchText,
   generalSearchMatchCount,
+  versionSearchMatchCount,
   feesSearchMatchCount,
   className,
 }: ContractDetailDialogShellProps<TData>) {
@@ -59,6 +69,19 @@ export function ContractDetailDialogShell<TData>({
       content: (context) => (
         <EntityDetailDialogTable
           fields={generalFields(context)}
+          matches={context.matches}
+        />
+      ),
+    },
+    {
+      value: 'version',
+      label: 'Phiên bản',
+      icon: History,
+      searchText: versionSearchText,
+      getMatchCount: versionSearchMatchCount,
+      content: (context) => (
+        <EntityDetailDialogTable
+          fields={versionFields(context)}
           matches={context.matches}
         />
       ),

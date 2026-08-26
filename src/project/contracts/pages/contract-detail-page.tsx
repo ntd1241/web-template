@@ -43,7 +43,6 @@ import {
 } from '@/components/layouts/entity-detail-layout';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import {
-  activateContract,
   deleteContract,
   loadContractPaymentPeriodCount,
   recordContractPayment,
@@ -65,6 +64,7 @@ import { ContractResponsibleAvatarGroup } from '../components/contract-responsib
 import { ContractResponsibleDialog } from '../components/contract-responsible-dialog';
 import { ContractStatusBadge } from '../components/contract-status-badge';
 import { useContractDetailQuery } from '../hooks/use-contract-detail-query';
+import type { ContractVersion } from '../model/contract';
 import type { ContractPaymentSubmission } from '../model/receivable';
 
 function formatDate(value: string | null) {
@@ -183,38 +183,21 @@ function ContractHeroActions({
   contract,
   onEdit,
   onDelete,
-  onActivate,
   onShowDetails,
   onPay,
   onRenew,
-  isActivating,
   isPaying,
 }: {
   contract: ContractDetail;
   onEdit: () => void;
   onDelete: () => void;
-  onActivate: () => void;
   onShowDetails: () => void;
   onPay: () => void;
   onRenew: () => void;
-  isActivating: boolean;
   isPaying: boolean;
 }) {
   return (
     <>
-      {contract.versions[0]?.status === 'draft' ? (
-        <Button
-          type="button"
-          variant="outline"
-          className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-          loading={isActivating}
-          loadingText="Đang kích hoạt..."
-          onClick={onActivate}
-        >
-          <ReceiptText />
-          Kích hoạt
-        </Button>
-      ) : null}
       <Button
         type="button"
         variant="outline"
@@ -316,12 +299,19 @@ export function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailDialogVersion, setDetailDialogVersion] =
+    useState<ContractVersion | null>(null);
   const [responsibleDialogOpen, setResponsibleDialogOpen] = useState(false);
   const [contractPaymentDialogOpen, setContractPaymentDialogOpen] =
     useState(false);
   const [contractRenewalDialogOpen, setContractRenewalDialogOpen] =
     useState(false);
   const canManageResponsibles = hasPermission('contracts:assign');
+
+  function openContractDetails(version: ContractVersion | null = null) {
+    setDetailDialogVersion(version);
+    setDetailDialogOpen(true);
+  }
 
   const contractQuery = useContractDetailQuery(id);
 
@@ -352,19 +342,6 @@ export function ContractDetailPage() {
       toast.success('Đã xóa hợp đồng.');
       await invalidate();
       navigate(ROUTES.PROJECT.CONTRACTS, { replace: true });
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
-  });
-
-  const activateMutation = useMutation({
-    mutationFn: () => {
-      if (!userId || !contractQuery.data)
-        throw new Error('Thiếu thông tin kích hoạt hợp đồng.');
-      return activateContract(contractQuery.data, userId);
-    },
-    onSuccess: async () => {
-      toast.success('Đã kích hoạt hợp đồng.');
-      await invalidate();
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
@@ -464,6 +441,9 @@ export function ContractDetailPage() {
 
   const contract = contractQuery.data;
   const paymentPeriodCount = paymentPeriodCountQuery.data ?? 0;
+  const hasDraftWithoutEffectiveDate = contract.versions.some(
+    (version) => version.status === 'draft' && !version.effectiveFrom,
+  );
 
   const tabs: EntityDetailTab[] = [
     {
@@ -509,16 +489,38 @@ export function ContractDetailPage() {
       ),
     },
     {
-      value: 'versions',
-      label: 'Phiên bản',
-      icon: History,
-      content: <ContractVersionsContent contract={contract} />,
-    },
-    {
       value: 'payments',
       label: 'Lịch sử thanh toán',
       icon: WalletCards,
       content: <ContractPaymentsContent payments={contract.payments} />,
+    },
+    {
+      value: 'versions',
+      label: 'Phiên bản',
+      icon: History,
+      badge: hasDraftWithoutEffectiveDate ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              size="sm"
+              shape="circle"
+              variant="warning"
+              aria-label="Có phiên bản nháp chưa đặt ngày áp dụng"
+            >
+              !
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            Có phiên bản nháp chưa đặt ngày áp dụng
+          </TooltipContent>
+        </Tooltip>
+      ) : undefined,
+      content: (
+        <ContractVersionsContent
+          contract={contract}
+          onView={openContractDetails}
+        />
+      ),
     },
     {
       value: 'attachments',
@@ -545,11 +547,9 @@ export function ContractDetailPage() {
             contract={contract}
             onEdit={() => openEdit(contract)}
             onDelete={() => setDeleteDialogOpen(true)}
-            onActivate={() => activateMutation.mutate()}
-            onShowDetails={() => setDetailDialogOpen(true)}
+            onShowDetails={() => openContractDetails()}
             onPay={() => setContractPaymentDialogOpen(true)}
             onRenew={() => setContractRenewalDialogOpen(true)}
-            isActivating={activateMutation.isPending}
             isPaying={contractPaymentMutation.isPending}
           />
         }
@@ -574,8 +574,12 @@ export function ContractDetailPage() {
       />
       <ContractDetailDialog
         open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
+        onOpenChange={(open) => {
+          setDetailDialogOpen(open);
+          if (!open) setDetailDialogVersion(null);
+        }}
         contract={contract}
+        selectedVersion={detailDialogVersion}
       />
       <ContractPaymentScopeDialog
         open={contractPaymentDialogOpen}

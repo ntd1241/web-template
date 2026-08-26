@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { buildPath, ROUTES } from '@/constants/routes';
 import type { CustomerSelectOption } from '@/project/customers/components/customer-select';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -28,6 +28,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PageLoading } from '@/components/ui/loading';
+import { PageHeader } from '@/components/ui/page-header';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import {
   Stepper,
@@ -50,6 +58,7 @@ import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import { toCurrencyOptions } from '../../model/currency';
 import { loadContractTemplateDetail } from '../api/contract-templates.api';
 import {
+  activateContract,
   createContract,
   loadContractCreationWorkspace,
   loadContractDetail,
@@ -71,6 +80,7 @@ import {
   mapContractToFormValues,
   useContractForm,
 } from '../forms/contract-form.generated';
+import type { ContractFormValues, ContractVersion } from '../model/contract';
 import {
   getContractVersionChangeCheck,
   getContractVersionTermDifferences,
@@ -98,10 +108,13 @@ const STEPS = [
 
 function toEditableLines(
   contract: ContractDetail,
+  versionId?: string,
 ): ContractVersionLineValuesForApi[] {
-  const latestVersion = contract.versions[0];
+  const version = versionId
+    ? contract.versions.find((item) => item.id === versionId)
+    : contract.versions[0];
   return contract.lines
-    .filter((line) => line.contractVersionId === latestVersion?.id)
+    .filter((line) => line.contractVersionId === version?.id)
     .map((line) => ({
       sourceLineId: line.id,
       direction: line.direction,
@@ -117,6 +130,50 @@ function toEditableLines(
       startDate: line.startDate,
       endDate: line.endDate,
     }));
+}
+
+function toVersionFormValues(
+  contract: ContractDetail,
+  version?: ContractVersion,
+): ContractFormValues {
+  const snapshot = version?.termsSnapshot ?? {};
+  return {
+    ...mapContractToFormValues(contract),
+    customerId:
+      typeof snapshot.customerId === 'string'
+        ? snapshot.customerId
+        : contract.customerId,
+    contractCode:
+      typeof snapshot.contractCode === 'string'
+        ? snapshot.contractCode
+        : contract.contractCode,
+    name: typeof snapshot.name === 'string' ? snapshot.name : contract.name,
+    currencyCode:
+      typeof snapshot.currencyCode === 'string'
+        ? snapshot.currencyCode
+        : contract.currencyCode,
+    startDate:
+      typeof snapshot.startDate === 'string'
+        ? snapshot.startDate
+        : contract.startDate,
+    endDate:
+      typeof snapshot.endDate === 'string' || snapshot.endDate === null
+        ? snapshot.endDate
+        : contract.endDate,
+    autoRenew:
+      typeof snapshot.autoRenew === 'boolean'
+        ? snapshot.autoRenew
+        : contract.autoRenew,
+    note: typeof snapshot.note === 'string' ? snapshot.note : contract.note,
+    responsibleEmployeeIds: contract.responsibleEmployees.map(
+      (employee) => employee.id,
+    ),
+    tagIds: contract.tags.map((tag) => tag.id),
+  };
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 export function ContractCreatePage() {
@@ -150,6 +207,12 @@ export function ContractCreatePage() {
     useState<ContractChargeChanges | null>(null);
   const [versionCheck, setVersionCheck] =
     useState<ContractVersionChangeCheck | null>(null);
+  const [plannedEffectiveFrom, setPlannedEffectiveFrom] = useState<
+    string | null
+  >(null);
+  const [selectedEditVersionId, setSelectedEditVersionId] = useState<
+    string | null
+  >(null);
   const mappedEditIdRef = useRef<string | null>(null);
   const mappedTemplateIdRef = useRef<string | null>(null);
   const initializedCreateResponsibleRef = useRef(false);
@@ -196,6 +259,26 @@ export function ContractCreatePage() {
     enabled: Boolean(userId && tenantId && editingContractId),
   });
 
+  const loadVersionIntoEditor = useCallback(
+    (detail: ContractDetail, version: ContractVersion | undefined) => {
+      form.reset(toVersionFormValues(detail, version));
+      setSelectedCustomer({
+        id: detail.customer.id,
+        customerCode: detail.customer.customerCode,
+        name: detail.customer.name,
+        imageUrl: detail.customer.imageUrl,
+      });
+      const nextLines = toEditableLines(detail, version?.id);
+      setFeeLines(
+        nextLines.length > 0
+          ? nextLines
+          : [createDefaultContractFeeLine(detail.startDate)],
+      );
+      setFeeEditorKey(`${editingContractId}:${version?.id ?? 'no-version'}`);
+    },
+    [editingContractId, form],
+  );
+
   const templateQuery = useQuery({
     queryKey: ['project', 'contract-templates', 'detail', tenantId, templateId],
     queryFn: () => {
@@ -215,35 +298,20 @@ export function ContractCreatePage() {
       return;
     }
 
-    form.reset({
-      ...mapContractToFormValues(detail),
-      responsibleEmployeeIds: detail.responsibleEmployees.map(
-        (employee) => employee.id,
-      ),
-      tagIds: detail.tags.map((tag) => tag.id),
-    });
-    setSelectedCustomer({
-      id: detail.customer.id,
-      customerCode: detail.customer.customerCode,
-      name: detail.customer.name,
-      imageUrl: detail.customer.imageUrl,
-    });
-    const nextLines = toEditableLines(detail);
-    setFeeLines(
-      nextLines.length > 0
-        ? nextLines
-        : [createDefaultContractFeeLine(detail.startDate)],
-    );
-    setFeeEditorKey(
-      `${editingContractId}:${detail.versions[0]?.id ?? 'no-version'}`,
-    );
+    const defaultVersion =
+      detail.versions.find((version) => version.status === 'draft') ??
+      detail.activeVersion ??
+      detail.versions[0];
+    setSelectedEditVersionId(defaultVersion?.id ?? null);
+    setPlannedEffectiveFrom(defaultVersion?.effectiveFrom ?? null);
+    loadVersionIntoEditor(detail, defaultVersion);
     setAttachmentFiles([]);
     setRemovedAttachmentIds([]);
     initializedCreateResponsibleRef.current = false;
     setStep(1);
     setMaxStep(1);
     mappedEditIdRef.current = editingContractId;
-  }, [editDetailQuery.data, editingContractId, form]);
+  }, [editDetailQuery.data, editingContractId, form, loadVersionIntoEditor]);
 
   useEffect(() => {
     if (editingContractId || templateId) return;
@@ -258,6 +326,8 @@ export function ContractCreatePage() {
       createDefaultContractFeeLine(contractDefaultValues.startDate),
     ]);
     setFeeEditorKey('create');
+    setSelectedEditVersionId(null);
+    setPlannedEffectiveFrom(null);
     setAttachmentFiles([]);
     setRemovedAttachmentIds([]);
     setStep(1);
@@ -314,6 +384,8 @@ export function ContractCreatePage() {
         : [createDefaultContractFeeLine(startDate)],
     );
     setFeeEditorKey(`template:${templateId}:${latestVersion?.id ?? 'empty'}`);
+    setSelectedEditVersionId(null);
+    setPlannedEffectiveFrom(null);
     setAttachmentFiles([]);
     setRemovedAttachmentIds([]);
     setStep(1);
@@ -352,42 +424,94 @@ export function ContractCreatePage() {
       searchableText: `${employee.displayName} ${employee.employeeCode}`,
       data: employee,
     })) ?? [];
+  const editableVersions = (editDetailQuery.data?.versions ?? []).filter(
+    (version) => version.status === 'draft' || version.status === 'effective',
+  );
+  const selectedEditVersion = editableVersions.find(
+    (version) => version.id === selectedEditVersionId,
+  );
+  const selectedEditVersionTextClass =
+    selectedEditVersion?.status === 'effective'
+      ? 'text-[var(--color-primary-accent,var(--color-blue-700))]'
+      : selectedEditVersion?.status === 'draft'
+        ? 'text-[var(--color-warning-accent,var(--color-yellow-700))]'
+        : 'text-secondary-foreground';
+
+  function handleEditVersionChange(versionId: string) {
+    const detail = editDetailQuery.data;
+    const version = detail?.versions.find((item) => item.id === versionId);
+    if (!detail || !version) return;
+
+    setSelectedEditVersionId(versionId);
+    const existingDraft = detail.versions.find(
+      (item) => item.status === 'draft',
+    );
+    setPlannedEffectiveFrom(
+      version.status === 'draft'
+        ? version.effectiveFrom
+        : (existingDraft?.effectiveFrom ?? null),
+    );
+    loadVersionIntoEditor(detail, version);
+  }
+
   const saveMutation = useMutation({
     mutationFn: async ({
       values,
       lines,
       metadata,
       source,
+      effectiveFrom,
     }: {
       values: Parameters<typeof createContract>[2];
       lines: ContractVersionLineValuesForApi[];
       metadata: Parameters<typeof createContract>[4];
       source?: Parameters<typeof createContract>[5];
+      effectiveFrom: string | null;
     }) => {
       if (!userId || !workspaceQuery.data?.tenantId) {
         throw new Error('Chưa xác định tài khoản hoặc tenant.');
       }
-      if (isEditMode && editingContractId) {
-        return updateContract(
-          editingContractId,
+      const savedContract =
+        isEditMode && editingContractId
+          ? await updateContract(
+              editingContractId,
+              userId,
+              values,
+              lines,
+              metadata,
+              effectiveFrom,
+            )
+          : await createContract(
+              workspaceQuery.data.tenantId,
+              userId,
+              values,
+              lines,
+              metadata,
+              source,
+              effectiveFrom,
+            );
+
+      const shouldApplyImmediately = effectiveFrom === todayIso();
+      if (shouldApplyImmediately) {
+        const savedDetail = await loadContractDetail(
           userId,
-          values,
-          lines,
-          metadata,
+          savedContract.id,
+          workspaceQuery.data.tenantId,
         );
+        await activateContract(savedDetail, userId, undefined, {
+          effectiveFrom: todayIso(),
+        });
       }
-      return createContract(
-        workspaceQuery.data.tenantId,
-        userId,
-        values,
-        lines,
-        metadata,
-        source,
-      );
+
+      return { contract: savedContract, applied: shouldApplyImmediately };
     },
-    onSuccess: (contract) => {
+    onSuccess: ({ contract, applied }) => {
       toast.success(
-        isEditMode ? 'Đã cập nhật hợp đồng.' : 'Đã tạo hợp đồng nháp.',
+        applied
+          ? `Đã lưu và áp dụng phiên bản mới.`
+          : isEditMode
+            ? 'Đã cập nhật hợp đồng nháp.'
+            : 'Đã tạo hợp đồng nháp.',
       );
       navigate(buildPath(ROUTES.PROJECT.CONTRACT_DETAIL, { id: contract.id }));
     },
@@ -518,9 +642,24 @@ export function ContractCreatePage() {
     }
 
     const values = form.getValues();
+    const effectiveFrom =
+      versionCheck?.action === 'keep-current' ? null : plannedEffectiveFrom;
+    const activeEffectiveFrom =
+      editDetailQuery.data?.activeVersion?.effectiveFrom;
+    if (
+      effectiveFrom &&
+      activeEffectiveFrom &&
+      effectiveFrom <= activeEffectiveFrom
+    ) {
+      toast.error(
+        'Ngày dự kiến áp dụng phải sau ngày hiệu lực của phiên bản hiện tại.',
+      );
+      return;
+    }
     saveMutation.mutate({
       values,
       lines: feeLines,
+      effectiveFrom,
       metadata: {
         responsibleEmployeeIds: values.responsibleEmployeeIds,
         tagIds: values.tagIds,
@@ -610,7 +749,48 @@ export function ContractCreatePage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col gap-6 p-6">
+      {isEditMode ? (
+        <PageHeader
+          title="Chỉnh sửa hợp đồng"
+          backLabel="Quay lại chi tiết hợp đồng"
+          onBack={handleCancel}
+          titleAside={
+            editableVersions.length > 0 ? (
+              <Select
+                value={selectedEditVersionId ?? undefined}
+                onValueChange={handleEditVersionChange}
+              >
+                <SelectTrigger
+                  className={cn('w-[220px]', selectedEditVersionTextClass)}
+                >
+                  <SelectValue
+                    className={selectedEditVersionTextClass}
+                    placeholder="Chọn phiên bản"
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {editableVersions.map((version) => (
+                    <SelectItem
+                      key={version.id}
+                      value={version.id}
+                      className={
+                        version.status === 'effective'
+                          ? 'text-[var(--color-primary-accent,var(--color-blue-700))]'
+                          : 'text-[var(--color-warning-accent,var(--color-yellow-700))]'
+                      }
+                    >
+                      v{version.versionNo} ·{' '}
+                      {version.status === 'draft' ? 'Bản nháp' : 'Đang áp dụng'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : null
+          }
+        />
+      ) : null}
+
       <Card className="min-h-0 flex-1 overflow-hidden">
         <CardContent className="flex min-h-0 flex-1 flex-col gap-0 p-0">
           <Stepper
@@ -763,6 +943,8 @@ export function ContractCreatePage() {
                   chargeChanges={chargeChanges}
                   result={versionCheck}
                   currencyCode={form.getValues('currencyCode')}
+                  plannedEffectiveFrom={plannedEffectiveFrom}
+                  onPlannedEffectiveFromChange={setPlannedEffectiveFrom}
                 />
               </StepperContent>
             </StepperPanel>

@@ -1,6 +1,7 @@
 import { ArrowRight, FileCheck2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNumberFormat } from '@/providers/number-format-provider';
+import { DatePickerInput } from '@/components/ui/inputs/date-picker-input';
 import {
   ProcessingStep,
   type ProcessingStepState,
@@ -13,16 +14,15 @@ import type {
 import { ContractVersionBadge } from './contract-version-badge';
 
 type ProcessingState =
-  | 'idle'
-  | 'checking-charges'
-  | 'checking-version'
-  | 'complete';
+  'idle' | 'checking-charges' | 'checking-version' | 'complete';
 
 interface ContractConfirmationProcessingProps {
   state: ProcessingState;
   chargeChanges: ContractChargeChanges | null;
   result: ContractVersionChangeCheck | null;
   currencyCode: string;
+  plannedEffectiveFrom: string | null;
+  onPlannedEffectiveFromChange: (value: string | null) => void;
 }
 
 const resultCopy = {
@@ -52,6 +52,8 @@ export function ContractConfirmationProcessing({
   chargeChanges,
   result,
   currencyCode,
+  plannedEffectiveFrom,
+  onPlannedEffectiveFromChange,
 }: ContractConfirmationProcessingProps) {
   const { formatCurrency } = useNumberFormat();
   const resultText = result ? resultCopy[result.action] : null;
@@ -155,6 +157,39 @@ export function ContractConfirmationProcessing({
                 <p className="text-sm leading-6 text-muted-foreground">
                   {resultText.description}
                 </p>
+                {result.action === 'keep-current' ? (
+                  <p className="mt-5 max-w-md rounded-lg border border-border/70 bg-muted/30 p-4 text-xs leading-5 text-muted-foreground">
+                    Không có thay đổi điều khoản cần tạo phiên bản mới. Ngày áp
+                    dụng chỉ dùng khi thao tác này tạo hoặc cập nhật bản nháp.
+                  </p>
+                ) : (
+                  <div className="mt-5 max-w-md space-y-2 rounded-lg border border-border/70 bg-muted/30 p-4">
+                    <p className="text-sm font-medium text-foreground">
+                      Ngày dự kiến áp dụng
+                    </p>
+                    <DatePickerInput
+                      value={plannedEffectiveFrom}
+                      valueMode="iso-date"
+                      onChange={(value) =>
+                        onPlannedEffectiveFromChange(
+                          typeof value === 'string' ? value : null,
+                        )
+                      }
+                      calendarLabel="Chọn ngày dự kiến áp dụng"
+                      variant="md"
+                    />
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Để trống để lưu bản nháp. Nếu chọn hôm nay, hệ thống sẽ áp
+                      dụng phiên bản mới ngay khi bạn xác nhận lưu.
+                    </p>
+                    {plannedEffectiveFrom ===
+                    new Date().toISOString().slice(0, 10) ? (
+                      <p className="text-xs font-medium text-primary">
+                        Phiên bản sẽ được áp dụng ngay sau khi lưu.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
                 {result.changedAreas.length ? (
                   <div className="flex flex-wrap gap-2">
                     {result.changedAreas.map((area) => (

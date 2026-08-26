@@ -54,7 +54,11 @@ function SelectValue({
   ...props
 }: SelectValueProps) {
   const value = (
-    <SelectPrimitive.Value data-slot="select-value" {...props}>
+    <SelectPrimitive.Value
+      data-slot="select-value"
+      className={className}
+      {...props}
+    >
       {children}
     </SelectPrimitive.Value>
   );
