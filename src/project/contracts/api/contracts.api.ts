@@ -13,6 +13,7 @@ import { getPaymentReminderDays } from '../../model/tenant-settings';
 import { replaceSubjectTags } from '../../tags/api/tags.api';
 import { CONTRACT_TAG_GROUP_CODE } from '../../tags/model/tag';
 import {
+  CONTRACT_EXPIRING_WINDOW_DAYS,
   mapContractRow,
   mapContractVersionLineRow,
   mapContractVersionRow,
@@ -23,6 +24,8 @@ import {
   type ContractListParams,
   type ContractListResult,
   type ContractRow,
+  type ContractStatusStats,
+  type ContractStatusStatsParams,
   type ContractTagOption,
   type ContractVersion,
   type ContractVersionKind,
@@ -124,6 +127,13 @@ interface ContractListRpcResponse {
   total: number | string;
 }
 
+interface ContractStatusStatsRpcResponse {
+  total: number | string;
+  active: number | string;
+  expiring: number | string;
+  expired: number | string;
+}
+
 export interface ContractWorkspace {
   tenantId: string;
   contracts: Contract[];
@@ -169,6 +179,33 @@ export async function loadContractList(
       nextDueDate: row.next_due_date,
     })),
     total: numberValue(response.total),
+  };
+}
+
+export async function loadContractStatusStats(
+  params: ContractStatusStatsParams,
+  signal?: AbortSignal,
+): Promise<ContractStatusStats> {
+  assertSupabaseConfigured();
+
+  const response = await request<ContractStatusStatsRpcResponse>(
+    supabaseApi.post(
+      '/rpc/get_contract_statistics',
+      {
+        p_tenant_id: params.tenantId,
+        p_responsible_employee_id: params.responsibleEmployeeId ?? null,
+        p_expiring_within_days:
+          params.expiringWithinDays ?? CONTRACT_EXPIRING_WINDOW_DAYS,
+      },
+      { signal },
+    ),
+  );
+
+  return {
+    total: numberValue(response.total),
+    active: numberValue(response.active),
+    expiring: numberValue(response.expiring),
+    expired: numberValue(response.expired),
   };
 }
 

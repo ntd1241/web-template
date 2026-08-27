@@ -79,7 +79,7 @@ Chọn lại đúng giá trị đang chọn = bỏ chọn (`''`). Dùng `Combobo
 
 ## MultiSelect — chọn nhiều + chip
 
-Form field chọn nhiều: trigger hiển thị chip xóa được (`+N` khi quá `maxChips`), dropdown có tìm
+Form field chọn nhiều: trigger hiển thị các lựa chọn (`+N` khi quá `maxChips`), dropdown có tìm
 kiếm + nhóm + "Chọn tất cả / Bỏ chọn tất cả". Import từ `@/components/ui/multi-select`.
 
 ```tsx
@@ -100,6 +100,7 @@ const options: MultiSelectOption[] = [
 | `value` / `onChange` | `string[]` / `(v: string[]) => void` | `[]` |
 | `options` | `MultiSelectOption<T>[]` | — |
 | `maxChips` | `number` | `2` — dư thì gom `+N` (giữ trigger 1 dòng) |
+| `showSelectedOptionWrapper` | `boolean` | `false` — bật chip wrapper và nút xóa mặc định |
 | `placeholder` / `searchPlaceholder` / `emptyMessage` | `string` | `Chọn...` / `Tìm...` / `Không có kết quả` |
 
 Nhóm 1 cấp qua `group`; số đếm qua `count`. Popover **giữ mở** khi toggle (đúng UX multi-select).

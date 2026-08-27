@@ -4,7 +4,10 @@ import { useTableListState } from '@/hooks/use-table-list-state';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
 import { loadCustomerSelectOptions } from '../../customers/api/customers.api';
-import { loadContractList } from '../api/contracts.api';
+import {
+  loadContractList,
+  loadContractStatusStats,
+} from '../api/contracts.api';
 import {
   CONTRACT_STATUSES,
   type ContractListParams,
@@ -41,8 +44,7 @@ export function useContractList() {
     filters: {
       status: {
         param: 'statuses',
-        serialize: (value) =>
-          value.length > 0 ? value.join(',') : undefined,
+        serialize: (value) => (value.length > 0 ? value.join(',') : undefined),
       },
       contractSearch: { omit: [''] },
       customerId: { omit: [''] },
@@ -115,6 +117,17 @@ export function useContractList() {
     placeholderData: keepPreviousData,
   });
 
+  const statusStatsQuery = useQuery({
+    queryKey: ['project', 'contracts', 'stats', userId, tenantId],
+    queryFn: ({ signal }) => {
+      if (!tenantId) {
+        throw new Error('Chưa xác định tenant đang hoạt động.');
+      }
+      return loadContractStatusStats({ tenantId }, signal);
+    },
+    enabled: Boolean(tenantId),
+  });
+
   return {
     ...listState,
     tenantQuery: {
@@ -124,6 +137,7 @@ export function useContractList() {
       refetch,
     },
     workspaceQuery: listQuery,
+    statusStatsQuery,
     contracts: listQuery.data?.contracts ?? [],
     total: listQuery.data?.total ?? 0,
     customerOptionsQuery,

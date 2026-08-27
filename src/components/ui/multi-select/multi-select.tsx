@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ChevronsUpDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,7 @@ export interface MultiSelectProps<T = unknown> {
   ) => ReactNode;
   disabled?: boolean;
   maxChips?: number;
+  showSelectedOptionWrapper?: boolean;
   showSelectedOptionsInTrigger?: boolean;
   className?: string;
 }
@@ -59,6 +60,7 @@ export function MultiSelect<T = unknown>({
   renderSelectedOption,
   disabled = false,
   maxChips = 2,
+  showSelectedOptionWrapper = false,
   showSelectedOptionsInTrigger = true,
   className,
 }: MultiSelectProps<T>) {
@@ -69,11 +71,12 @@ export function MultiSelect<T = unknown>({
     () => options.filter((option) => value.includes(option.value)),
     [options, value],
   );
+  const visibleChipLimit = selectedOptions.length === 1 ? 1 : maxChips;
   const visibleChips = showSelectedOptionsInTrigger
-    ? selectedOptions.slice(0, maxChips)
+    ? selectedOptions.slice(0, visibleChipLimit)
     : [];
   const overflowCount = showSelectedOptionsInTrigger
-    ? Math.max(0, selectedOptions.length - maxChips)
+    ? Math.max(0, selectedOptions.length - visibleChipLimit)
     : 0;
   const hasSelection = selectedOptions.length > 0;
 
@@ -147,13 +150,14 @@ export function MultiSelect<T = unknown>({
 
           if (renderSelectedOption) {
             return (
-              <span
-                key={option.value}
-                className="inline-flex max-w-full min-w-0 shrink"
-              >
+              <Fragment key={option.value}>
                 {renderSelectedOption(option, () => handleRemove(option.value))}
-              </span>
+              </Fragment>
             );
+          }
+
+          if (!showSelectedOptionWrapper) {
+            return <Fragment key={option.value}>{option.label}</Fragment>;
           }
 
           return (
@@ -182,10 +186,7 @@ export function MultiSelect<T = unknown>({
           );
         })}
         {overflowCount > 0 ? (
-          <Badge
-            variant="outline"
-            className="shrink-0 text-muted-foreground"
-          >
+          <Badge variant="outline" className="shrink-0 text-muted-foreground">
             +{overflowCount}
           </Badge>
         ) : null}

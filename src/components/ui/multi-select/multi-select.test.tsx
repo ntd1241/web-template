@@ -55,6 +55,7 @@ describe('MultiSelect', () => {
         options={OPTIONS}
         value={['nhan-vien', 'quan-ly']}
         onChange={handleChange}
+        showSelectedOptionWrapper
         placeholder="Chọn vai trò"
       />,
     );
@@ -65,6 +66,42 @@ describe('MultiSelect', () => {
     await user.click(screen.getByRole('button', { name: 'Bỏ Nhân viên' }));
 
     expect(handleChange).toHaveBeenCalledWith(['quan-ly']);
+  });
+
+  it('shows the selected option when only one option is selected', () => {
+    render(
+      <MultiSelect
+        options={OPTIONS}
+        value={['nhan-vien']}
+        maxChips={0}
+        placeholder="Chọn vai trò"
+      />,
+    );
+
+    const trigger = screen.getByRole('combobox');
+
+    expect(within(trigger).getByText('Nhân viên')).toBeInTheDocument();
+    expect(within(trigger).queryByText('+1')).not.toBeInTheDocument();
+    expect(
+      within(trigger).queryByRole('button', { name: 'Bỏ Nhân viên' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps multiple selections grouped when the chip limit is zero', () => {
+    render(
+      <MultiSelect
+        options={OPTIONS}
+        value={['nhan-vien', 'quan-ly']}
+        maxChips={0}
+        placeholder="Chọn vai trò"
+      />,
+    );
+
+    const trigger = screen.getByRole('combobox');
+
+    expect(within(trigger).getByText('+2')).toBeInTheDocument();
+    expect(within(trigger).queryByText('Nhân viên')).not.toBeInTheDocument();
+    expect(within(trigger).queryByText('Quản lý')).not.toBeInTheDocument();
   });
 
   it('can keep selected options out of the trigger', () => {

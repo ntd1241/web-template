@@ -264,6 +264,21 @@ export interface ContractListResult {
   total: number;
 }
 
+export const CONTRACT_EXPIRING_WINDOW_DAYS = 30;
+
+export interface ContractStatusStats {
+  total: number;
+  active: number;
+  expiring: number;
+  expired: number;
+}
+
+export interface ContractStatusStatsParams {
+  tenantId: string;
+  responsibleEmployeeId?: string;
+  expiringWithinDays?: number;
+}
+
 export interface ContractEmployeeOption {
   id: string;
   userId: string | null;

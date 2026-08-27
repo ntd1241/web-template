@@ -18,7 +18,7 @@ import {
 import type { CustomerSelectOption } from '../../customers/api/customers.api';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { ContractCell } from '../components/contract-cell';
-import type { Contract } from '../model/contract';
+import type { Contract, ContractStatus } from '../model/contract';
 import {
   CONTRACT_STATUS_FILTER_OPTIONS,
   renderContractCustomerFilterTrigger,
@@ -54,14 +54,14 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
   expired: {
     label: 'Hết hạn',
     className:
-      'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
-    dotClassName: 'bg-muted-foreground opacity-100',
+      'rounded-md border-transparent bg-admin-red-bg px-2.5 py-1 text-xs text-admin-red-dark',
+    dotClassName: 'bg-admin-red-primary opacity-100',
   },
   terminated: {
     label: 'Đã chấm dứt',
     className:
-      'rounded-md border-transparent bg-admin-red-bg px-2.5 py-1 text-xs text-admin-red-dark',
-    dotClassName: 'bg-admin-red-primary opacity-100',
+      'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
+    dotClassName: 'bg-muted-foreground opacity-100',
   },
 };
 
@@ -74,10 +74,8 @@ export interface UseContractColumnsParams {
   customerOptions: CustomerSelectOption[];
   customerOptionsLoading?: boolean;
   onCustomerIdChange: (value: string) => void;
-  statuses: import('../model/contract').ContractStatus[];
-  onStatusChange: (
-    value: import('../model/contract').ContractStatus[],
-  ) => void;
+  statuses: ContractStatus[];
+  onStatusChange: (value: ContractStatus[]) => void;
   outstandingMin?: number;
   outstandingMax?: number;
   onOutstandingChange: (value: { min?: number; max?: number }) => void;

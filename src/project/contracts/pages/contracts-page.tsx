@@ -6,14 +6,13 @@ import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
-import { useUser } from '@/providers/user-provider';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardHeading,
   CardTable,
   CardTitle,
   CardToolbar,
@@ -22,17 +21,21 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { deleteContract } from '../api/contracts.api';
 import { useContractList } from '../hooks/use-contract-list';
-import { type Contract } from '../model/contract';
+import {
+  type Contract,
+  type ContractStatus,
+  type ContractStatusStats,
+} from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
 
 export function ContractsPage() {
   const navigate = useNavigate();
-  const { userId } = useUser();
   const queryClient = useQueryClient();
   const [deletingContract, setDeletingContract] = useState<Contract | null>(
     null,
@@ -49,6 +52,7 @@ export function ContractsPage() {
     onPaginationChange,
     tenantQuery,
     workspaceQuery,
+    statusStatsQuery,
     customerOptions,
     customerOptionsQuery,
   } = useContractList();
@@ -68,6 +72,24 @@ export function ContractsPage() {
   function openCreate() {
     navigate(ROUTES.PROJECT.CONTRACT_CREATE);
   }
+
+  const pageHeader = (
+    <PageHeader
+      title="Quản lý hợp đồng"
+      actions={
+        <ShortcutTooltip label="Thêm hợp đồng" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={openCreate}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm hợp đồng
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
 
   function openEdit(contract: Contract) {
     navigate(
@@ -121,7 +143,8 @@ export function ContractsPage() {
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
-      <div className="p-4 lg:p-5">
+      <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+        {pageHeader}
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -145,7 +168,8 @@ export function ContractsPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+      {pageHeader}
       <DataGrid
         table={table}
         recordCount={total}
@@ -154,9 +178,14 @@ export function ContractsPage() {
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
           <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <CardHeading>
-              <CardTitle>Quản lý hợp đồng</CardTitle>
-            </CardHeading>
+            <ContractStatusStats
+              stats={statusStatsQuery.data}
+              isLoading={statusStatsQuery.isPending}
+              statuses={filters.status}
+              onStatusChange={(status) =>
+                setFilter('status', status ? [status] : [])
+              }
+            />
             <CardToolbar className="flex-wrap">
               <ContractFilterBar
                 keyword={keyword}
@@ -167,20 +196,13 @@ export function ContractsPage() {
                 mode="icon"
                 aria-label="Làm mới"
                 title="Làm mới"
-                onClick={() => workspaceQuery.refetch()}
+                onClick={() => {
+                  void workspaceQuery.refetch();
+                  void statusStatsQuery.refetch();
+                }}
               >
                 <RefreshCw />
               </Button>
-              <ShortcutTooltip label="Thêm hợp đồng" shortcut="Alt + N">
-                <Button
-                  variant="primary"
-                  onClick={openCreate}
-                  data-shortcut-action="create"
-                >
-                  <Plus />
-                  Thêm hợp đồng
-                </Button>
-              </ShortcutTooltip>
             </CardToolbar>
           </CardHeader>
           <CardTable className="min-h-0 flex-1">
@@ -212,6 +234,75 @@ export function ContractsPage() {
           if (deletingContract) deleteMutation.mutate(deletingContract.id);
         }}
       />
+    </div>
+  );
+}
+
+type ContractStatusStatsProps = {
+  stats?: ContractStatusStats;
+  isLoading: boolean;
+  statuses: ContractStatus[];
+  onStatusChange: (status: ContractStatus | null) => void;
+};
+
+const contractStatItems = [
+  {
+    key: 'total',
+    label: 'Tổng số',
+    filterStatus: null,
+    className: '!bg-muted !text-muted-foreground',
+  },
+  {
+    key: 'active',
+    label: 'Đang hiệu lực',
+    filterStatus: 'active',
+    className: '!bg-admin-success-bg !text-admin-success-text',
+  },
+  {
+    key: 'expiring',
+    label: 'Sắp hết hạn',
+    filterStatus: 'active',
+    className: '!bg-admin-amber-bg !text-admin-amber-dark',
+  },
+  {
+    key: 'expired',
+    label: 'Đã hết hạn',
+    filterStatus: 'expired',
+    className: '!bg-admin-red-bg !text-admin-red-dark',
+  },
+] as const;
+
+function ContractStatusStats({
+  stats,
+  isLoading,
+  statuses,
+  onStatusChange,
+}: ContractStatusStatsProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-2.5">
+      {contractStatItems.map((item, index) => (
+        <div key={item.key} className="flex items-center gap-2.5">
+          {index > 0 ? <span className="h-5 w-px bg-border" /> : null}
+          <Badge asChild variant="secondary" size="lg">
+            <button
+              type="button"
+              className={`gap-2 rounded-lg border-transparent px-3 transition-shadow hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring ${item.className}`}
+              aria-label={`Lọc hợp đồng: ${item.label}`}
+              aria-pressed={
+                item.filterStatus === null
+                  ? statuses.length === 0
+                  : statuses.length === 1 && statuses[0] === item.filterStatus
+              }
+              onClick={() => onStatusChange(item.filterStatus)}
+            >
+              <span>{item.label}</span>
+              <span className="font-bold tabular-nums">
+                {isLoading ? '—' : (stats?.[item.key] ?? '—')}
+              </span>
+            </button>
+          </Badge>
+        </div>
+      ))}
     </div>
   );
 }

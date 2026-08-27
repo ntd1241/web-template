@@ -41,8 +41,8 @@ const STATUS_COLORS: Record<string, string> = {
   suspended: '#d97706',
   voided: '#dc2626',
   cancelled: '#dc2626',
-  terminated: '#dc2626',
-  expired: '#64748b',
+  terminated: '#64748b',
+  expired: '#dc2626',
 };
 
 export const CONTRACT_STATUS_BADGE_CONFIG: StatusBadgeConfig<ContractStatus> = {
@@ -66,14 +66,14 @@ export const CONTRACT_STATUS_BADGE_CONFIG: StatusBadgeConfig<ContractStatus> = {
   expired: {
     label: 'Hết hạn',
     className:
-      'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
-    dotClassName: 'bg-muted-foreground opacity-100',
+      'rounded-md border-transparent bg-admin-red-bg px-2.5 py-1 text-xs text-admin-red-dark',
+    dotClassName: 'bg-admin-red-primary opacity-100',
   },
   terminated: {
     label: 'Đã chấm dứt',
     className:
-      'rounded-md border-transparent bg-admin-red-bg px-2.5 py-1 text-xs text-admin-red-dark',
-    dotClassName: 'bg-admin-red-primary opacity-100',
+      'rounded-md border-transparent bg-muted px-2.5 py-1 text-xs text-muted-foreground',
+    dotClassName: 'bg-muted-foreground opacity-100',
   },
 };
 

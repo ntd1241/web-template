@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { PageBackButton } from '@/components/ui/page-back-button';
 
-type PageHeaderProps = {
+export type PageHeaderProps = {
   title: ReactNode;
   titleAside?: ReactNode;
   actions?: ReactNode;
@@ -28,7 +28,7 @@ export function PageHeader({
     >
       <div className="flex min-w-0 items-center gap-3">
         {onBack ? <PageBackButton label={backLabel} onClick={onBack} /> : null}
-        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
         {titleAside ? <div className="shrink-0">{titleAside}</div> : null}
       </div>
       {actions ? (
