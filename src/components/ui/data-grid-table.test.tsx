@@ -28,6 +28,21 @@ function LoadingTable({ columns }: { columns: ColumnDef<TestRow>[] }) {
   );
 }
 
+function FetchingTable() {
+  const table = useReactTable({
+    data: [{ id: '1', name: 'Nhân viên cũ' }],
+    columns: [{ id: 'name', accessorKey: 'name', header: 'Tên' }],
+    state: { pagination: { pageIndex: 0, pageSize: 3 } },
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <DataGrid table={table} recordCount={1} isFetching>
+      <DataGridTable />
+    </DataGrid>
+  );
+}
+
 describe('DataGridTable loading state', () => {
   it('renders default skeleton cells for every loading row and column', () => {
     render(
@@ -40,6 +55,9 @@ describe('DataGridTable loading state', () => {
     );
 
     expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(6);
+    expect(
+      document.querySelector('[data-slot="data-grid-fetching-overlay"]'),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps a column-specific skeleton override', () => {
@@ -60,6 +78,18 @@ describe('DataGridTable loading state', () => {
     expect(
       document.querySelector('[data-slot="skeleton"]'),
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps previous rows visible with a fetching shimmer state', () => {
+    render(<FetchingTable />);
+
+    expect(screen.getByText('Nhân viên cũ')).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-slot="data-grid-fetching-overlay"]'),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-slot="data-grid-table-body"]'),
+    ).toHaveAttribute('data-fetching', 'true');
   });
 
   it('renders an inline header filter below the column label', () => {

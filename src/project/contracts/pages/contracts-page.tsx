@@ -169,6 +169,7 @@ export function ContractsPage() {
         table={table}
         recordCount={total}
         isLoading={isListLoading}
+        isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có hợp đồng"
         tableLayout={{ dense: true }}
       >

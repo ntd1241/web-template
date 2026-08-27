@@ -218,7 +218,8 @@ export function ContractTemplatesPage() {
       <DataGrid
         table={table}
         recordCount={total}
-        isLoading={listQuery.isPending}
+        isLoading={listQuery.isLoading}
+        isFetching={listQuery.isFetching}
         emptyMessage="Chưa có mẫu hợp đồng"
         tableLayout={{ dense: true }}
       >

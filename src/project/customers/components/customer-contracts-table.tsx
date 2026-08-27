@@ -128,6 +128,7 @@ export function CustomerContractsTable({ customerId }: { customerId: string }) {
         table={table}
         recordCount={total}
         isLoading={isLoading}
+        isFetching={workspaceQuery.isFetching}
         emptyMessage="Khách hàng chưa có hợp đồng"
       >
         <Card className="min-h-0 overflow-hidden">

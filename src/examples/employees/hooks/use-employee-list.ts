@@ -41,6 +41,7 @@ export function useEmployeeList() {
     employees: query.data?.items ?? [],
     total: query.data?.total ?? 0,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     refetch: query.refetch,
   };

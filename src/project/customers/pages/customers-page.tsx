@@ -248,6 +248,7 @@ export function CustomersPage() {
         table={table}
         recordCount={total}
         isLoading={isListLoading}
+        isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có khách hàng"
         tableLayout={{ dense: true }}
       >

@@ -218,6 +218,7 @@ export function EmployeesPage() {
         table={table}
         recordCount={total}
         isLoading={isListLoading}
+        isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có nhân viên"
         tableLayout={{ dense: true }}
       >

@@ -114,6 +114,7 @@ export function OrdersExamplePage() {
         table={table}
         recordCount={total}
         isLoading={listQuery.isLoading}
+        isFetching={listQuery.isFetching}
         emptyMessage="Không có đơn hàng"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">

@@ -43,6 +43,7 @@ export interface DataGridContextProps<TData extends object> {
   table: Table<TData>;
   recordCount: number;
   isLoading: boolean;
+  isFetching: boolean;
 }
 
 export type DataGridRequestParams = {
@@ -61,6 +62,7 @@ export interface DataGridProps<TData extends object> {
   isRowClickable?: (row: TData) => boolean;
   getRowClassName?: (row: TData) => string | undefined;
   isLoading?: boolean;
+  isFetching?: boolean;
   loadingMode?: 'skeleton' | 'spinner';
   loadingMessage?: ReactNode | string;
   emptyMessage?: ReactNode | string;
@@ -118,6 +120,7 @@ function DataGridProvider<TData extends object>({
         table,
         recordCount: props.recordCount,
         isLoading: props.isLoading || false,
+        isFetching: props.isFetching ?? props.isLoading ?? false,
       }}
     >
       {children}

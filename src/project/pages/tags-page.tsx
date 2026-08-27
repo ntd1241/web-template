@@ -288,6 +288,7 @@ export function TagsPage() {
         table={table}
         recordCount={tableRows.length}
         isLoading={workspaceQuery.isLoading}
+        isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có nhóm nhãn hoặc nhãn"
         isRowClickable={(row) => Boolean(row.isGroup)}
         getRowClassName={(row) => (row.isGroup ? undefined : '[&>td]:!py-2')}

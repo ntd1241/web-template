@@ -204,12 +204,17 @@ function DataGridTableRowSpacer() {
 }
 
 function DataGridTableBody({ children }: { children: ReactNode }) {
-  const { props } = useDataGrid();
+  const { props, isFetching, isLoading } = useDataGrid();
+  const isRefreshing = isFetching && !isLoading;
 
   return (
     <tbody
+      data-slot="data-grid-table-body"
+      data-fetching={isRefreshing || undefined}
       className={cn(
         '[&_tr:last-child]:border-0',
+        'transition-opacity duration-200',
+        isRefreshing && 'opacity-60',
         props.tableLayout?.rowRounded &&
           '[&_td:first-child]:rounded-s-lg [&_td:last-child]:rounded-e-lg',
         props.tableClassNames?.body,
@@ -464,6 +469,18 @@ function DataGridTableLoader() {
   );
 }
 
+function DataGridTableFetchingOverlay() {
+  return (
+    <div
+      data-slot="data-grid-fetching-overlay"
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+    >
+      <div className="absolute inset-y-0 -start-1/2 w-1/2 animate-data-grid-shimmer bg-gradient-to-r from-transparent via-background/35 to-transparent motion-reduce:animate-none" />
+    </div>
+  );
+}
+
 function DataGridTableRowSelect<TData>({
   row,
   size,
@@ -509,91 +526,99 @@ function DataGridTableRowSelectAll({ size }: { size?: 'sm' | 'md' | 'lg' }) {
 }
 
 function DataGridTable<TData>() {
-  const { table, isLoading, props } = useDataGrid();
+  const { table, isLoading, isFetching, props } = useDataGrid();
   const pagination = table.getState().pagination;
+  const isRefreshing = isFetching && !isLoading;
 
   return (
-    <DataGridTableBase>
-      <DataGridTableHead>
-        {table
-          .getHeaderGroups()
-          .map((headerGroup: HeaderGroup<TData>, index) => {
-            return (
-              <DataGridTableHeadRow headerGroup={headerGroup} key={index}>
-                {headerGroup.headers.map((header, index) => {
-                  const { column } = header;
+    <div
+      className="relative"
+      aria-busy={isRefreshing || undefined}
+      data-fetching={isRefreshing || undefined}
+    >
+      <DataGridTableBase>
+        <DataGridTableHead>
+          {table
+            .getHeaderGroups()
+            .map((headerGroup: HeaderGroup<TData>, index) => {
+              return (
+                <DataGridTableHeadRow headerGroup={headerGroup} key={index}>
+                  {headerGroup.headers.map((header, index) => {
+                    const { column } = header;
 
-                  return (
-                    <DataGridTableHeadRowCell header={header} key={index}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
+                    return (
+                      <DataGridTableHeadRowCell header={header} key={index}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                        {props.tableLayout?.columnsResizable &&
+                          column.getCanResize() && (
+                            <DataGridTableHeadRowCellResize header={header} />
                           )}
-                      {props.tableLayout?.columnsResizable &&
-                        column.getCanResize() && (
-                          <DataGridTableHeadRowCellResize header={header} />
-                        )}
-                    </DataGridTableHeadRowCell>
+                      </DataGridTableHeadRowCell>
+                    );
+                  })}
+                </DataGridTableHeadRow>
+              );
+            })}
+        </DataGridTableHead>
+
+        {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && (
+          <DataGridTableRowSpacer />
+        )}
+
+        <DataGridTableBody>
+          {props.loadingMode === 'skeleton' &&
+          isLoading &&
+          pagination?.pageSize ? (
+            Array.from({ length: pagination.pageSize }).map((_, rowIndex) => (
+              <DataGridTableBodyRowSkeleton key={rowIndex}>
+                {table.getVisibleFlatColumns().map((column, colIndex) => {
+                  return (
+                    <DataGridTableBodyRowSkeletonCell
+                      column={column}
+                      key={colIndex}
+                    >
+                      {column.columnDef.meta?.skeleton}
+                    </DataGridTableBodyRowSkeletonCell>
                   );
                 })}
-              </DataGridTableHeadRow>
-            );
-          })}
-      </DataGridTableHead>
-
-      {(props.tableLayout?.stripped || !props.tableLayout?.rowBorder) && (
-        <DataGridTableRowSpacer />
-      )}
-
-      <DataGridTableBody>
-        {props.loadingMode === 'skeleton' &&
-        isLoading &&
-        pagination?.pageSize ? (
-          Array.from({ length: pagination.pageSize }).map((_, rowIndex) => (
-            <DataGridTableBodyRowSkeleton key={rowIndex}>
-              {table.getVisibleFlatColumns().map((column, colIndex) => {
-                return (
-                  <DataGridTableBodyRowSkeletonCell
-                    column={column}
-                    key={colIndex}
-                  >
-                    {column.columnDef.meta?.skeleton}
-                  </DataGridTableBodyRowSkeletonCell>
-                );
-              })}
-            </DataGridTableBodyRowSkeleton>
-          ))
-        ) : table.getRowModel().rows.length ? (
-          table.getRowModel().rows.map((row: Row<TData>, index) => {
-            return (
-              <Fragment key={row.id}>
-                <DataGridTableBodyRow row={row} key={index}>
-                  {row
-                    .getVisibleCells()
-                    .map((cell: Cell<TData, unknown>, colIndex) => {
-                      return (
-                        <DataGridTableBodyRowCell cell={cell} key={colIndex}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </DataGridTableBodyRowCell>
-                      );
-                    })}
-                </DataGridTableBodyRow>
-                {row.getIsExpanded() && (
-                  <DataGridTableBodyRowExpandded row={row} />
-                )}
-              </Fragment>
-            );
-          })
-        ) : (
-          <DataGridTableEmpty />
-        )}
-      </DataGridTableBody>
-    </DataGridTableBase>
+              </DataGridTableBodyRowSkeleton>
+            ))
+          ) : table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row: Row<TData>, index) => {
+              return (
+                <Fragment key={row.id}>
+                  <DataGridTableBodyRow row={row} key={index}>
+                    {row
+                      .getVisibleCells()
+                      .map((cell: Cell<TData, unknown>, colIndex) => {
+                        return (
+                          <DataGridTableBodyRowCell cell={cell} key={colIndex}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </DataGridTableBodyRowCell>
+                        );
+                      })}
+                  </DataGridTableBodyRow>
+                  {row.getIsExpanded() && (
+                    <DataGridTableBodyRowExpandded row={row} />
+                  )}
+                </Fragment>
+              );
+            })
+          ) : (
+            <DataGridTableEmpty />
+          )}
+        </DataGridTableBody>
+      </DataGridTableBase>
+      {isRefreshing ? <DataGridTableFetchingOverlay /> : null}
+    </div>
   );
 }
 
@@ -607,6 +632,7 @@ export {
   DataGridTableBodyRowSkeleton,
   DataGridTableBodyRowSkeletonCell,
   DataGridTableEmpty,
+  DataGridTableFetchingOverlay,
   DataGridTableHead,
   DataGridTableHeadRow,
   DataGridTableHeadRowCell,

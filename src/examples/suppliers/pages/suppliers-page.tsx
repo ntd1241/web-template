@@ -29,6 +29,7 @@ export function SuppliersPage() {
     suppliers,
     total,
     isLoading,
+    isFetching,
     isError,
     refetch,
   } = useSupplierList();
@@ -73,6 +74,7 @@ export function SuppliersPage() {
         table={table}
         recordCount={total}
         isLoading={isLoading}
+        isFetching={isFetching}
         emptyMessage="Không tìm thấy nhà cung cấp phù hợp"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">

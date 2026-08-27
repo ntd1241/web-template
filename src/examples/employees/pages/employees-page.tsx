@@ -57,6 +57,7 @@ export function EmployeesExamplePage() {
     employees,
     total,
     isLoading,
+    isFetching,
     isError,
     refetch,
   } = useEmployeeList();
@@ -154,6 +155,7 @@ export function EmployeesExamplePage() {
         table={table}
         recordCount={filteredTotal}
         isLoading={isLoading}
+        isFetching={isFetching}
         emptyMessage="Không tìm thấy nhân viên phù hợp"
       >
         <Card className="min-h-0 flex-1 overflow-hidden">

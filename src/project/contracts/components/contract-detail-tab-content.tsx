@@ -501,6 +501,7 @@ export function ContractReceivablesContent({
         table={table}
         recordCount={total}
         isLoading={listQuery.isLoading}
+        isFetching={listQuery.isFetching}
         emptyMessage={
           listQuery.isError
             ? getApiErrorMessage(listQuery.error)
