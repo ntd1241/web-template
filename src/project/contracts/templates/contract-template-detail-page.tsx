@@ -127,8 +127,8 @@ function TemplateProfileCard({
   latestLines: ContractTemplateVersionLine[];
 }) {
   return (
-    <Card className="h-fit lg:sticky lg:top-6">
-      <CardContent className="p-6">
+    <Card className="h-fit lg:sticky lg:top-5">
+      <CardContent className="p-5">
         <div className="flex flex-col items-center text-center">
           <div className="flex size-24 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-inner">
             <FileText className="size-12" />
@@ -224,7 +224,7 @@ export function ContractTemplateDetailPage() {
   if (detailQuery.isPending) return <PageLoading />;
   if (detailQuery.isError || !detailQuery.data) {
     return (
-      <div className="p-6 text-sm text-destructive">
+      <div className="p-4 text-sm text-destructive lg:p-5">
         {getApiErrorMessage(detailQuery.error)}
       </div>
     );
@@ -250,7 +250,7 @@ export function ContractTemplateDetailPage() {
     );
 
   return (
-    <div className="flex min-h-full flex-col gap-6 p-6">
+    <div className="flex min-h-full flex-col gap-4 p-4 lg:gap-5 lg:p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageBackButton
           label="Quay lại danh sách mẫu hợp đồng"
@@ -296,14 +296,14 @@ export function ContractTemplateDetailPage() {
         </div>
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 lg:gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
         <TemplateProfileCard
           template={template}
           latestVersion={latestVersion}
           latestLines={latestLines}
         />
 
-        <div className="min-w-0 space-y-6">
+        <div className="min-w-0 space-y-5">
           <Card sectionBorders="default">
             <CardHeader>
               <CardHeading>

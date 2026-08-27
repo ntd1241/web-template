@@ -226,7 +226,7 @@ export function TagsPage() {
 
   if (workspaceQuery.isError) {
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-5">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -283,7 +283,7 @@ export function TagsPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
       <DataGrid
         table={table}
         recordCount={tableRows.length}

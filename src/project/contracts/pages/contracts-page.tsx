@@ -26,9 +26,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { deleteContract } from '../api/contracts.api';
 import { useContractList } from '../hooks/use-contract-list';
-import {
-  type Contract,
-} from '../model/contract';
+import { type Contract } from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
 
@@ -123,7 +121,7 @@ export function ContractsPage() {
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-5">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -147,7 +145,7 @@ export function ContractsPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
       <DataGrid
         table={table}
         recordCount={total}

@@ -107,8 +107,8 @@ export function LayoutProvider({
     '--sidebar-collapsed-width': '56px',
     '--sidebar-menu-width': '224px',
     '--sidebar-current-width': sidebarCurrentWidth,
-    '--header-height': '64px',
-    '--header-height-mobile': '64px',
+    '--header-height': '56px',
+    '--header-height-mobile': '56px',
     ...customStyle,
   } as CSSProperties;
 

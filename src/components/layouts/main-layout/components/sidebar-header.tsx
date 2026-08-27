@@ -13,7 +13,7 @@ export function SidebarHeader() {
         <span className="block bg-gradient-to-r from-red-600 via-rose-500 to-red-800 bg-clip-text font-admin-display text-[1.65rem] font-black uppercase tracking-[0.06em] text-transparent">
           VACOM
         </span>
-        <span className="mt-1 block whitespace-nowrap font-admin-display text-[0.72rem] font-bold uppercase tracking-[0.1em] text-black">
+        <span className="mt-1 block whitespace-nowrap font-admin-display text-[0.72rem] font-bold uppercase tracking-[0.1em] text-foreground">
           KẾ TOÁN DỊCH VỤ
         </span>
       </span>

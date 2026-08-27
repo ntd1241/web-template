@@ -43,7 +43,7 @@ const cardVariants = cva(
 );
 
 const cardHeaderVariants = cva(
-  'flex items-center justify-between flex-wrap p-5 min-h-14 gap-2.5',
+  'flex items-center justify-between flex-wrap px-5 py-3 min-h-12 gap-2.5',
   {
     variants: {
       variant: {
@@ -86,7 +86,7 @@ const cardTableVariants = cva('grid grow', {
   },
 });
 
-const cardFooterVariants = cva('flex items-center px-5 min-h-14', {
+const cardFooterVariants = cva('flex items-center px-5 py-3 min-h-12', {
   variants: {
     variant: {
       default: '',

@@ -89,7 +89,7 @@ function ContractHero({
       />
       <div className="pointer-events-none absolute -end-24 -top-36 size-[28rem] rounded-full bg-white/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-48 start-1/3 size-[32rem] rounded-full bg-cyan-300/10 blur-3xl" />
-      <div className="relative mx-auto flex min-h-[220px] max-w-[1600px] flex-col justify-end gap-8 px-4 pb-20 pt-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto flex min-h-[220px] max-w-[1600px] flex-col justify-end gap-7 px-4 pb-20 pt-4 sm:px-5 lg:px-6">
         <div className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
           <div className="flex min-w-0 items-center gap-4">
             <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-white/30 bg-white/15 shadow-lg backdrop-blur-sm sm:size-20">
@@ -132,8 +132,8 @@ function ContractSummaryCard({
 
   return (
     <Card className="relative -mt-10 overflow-visible border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
-      <CardContent className="p-5 sm:p-6">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_1fr] xl:gap-0">
+      <CardContent className="p-5">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_1fr] xl:gap-0">
           <EntityDetailInformationItem
             label="Khách hàng"
             className="xl:border-e xl:border-border xl:pe-6"
@@ -271,13 +271,13 @@ function ContractDetailShell({
   return (
     <div className="flex min-h-full flex-col bg-muted/30">
       <ContractHero contract={contract} actions={heroActions} />
-      <main className="mx-auto w-full max-w-[1600px] px-4 pb-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1600px] px-4 pb-6 sm:px-5 lg:px-6">
         <ContractSummaryCard
           contract={contract}
           onManageResponsibles={onManageResponsibles}
           canManageResponsibles={canManageResponsibles}
         />
-        <div className="mt-6">
+        <div className="mt-5">
           <EntityDetailTabs tabs={tabs} defaultValue="overview" />
         </div>
       </main>
@@ -410,7 +410,7 @@ export function ContractDetailPage() {
 
   if (isTenantError || contractQuery.isError || !contractQuery.data) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
+      <div className="flex h-full items-center justify-center p-4 lg:p-5">
         <Card className="max-w-lg text-center">
           <CardHeader>
             <CardHeading>

@@ -3,14 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { Card, CardFooter, CardHeader } from './card';
 
 describe('CardHeader', () => {
-  it('uses the shared p-5 padding by default', () => {
+  it('uses the shared compact vertical padding by default', () => {
     render(
       <Card>
         <CardHeader data-testid="card-header" />
       </Card>,
     );
 
-    expect(screen.getByTestId('card-header')).toHaveClass('p-5');
+    expect(screen.getByTestId('card-header')).toHaveClass('px-5');
+    expect(screen.getByTestId('card-header')).toHaveClass('py-3', 'min-h-12');
   });
 
   it('does not render section borders by default', () => {

@@ -224,7 +224,7 @@ export function ProjectSettingsPage() {
         onValueChange={handleTabChange}
         className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-5"
       >
-        <div className="shrink-0 px-6 pt-6 lg:min-h-0 lg:pe-0">
+        <div className="shrink-0 px-4 pt-4 lg:min-h-0 lg:px-5 lg:pe-0 lg:pt-5">
           <Card className="flex h-fit max-h-full min-h-0 self-start flex-col">
             <ScrollArea className="max-h-full min-h-0 flex-1">
               <TabsList className="flex-col items-stretch gap-1 bg-transparent p-2 [&_[data-slot=tabs-trigger]]:justify-start [&_[data-slot=tabs-trigger]]:gap-3 [&_[data-slot=tabs-trigger]]:rounded-lg [&_[data-slot=tabs-trigger]]:px-3 [&_[data-slot=tabs-trigger]]:py-2.5 [&_[data-slot=tabs-trigger][data-state=active]]:bg-primary/10 [&_[data-slot=tabs-trigger][data-state=active]]:text-primary [&_[data-slot=tabs-trigger][data-state=active]_svg]:text-primary">
@@ -244,7 +244,7 @@ export function ProjectSettingsPage() {
         </div>
 
         <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full">
-          <div className="min-w-0 space-y-5 px-6 pb-6 pt-6 lg:ps-0 lg:pe-6">
+          <div className="min-w-0 space-y-4 px-4 pb-4 pt-4 lg:space-y-5 lg:ps-0 lg:pe-5 lg:pb-5 lg:pt-5">
             <TabsContent value="organization" className="mt-0 space-y-5">
               <Card>
                 <CardHeader className="p-5">

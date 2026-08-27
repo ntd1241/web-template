@@ -82,10 +82,10 @@
   --secondary: var(--admin-blue-bg);
   --secondary-foreground: var(--admin-blue-dark);
   --muted: var(--admin-neutral-bg);
-  --muted-foreground: var(--admin-neutral-600);
+  --muted-foreground: var(--admin-neutral-500);
   --field: var(--admin-surface-alt);
   --accent: var(--admin-primary-bg);
-  --accent-foreground: var(--admin-primary-dark);
+  --accent-foreground: var(--admin-neutral-900);
   --destructive: var(--admin-red-primary);
   --destructive-foreground: #ffffff;
   --chart-1: var(--color-blue-500);
@@ -112,10 +112,10 @@
   --secondary: var(--color-zinc-800);
   --secondary-foreground: var(--color-zinc-50);
   --muted: var(--color-zinc-900);
-  --muted-foreground: var(--color-zinc-400);
+  --muted-foreground: var(--color-zinc-500);
   --field: var(--color-zinc-900);
   --accent: var(--admin-primary-darker);
-  --accent-foreground: var(--admin-primary-tint);
+  --accent-foreground: var(--admin-neutral-50);
   --destructive: var(--admin-red-primary);
   --destructive-foreground: var(--color-white);
   --chart-1: var(--color-blue-500);

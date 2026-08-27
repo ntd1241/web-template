@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export function ProjectMockPage() {
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
       <div className="mb-5 shrink-0">
         <h1 className="text-xl font-bold text-foreground">Tổng quan</h1>
         <p className="mt-1 text-sm text-muted-foreground">

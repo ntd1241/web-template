@@ -32,13 +32,13 @@ import {
   EmployeeFormDialog,
   useEmployeeForm,
 } from '../forms/employee-form.generated';
+import { useEmployeeList } from '../hooks/use-employee-list';
 import {
   emptyEmployeeForm,
   mapEmployeeToFormValues,
   type Employee,
   type EmployeeFormValues,
 } from '../model/employee';
-import { useEmployeeList } from '../hooks/use-employee-list';
 import { useEmployeeColumns } from '../table/employee.columns.generated';
 import { EmployeeFilterBar } from '../table/employee.filters.generated';
 
@@ -145,7 +145,7 @@ export function EmployeesPage() {
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
-      <div className="p-6">
+      <div className="p-4 lg:p-5">
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -169,7 +169,7 @@ export function EmployeesPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
       <DataGrid
         table={table}
         recordCount={total}

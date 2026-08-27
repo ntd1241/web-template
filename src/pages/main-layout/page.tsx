@@ -146,7 +146,7 @@ function StatusBadge() {
 
 export function MainLayoutPage() {
   return (
-    <div className="flex h-full min-h-0 flex-col p-6">
+    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-admin-card border border-border bg-card shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex shrink-0 flex-col gap-4 border-b border-border bg-card p-5 xl:flex-row xl:items-center xl:justify-between">
           <div>

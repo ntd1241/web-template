@@ -399,7 +399,7 @@ export function RolePermissionsPage() {
 
   if (workspaceQuery.isError) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-sm text-destructive">
+      <div className="flex h-full items-center justify-center p-4 text-sm text-destructive lg:p-5">
         {workspaceQuery.error instanceof Error
           ? workspaceQuery.error.message
           : 'Không thể tải cấu hình phân quyền.'}
@@ -409,14 +409,14 @@ export function RolePermissionsPage() {
 
   if (!selectedRole) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+      <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground lg:p-5">
         Chưa có vai trò nào trong tenant.
       </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto p-4 xl:flex-row xl:overflow-hidden xl:p-6">
+    <div className="flex h-full min-h-0 w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto p-4 xl:flex-row xl:overflow-hidden xl:p-5">
       <Card className="max-h-[220px] w-full max-w-full shrink-0 overflow-hidden xl:max-h-none xl:w-[260px]">
         <CardHeader className="min-h-0 flex-col items-start gap-1 p-4">
           <CardTitle className="text-[15px]">Vai trò</CardTitle>

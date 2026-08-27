@@ -150,7 +150,7 @@ export function ContractTemplateEditPage() {
   if (isEditMode && detailQuery.isPending) return <PageLoading />;
   if (isEditMode && detailQuery.isError) {
     return (
-      <div className="p-6 text-sm text-destructive">
+      <div className="p-4 text-sm text-destructive lg:p-5">
         {getApiErrorMessage(detailQuery.error)}
       </div>
     );
@@ -167,7 +167,7 @@ export function ContractTemplateEditPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col gap-6 p-6">
+    <div className="flex min-h-full flex-col gap-4 p-4 lg:gap-5 lg:p-5">
       <PageHeader
         title={isEditMode ? 'Chỉnh sửa mẫu hợp đồng' : 'Thêm mẫu hợp đồng'}
         backLabel={

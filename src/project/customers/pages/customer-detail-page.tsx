@@ -221,7 +221,7 @@ export function CustomerDetailPage() {
 
   if (customerQuery.isError || !customerQuery.data) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
+      <div className="flex h-full items-center justify-center p-4 lg:p-5">
         <Card className="max-w-lg text-center">
           <CardHeader>
             <CardHeading>

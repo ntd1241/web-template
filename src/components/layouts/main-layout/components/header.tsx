@@ -12,6 +12,8 @@ import {
   Palette,
   PanelLeft,
   PanelLeftClose,
+  Plus,
+  Search,
   Settings,
   ShieldAlert,
   ShoppingCart,
@@ -43,6 +45,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
   SheetBody,
@@ -151,7 +154,7 @@ function AccountMenuHeader({ name, email }: { name: string; email: string }) {
     <>
       <DropdownMenuLabel className="px-2 py-1.5">
         <div className="flex items-center gap-3">
-          <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
+          <Avatar className="size-8 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-sm font-bold text-[#f57c00] shadow-sm">
             <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
               T
             </AvatarFallback>
@@ -208,6 +211,16 @@ export function Header() {
     }
   };
 
+  const focusPageSearch = () => {
+    const searchInput = document.querySelector<HTMLInputElement>(
+      '[data-shortcut-target="page-search"]',
+    );
+    if (!searchInput || searchInput.disabled) return;
+
+    searchInput.focus();
+    searchInput.select();
+  };
+
   useEffect(() => {
     setIsSheetOpen(false);
   }, [pathname]);
@@ -215,7 +228,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-5 transition-[inset-inline-start] duration-200 ease-out lg:h-(--header-height) lg:px-8',
+        'fixed end-0 start-0 top-0 z-10 flex h-(--header-height-mobile) shrink-0 items-center justify-between border-b border-border bg-card px-4 transition-[inset-inline-start] duration-200 ease-out lg:h-(--header-height) lg:px-6',
         'lg:start-[var(--sidebar-current-width)]',
       )}
     >
@@ -263,15 +276,17 @@ export function Header() {
         )}
 
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold leading-tight text-zinc-900">
+          <h1 className="truncate text-lg font-bold leading-tight text-foreground">
             {shell.headerTitle}
           </h1>
           <nav className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             {breadcrumbItems.map((item, index) => (
               <Fragment key={`${item.label}-${index}`}>
-                {index > 0 && <span className="text-admin-neutral-300">/</span>}
+                {index > 0 && (
+                  <span className="text-muted-foreground/60">/</span>
+                )}
                 {item.path ? (
-                  <Link to={item.path} className="hover:text-admin-neutral-700">
+                  <Link to={item.path} className="hover:text-foreground">
                     {item.label}
                   </Link>
                 ) : (
@@ -283,7 +298,28 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-3">
+        <Button
+          variant="primary"
+          mode="icon"
+          size="sm"
+          shape="circle"
+          className="size-7"
+          aria-label="Thêm nhanh"
+          title="Thêm nhanh"
+        >
+          <Plus className="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          mode="icon"
+          size="sm"
+          aria-label="Tìm kiếm"
+          title="Tìm kiếm"
+          onClick={focusPageSearch}
+        >
+          <Search className="size-4" />
+        </Button>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -296,7 +332,7 @@ export function Header() {
               <Bell className="size-4.5" />
               {unreadNotificationCount > 0 && (
                 <Badge
-                  variant="primary"
+                  variant="destructive"
                   size="xs"
                   shape="circle"
                   className="absolute -end-0.5 -top-0.5 size-4 min-w-4 p-0 text-[0.625rem] leading-none"
@@ -374,36 +410,38 @@ export function Header() {
           </PopoverContent>
         </Popover>
 
+        <Separator orientation="vertical" className="h-6" />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="flex shrink-0 items-center gap-3 rounded-lg p-1.5 text-left outline-hidden transition-colors hover:bg-field focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex shrink-0 items-center gap-2 rounded-lg p-1 text-left outline-hidden transition-colors hover:bg-field focus-visible:ring-2 focus-visible:ring-ring"
               type="button"
               aria-label="Mở menu tài khoản"
             >
-              <span className="hidden text-right sm:block">
-                <span className="block text-sm font-semibold leading-tight text-admin-blue-darkest">
+              <Avatar className="size-8 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-sm font-bold text-[#f57c00] shadow-sm">
+                <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
+                  {accountInitial}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden text-left sm:block">
+                <span className="block text-[13px] font-semibold leading-tight text-foreground">
                   {accountName}
                 </span>
-                <span className="mt-0.5 flex max-w-56 items-center justify-end gap-1 overflow-hidden">
+                <span className="mt-0.5 flex max-w-48 items-center gap-1 overflow-hidden">
                   {shell.accountRoles.map((role) => (
                     <Badge
                       key={role}
                       variant="secondary"
                       appearance="light"
-                      size="sm"
-                      className="max-w-28 truncate border border-admin-blue-light font-bold"
+                      size="xs"
+                      className="max-w-24 truncate border border-admin-blue-light font-semibold"
                     >
                       {role}
                     </Badge>
                   ))}
                 </span>
               </span>
-              <Avatar className="size-10 rounded-full border border-admin-amber-light bg-gradient-to-br from-[#fff3e0] to-[#ffb74d] text-base font-bold text-[#f57c00] shadow-sm">
-                <AvatarFallback className="border-0 bg-transparent text-[#f57c00]">
-                  {accountInitial}
-                </AvatarFallback>
-              </Avatar>
             </button>
           </DropdownMenuTrigger>
 

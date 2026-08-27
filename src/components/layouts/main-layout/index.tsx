@@ -22,8 +22,8 @@ export function MainLayout({ shell }: MainLayoutProps = {}) {
             '--sidebar-width': '280px',
             '--sidebar-collapsed-width': '56px',
             '--sidebar-menu-width': '224px',
-            '--header-height': '64px',
-            '--header-height-mobile': '64px',
+            '--header-height': '56px',
+            '--header-height-mobile': '56px',
           } as React.CSSProperties
         }
       >

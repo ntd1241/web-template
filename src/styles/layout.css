@@ -2,8 +2,8 @@
 :root {
   --sidebar-width: 16rem; /* 256px */
   --sidebar-collapsed-width: 4rem; /* 64px */
-  --header-height: 4rem; /* 64px */
-  --content-padding: 1.25rem; /* 20px */
+  --header-height: 3.5rem; /* 56px */
+  --content-padding: 1rem; /* 16px */
 }
 
 /* Responsive sidebar */
