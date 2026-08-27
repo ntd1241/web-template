@@ -202,7 +202,7 @@ export function ColorInput({
         <div className="mt-3 flex items-center gap-2">
           <label
             htmlFor={pickerId}
-            className="relative inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-input bg-field p-1 transition-colors hover:bg-background"
+            className="relative inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-input bg-background p-1 transition-colors hover:bg-background"
             title="Mở colorwheel"
           >
             <span

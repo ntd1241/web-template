@@ -224,7 +224,7 @@ export function MultiSelect<T = unknown>({
             aria-expanded={isOpen}
             aria-busy={loading}
             className={cn(
-              'flex min-h-8.5 w-full items-center justify-between gap-2 rounded-md border border-border bg-field px-3 py-1.5 text-foreground',
+              'flex min-h-8.5 w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-foreground',
               disabled && 'cursor-not-allowed opacity-50',
               className,
             )}
@@ -245,7 +245,7 @@ export function MultiSelect<T = unknown>({
             mode="input"
             placeholder={!hasSelection || !showSelectedOptionsInTrigger}
             className={cn(
-              'h-8.5 w-full justify-between border-border bg-field text-foreground',
+              'h-8.5 w-full justify-between border-border bg-background text-foreground',
               className,
             )}
           >

@@ -188,7 +188,7 @@ export function SelectSearch<T = unknown>({
           mode="input"
           placeholder={!selectedOption}
           className={cn(
-            'w-full justify-between border-border bg-field text-foreground',
+            'w-full justify-between border-border bg-background text-foreground',
             className,
           )}
         >

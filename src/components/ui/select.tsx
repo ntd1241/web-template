@@ -79,7 +79,7 @@ function SelectValue({
 // Define size variants for SelectTrigger
 const selectTriggerVariants = cva(
   `
-    flex bg-field data-[state=open]:bg-background focus-visible:bg-background w-full items-center justify-between outline-none border border-input shadow-xs shadow-black/5 transition-[color,border-color,box-shadow,background-color] duration-200 ease-out
+    flex bg-background data-[state=open]:bg-background focus-visible:bg-background w-full items-center justify-between outline-none border border-input shadow-xs shadow-black/5 transition-[color,border-color,box-shadow,background-color] duration-200 ease-out
     text-foreground data-placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] 
     focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&>[data-slot=select-value]]:line-clamp-1
     data-[state=open]:border-ring data-[state=open]:ring-[3px] data-[state=open]:ring-ring/30

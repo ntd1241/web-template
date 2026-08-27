@@ -175,6 +175,7 @@ export function ContractsPage() {
         recordCount={total}
         isLoading={isListLoading}
         emptyMessage="Chưa có hợp đồng"
+        tableLayout={{ dense: true }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
           <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
