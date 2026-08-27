@@ -9,14 +9,6 @@ const spec: FilterSpec = {
       placeholder: 'Tìm theo tên hoặc mã khách hàng',
       className: 'w-64',
     },
-    {
-      type: 'select',
-      name: 'tag',
-      placeholder: 'Tất cả nhóm',
-      ariaLabel: 'Nhóm khách hàng',
-      optionsSource: 'prop',
-      className: 'w-48',
-    },
   ],
 };
 

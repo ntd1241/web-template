@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MultiSelect } from './multi-select';
-import type { MultiSelectOption } from './multi-select';
+import type { MultiSelectOption, MultiSelectTreeOption } from './multi-select';
 
 const OPTIONS: Array<MultiSelectOption> = [
   {
@@ -22,6 +22,20 @@ const OPTIONS: Array<MultiSelectOption> = [
     label: 'Chủ sở hữu',
     group: 'Quản trị',
     count: 1,
+  },
+];
+
+const NESTED_OPTIONS: Array<MultiSelectTreeOption> = [
+  {
+    label: 'Nhóm nhân viên',
+    options: [
+      { value: 'ky-thuat', label: 'Kỹ thuật' },
+      { value: 'kinh-doanh', label: 'Kinh doanh' },
+    ],
+  },
+  {
+    label: 'Nhóm phần mềm',
+    options: [{ value: 'vashop', label: 'Vacom Vashop' }],
   },
 ];
 
@@ -126,7 +140,7 @@ describe('MultiSelect', () => {
     render(<MultiSelect options={OPTIONS} placeholder="Chọn vai trò" />);
 
     await user.click(screen.getByRole('combobox'));
-    await user.type(screen.getByPlaceholderText('Tìm...'), 'quan ly');
+    await user.type(screen.getByPlaceholderText('Tìm...'), 'q ly');
 
     const listbox = screen.getByRole('listbox');
     expect(
@@ -194,5 +208,48 @@ describe('MultiSelect', () => {
     expect(screen.getByText('Vai trò')).toBeInTheDocument();
     expect(screen.getByText('Quản trị')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
+  });
+
+  it('checks and unchecks all leaf options from a nested group', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+
+    render(
+      <MultiSelect
+        options={[]}
+        nestedOptions={NESTED_OPTIONS}
+        value={[]}
+        onChange={handleChange}
+        placeholder="Chọn nhãn"
+      />,
+    );
+
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: /Nhóm nhân viên/ }));
+
+    expect(handleChange).toHaveBeenCalledWith(['ky-thuat', 'kinh-doanh']);
+  });
+
+  it('uses fuzzy matching for nested local option search', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MultiSelect
+        options={[]}
+        nestedOptions={NESTED_OPTIONS}
+        placeholder="Chọn nhãn"
+      />,
+    );
+
+    await user.click(screen.getByRole('combobox'));
+    await user.type(screen.getByPlaceholderText('Tìm...'), 'k thuat');
+
+    const listbox = screen.getByRole('listbox');
+    expect(
+      within(listbox).getByRole('option', { name: /Kỹ thuật/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(listbox).queryByRole('option', { name: /Kinh doanh/ }),
+    ).not.toBeInTheDocument();
   });
 });

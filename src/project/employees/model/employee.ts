@@ -84,7 +84,7 @@ export interface EmployeeListParams {
   statuses?: EmployeeStatus[];
   roleIds?: string[];
   accountLinked?: boolean;
-  tagId?: string;
+  tagIds?: string[];
 }
 
 export interface EmployeeListResult {

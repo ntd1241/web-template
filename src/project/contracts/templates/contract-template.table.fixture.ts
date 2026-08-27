@@ -21,6 +21,13 @@ const spec: TableSpec = {
       size: 150,
     },
     {
+      kind: 'custom',
+      id: 'tags',
+      header: 'Nhóm/nhãn',
+      headerClassName: 'min-w-[220px]',
+      size: 240,
+    },
+    {
       kind: 'number',
       id: 'lineCount',
       header: 'Khoản phí',

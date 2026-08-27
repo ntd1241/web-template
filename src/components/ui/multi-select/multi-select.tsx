@@ -1,5 +1,6 @@
 import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { cva } from 'class-variance-authority';
 import { ChevronsUpDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge, BadgeButton } from '@/components/ui/badge';
@@ -12,13 +13,17 @@ import {
 } from '@/components/ui/popover';
 import {
   filterMultiSelectOptions,
+  filterNestedMultiSelectOptions,
+  flattenMultiSelectOptions,
   MultiSelectList,
+  NestedMultiSelectList,
   nodeToString,
 } from './multi-select-list';
 
 export type MultiSelectOption<T = unknown> = {
   value: string;
   label: ReactNode;
+  ariaLabel?: string;
   searchableText?: string;
   group?: string;
   count?: number;
@@ -26,10 +31,24 @@ export type MultiSelectOption<T = unknown> = {
   disabled?: boolean;
 };
 
+export type MultiSelectGroupOption<T = unknown> = Omit<
+  MultiSelectOption<T>,
+  'value' | 'group'
+> & {
+  value?: string;
+  options: Array<MultiSelectTreeOption<T>>;
+};
+
+export type MultiSelectTreeOption<T = unknown> =
+  MultiSelectOption<T> | MultiSelectGroupOption<T>;
+
+export type MultiSelectSize = 'sm' | 'md' | 'lg';
+
 export interface MultiSelectProps<T = unknown> {
   value?: string[];
   onChange?: (values: string[]) => void;
   options: Array<MultiSelectOption<T>>;
+  nestedOptions?: Array<MultiSelectTreeOption<T>>;
   placeholder?: string;
   searchPlaceholder?: string;
   searchMode?: 'popover' | 'inline';
@@ -44,13 +63,32 @@ export interface MultiSelectProps<T = unknown> {
   maxChips?: number;
   showSelectedOptionWrapper?: boolean;
   showSelectedOptionsInTrigger?: boolean;
+  size?: MultiSelectSize;
+  ariaLabel?: string;
   className?: string;
 }
+
+const multiSelectTriggerVariants = cva(
+  'flex w-full items-center justify-between gap-2 rounded-md border border-border text-foreground',
+  {
+    variants: {
+      size: {
+        sm: 'h-7 min-h-7 px-2.5 text-xs',
+        md: 'h-8.5 min-h-8.5 px-3 text-[0.8125rem]',
+        lg: 'h-10 min-h-10 px-4 text-sm',
+      },
+    },
+    defaultVariants: {
+      size: 'md',
+    },
+  },
+);
 
 export function MultiSelect<T = unknown>({
   value = [],
   onChange,
   options,
+  nestedOptions,
   placeholder = 'Chọn...',
   searchPlaceholder = 'Tìm...',
   searchMode = 'popover',
@@ -62,15 +100,20 @@ export function MultiSelect<T = unknown>({
   maxChips = 2,
   showSelectedOptionWrapper = false,
   showSelectedOptionsInTrigger = true,
+  size,
+  ariaLabel,
   className,
 }: MultiSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
 
-  const selectedOptions = useMemo(
-    () => options.filter((option) => value.includes(option.value)),
-    [options, value],
-  );
+  const selectedOptions = useMemo(() => {
+    const availableOptions = nestedOptions
+      ? flattenMultiSelectOptions(nestedOptions)
+      : options;
+
+    return availableOptions.filter((option) => value.includes(option.value));
+  }, [nestedOptions, options, value]);
   const visibleChipLimit = selectedOptions.length === 1 ? 1 : maxChips;
   const visibleChips = showSelectedOptionsInTrigger
     ? selectedOptions.slice(0, visibleChipLimit)
@@ -105,14 +148,38 @@ export function MultiSelect<T = unknown>({
     onChange?.(value.filter((item) => item !== nextValue));
   };
 
+  const handleToggleGroup = (groupOptions: MultiSelectOption<T>[]) => {
+    const selectableValues = groupOptions
+      .filter((option) => !option.disabled)
+      .map((option) => option.value);
+    if (selectableValues.length === 0) return;
+
+    const allSelected = selectableValues.every((optionValue) =>
+      value.includes(optionValue),
+    );
+    const nextValues = new Set(value);
+
+    selectableValues.forEach((optionValue) => {
+      if (allSelected) nextValues.delete(optionValue);
+      else nextValues.add(optionValue);
+    });
+
+    onChange?.(Array.from(nextValues));
+    setQuery('');
+  };
+
   const handleSearchKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (event.key !== 'Enter' || !query.trim()) return;
 
-    const firstMatch = filterMultiSelectOptions(options, query).find(
-      (option) => !option.disabled,
-    );
+    const firstMatch = (
+      nestedOptions
+        ? flattenMultiSelectOptions(
+            filterNestedMultiSelectOptions(nestedOptions, query),
+          )
+        : filterMultiSelectOptions(options, query)
+    ).find((option) => !option.disabled);
     if (!firstMatch) return;
 
     event.preventDefault();
@@ -132,9 +199,13 @@ export function MultiSelect<T = unknown>({
 
     if (event.key !== 'Enter' || !inputQuery.trim()) return;
 
-    const firstMatch = filterMultiSelectOptions(options, inputQuery).find(
-      (option) => !option.disabled,
-    );
+    const firstMatch = (
+      nestedOptions
+        ? flattenMultiSelectOptions(
+            filterNestedMultiSelectOptions(nestedOptions, inputQuery),
+          )
+        : filterMultiSelectOptions(options, inputQuery)
+    ).find((option) => !option.disabled);
     if (!firstMatch) return;
 
     event.preventDefault();
@@ -146,7 +217,8 @@ export function MultiSelect<T = unknown>({
     <>
       <span className="flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-hidden text-start">
         {visibleChips.map((option) => {
-          const labelText = nodeToString(option.label) || option.value;
+          const labelText =
+            option.ariaLabel || nodeToString(option.label) || option.value;
 
           if (renderSelectedOption) {
             return (
@@ -221,10 +293,12 @@ export function MultiSelect<T = unknown>({
         {searchMode === 'inline' ? (
           <div
             role="combobox"
+            aria-label={ariaLabel}
             aria-expanded={isOpen}
             aria-busy={loading}
             className={cn(
-              'flex min-h-8.5 w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-foreground',
+              multiSelectTriggerVariants({ size }),
+              'bg-background py-1.5',
               disabled && 'cursor-not-allowed opacity-50',
               className,
             )}
@@ -238,6 +312,7 @@ export function MultiSelect<T = unknown>({
           <Button
             type="button"
             role="combobox"
+            aria-label={ariaLabel}
             aria-expanded={isOpen}
             aria-busy={loading}
             disabled={disabled}
@@ -245,7 +320,8 @@ export function MultiSelect<T = unknown>({
             mode="input"
             placeholder={!hasSelection || !showSelectedOptionsInTrigger}
             className={cn(
-              'h-8.5 w-full justify-between border-border bg-background text-foreground',
+              multiSelectTriggerVariants({ size }),
+              'bg-background',
               className,
             )}
           >
@@ -277,6 +353,15 @@ export function MultiSelect<T = unknown>({
             >
               {loadingMessage}
             </div>
+          ) : nestedOptions ? (
+            <NestedMultiSelectList
+              options={nestedOptions}
+              selectedValues={value}
+              query={query}
+              emptyMessage={emptyMessage}
+              onToggle={handleToggle}
+              onToggleGroup={handleToggleGroup}
+            />
           ) : (
             <MultiSelectList
               options={options}

@@ -6,31 +6,26 @@ import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardDescription,
   CardFooter,
-  CardHeader,
   CardTable,
   CardTitle,
-  CardToolbar,
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { PageHeader } from '@/components/ui/page-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
+import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
 import { deleteContract } from '../api/contracts.api';
 import { useContractList } from '../hooks/use-contract-list';
-import {
-  type Contract,
-  type ContractStatus,
-  type ContractStatusStats,
-} from '../model/contract';
+import { type Contract, type ContractStatus } from '../model/contract';
 import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
 
@@ -178,34 +173,41 @@ export function ContractsPage() {
         tableLayout={{ dense: true }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <ContractStatusStats
-              stats={statusStatsQuery.data}
-              isLoading={statusStatsQuery.isPending}
-              statuses={filters.status}
-              onStatusChange={(status) =>
-                setFilter('status', status ? [status] : [])
-              }
-            />
-            <CardToolbar className="flex-wrap">
-              <ContractFilterBar
-                keyword={keyword}
-                onKeywordChange={setKeyword}
+          <DataGridHeader
+            variant="stats"
+            stats={
+              <StatusStats
+                items={contractStatItems}
+                counts={statusStatsQuery.data}
+                isLoading={statusStatsQuery.isPending}
+                activeFilters={filters.status}
+                onFilterChange={(status) =>
+                  setFilter('status', status ? [status] : [])
+                }
+                ariaLabel="Lọc hợp đồng theo trạng thái"
               />
-              <Button
-                variant="outline"
-                mode="icon"
-                aria-label="Làm mới"
-                title="Làm mới"
-                onClick={() => {
-                  void workspaceQuery.refetch();
-                  void statusStatsQuery.refetch();
-                }}
-              >
-                <RefreshCw />
-              </Button>
-            </CardToolbar>
-          </CardHeader>
+            }
+            toolbar={
+              <>
+                <ContractFilterBar
+                  keyword={keyword}
+                  onKeywordChange={setKeyword}
+                />
+                <Button
+                  variant="outline"
+                  mode="icon"
+                  aria-label="Làm mới"
+                  title="Làm mới"
+                  onClick={() => {
+                    void workspaceQuery.refetch();
+                    void statusStatsQuery.refetch();
+                  }}
+                >
+                  <RefreshCw />
+                </Button>
+              </>
+            }
+          />
           <CardTable className="min-h-0 flex-1">
             <ScrollArea className="h-full">
               <DataGridTable />
@@ -239,71 +241,29 @@ export function ContractsPage() {
   );
 }
 
-type ContractStatusStatsProps = {
-  stats?: ContractStatusStats;
-  isLoading: boolean;
-  statuses: ContractStatus[];
-  onStatusChange: (status: ContractStatus | null) => void;
-};
-
 const contractStatItems = [
   {
     key: 'total',
     label: 'Tổng số',
-    filterStatus: null,
+    filterValue: null,
     className: '!bg-muted !text-muted-foreground',
   },
   {
     key: 'active',
     label: 'Đang hiệu lực',
-    filterStatus: 'active',
+    filterValue: 'active',
     className: '!bg-admin-success-bg !text-admin-success-text',
   },
   {
     key: 'expiring',
     label: 'Sắp hết hạn',
-    filterStatus: 'active',
+    filterValue: 'active',
     className: '!bg-admin-amber-bg !text-admin-amber-dark',
   },
   {
     key: 'expired',
     label: 'Đã hết hạn',
-    filterStatus: 'expired',
+    filterValue: 'expired',
     className: '!bg-admin-red-bg !text-admin-red-dark',
   },
-] as const;
-
-function ContractStatusStats({
-  stats,
-  isLoading,
-  statuses,
-  onStatusChange,
-}: ContractStatusStatsProps) {
-  return (
-    <div className="flex flex-wrap items-center gap-2.5">
-      {contractStatItems.map((item, index) => (
-        <div key={item.key} className="flex items-center gap-2.5">
-          {index > 0 ? <span className="h-5 w-px bg-border" /> : null}
-          <Badge asChild variant="secondary" size="lg">
-            <button
-              type="button"
-              className={`gap-2 rounded-lg border-transparent px-3 transition-shadow hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring ${item.className}`}
-              aria-label={`Lọc hợp đồng: ${item.label}`}
-              aria-pressed={
-                item.filterStatus === null
-                  ? statuses.length === 0
-                  : statuses.length === 1 && statuses[0] === item.filterStatus
-              }
-              onClick={() => onStatusChange(item.filterStatus)}
-            >
-              <span>{item.label}</span>
-              <span className="font-bold tabular-nums">
-                {isLoading ? '—' : (stats?.[item.key] ?? '—')}
-              </span>
-            </button>
-          </Badge>
-        </div>
-      ))}
-    </div>
-  );
-}
+] satisfies readonly StatusStatItem<ContractStatus>[];

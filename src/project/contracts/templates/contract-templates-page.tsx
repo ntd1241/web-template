@@ -11,17 +11,18 @@ import {
   Card,
   CardDescription,
   CardFooter,
-  CardHeader,
-  CardHeading,
   CardTable,
   CardTitle,
-  CardToolbar,
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
+import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
 import { archiveContractTemplate } from '../api/contract-templates.api';
 import {
   CONTRACT_TEMPLATE_STATUS_LABELS,
@@ -32,6 +33,33 @@ import { ContractTemplateStatusBadge } from './contract-template-status-badge';
 import { useContractTemplateColumns } from './contract-template.columns.generated';
 import { ContractTemplateFilterBar } from './contract-template.filters.generated';
 import { useContractTemplateList } from './use-contract-template-list';
+
+const contractTemplateStatItems = [
+  {
+    key: 'total',
+    label: 'Tổng số',
+    filterValue: null,
+    className: '!bg-muted !text-muted-foreground',
+  },
+  {
+    key: 'draft',
+    label: CONTRACT_TEMPLATE_STATUS_LABELS.draft,
+    filterValue: 'draft',
+    className: '!bg-muted !text-muted-foreground',
+  },
+  {
+    key: 'published',
+    label: CONTRACT_TEMPLATE_STATUS_LABELS.published,
+    filterValue: 'published',
+    className: '!bg-admin-success-bg !text-admin-success-text',
+  },
+  {
+    key: 'archived',
+    label: CONTRACT_TEMPLATE_STATUS_LABELS.archived,
+    filterValue: 'archived',
+    className: '!bg-muted !text-muted-foreground',
+  },
+] satisfies readonly StatusStatItem<'draft' | 'published' | 'archived'>[];
 
 const CONTRACT_TEMPLATE_FILTER_STATUS_OPTIONS = [
   { value: 'all', label: 'Tất cả trạng thái' },
@@ -57,6 +85,8 @@ export function ContractTemplatesPage() {
     onPaginationChange,
     tenantQuery,
     listQuery,
+    statusStatsQuery,
+    contractTemplateTagsByTemplateId,
   } = useContractTemplateList();
 
   const archiveMutation = useMutation({
@@ -72,6 +102,24 @@ export function ContractTemplatesPage() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
+  const pageHeader = (
+    <PageHeader
+      title="Mẫu hợp đồng"
+      actions={
+        <ShortcutTooltip label="Thêm mẫu hợp đồng" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={() => navigate(ROUTES.PROJECT.CONTRACT_TEMPLATE_CREATE)}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm mẫu hợp đồng
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
+
   const columns = useContractTemplateColumns({
     onView: (template) =>
       navigate(
@@ -86,6 +134,9 @@ export function ContractTemplatesPage() {
         }),
       ),
     onArchive: setArchivingTemplate,
+    tagIds: filters.tagIds,
+    onTagIdsChange: (value) => setFilter('tagIds', value),
+    tagsByTemplateId: contractTemplateTagsByTemplateId,
     templateSearch: filters.templateSearch,
     onTemplateSearchChange: (value) => setFilter('templateSearch', value),
     statuses: filters.statuses,
@@ -143,7 +194,8 @@ export function ContractTemplatesPage() {
 
   if (tenantQuery.isError || listQuery.isError) {
     return (
-      <div className="p-4 lg:p-5">
+      <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+        {pageHeader}
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -161,76 +213,84 @@ export function ContractTemplatesPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+      {pageHeader}
       <DataGrid
         table={table}
         recordCount={total}
         isLoading={listQuery.isPending}
         emptyMessage="Chưa có mẫu hợp đồng"
+        tableLayout={{ dense: true }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <CardHeading>
-              <CardTitle>Mẫu hợp đồng</CardTitle>
-              <CardDescription>
-                Quản lý mẫu dịch vụ và tạo nhanh hợp đồng cho khách hàng.
-              </CardDescription>
-            </CardHeading>
-            <CardToolbar className="flex-wrap">
-              <ContractTemplateFilterBar
-                keyword={keyword}
-                onKeywordChange={setKeyword}
-                status={filters.status}
-                onStatusChange={(value) =>
-                  (() => {
-                    const nextStatus = value as typeof filters.status;
-                    setFilter('status', nextStatus);
-                    setFilter(
-                      'statuses',
-                      nextStatus === 'all' ? [] : [nextStatus],
-                    );
-                  })()
-                }
-                statusOptions={CONTRACT_TEMPLATE_FILTER_STATUS_OPTIONS}
-                statusRenderOption={(option) =>
-                  option.value === 'all' ? (
-                    option.label
-                  ) : (
-                    <ContractTemplateStatusBadge
-                      status={option.value}
-                      size="sm"
-                    />
-                  )
-                }
-                statusRenderValue={(option) =>
-                  option?.value === 'all' ? (
-                    option.label
-                  ) : option ? (
-                    <ContractTemplateStatusBadge
-                      status={option.value}
-                      size="sm"
-                    />
-                  ) : null
-                }
+          <DataGridHeader
+            variant="stats"
+            stats={
+              <StatusStats
+                items={contractTemplateStatItems}
+                counts={statusStatsQuery.data}
+                isLoading={statusStatsQuery.isPending}
+                activeFilters={filters.statuses}
+                onFilterChange={(status) => {
+                  setFilter('status', status ?? 'all');
+                  setFilter('statuses', status ? [status] : []);
+                }}
+                ariaLabel="Lọc mẫu hợp đồng theo trạng thái"
               />
-              <Button
-                variant="outline"
-                onClick={() => void listQuery.refetch()}
-              >
-                <RefreshCw />
-                Làm mới
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() =>
-                  navigate(ROUTES.PROJECT.CONTRACT_TEMPLATE_CREATE)
-                }
-              >
-                <Plus />
-                Thêm mẫu hợp đồng
-              </Button>
-            </CardToolbar>
-          </CardHeader>
+            }
+            toolbar={
+              <>
+                <ContractTemplateFilterBar
+                  keyword={keyword}
+                  onKeywordChange={setKeyword}
+                  status={filters.status}
+                  onStatusChange={(value) =>
+                    (() => {
+                      const nextStatus = value as typeof filters.status;
+                      setFilter('status', nextStatus);
+                      setFilter(
+                        'statuses',
+                        nextStatus === 'all' ? [] : [nextStatus],
+                      );
+                    })()
+                  }
+                  statusOptions={CONTRACT_TEMPLATE_FILTER_STATUS_OPTIONS}
+                  statusRenderOption={(option) =>
+                    option.value === 'all' ? (
+                      option.label
+                    ) : (
+                      <ContractTemplateStatusBadge
+                        status={option.value}
+                        size="sm"
+                      />
+                    )
+                  }
+                  statusRenderValue={(option) =>
+                    option?.value === 'all' ? (
+                      option.label
+                    ) : option ? (
+                      <ContractTemplateStatusBadge
+                        status={option.value}
+                        size="sm"
+                      />
+                    ) : null
+                  }
+                />
+                <Button
+                  variant="outline"
+                  mode="icon"
+                  aria-label="Làm mới"
+                  title="Làm mới"
+                  onClick={() => {
+                    void listQuery.refetch();
+                    void statusStatsQuery.refetch();
+                  }}
+                >
+                  <RefreshCw />
+                </Button>
+              </>
+            }
+          />
           <CardTable className="min-h-0 flex-1">
             <ScrollArea className="h-full">
               <DataGridTable />

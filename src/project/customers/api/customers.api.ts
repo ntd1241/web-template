@@ -4,7 +4,6 @@ import {
   uploadStorageObject,
 } from '@/lib/storage';
 import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
-import { CUSTOMER_TAG_GROUP_CODE } from '../../tags/model/tag';
 import type {
   Customer,
   CustomerFormValues,
@@ -12,29 +11,12 @@ import type {
   CustomerListResult,
   CustomerListRpcRow,
   CustomerRow,
-  CustomerTagFilterData,
+  CustomerStatus,
 } from '../model/customer';
 import { mapCustomerRow } from '../model/customer';
 
 interface TenantMembershipRow {
   tenant_id: string;
-}
-
-interface CustomerTagGroupRow {
-  id: string;
-}
-
-interface CustomerTagRow {
-  id: string;
-  group_id: string;
-  name: string;
-  color: string | null;
-  sort_order: number;
-}
-
-interface CustomerTagAssignmentRow {
-  tag_id: string;
-  subject_id: string;
 }
 
 interface RegionRow {
@@ -45,6 +27,12 @@ interface RegionRow {
 interface CustomerListRpcResponse {
   items: CustomerListRpcRow[];
   total: number | string;
+}
+
+export interface CustomerStatusStats {
+  total: number;
+  active: number;
+  inactive: number;
 }
 
 function queryParams(params: Record<string, string>) {
@@ -176,7 +164,7 @@ export async function loadCustomerList(
         p_business_types: params.businessTypes ?? [],
         p_contact_search: params.contactSearch?.trim() || null,
         p_statuses: params.statuses ?? [],
-        p_tag_id: params.tagId ?? null,
+        p_tag_ids: params.tagIds ?? [],
       },
       { signal },
     ),
@@ -185,6 +173,31 @@ export async function loadCustomerList(
   return {
     customers: response.items.map(mapCustomerRow),
     total: numberValue(response.total),
+  };
+}
+
+export async function loadCustomerStatusStats(
+  tenantId: string,
+  signal?: AbortSignal,
+): Promise<CustomerStatusStats> {
+  const [all, active, inactive] = await Promise.all(
+    [undefined, 'active', 'inactive'].map((status) =>
+      loadCustomerList(
+        tenantId,
+        {
+          page: 1,
+          pageSize: 1,
+          statuses: status ? [status as CustomerStatus] : undefined,
+        },
+        signal,
+      ),
+    ),
+  );
+
+  return {
+    total: all.total,
+    active: active.total,
+    inactive: inactive.total,
   };
 }
 
@@ -210,70 +223,6 @@ export async function loadCustomerDetail(
   const customer = rows[0];
   if (!customer) throw new Error('Không tìm thấy khách hàng.');
   return mapCustomerRow(customer);
-}
-
-export async function loadCustomerTagFilter(
-  tenantId: string,
-): Promise<CustomerTagFilterData> {
-  assertSupabaseConfigured();
-
-  const [groupRows, tagRows, assignmentRows] = await Promise.all([
-    request<CustomerTagGroupRow[]>(
-      supabaseApi.get(
-        '/tag_groups',
-        queryParams({
-          select: 'id',
-          tenant_id: `eq.${tenantId}`,
-          code: `eq.${CUSTOMER_TAG_GROUP_CODE}`,
-          is_system: 'eq.true',
-          is_active: 'eq.true',
-          limit: '1',
-        }),
-      ),
-    ),
-    request<CustomerTagRow[]>(
-      supabaseApi.get(
-        '/tags',
-        queryParams({
-          select: 'id,group_id,name,color,sort_order',
-          tenant_id: `eq.${tenantId}`,
-          is_active: 'eq.true',
-          order: 'sort_order.asc,name.asc',
-        }),
-      ),
-    ),
-    request<CustomerTagAssignmentRow[]>(
-      supabaseApi.get(
-        '/tag_assignments',
-        queryParams({
-          select: 'tag_id,subject_id',
-          tenant_id: `eq.${tenantId}`,
-          subject_type: 'eq.customer',
-        }),
-      ),
-    ),
-  ]);
-
-  const groupId = groupRows[0]?.id;
-  const tags = groupId ? tagRows.filter((tag) => tag.group_id === groupId) : [];
-  const tagIds = new Set(tags.map((tag) => tag.id));
-  const customerIdsByTagId: Record<string, string[]> = {};
-
-  for (const assignment of assignmentRows) {
-    if (!tagIds.has(assignment.tag_id)) continue;
-    const customerIds = customerIdsByTagId[assignment.tag_id] ?? [];
-    customerIds.push(assignment.subject_id);
-    customerIdsByTagId[assignment.tag_id] = customerIds;
-  }
-
-  return {
-    options: tags.map((tag) => ({
-      value: tag.id,
-      label: tag.name,
-      color: tag.color,
-    })),
-    customerIdsByTagId,
-  };
 }
 
 function toPayload(values: CustomerFormValues) {

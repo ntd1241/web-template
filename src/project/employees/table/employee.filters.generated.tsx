@@ -3,31 +3,17 @@
  * You own this file now — keep domain state, renderers, and API mapping outside the builder.
  */
 import { FilterToolbar } from '@/components/ui/filter-toolbar';
-import type { ReactNode } from 'react';
-
-export interface EmployeeFilterBarOption {
-  value: string;
-  label: string;
-}
 
 export interface EmployeeFilterBarProps {
-  tag: string;
-  onTagChange: (value: string) => void;
-  tagOptions: readonly EmployeeFilterBarOption[];
-  renderTagOption?: (option: EmployeeFilterBarOption) => ReactNode;
-  renderTagValue?: (
-    option: EmployeeFilterBarOption | undefined,
-  ) => ReactNode;
+  keyword: string;
+  onKeywordChange: (value: string) => void;
   disabled?: boolean;
   className?: string;
 }
 
 export function EmployeeFilterBar({
-  tag,
-  onTagChange,
-  tagOptions,
-  renderTagOption,
-  renderTagValue,
+  keyword,
+  onKeywordChange,
   disabled = false,
   className,
 }: EmployeeFilterBarProps) {
@@ -36,16 +22,13 @@ export function EmployeeFilterBar({
       className={className}
       fields={[
         {
-          kind: 'select',
-          value: tag,
-          onValueChange: onTagChange,
-          options: tagOptions,
-          placeholder: 'Tất cả nhóm',
-          ariaLabel: 'Nhóm nhân viên',
-          className: 'w-48',
+          kind: 'search',
+          value: keyword,
+          onValueChange: onKeywordChange,
+          placeholder: 'Tìm theo tên, mã hoặc chức vụ',
+          className: 'w-64',
+          debounceMs: 300,
           disabled,
-          renderOption: renderTagOption,
-          renderValue: renderTagValue,
         },
       ]}
     />

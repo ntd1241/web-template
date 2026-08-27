@@ -5,6 +5,9 @@
  * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */
 import { useMemo } from 'react';
+import { TagColumnFilter } from '@/project/tags/components/tag-column-filter';
+import { TagList } from '@/project/tags/components/tag-list';
+import type { TagSelectOption } from '@/project/tags/model/tag';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
@@ -12,9 +15,14 @@ import {
   DataGridActionButton,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
-import { EmployeeCell } from '../components/employee-cell';
 import { EMPLOYEE_ACCOUNT_BADGE_CONFIG } from '../components/employee-badges';
+import { EmployeeCell } from '../components/employee-cell';
 import { EmployeeRolesCell } from '../components/employee-roles-cell';
+import type {
+  Employee,
+  EmployeeRoleOption,
+  EmployeeStatus,
+} from '../model/employee';
 import {
   EMPLOYEE_ACCOUNT_FILTER_OPTIONS,
   EMPLOYEE_STATUS_FILTER_OPTIONS,
@@ -26,11 +34,6 @@ import {
   EmployeeStatusColumnFilter,
   EmployeeTextColumnFilter,
 } from './employee-column-filters.generated';
-import type {
-  Employee,
-  EmployeeRoleOption,
-  EmployeeStatus,
-} from '../model/employee';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
   active: {
@@ -50,6 +53,9 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
 export interface UseEmployeeColumnsParams {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  tagIds: string[];
+  onTagIdsChange: (value: string[]) => void;
+  tagsByEmployeeId: Record<string, TagSelectOption[]>;
   employeeSearch: string;
   onEmployeeSearchChange: (value: string) => void;
   roleIds: string[];
@@ -98,6 +104,22 @@ export function useEmployeeColumns(
         size: 240,
         enableSorting: false,
         cell: (row) => <EmployeeRolesCell employee={row} />,
+      }),
+      col.custom({
+        id: 'tags',
+        header: 'Nhóm/nhãn',
+        headerFilter: (
+          <TagColumnFilter
+            value={params.tagIds}
+            onChange={params.onTagIdsChange}
+            moduleCodes={['organization']}
+            ariaLabel="Nhóm/nhãn nhân viên"
+          />
+        ),
+        headerClassName: 'min-w-[220px]',
+        size: 240,
+        enableSorting: false,
+        cell: (row) => <TagList tags={params.tagsByEmployeeId[row.id] ?? []} />,
       }),
       col.badge({
         id: 'status',

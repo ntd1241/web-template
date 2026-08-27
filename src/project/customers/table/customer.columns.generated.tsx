@@ -5,6 +5,9 @@
  * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */
 import { useMemo } from 'react';
+import { TagColumnFilter } from '@/project/tags/components/tag-column-filter';
+import { TagList } from '@/project/tags/components/tag-list';
+import type { TagSelectOption } from '@/project/tags/model/tag';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
@@ -43,6 +46,9 @@ const statusBadgeConfig: StatusBadgeConfig<string> = {
 export interface UseCustomerColumnsParams {
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
+  tagIds: string[];
+  onTagIdsChange: (value: string[]) => void;
+  tagsByCustomerId: Record<string, TagSelectOption[]>;
   customerSearch: string;
   onCustomerSearchChange: (value: string) => void;
   businessTypes: string[];
@@ -112,6 +118,22 @@ export function useCustomerColumns(
             </div>
           </div>
         ),
+      }),
+      col.custom({
+        id: 'tags',
+        header: 'Nhóm/nhãn',
+        headerFilter: (
+          <TagColumnFilter
+            value={params.tagIds}
+            onChange={params.onTagIdsChange}
+            moduleCodes={['customers']}
+            ariaLabel="Nhóm/nhãn khách hàng"
+          />
+        ),
+        headerClassName: 'min-w-[220px]',
+        size: 240,
+        enableSorting: false,
+        cell: (row) => <TagList tags={params.tagsByCustomerId[row.id] ?? []} />,
       }),
       col.badge({
         id: 'status',

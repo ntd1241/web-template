@@ -103,6 +103,7 @@ export interface ContractTemplateListParams {
   search?: string;
   templateSearch?: string;
   statuses?: ContractTemplateStatus[];
+  tagIds?: string[];
   lineCountMin?: number;
   lineCountMax?: number;
   contractCountMin?: number;

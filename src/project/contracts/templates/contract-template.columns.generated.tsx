@@ -5,6 +5,9 @@
  * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */
 import { useMemo } from 'react';
+import { TagColumnFilter } from '@/project/tags/components/tag-column-filter';
+import { TagList } from '@/project/tags/components/tag-list';
+import type { TagSelectOption } from '@/project/tags/model/tag';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Archive, Eye, Pencil } from 'lucide-react';
 import { useNumberFormat } from '@/providers/number-format-provider';
@@ -28,6 +31,9 @@ export interface UseContractTemplateColumnsParams {
   onView: (template: ContractTemplate) => void;
   onEdit: (template: ContractTemplate) => void;
   onArchive: (template: ContractTemplate) => void;
+  tagIds: string[];
+  onTagIdsChange: (value: string[]) => void;
+  tagsByTemplateId: Record<string, TagSelectOption[]>;
   templateSearch: string;
   onTemplateSearchChange: (value: string) => void;
   statuses: string[];
@@ -92,6 +98,22 @@ export function useContractTemplateColumns(
         size: 150,
         enableSorting: false,
         cell: (row) => <ContractTemplateStatusBadge status={row.status} />,
+      }),
+      col.custom({
+        id: 'tags',
+        header: 'Nhóm/nhãn',
+        headerFilter: (
+          <TagColumnFilter
+            value={params.tagIds}
+            onChange={params.onTagIdsChange}
+            moduleCodes={['contracts']}
+            ariaLabel="Nhóm/nhãn mẫu hợp đồng"
+          />
+        ),
+        headerClassName: 'min-w-[220px]',
+        size: 240,
+        enableSorting: false,
+        cell: (row) => <TagList tags={params.tagsByTemplateId[row.id] ?? []} />,
       }),
       col.number({
         id: 'lineCount',

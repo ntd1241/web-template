@@ -1,8 +1,12 @@
+import { useSubjectTagFilter } from '@/project/tags/hooks/use-subject-tag-filter';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { buildListQueryParams } from '@/lib/list-query-params';
 import { useTableListState } from '@/hooks/use-table-list-state';
 import { useTenant } from '@/providers/tenant-provider';
-import { loadCustomerList, loadCustomerTagFilter } from '../api/customers.api';
+import {
+  loadCustomerList,
+  loadCustomerStatusStats,
+} from '../api/customers.api';
 import {
   BUSINESS_TYPES,
   CUSTOMER_STATUSES,
@@ -16,7 +20,7 @@ export interface CustomerListFilters {
   businessTypes: BusinessType[];
   contactSearch: string;
   statuses: CustomerStatus[];
-  tagId: string;
+  tagIds: string[];
 }
 
 export function useCustomerList() {
@@ -27,7 +31,7 @@ export function useCustomerList() {
       businessTypes: [],
       contactSearch: '',
       statuses: [],
-      tagId: 'all',
+      tagIds: [],
     },
     initialPageSize: 10,
   });
@@ -44,7 +48,10 @@ export function useCustomerList() {
         param: 'statuses',
         serialize: (value) => (value.length > 0 ? value.join(',') : undefined),
       },
-      tagId: { omit: ['all', ''] },
+      tagIds: {
+        param: 'tagIds',
+        serialize: (value) => (value.length > 0 ? value.join(',') : undefined),
+      },
     },
   });
 
@@ -77,15 +84,14 @@ export function useCustomerList() {
               CUSTOMER_STATUSES.includes(value as CustomerStatus),
             )
         : undefined,
-    tagId:
-      typeof queryParams.tagId === 'string' ? queryParams.tagId : undefined,
+    tagIds:
+      typeof queryParams.tagIds === 'string'
+        ? queryParams.tagIds.split(',').filter(Boolean)
+        : undefined,
   };
 
-  const tagOptionsQuery = useQuery({
-    queryKey: ['project', 'customers', 'tag-options', tenantState.tenantId],
-    queryFn: () => loadCustomerTagFilter(tenantState.tenantId!),
-    enabled: Boolean(tenantState.tenantId),
-    staleTime: 5 * 60 * 1000,
+  const subjectTagFilterQuery = useSubjectTagFilter('customer', {
+    moduleCodes: ['customers'],
   });
 
   const listQuery = useQuery({
@@ -106,13 +112,22 @@ export function useCustomerList() {
     placeholderData: keepPreviousData,
   });
 
+  const statusStatsQuery = useQuery({
+    queryKey: ['project', 'customers', 'stats', tenantState.tenantId],
+    queryFn: ({ signal }) =>
+      loadCustomerStatusStats(tenantState.tenantId!, signal),
+    enabled: Boolean(tenantState.tenantId),
+  });
+
   return {
     ...listState,
     tenantQuery: tenantState,
     workspaceQuery: listQuery,
+    statusStatsQuery,
     customers: listQuery.data?.customers ?? [],
     total: listQuery.data?.total ?? 0,
-    customerTagOptions: tagOptionsQuery.data?.options ?? [],
-    customerTagOptionsQuery: tagOptionsQuery,
+    customerTagOptions: subjectTagFilterQuery.data?.options ?? [],
+    customerTagsByCustomerId: subjectTagFilterQuery.data?.tagsBySubjectId ?? {},
+    customerTagOptionsQuery: subjectTagFilterQuery,
   };
 }

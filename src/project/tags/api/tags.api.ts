@@ -187,6 +187,18 @@ export interface TagSelectConfig {
   allowCustomGroups?: boolean;
 }
 
+export type TaggableSubjectType = 'employee' | 'customer' | 'contract_template';
+
+export interface SubjectTagFilterData {
+  options: TagSelectOption[];
+  tagsBySubjectId: Record<string, TagSelectOption[]>;
+}
+
+interface SubjectTagAssignmentRow {
+  tag_id: string;
+  subject_id: string;
+}
+
 export async function loadTagSelectOptions(
   userId: string,
   config: TagSelectConfig = {},
@@ -254,6 +266,97 @@ export async function loadTagSelectOptions(
       },
     ];
   });
+}
+
+export async function loadSubjectTagFilter(
+  tenantId: string,
+  subjectType: TaggableSubjectType,
+  config: TagSelectConfig = {},
+): Promise<SubjectTagFilterData> {
+  assertSupabaseConfigured();
+
+  const moduleCodes = Array.from(
+    new Set(
+      (config.moduleCodes ?? []).map((code) => code.trim()).filter(Boolean),
+    ),
+  );
+  const allowCustomGroups = config.allowCustomGroups ?? true;
+  const groupFilter = allowCustomGroups
+    ? moduleCodes.length > 0
+      ? `(module_code.is.null,module_code.in.(${moduleCodes.join(',')}))`
+      : 'module_code.is.null'
+    : `module_code.in.(${moduleCodes.join(',')})`;
+
+  const groups = await request<TagGroupRow[]>(
+    supabaseApi.get(
+      '/tag_groups',
+      queryParams({
+        select: 'id,name,module_code,is_system,is_active',
+        tenant_id: `eq.${tenantId}`,
+        is_active: 'eq.true',
+        or: groupFilter,
+        order: 'sort_order.asc,name.asc',
+      }),
+    ),
+  );
+  const groupIds = groups.map((group) => group.id);
+  if (groupIds.length === 0) {
+    return { options: [], tagsBySubjectId: {} };
+  }
+
+  const [tags, assignments] = await Promise.all([
+    request<TagRow[]>(
+      supabaseApi.get(
+        '/tags',
+        queryParams({
+          select: 'id,group_id,name,color,is_active,sort_order',
+          tenant_id: `eq.${tenantId}`,
+          group_id: `in.(${groupIds.join(',')})`,
+          order: 'sort_order.asc,name.asc',
+        }),
+      ),
+    ),
+    request<SubjectTagAssignmentRow[]>(
+      supabaseApi.get(
+        '/tag_assignments',
+        queryParams({
+          select: 'tag_id,subject_id',
+          tenant_id: `eq.${tenantId}`,
+          subject_type: `eq.${subjectType}`,
+        }),
+      ),
+    ),
+  ]);
+
+  const groupById = new Map(groups.map((group) => [group.id, group]));
+  const options = tags.flatMap<TagSelectOption>((tag) => {
+    const group = groupById.get(tag.group_id);
+    if (!group) return [];
+    return [
+      {
+        id: tag.id,
+        name: tag.name,
+        color: tag.color,
+        groupId: tag.group_id,
+        groupName: group.name,
+        moduleCode: group.module_code,
+        isSystem: group.is_system,
+        isActive: tag.is_active,
+      },
+    ];
+  });
+  const optionById = new Map(options.map((option) => [option.id, option]));
+  const tagsBySubjectId: Record<string, TagSelectOption[]> = {};
+
+  for (const assignment of assignments) {
+    const option = optionById.get(assignment.tag_id);
+    if (!option) continue;
+    const subjectTags = tagsBySubjectId[assignment.subject_id] ?? [];
+    subjectTags.push(option);
+    tagsBySubjectId[assignment.subject_id] = subjectTags;
+  }
+
+  return { options, tagsBySubjectId };
 }
 
 export async function createTagGroup(

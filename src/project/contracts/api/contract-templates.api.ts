@@ -40,6 +40,13 @@ interface ContractTemplateListRpcResponse {
   total: number | string;
 }
 
+export interface ContractTemplateStatusStats {
+  total: number;
+  draft: number;
+  published: number;
+  archived: number;
+}
+
 interface ContractTemplateRow {
   id: string;
   tenant_id: string;
@@ -181,6 +188,7 @@ export async function loadContractTemplateList(
         p_search: params.search?.trim() || null,
         p_template_search: params.templateSearch?.trim() || null,
         p_statuses: params.statuses ?? [],
+        p_tag_ids: params.tagIds ?? [],
         p_line_count_min: params.lineCountMin ?? null,
         p_line_count_max: params.lineCountMax ?? null,
         p_contract_count_min: params.contractCountMin ?? null,
@@ -197,6 +205,32 @@ export async function loadContractTemplateList(
   return {
     templates: response.items.map(mapTemplateRow),
     total: numberValue(response.total),
+  };
+}
+
+export async function loadContractTemplateStatusStats(
+  tenantId: string,
+  signal?: AbortSignal,
+): Promise<ContractTemplateStatusStats> {
+  const [all, draft, published, archived] = await Promise.all(
+    [undefined, 'draft', 'published', 'archived'].map((status) =>
+      loadContractTemplateList(
+        tenantId,
+        {
+          page: 1,
+          pageSize: 1,
+          statuses: status ? [status as ContractTemplateStatus] : undefined,
+        },
+        signal,
+      ),
+    ),
+  );
+
+  return {
+    total: all.total,
+    draft: draft.total,
+    published: published.total,
+    archived: archived.total,
   };
 }
 

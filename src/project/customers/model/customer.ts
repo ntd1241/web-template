@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { COUNTRY_OPTIONS } from '@/lib/countries';
-import type { TagFilterOption } from '../../shared/tag-filter';
 
 export const CUSTOMER_STATUSES = ['active', 'inactive'] as const;
 export type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
@@ -91,7 +90,7 @@ export interface CustomerListParams {
   businessTypes?: BusinessType[];
   contactSearch?: string;
   statuses?: CustomerStatus[];
-  tagId?: string;
+  tagIds?: string[];
 }
 
 export interface CustomerListResult {
@@ -101,11 +100,6 @@ export interface CustomerListResult {
 
 export interface CustomerListRpcRow extends CustomerRow {
   created_at: string;
-}
-
-export interface CustomerTagFilterData {
-  options: TagFilterOption[];
-  customerIdsByTagId: Record<string, string[]>;
 }
 
 export const emptyCustomerForm: CustomerFormValues = {

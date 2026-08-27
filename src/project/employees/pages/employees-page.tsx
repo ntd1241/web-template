@@ -10,19 +10,18 @@ import {
   Card,
   CardDescription,
   CardFooter,
-  CardHeader,
-  CardHeading,
   CardTable,
   CardTitle,
-  CardToolbar,
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
-import { Tag as TagBadge } from '@/components/ui/tag';
+import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
 import {
   createEmployee,
   deleteEmployee,
@@ -34,6 +33,7 @@ import {
 } from '../forms/employee-form.generated';
 import { useEmployeeList } from '../hooks/use-employee-list';
 import {
+  EMPLOYEE_STATUS_LABELS,
   emptyEmployeeForm,
   mapEmployeeToFormValues,
   type Employee,
@@ -41,6 +41,27 @@ import {
 } from '../model/employee';
 import { useEmployeeColumns } from '../table/employee.columns.generated';
 import { EmployeeFilterBar } from '../table/employee.filters.generated';
+
+const employeeStatItems = [
+  {
+    key: 'total',
+    label: 'Tổng số',
+    filterValue: null,
+    className: '!bg-muted !text-muted-foreground',
+  },
+  {
+    key: 'active',
+    label: EMPLOYEE_STATUS_LABELS.active,
+    filterValue: 'active',
+    className: '!bg-admin-success-bg !text-admin-success-text',
+  },
+  {
+    key: 'inactive',
+    label: EMPLOYEE_STATUS_LABELS.inactive,
+    filterValue: 'inactive',
+    className: '!bg-muted !text-muted-foreground',
+  },
+] satisfies readonly StatusStatItem<'active' | 'inactive'>[];
 
 export function EmployeesPage() {
   const { tenantId } = useTenant();
@@ -63,8 +84,8 @@ export function EmployeesPage() {
     onPaginationChange,
     tenantQuery,
     workspaceQuery,
-    employeeTagOptions,
-    employeeTagOptionsQuery,
+    statusStatsQuery,
+    employeeTagsByEmployeeId,
     employeeRoleOptions,
     employeeRoleOptionsQuery,
   } = useEmployeeList();
@@ -105,6 +126,24 @@ export function EmployeesPage() {
     setDialogOpen(true);
   }
 
+  const pageHeader = (
+    <PageHeader
+      title="Nhân viên"
+      actions={
+        <ShortcutTooltip label="Thêm nhân viên" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={openCreate}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm nhân viên
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
+
   function openEdit(employee: Employee) {
     setEditingEmployee(employee);
     form.reset(mapEmployeeToFormValues(employee));
@@ -114,6 +153,9 @@ export function EmployeesPage() {
   const columns = useEmployeeColumns({
     onEdit: openEdit,
     onDelete: setDeletingEmployee,
+    tagIds: filters.tagIds,
+    onTagIdsChange: (value) => setFilter('tagIds', value),
+    tagsByEmployeeId: employeeTagsByEmployeeId,
     employeeSearch: keyword,
     onEmployeeSearchChange: setKeyword,
     roleIds: filters.roleIds,
@@ -145,7 +187,8 @@ export function EmployeesPage() {
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
-      <div className="p-4 lg:p-5">
+      <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+        {pageHeader}
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -169,76 +212,51 @@ export function EmployeesPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+      {pageHeader}
       <DataGrid
         table={table}
         recordCount={total}
         isLoading={isListLoading}
         emptyMessage="Chưa có nhân viên"
+        tableLayout={{ dense: true }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <CardHeading>
-              <CardTitle>Quản lý nhân viên</CardTitle>
-            </CardHeading>
-            <CardToolbar className="flex-wrap">
-              <EmployeeFilterBar
-                tag={filters.tagId}
-                onTagChange={(value) => setFilter('tagId', value)}
-                tagOptions={[
-                  { value: 'all', label: 'Tất cả nhóm' },
-                  ...employeeTagOptions.map((option) => ({
-                    value: option.value,
-                    label: option.label,
-                  })),
-                ]}
-                renderTagOption={(option) => {
-                  const tag = employeeTagOptions.find(
-                    (item) => item.value === option.value,
-                  );
-                  return tag ? (
-                    <TagBadge color={tag.color} size="sm">
-                      {tag.label}
-                    </TagBadge>
-                  ) : (
-                    option.label
-                  );
-                }}
-                renderTagValue={(option) => {
-                  const tag = employeeTagOptions.find(
-                    (item) => item.value === option?.value,
-                  );
-                  return tag ? (
-                    <TagBadge color={tag.color} size="sm">
-                      {tag.label}
-                    </TagBadge>
-                  ) : (
-                    option?.label
-                  );
-                }}
-                disabled={employeeTagOptionsQuery.isLoading}
+          <DataGridHeader
+            variant="stats"
+            stats={
+              <StatusStats
+                items={employeeStatItems}
+                counts={statusStatsQuery.data}
+                isLoading={statusStatsQuery.isPending}
+                activeFilters={filters.statuses}
+                onFilterChange={(status) =>
+                  setFilter('statuses', status ? [status] : [])
+                }
+                ariaLabel="Lọc nhân viên theo trạng thái"
               />
-              <Button
-                variant="outline"
-                mode="icon"
-                aria-label="Làm mới"
-                title="Làm mới"
-                onClick={() => void workspaceQuery.refetch()}
-              >
-                <RefreshCw />
-              </Button>
-              <ShortcutTooltip label="Thêm nhân viên" shortcut="Alt + N">
+            }
+            toolbar={
+              <>
+                <EmployeeFilterBar
+                  keyword={keyword}
+                  onKeywordChange={setKeyword}
+                />
                 <Button
-                  variant="primary"
-                  onClick={openCreate}
-                  data-shortcut-action="create"
+                  variant="outline"
+                  mode="icon"
+                  aria-label="Làm mới"
+                  title="Làm mới"
+                  onClick={() => {
+                    void workspaceQuery.refetch();
+                    void statusStatsQuery.refetch();
+                  }}
                 >
-                  <Plus />
-                  Thêm nhân viên
+                  <RefreshCw />
                 </Button>
-              </ShortcutTooltip>
-            </CardToolbar>
-          </CardHeader>
+              </>
+            }
+          />
           <CardTable className="min-h-0 flex-1">
             <ScrollArea className="h-full">
               <DataGridTable />

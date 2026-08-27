@@ -18,6 +18,13 @@ const spec: TableSpec = {
       headerClassName: 'min-w-[200px]',
     },
     {
+      kind: 'custom',
+      id: 'tags',
+      header: 'Nhóm/nhãn',
+      headerClassName: 'min-w-[220px]',
+      size: 240,
+    },
+    {
       kind: 'badge',
       id: 'status',
       header: 'Trạng thái',

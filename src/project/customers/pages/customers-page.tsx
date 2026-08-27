@@ -10,19 +10,18 @@ import {
   Card,
   CardDescription,
   CardFooter,
-  CardHeader,
-  CardHeading,
   CardTable,
   CardTitle,
-  CardToolbar,
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
-import { Tag as TagBadge } from '@/components/ui/tag';
+import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
 import {
   createCustomer,
   deleteCustomer,
@@ -36,6 +35,7 @@ import {
 } from '../forms/customer-form.generated';
 import { useCustomerList } from '../hooks/use-customer-list';
 import {
+  CUSTOMER_STATUS_LABELS,
   emptyCustomerForm,
   mapCustomerToFormValues,
   type Customer,
@@ -43,6 +43,27 @@ import {
 } from '../model/customer';
 import { useCustomerColumns } from '../table/customer.columns.generated';
 import { CustomerFilterBar } from '../table/customer.filters.generated';
+
+const customerStatItems = [
+  {
+    key: 'total',
+    label: 'Tổng số',
+    filterValue: null,
+    className: '!bg-muted !text-muted-foreground',
+  },
+  {
+    key: 'active',
+    label: CUSTOMER_STATUS_LABELS.active,
+    filterValue: 'active',
+    className: '!bg-admin-success-bg !text-admin-success-text',
+  },
+  {
+    key: 'inactive',
+    label: CUSTOMER_STATUS_LABELS.inactive,
+    filterValue: 'inactive',
+    className: '!bg-muted !text-muted-foreground',
+  },
+] satisfies readonly StatusStatItem<'active' | 'inactive'>[];
 
 export function CustomersPage() {
   const { tenantId } = useTenant();
@@ -66,8 +87,8 @@ export function CustomersPage() {
     onPaginationChange,
     tenantQuery,
     workspaceQuery,
-    customerTagOptions,
-    customerTagOptionsQuery,
+    statusStatsQuery,
+    customerTagsByCustomerId,
   } = useCustomerList();
 
   const customerRegionQuery = useQuery({
@@ -135,6 +156,24 @@ export function CustomersPage() {
     setDialogOpen(true);
   }
 
+  const pageHeader = (
+    <PageHeader
+      title="Khách hàng"
+      actions={
+        <ShortcutTooltip label="Thêm khách hàng" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={openCreate}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm khách hàng
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
+
   const openEdit = useCallback(
     (customer: Customer) => {
       setEditingCustomer(customer);
@@ -148,6 +187,9 @@ export function CustomersPage() {
   const columns = useCustomerColumns({
     onEdit: openEdit,
     onDelete: setDeletingCustomer,
+    tagIds: filters.tagIds,
+    onTagIdsChange: (value) => setFilter('tagIds', value),
+    tagsByCustomerId: customerTagsByCustomerId,
     customerSearch: filters.customerSearch,
     onCustomerSearchChange: (value) => setFilter('customerSearch', value),
     businessTypes: filters.businessTypes,
@@ -175,7 +217,8 @@ export function CustomersPage() {
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
-      <div className="p-4 lg:p-5">
+      <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+        {pageHeader}
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <TriangleAlert className="size-8 text-destructive" />
           <div>
@@ -199,76 +242,51 @@ export function CustomersPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-4 lg:p-5">
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4 lg:gap-5 lg:p-5">
+      {pageHeader}
       <DataGrid
         table={table}
         recordCount={total}
         isLoading={isListLoading}
         emptyMessage="Chưa có khách hàng"
+        tableLayout={{ dense: true }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
-          <CardHeader className="flex-col items-stretch gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <CardHeading>
-              <CardTitle>Quản lý khách hàng</CardTitle>
-            </CardHeading>
-            <CardToolbar className="flex-wrap">
-              <CustomerFilterBar
-                keyword={keyword}
-                onKeywordChange={setKeyword}
-                tag={filters.tagId}
-                onTagChange={(value) => setFilter('tagId', value)}
-                tagOptions={[
-                  { value: 'all', label: 'Tất cả nhóm' },
-                  ...customerTagOptions.map((option) => ({
-                    value: option.value,
-                    label: option.label,
-                  })),
-                ]}
-                tagRenderOption={(option) => {
-                  const tag = customerTagOptions.find(
-                    (item) => item.value === option.value,
-                  );
-                  return tag ? (
-                    <TagBadge color={tag.color} size="sm">
-                      {tag.label}
-                    </TagBadge>
-                  ) : (
-                    option.label
-                  );
-                }}
-                tagRenderValue={(option) => {
-                  const tag = customerTagOptions.find(
-                    (item) => item.value === option?.value,
-                  );
-                  return tag ? (
-                    <TagBadge color={tag.color} size="sm">
-                      {tag.label}
-                    </TagBadge>
-                  ) : (
-                    option?.label
-                  );
-                }}
-                disabled={customerTagOptionsQuery.isLoading}
+          <DataGridHeader
+            variant="stats"
+            stats={
+              <StatusStats
+                items={customerStatItems}
+                counts={statusStatsQuery.data}
+                isLoading={statusStatsQuery.isPending}
+                activeFilters={filters.statuses}
+                onFilterChange={(status) =>
+                  setFilter('statuses', status ? [status] : [])
+                }
+                ariaLabel="Lọc khách hàng theo trạng thái"
               />
-              <Button
-                variant="outline"
-                onClick={() => void workspaceQuery.refetch()}
-              >
-                <RefreshCw />
-                Làm mới
-              </Button>
-              <ShortcutTooltip label="Thêm khách hàng" shortcut="Alt + N">
+            }
+            toolbar={
+              <>
+                <CustomerFilterBar
+                  keyword={keyword}
+                  onKeywordChange={setKeyword}
+                />
                 <Button
-                  variant="primary"
-                  onClick={openCreate}
-                  data-shortcut-action="create"
+                  variant="outline"
+                  mode="icon"
+                  aria-label="Làm mới"
+                  title="Làm mới"
+                  onClick={() => {
+                    void workspaceQuery.refetch();
+                    void statusStatsQuery.refetch();
+                  }}
                 >
-                  <Plus />
-                  Thêm khách hàng
+                  <RefreshCw />
                 </Button>
-              </ShortcutTooltip>
-            </CardToolbar>
-          </CardHeader>
+              </>
+            }
+          />
           <CardTable className="min-h-0 flex-1">
             <ScrollArea className="h-full">
               <DataGridTable />

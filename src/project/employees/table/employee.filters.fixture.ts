@@ -4,12 +4,10 @@ const spec: FilterSpec = {
   componentName: 'EmployeeFilterBar',
   fields: [
     {
-      type: 'select',
-      name: 'tag',
-      placeholder: 'Tất cả nhóm',
-      ariaLabel: 'Nhóm nhân viên',
-      optionsSource: 'prop',
-      className: 'w-48',
+      type: 'search',
+      name: 'keyword',
+      placeholder: 'Tìm theo tên, mã hoặc chức vụ',
+      className: 'w-64',
     },
   ],
 };

@@ -69,6 +69,7 @@ export function TagSelect({
         .map((tag) => ({
           value: tag.id,
           label: <Tag color={tag.color ?? '#64748b'}>{tag.name}</Tag>,
+          ariaLabel: tag.name,
           searchableText: `${tag.name} ${tag.groupName}`,
           group: tag.groupName,
           disabled: !tag.isActive,
@@ -77,11 +78,36 @@ export function TagSelect({
     [query.data, value],
   );
 
+  const nestedOptions = useMemo(() => {
+    const groups = new Map<
+      string,
+      { label: string; options: typeof options }
+    >();
+
+    options.forEach((option) => {
+      const groupId = option.data?.groupId ?? option.data?.groupName ?? 'other';
+      const group = groups.get(groupId) ?? {
+        label: option.data?.groupName ?? 'Khác',
+        options: [],
+      };
+      group.options.push(option);
+      groups.set(groupId, group);
+    });
+
+    return Array.from(groups, ([groupId, group]) => ({
+      value: `group:${groupId}`,
+      label: group.label,
+      searchableText: group.label,
+      options: group.options,
+    }));
+  }, [options]);
+
   return (
     <MultiSelect
       {...props}
       value={value}
       options={options}
+      nestedOptions={nestedOptions}
       placeholder={placeholder}
       searchPlaceholder={searchPlaceholder}
       searchMode="inline"
