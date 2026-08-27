@@ -276,12 +276,8 @@ function DataGridColumnHeader<TData, TValue>({
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
                     {table
-                      .getAllColumns()
-                      .filter(
-                        (col) =>
-                          typeof col.accessorFn !== 'undefined' &&
-                          col.getCanHide(),
-                      )
+                      .getAllLeafColumns()
+                      .filter((col) => col.getCanHide())
                       .map((col) => {
                         return (
                           <DropdownMenuCheckboxItem

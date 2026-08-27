@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
+import {
+  usePersistedColumnOrder,
+  usePersistedColumnVisibility,
+} from '@/components/ui/data-grid-columns';
 import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -171,12 +176,19 @@ export function EmployeesPage() {
         value === '' ? 'all' : (value as 'linked' | 'unlinked'),
       ),
   });
+  const { columnVisibility, onColumnVisibilityChange } =
+    usePersistedColumnVisibility('project.employees.columnVisibility');
+  const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
+    'project.employees.columnOrder',
+  );
   const table = useReactTable({
     data: employees,
     columns,
     getRowId: (row) => row.id,
-    state: { pagination },
+    state: { pagination, columnVisibility, columnOrder },
     onPaginationChange,
+    onColumnVisibilityChange,
+    onColumnOrderChange,
     manualPagination: true,
     pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
@@ -220,7 +232,7 @@ export function EmployeesPage() {
         isLoading={isListLoading}
         isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có nhân viên"
-        tableLayout={{ dense: true }}
+        tableLayout={{ dense: true, columnsVisibility: false }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
           <DataGridHeader
@@ -255,6 +267,7 @@ export function EmployeesPage() {
                 >
                   <RefreshCw />
                 </Button>
+                <DataGridColumnVisibility table={table} mode="drawer" />
               </>
             }
           />

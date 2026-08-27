@@ -16,6 +16,11 @@ import {
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
+import {
+  usePersistedColumnOrder,
+  usePersistedColumnVisibility,
+} from '@/components/ui/data-grid-columns';
 import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -122,12 +127,19 @@ export function ContractsPage() {
       }));
     },
   });
+  const { columnVisibility, onColumnVisibilityChange } =
+    usePersistedColumnVisibility('project.contracts.columnVisibility');
+  const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
+    'project.contracts.columnOrder',
+  );
   const table = useReactTable({
     data: contracts,
     columns,
     getRowId: (row) => row.id,
-    state: { pagination },
+    state: { pagination, columnVisibility, columnOrder },
     onPaginationChange,
+    onColumnVisibilityChange,
+    onColumnOrderChange,
     manualPagination: true,
     pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
@@ -171,7 +183,7 @@ export function ContractsPage() {
         isLoading={isListLoading}
         isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có hợp đồng"
-        tableLayout={{ dense: true }}
+        tableLayout={{ dense: true, columnsVisibility: false }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
           <DataGridHeader
@@ -206,6 +218,7 @@ export function ContractsPage() {
                 >
                   <RefreshCw />
                 </Button>
+                <DataGridColumnVisibility table={table} mode="drawer" />
               </>
             }
           />

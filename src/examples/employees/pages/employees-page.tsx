@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridActionBar } from '@/components/ui/data-grid-action-bar';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
 import { usePersistedColumnVisibility } from '@/components/ui/data-grid-columns';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -176,6 +177,7 @@ export function EmployeesExamplePage() {
                 onCreate={() => setIsCreateOpen(true)}
                 canManage={canManage}
               />
+              <DataGridColumnVisibility table={table} />
             </CardToolbar>
           </CardHeader>
 

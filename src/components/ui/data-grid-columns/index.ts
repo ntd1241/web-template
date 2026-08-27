@@ -12,3 +12,4 @@ export {
   type StatusBadgeProps,
 } from './status-badge';
 export { usePersistedColumnVisibility } from './use-persisted-column-visibility';
+export { usePersistedColumnOrder } from './use-persisted-column-order';

@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
+import {
+  usePersistedColumnOrder,
+  usePersistedColumnVisibility,
+} from '@/components/ui/data-grid-columns';
 import { DataGridHeader } from '@/components/ui/data-grid-header';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -201,12 +206,19 @@ export function CustomersPage() {
     onStatusesChange: (value) =>
       setFilter('statuses', value as typeof filters.statuses),
   });
+  const { columnVisibility, onColumnVisibilityChange } =
+    usePersistedColumnVisibility('project.customers.columnVisibility');
+  const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
+    'project.customers.columnOrder',
+  );
   const table = useReactTable({
     data: customers,
     columns,
     getRowId: (row) => row.id,
-    state: { pagination },
+    state: { pagination, columnVisibility, columnOrder },
     onPaginationChange,
+    onColumnVisibilityChange,
+    onColumnOrderChange,
     manualPagination: true,
     pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
@@ -250,7 +262,7 @@ export function CustomersPage() {
         isLoading={isListLoading}
         isFetching={workspaceQuery.isFetching}
         emptyMessage="Chưa có khách hàng"
-        tableLayout={{ dense: true }}
+        tableLayout={{ dense: true, columnsVisibility: false }}
       >
         <Card className="min-h-0 flex-1 overflow-hidden">
           <DataGridHeader
@@ -285,6 +297,7 @@ export function CustomersPage() {
                 >
                   <RefreshCw />
                 </Button>
+                <DataGridColumnVisibility table={table} mode="drawer" />
               </>
             }
           />

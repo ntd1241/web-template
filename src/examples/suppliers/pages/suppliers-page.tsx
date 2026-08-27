@@ -12,6 +12,7 @@ import {
   CardToolbar,
 } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
 import { usePersistedColumnVisibility } from '@/components/ui/data-grid-columns';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
@@ -92,6 +93,7 @@ export function SuppliersPage() {
                 onKeywordChange={onKeywordChange}
                 onRefresh={() => refetch()}
               />
+              <DataGridColumnVisibility table={table} />
             </CardToolbar>
           </CardHeader>
 
