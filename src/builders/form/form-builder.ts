@@ -326,7 +326,6 @@ function emitImports(spec: FormSpec): string {
     (field) =>
       field.kind === 'number' && field.format && field.format !== 'plain',
   );
-  const propFields = propOptionFields(spec.fields);
   const needMessage = spec.fields.some((f) => f.kind !== 'switch');
 
   const formParts = [
@@ -377,39 +376,29 @@ function emitImports(spec: FormSpec): string {
     );
   if (kinds.has('textarea'))
     lines.push("import { Textarea } from '@/components/ui/textarea';");
-  if (kinds.has('select') || kinds.has('inputSelect'))
+  if (kinds.has('inputSelect'))
     lines.push(
       "import {\n  Select,\n  SelectContent,\n  SelectItem,\n  SelectTrigger,\n  SelectValue,\n} from '@/components/ui/select';",
     );
-  const hasLocalSearchSelect =
-    kinds.has('combobox') || kinds.has('searchSelect');
+  const hasOptionSelect =
+    kinds.has('select') || kinds.has('combobox') || kinds.has('searchSelect');
   const hasApiSearchSelect = kinds.has('apiSearchSelect');
-  if (hasLocalSearchSelect || hasApiSearchSelect) {
-    const searchSelectImports = [
-      hasLocalSearchSelect ? 'SelectSearch' : '',
-      hasApiSearchSelect ? 'ApiSelectSearch' : '',
+  if (hasOptionSelect || hasApiSearchSelect) {
+    const optionSelectImports = [
+      hasOptionSelect ? 'OptionSelect' : '',
+      hasApiSearchSelect ? 'ApiOptionSelect' : '',
     ].filter(Boolean);
     lines.push(
-      `import { ${searchSelectImports.join(', ')} } from '@/components/ui/select-search';`,
+      `import { ${optionSelectImports.join(', ')} } from '@/components/ui/option-select';`,
     );
 
-    const searchSelectTypeImports = [
-      propFields.some(
-        (field) => field.kind === 'combobox' || field.kind === 'searchSelect',
-      )
-        ? 'SearchSelectOption'
-        : '',
-      hasApiSearchSelect ? 'ApiSelectSearchLoadOptions' : '',
-      hasApiSearchSelect &&
-      !propFields.some(
-        (field) => field.kind === 'combobox' || field.kind === 'searchSelect',
-      )
-        ? 'SearchSelectOption'
-        : '',
+    const optionSelectTypeImports = [
+      hasApiSearchSelect ? 'ApiOptionSelectLoadOptions' : '',
+      hasOptionSelect || hasApiSearchSelect ? 'SelectOption' : '',
     ].filter(Boolean);
-    if (searchSelectTypeImports.length > 0) {
+    if (optionSelectTypeImports.length > 0) {
       lines.push(
-        `import type { ${searchSelectTypeImports.join(', ')} } from '@/components/ui/select-search';`,
+        `import type { ${optionSelectTypeImports.join(', ')} } from '@/components/ui/option-select';`,
       );
     }
   }
@@ -466,7 +455,7 @@ function emitApiSearchSelectPropRows(
   return fields
     .map(
       (field) =>
-        `  load${cap(field.name)}Options: ApiSelectSearchLoadOptions;\n  ${field.name}SelectedOption?: SearchSelectOption;`,
+        `  load${cap(field.name)}Options: ApiOptionSelectLoadOptions;\n  ${field.name}SelectedOption?: SelectOption;`,
     )
     .join('\n');
 }

@@ -46,34 +46,38 @@ import { SearchInput } from '@/components/ui/inputs/search-input';
 
 ---
 
-## Combobox — Select có ô tìm kiếm (single-select)
+## OptionSelect — Select dữ liệu (single-select)
 
-Khác `Select` thô ở chỗ **có ô tìm kiếm bỏ dấu** (qua `searchMatch`). Generic theo `T`. Import từ
-`@/components/ui/combobox`.
+Khác `Select` thô ở chỗ **có ô tìm kiếm bỏ dấu** (qua `searchMatch`). Generic theo `T`.
+`OptionSelect` là API single-select dùng cho dữ liệu; `@/components/ui/combobox` vẫn được giữ làm
+alias tương thích.
 
 ```tsx
-import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
+import { OptionSelect, type SelectOption } from '@/components/ui/option-select';
 
-const options: ComboboxOption[] = [
+const options: SelectOption[] = [
   { value: 'nhan-vien', label: 'Nhân viên' },
   { value: 'quan-ly', label: 'Quản lý' },
 ];
 
-<Combobox value={role} onChange={setRole} options={options} placeholder="Chọn vai trò" />
+<OptionSelect value={role} onChange={setRole} options={options} placeholder="Chọn vai trò" />
 ```
 
-`ComboboxOption<T> = { value: string; label: ReactNode; searchableText?: string; data?: T; disabled?: boolean }`
+`SelectOption<T> = { value: string; label: ReactNode; searchableText?: string; group?: string; data?: T; disabled?: boolean }`
 
 | Prop | Kiểu | Mặc định |
 |---|---|---|
 | `value` / `onChange` | `string` / `(v: string) => void` | `''` |
-| `onSelect` | `(opt: ComboboxOption<T> \| undefined) => void` | — |
-| `options` | `ComboboxOption<T>[]` | — |
+| `onSelect` | `(opt: SelectOption<T> \| undefined) => void` | — |
+| `options` | `SelectOption<T>[]` | — |
 | `placeholder` / `searchPlaceholder` / `emptyMessage` | `string` | `Chọn...` / `Tìm...` / `Không có kết quả` |
+| `searchable` | `boolean` | `true` — ẩn ô tìm kiếm khi đặt `false` |
 | `manualFilter` | `boolean` | `false` — bật khi tự lọc (async/server) |
 | `renderOption` / `triggerContent` | render fn | — |
 
-Chọn lại đúng giá trị đang chọn = bỏ chọn (`''`). Dùng `Combobox` thay cho `Select` thô khi danh sách dài/cần tìm.
+Chọn lại đúng giá trị đang chọn = bỏ chọn (`''`). Dùng `canDeselect={false}` cho field bắt buộc phải
+giữ giá trị. Dùng `OptionSelect` thay cho `Select` thô khi danh sách là dữ liệu; chỉ giữ `Select`
+thô cho các menu cần tự compose layout.
 
 ---
 
@@ -129,9 +133,9 @@ import { NumericInput } from '@/components/ui/inputs/numeric-input';
 
 ## Select / Textarea / Checkbox / Switch
 
-- `Select` thô (`@/components/ui/select`) cho dropdown ngắn cố định, không cần tìm kiếm. Cần tìm → `Combobox`.
-- `SelectValue` hỗ trợ `label` cho select nằm trong toolbar, ví dụ
-  `<SelectValue label="Nhóm" />` hiển thị dạng `Nhóm: <giá trị>`. Bỏ qua prop này trong
-  form/dialog vì label của field đã nằm phía trên input.
+- `OptionSelect searchable={false}` cho dropdown ngắn cố định, không cần tìm kiếm; dùng `OptionSelect`
+  với `searchable` mặc định cho danh sách dữ liệu cần tìm. `Select` thô chỉ dành cho composition đặc biệt.
+- `FilterToolbar` dùng `OptionSelect` với `triggerContent` để hiển thị nhãn và giá trị trong một
+  control compact. `SelectValue` vẫn hỗ trợ `label` cho các composition low-level tùy biến.
 - `Textarea`, `Checkbox`, `Switch`, `RadioGroup`: dùng primitive cùng tên trong `@/components/ui/*`.
 - Validate form: ráp `Form*` (react-hook-form) + schema từ [`docs/07` validation factory](../07-lib-utilities.md#validation).

@@ -1,13 +1,7 @@
 import { Fragment, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { SearchInput } from './inputs/search-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select';
+import { OptionSelect } from './option-select';
 
 export interface FilterToolbarOption {
   value: string;
@@ -39,8 +33,7 @@ export interface FilterToolbarSelectField {
 }
 
 export type FilterToolbarField =
-  | FilterToolbarSearchField
-  | FilterToolbarSelectField;
+  FilterToolbarSearchField | FilterToolbarSelectField;
 
 export interface FilterToolbarProps {
   fields: readonly FilterToolbarField[];
@@ -62,38 +55,35 @@ export function FilterToolbar({ fields, className }: FilterToolbarProps) {
               onSearch={field.onValueChange}
             />
           ) : (
-            <Select
+            <OptionSelect
               value={field.value}
-              onValueChange={field.onValueChange}
+              onChange={field.onValueChange}
+              options={field.options}
+              searchable={false}
               disabled={field.disabled}
-            >
-              <SelectTrigger
-                className={field.className}
-                aria-label={field.ariaLabel}
-              >
-                <SelectValue
-                  label={field.label}
-                  placeholder={field.placeholder}
-                >
-                  {field.renderValue?.(
-                    field.options.find(
-                      (option) => option.value === field.value,
-                    ),
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {field.options.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    textValue={option.label}
-                  >
-                    {field.renderOption?.(option) ?? option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              ariaLabel={field.ariaLabel}
+              placeholder={field.placeholder}
+              className={field.className}
+              triggerContent={(option) => (
+                <span className="flex min-w-0 items-center gap-1">
+                  {field.label ? (
+                    <span className="shrink-0">{field.label}:</span>
+                  ) : null}
+                  <span className="min-w-0 truncate">
+                    {field.renderValue?.(
+                      option
+                        ? field.options.find(
+                            (candidate) => candidate.value === option.value,
+                          )
+                        : undefined,
+                    ) ??
+                      option?.label ??
+                      field.placeholder}
+                  </span>
+                </span>
+              )}
+              renderOption={field.renderOption}
+            />
           )}
         </Fragment>
       ))}

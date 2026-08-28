@@ -32,15 +32,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import type { MultiSelectOption } from '@/components/ui/multi-select';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { SelectSearch } from '@/components/ui/select-search';
-import type { SearchSelectOption } from '@/components/ui/select-search';
+import { OptionSelect } from '@/components/ui/option-select';
+import type { SelectOption } from '@/components/ui/option-select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -97,7 +90,7 @@ interface SupplierFormProps {
   form: UseFormReturn<CreateSupplierFormValues>;
   onSubmit: (values: CreateSupplierFormValues) => void;
   id?: string;
-  regionOptions: SearchSelectOption[];
+  regionOptions: SelectOption[];
 }
 
 export function SupplierForm({
@@ -177,7 +170,19 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
                 <FormLabel>Công nợ đầu kỳ</FormLabel>
                 <FormControl>
-                  <Input type="number" variant="md" {...field} />
+                  <Input
+                    type="number"
+                    value={field.value}
+                    variant="md"
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(
+                        Number.isNaN(event.target.valueAsNumber)
+                          ? 0
+                          : event.target.valueAsNumber,
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -192,20 +197,15 @@ export function SupplierForm({
                 <FormLabel>
                   Nhóm<span className="text-destructive"> *</span>
                 </FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn nhóm" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {groupOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <OptionSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={groupOptions}
+                    searchable={false}
+                    placeholder="Chọn nhóm"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -218,10 +218,11 @@ export function SupplierForm({
               <FormItem className="md:col-span-6">
                 <FormLabel>Khu vực</FormLabel>
                 <FormControl>
-                  <SelectSearch
+                  <OptionSelect
                     value={field.value}
                     onChange={field.onChange}
                     options={regionOptions}
+                    searchable
                     placeholder="Chọn khu vực"
                   />
                 </FormControl>
@@ -296,7 +297,7 @@ interface SupplierFormDialogProps {
   onSubmit: (values: CreateSupplierFormValues) => void;
   isSaving?: boolean;
   title?: string;
-  regionOptions: SearchSelectOption[];
+  regionOptions: SelectOption[];
 }
 
 export function SupplierFormDialog({

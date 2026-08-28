@@ -18,11 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { OptionSelect, type SelectOption } from '@/components/ui/option-select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  SelectSearch,
-  type SearchSelectOption,
-} from '@/components/ui/select-search';
 import { EmployeeIdentity } from '../../employees/components/employee-identity';
 import { useContractResponsibleWorkspace } from '../hooks/use-contract-responsible-workspace';
 import type {
@@ -88,7 +85,7 @@ export function ContractResponsibleDialog({
               (assignment) => assignment.employeeId === employee.id,
             ),
         )
-        .map<SearchSelectOption<ContractResponsibleEmployee>>((employee) => ({
+        .map<SelectOption<ContractResponsibleEmployee>>((employee) => ({
           value: employee.id,
           data: employee,
           searchableText: `${employee.displayName} ${employee.employeeCode} ${employee.department}`,
@@ -100,7 +97,7 @@ export function ContractResponsibleDialog({
     workspaceQuery.data?.permissionDefinitions ?? [];
 
   function addEmployee(
-    option: SearchSelectOption<ContractResponsibleEmployee> | undefined,
+    option: SelectOption<ContractResponsibleEmployee> | undefined,
   ) {
     if (!option?.data) return;
     setDraftAssignments((current) => [
@@ -168,7 +165,7 @@ export function ContractResponsibleDialog({
                 <label className="text-sm font-medium text-foreground">
                   Thêm nhân viên
                 </label>
-                <SelectSearch
+                <OptionSelect
                   value={selectedEmployeeId}
                   options={availableEmployeeOptions}
                   onChange={setSelectedEmployeeId}

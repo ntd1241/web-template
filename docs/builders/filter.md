@@ -11,6 +11,10 @@ shared `FilterToolbar` component.
   and mutations.
 - The builder does not know backend/RPC parameter names.
 
+Select fields are rendered by the shared `FilterToolbar`, which uses the canonical `OptionSelect`
+with `searchable={false}` for compact toolbar filters. Clicking the active option again clears the
+filter; the builder does not add a separate clear button or an implicit “all” option.
+
 ## Spec
 
 ```ts

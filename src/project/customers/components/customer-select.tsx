@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
 import {
-  SelectSearch,
-  type SearchSelectOption,
-  type SelectSearchProps,
-} from '@/components/ui/select-search';
+  OptionSelect,
+  type OptionSelectProps,
+  type SelectOption,
+} from '@/components/ui/option-select';
 import {
   loadCustomerSelectOptions,
   type CustomerSelectOption,
@@ -18,7 +18,7 @@ import { CustomerIdentity } from './customer-identity';
 export type { CustomerSelectOption } from '../api/customers.api';
 
 export interface CustomerSelectProps extends Omit<
-  SelectSearchProps<CustomerSelectOption>,
+  OptionSelectProps<CustomerSelectOption>,
   | 'options'
   | 'loading'
   | 'loadingMessage'
@@ -32,7 +32,7 @@ export interface CustomerSelectProps extends Omit<
 
 function toOption(
   customer: CustomerSelectOption,
-): SearchSelectOption<CustomerSelectOption> {
+): SelectOption<CustomerSelectOption> {
   return {
     value: customer.id,
     label: <CustomerIdentity customer={customer} />,
@@ -72,7 +72,7 @@ export function CustomerSelect({
     : undefined;
 
   return (
-    <SelectSearch
+    <OptionSelect
       {...props}
       value={value}
       options={options}

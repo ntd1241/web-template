@@ -5,14 +5,14 @@
 import { cn } from '@/lib/utils';
 import { SearchInput } from '@/components/ui/inputs/search-input';
 import {
-  SelectSearch,
-  type SearchSelectOption,
-  type SelectSearchProps,
-} from '@/components/ui/select-search';
-import {
   MultiSelect,
   type MultiSelectOption,
 } from '@/components/ui/multi-select';
+import {
+  OptionSelect,
+  type OptionSelectProps,
+  type SelectOption,
+} from '@/components/ui/option-select';
 
 export interface TextColumnFilterProps {
   value: string;
@@ -40,10 +40,10 @@ export interface StatusColumnFilterProps {
 export interface AccountColumnFilterProps {
   value: string;
   onChange: (value: string) => void;
-  options: SearchSelectOption[];
+  options: SelectOption[];
   loading?: boolean;
-  triggerContent?: SelectSearchProps['triggerContent'];
-  renderOption?: SelectSearchProps['renderOption'];
+  triggerContent?: OptionSelectProps['triggerContent'];
+  renderOption?: OptionSelectProps['renderOption'];
   disabled?: boolean;
   className?: string;
 }
@@ -59,13 +59,10 @@ export function EmployeeTextColumnFilter({
       value={value}
       onSearch={onChange}
       debounceMs={300}
-      placeholder=""
-      aria-label="Tìm theo tên hoặc mã nhân viên"
+      placeholder={''}
+      aria-label={'Tìm theo tên hoặc mã nhân viên'}
       variant="sm"
-      className={cn(
-        'min-w-0 w-full shrink-0 bg-background',
-        className,
-      )}
+      className={cn('min-w-0 w-full shrink-0 bg-background', className)}
       disabled={disabled}
     />
   );
@@ -81,16 +78,16 @@ export function EmployeeRolesColumnFilter({
   return (
     <MultiSelect
       value={value}
+      onChange={onChange}
       options={options}
-      placeholder=""
-      searchPlaceholder="Tìm vai trò..."
+      placeholder={''}
+      searchPlaceholder={'Tìm vai trò...'}
       maxChips={0}
       disabled={disabled}
       className={cn(
         'h-7 min-h-7 min-w-0 rounded-md bg-background px-2.5 text-xs',
         className,
       )}
-      onChange={onChange}
     />
   );
 }
@@ -105,16 +102,16 @@ export function EmployeeStatusColumnFilter({
   return (
     <MultiSelect
       value={value}
+      onChange={onChange}
       options={options}
-      placeholder=""
-      searchPlaceholder="Tìm trạng thái..."
+      placeholder={''}
+      searchPlaceholder={'Tìm trạng thái...'}
       maxChips={0}
       disabled={disabled}
       className={cn(
         'h-7 min-h-7 min-w-0 rounded-md bg-background px-2.5 text-xs',
         className,
       )}
-      onChange={onChange}
     />
   );
 }
@@ -130,13 +127,14 @@ export function EmployeeAccountColumnFilter({
   className,
 }: AccountColumnFilterProps) {
   return (
-    <SelectSearch
+    <OptionSelect
       value={value}
       onChange={onChange}
       options={options}
-      placeholder=""
-      searchPlaceholder="Tìm trạng thái tài khoản..."
-      ariaLabel="Tài khoản"
+      searchable
+      placeholder={''}
+      searchPlaceholder={'Tìm trạng thái tài khoản...'}
+      ariaLabel={'Tài khoản'}
       loading={loading}
       disabled={disabled}
       triggerContent={triggerContent}

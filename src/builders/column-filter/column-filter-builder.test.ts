@@ -23,7 +23,9 @@ describe('column-filter-builder', () => {
     expect(source).toContain('ContractStatusColumnFilter');
     expect(source).toContain('NumberRangeFilter');
     expect(source).toContain('DateRangeFilter');
-    expect(source).toContain("options: SearchSelectOption[];");
+    expect(source).toContain('options: SelectOption[];');
+    expect(source).toContain('<OptionSelect');
+    expect(source).toContain('searchable');
     expect(source).toContain('onChange: (value: string[]) => void;');
     expect(source).not.toContain(': any');
   });
@@ -35,11 +37,13 @@ describe('column-filter-builder', () => {
         {
           type: 'selectSearch',
           name: 'method',
+          optionsSource: 'static',
           options: [{ value: 'cash', label: 'Tiền mặt' }],
         },
         {
           type: 'multiSelect',
           name: 'status',
+          optionsSource: 'static',
           options: [{ value: 'paid', label: 'Đã thanh toán' }],
         },
       ],
@@ -47,9 +51,7 @@ describe('column-filter-builder', () => {
 
     expect(source).toContain('PaymentMethodOptions');
     expect(source).toContain('PaymentStatusOptions');
-    expect(source).toContain(
-      'options = PaymentMethodOptions,',
-    );
+    expect(source).toContain('options = PaymentMethodOptions,');
   });
 
   it('rejects duplicate fields and invalid option sources', () => {

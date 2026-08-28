@@ -1,8 +1,8 @@
 export {
-  SelectSearch as Combobox,
-  getSearchSelectOptionText,
-} from '@/components/ui/select-search';
+  OptionSelect as Combobox,
+  getOptionSelectOptionText as getSearchSelectOptionText,
+} from '@/components/ui/option-select';
 export type {
-  SearchSelectOption as ComboboxOption,
-  SelectSearchProps as ComboboxProps,
-} from '@/components/ui/select-search';
+  SelectOption as ComboboxOption,
+  OptionSelectProps as ComboboxProps,
+} from '@/components/ui/option-select';

@@ -64,10 +64,10 @@ Static select-like options are emitted as module constants only when `optionsFro
 | `number`          | `Input type="number"` | `{...field}`; prefer `z.coerce.number()` for numeric schemas |
 | `date`            | `DatePickerInput`     | `value`, `onChange`, and `onBlur`                            |
 | `textarea`        | `Textarea`            | `{...field}`                                                 |
-| `select`          | `Select`              | `value` and `onValueChange`                                  |
-| `combobox`        | `SelectSearch`        | `value` and `onChange` (legacy alias)                        |
-| `searchSelect`    | `SelectSearch`        | `value` and `onChange`                                       |
-| `apiSearchSelect` | `ApiSelectSearch`     | `value` and `onChange`, plus a generated loader prop         |
+| `select`          | `OptionSelect`        | `value` and `onChange`; local search is disabled              |
+| `combobox`        | `OptionSelect`        | `value` and `onChange`; searchable                            |
+| `searchSelect`    | `OptionSelect`        | `value` and `onChange`; searchable                            |
+| `apiSearchSelect` | `ApiOptionSelect`     | `value` and `onChange`, plus a generated server-side loader  |
 | `customerSelect`  | `CustomerSelect`      | `value` and `onChange`; the component owns customer fetching |
 | `inputSelect`     | `InputSelect`         | primary input field + secondary select field                 |
 | `multiselect`     | `MultiSelect`         | `value` and `onChange`                                       |
@@ -85,6 +85,23 @@ Set `breakBefore: true` when a field should begin at the first desktop grid colu
 Declare `selectOptions` for a static list or set `selectOptionsFrom: 'prop'` to receive
 `<name>SelectOptions` from the page. The secondary field is included in generated default values;
 its initial value uses `selectDefaultValue`, then the first static option, then an empty string.
+
+### Data-driven select contract
+
+`OptionSelect` is the canonical data-driven single-select component. It accepts a shared
+`SelectOption` shape (`value`, `label`, optional `searchableText`, `group`, `data`, and `disabled`)
+and exposes `searchable` to control whether the popover renders a search input. Local filtering uses
+`searchableText` when provided and otherwise falls back to the option label/value.
+
+Clicking the selected option again clears it by default. Set `canDeselect={false}` when a form field
+must keep its current value. For server-side search, use `ApiOptionSelect`; it keeps the same option
+contract and sends the query to the supplied loader instead of filtering the full client-side list.
+
+`Select` remains available as the low-level Radix/shadcn composition API for special layouts such as
+`inputSelect` or custom static menus. `SelectSearch`, `ApiSelectSearch`, and `Combobox` remain
+backward-compatible aliases, but new builder output and new data-driven usage should use
+`OptionSelect`/`ApiOptionSelect`. `MultiSelect` keeps its multi/nested selection behavior while
+sharing the base `SelectOption` fields.
 
 Use `modes: ['create']` or `modes: ['edit']` when a field belongs to only one
 dialog mode. The generated inline form receives the dialog's `mode` automatically;
@@ -181,8 +198,7 @@ page instead of a static list. For `inputSelect`, use `selectOptionsFrom: 'prop'
 
 The generated components require a `<fieldName>Options` prop. Types are:
 
-- `select` → `Array<{ value: string; label: string }>`
-- `combobox`/`searchSelect` → `SearchSelectOption[]`
+- `select`/`combobox`/`searchSelect` → `SelectOption[]`
 - `multiselect` → `MultiSelectOption[]`
 - `inputSelect` → `{ value: string; label: string }[]` exposed as `<name>SelectOptions`
 

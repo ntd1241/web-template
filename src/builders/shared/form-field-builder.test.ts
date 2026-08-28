@@ -25,7 +25,7 @@ describe('form-field builder', () => {
         surface: 'form',
         optionsExpression: 'statusOptions',
       }),
-    ).toContain('{statusOptions.map');
+    ).toContain('<OptionSelect');
     expect(
       buildFormFieldControl({
         kind: 'select',
@@ -33,7 +33,7 @@ describe('form-field builder', () => {
         optionsExpression: 'statusOptions',
         selectLabel: 'Trạng thái',
       }),
-    ).toContain('<SelectValue label="Trạng thái" />');
+    ).toContain('searchable={false}');
     expect(
       buildFormFieldControl({
         kind: 'combobox',
@@ -108,7 +108,7 @@ describe('form-field builder', () => {
       debounceMs: 250,
     });
 
-    expect(source).toContain('<ApiSelectSearch');
+    expect(source).toContain('<ApiOptionSelect');
     expect(source).toContain('loadOptions={loadCustomerOptions}');
     expect(source).toContain('selectedOption={customerSelectedOption}');
     expect(source).toContain('minSearchLength={2} debounceMs={250}');

@@ -65,14 +65,16 @@ describe('buildFormModule', () => {
     expect(source).toContain(
       '<Input placeholder="vd: NCC-001" variant="md" {...field} />',
     ); // text spread
-    expect(source).toContain('<Input type="number" variant="md"'); // number
+    expect(source).toContain(
+      '<Input type="number" value={field.value} variant="md"',
+    ); // number
     expect(source).toContain('Number.isNaN(event.target.valueAsNumber)');
     expect(source).toContain('<Textarea rows={3} {...field} />'); // textarea
     expect(source).toContain(
-      'value={field.value} onValueChange={field.onChange}',
+      '<OptionSelect value={field.value} onChange={field.onChange}',
     ); // select
     expect(source).toContain(
-      '<SelectSearch value={field.value} onChange={field.onChange} options={regionOptions}',
+      '<OptionSelect value={field.value} onChange={field.onChange} options={regionOptions} searchable',
     ); // local search select
     expect(source).toContain(
       '<MultiSelect value={field.value} onChange={field.onChange} options={tagsOptions}',
@@ -204,7 +206,7 @@ describe('buildFormModule', () => {
     expect(source).toContain('const groupOptions = [');
     expect(source).toContain('const tagsOptions: MultiSelectOption[] = [');
     expect(source).not.toContain('const regionOptions = [');
-    expect(source).toContain('regionOptions: SearchSelectOption[];');
+    expect(source).toContain('regionOptions: SelectOption[];');
     expect(source).toContain("searchableText: 'Ưu tiên'");
   });
 
@@ -240,7 +242,7 @@ describe('buildFormModule', () => {
       "import { Switch } from '@/components/ui/switch';",
     );
     expect(source).toContain(
-      "import { SelectSearch } from '@/components/ui/select-search';",
+      "import { OptionSelect } from '@/components/ui/option-select';",
     );
   });
 
@@ -264,15 +266,15 @@ describe('buildFormModule', () => {
     });
 
     expect(apiSource).toContain(
-      "import { ApiSelectSearch } from '@/components/ui/select-search';",
+      "import { ApiOptionSelect } from '@/components/ui/option-select';",
     );
     expect(apiSource).toContain(
-      'import type { ApiSelectSearchLoadOptions, SearchSelectOption }',
+      'import type { ApiOptionSelectLoadOptions, SelectOption }',
     );
     expect(apiSource).toContain(
-      'loadCustomerOptions: ApiSelectSearchLoadOptions;',
+      'loadCustomerOptions: ApiOptionSelectLoadOptions;',
     );
-    expect(apiSource).toContain('customerSelectedOption?: SearchSelectOption;');
+    expect(apiSource).toContain('customerSelectedOption?: SelectOption;');
     expect(apiSource).toContain(
       'loadOptions={loadCustomerOptions} selectedOption={customerSelectedOption}',
     );

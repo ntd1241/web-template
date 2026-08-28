@@ -5,9 +5,9 @@
 import { cn } from '@/lib/utils';
 import { SearchInput } from '@/components/ui/inputs/search-input';
 import {
-  MultiSelect,
-  type MultiSelectOption,
-} from '@/components/ui/multi-select';
+  CustomerBusinessTypeSelect,
+  CustomerStatusSelect,
+} from '../components/customer-filter-selects';
 
 export interface TextColumnFilterProps {
   value: string;
@@ -19,7 +19,6 @@ export interface TextColumnFilterProps {
 export interface BusinessTypeColumnFilterProps {
   value: string[];
   onChange: (value: string[]) => void;
-  options: MultiSelectOption[];
   disabled?: boolean;
   className?: string;
 }
@@ -34,7 +33,6 @@ export interface ContactColumnFilterProps {
 export interface StatusColumnFilterProps {
   value: string[];
   onChange: (value: string[]) => void;
-  options: MultiSelectOption[];
   disabled?: boolean;
   className?: string;
 }
@@ -62,23 +60,17 @@ export function CustomerTextColumnFilter({
 export function CustomerBusinessTypeColumnFilter({
   value,
   onChange,
-  options,
   disabled = false,
   className,
 }: BusinessTypeColumnFilterProps) {
   return (
-    <MultiSelect
-      value={value}
-      onChange={onChange}
-      options={options}
-      placeholder={''}
-      searchPlaceholder={'Tìm loại hình...'}
-      maxChips={0}
+    <CustomerBusinessTypeSelect
+      value={value[0] as 'individual' | 'organization' | undefined}
+      onChange={(nextValue) => onChange(nextValue ? [nextValue] : [])}
+      placeholder="Tất cả"
+      size="sm"
       disabled={disabled}
-      className={cn(
-        'h-7 min-h-7 min-w-0 rounded-md bg-background px-2.5 text-xs',
-        className,
-      )}
+      className={cn('min-w-0 bg-background', className)}
     />
   );
 }
@@ -106,23 +98,17 @@ export function CustomerContactColumnFilter({
 export function CustomerStatusColumnFilter({
   value,
   onChange,
-  options,
   disabled = false,
   className,
 }: StatusColumnFilterProps) {
   return (
-    <MultiSelect
-      value={value}
-      onChange={onChange}
-      options={options}
-      placeholder={''}
-      searchPlaceholder={'Tìm trạng thái...'}
-      maxChips={0}
+    <CustomerStatusSelect
+      value={value[0] as 'active' | 'inactive' | undefined}
+      onChange={(nextValue) => onChange(nextValue ? [nextValue] : [])}
+      placeholder="Tất cả"
+      size="sm"
       disabled={disabled}
-      className={cn(
-        'h-7 min-h-7 min-w-0 rounded-md bg-background px-2.5 text-xs',
-        className,
-      )}
+      className={cn('min-w-0 bg-background', className)}
     />
   );
 }

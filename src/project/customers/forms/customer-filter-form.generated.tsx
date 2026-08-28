@@ -30,35 +30,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { MultiSelect } from '@/components/ui/multi-select';
-import type { MultiSelectOption } from '@/components/ui/multi-select';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
+import {
+  CustomerBusinessTypeSelect,
+  CustomerStatusSelect,
+} from '../components/customer-filter-selects';
 import {
   customerFilterFormSchema,
   type CustomerFilterFormValues,
 } from '../model/customer';
-
-const businessTypesOptions: MultiSelectOption[] = [
-  { value: 'individual', label: 'Cá nhân', searchableText: 'Cá nhân' },
-  {
-    value: 'organization',
-    label: 'Doanh nghiệp',
-    searchableText: 'Doanh nghiệp',
-  },
-];
-
-const statusesOptions: MultiSelectOption[] = [
-  {
-    value: 'active',
-    label: 'Đang hoạt động',
-    searchableText: 'Đang hoạt động',
-  },
-  {
-    value: 'inactive',
-    label: 'Ngừng hoạt động',
-    searchableText: 'Ngừng hoạt động',
-  },
-];
 
 export const customerFilterDefaultValues: CustomerFilterFormValues = {
   customerSearch: '',
@@ -125,16 +105,16 @@ export function CustomerFilterForm({
           <FormField
             control={form.control}
             name="businessTypes"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem className="md:col-span-12">
                 <FormLabel>Loại hình đơn vị</FormLabel>
                 <FormControl>
-                  <MultiSelect
-                    value={field.value}
-                    onChange={field.onChange}
-                    options={businessTypesOptions}
-                    placeholder="Chọn loại hình"
-                    searchPlaceholder="Tìm loại hình..."
+                  <CustomerBusinessTypeSelect
+                    value={field.value[0]}
+                    onChange={(value) => field.onChange(value ? [value] : [])}
+                    placeholder="Tất cả"
+                    size="md"
+                    aria-invalid={!!fieldState.error}
                   />
                 </FormControl>
                 <FormMessage />
@@ -183,16 +163,16 @@ export function CustomerFilterForm({
           <FormField
             control={form.control}
             name="statuses"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem className="md:col-span-12">
                 <FormLabel>Trạng thái</FormLabel>
                 <FormControl>
-                  <MultiSelect
-                    value={field.value}
-                    onChange={field.onChange}
-                    options={statusesOptions}
-                    placeholder="Chọn trạng thái"
-                    searchPlaceholder="Tìm trạng thái..."
+                  <CustomerStatusSelect
+                    value={field.value[0]}
+                    onChange={(value) => field.onChange(value ? [value] : [])}
+                    placeholder="Tất cả"
+                    size="md"
+                    aria-invalid={!!fieldState.error}
                   />
                 </FormControl>
                 <FormMessage />

@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import type { SelectOption } from '@/components/ui/select-option';
 import {
   filterMultiSelectOptions,
   filterNestedMultiSelectOptions,
@@ -20,15 +21,9 @@ import {
   nodeToString,
 } from './multi-select-list';
 
-export type MultiSelectOption<T = unknown> = {
-  value: string;
-  label: ReactNode;
+export type MultiSelectOption<T = unknown> = SelectOption<T> & {
   ariaLabel?: string;
-  searchableText?: string;
-  group?: string;
   count?: number;
-  data?: T;
-  disabled?: boolean;
 };
 
 export type MultiSelectGroupOption<T = unknown> = Omit<

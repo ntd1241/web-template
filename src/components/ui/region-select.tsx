@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { SelectSearch } from './select-search';
+import { OptionSelect } from './option-select';
 
 export interface RegionSelectOption {
   value: string;
@@ -34,7 +34,7 @@ export function VietnamRegionSelect({
   );
 
   return (
-    <SelectSearch
+    <OptionSelect
       value={value}
       options={searchOptions}
       onChange={onValueChange}

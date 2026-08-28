@@ -1,16 +1,13 @@
 import type { MultiSelectOption } from '@/components/ui/multi-select';
-import type { SearchSelectOption } from '@/components/ui/select-search';
+import type { SelectOption } from '@/components/ui/option-select';
 import type { CustomerSelectOption } from '../../customers/api/customers.api';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { ContractStatusBadge } from '../components/contract-status-badge';
-import {
-  CONTRACT_STATUS_LABELS,
-  CONTRACT_STATUSES,
-} from '../model/contract';
+import { CONTRACT_STATUS_LABELS, CONTRACT_STATUSES } from '../model/contract';
 
 function toCustomerOption(
   customer: CustomerSelectOption,
-): SearchSelectOption<CustomerSelectOption> {
+): SelectOption<CustomerSelectOption> {
   return {
     value: customer.id,
     label: <CustomerIdentity customer={customer} />,
@@ -19,7 +16,7 @@ function toCustomerOption(
   };
 }
 
-function renderTrigger(option: SearchSelectOption | undefined) {
+function renderTrigger(option: SelectOption | undefined) {
   const customer = option?.data as CustomerSelectOption | undefined;
   if (!customer) return null;
 
@@ -35,12 +32,12 @@ function renderTrigger(option: SearchSelectOption | undefined) {
 
 export function toContractCustomerFilterOption(
   customer: CustomerSelectOption,
-): SearchSelectOption {
+): SelectOption {
   return toCustomerOption(customer);
 }
 
 export function renderContractCustomerFilterTrigger(
-  option: SearchSelectOption | undefined,
+  option: SelectOption | undefined,
 ) {
   return renderTrigger(option);
 }

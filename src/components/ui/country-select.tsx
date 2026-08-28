@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { CountryOption } from '@/lib/countries';
 import { COUNTRY_OPTIONS, getCountryFlagName } from '@/lib/countries';
 import { toAbsoluteUrl } from '@/lib/helpers';
-import { SelectSearch } from './select-search';
+import { OptionSelect } from './option-select';
 
 interface CountrySelectProps {
   value: string;
@@ -49,7 +49,7 @@ export function CountrySelect({
   );
 
   return (
-    <SelectSearch
+    <OptionSelect
       value={value}
       options={searchOptions}
       onChange={onValueChange}

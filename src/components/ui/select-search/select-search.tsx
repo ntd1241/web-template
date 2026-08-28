@@ -17,23 +17,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import type { SelectOption } from '@/components/ui/select-option';
 
-export type SearchSelectOption<T = unknown> = {
-  value: string;
-  label: ReactNode;
-  searchableText?: string;
-  group?: string;
-  data?: T;
-  disabled?: boolean;
-};
+export type { SelectOption } from '@/components/ui/select-option';
+export type SearchSelectOption<T = unknown> = SelectOption<T>;
 
 export interface SelectSearchProps<T = unknown> {
   value?: string;
   onChange?: (value: string) => void;
   onSelect?: (option: SearchSelectOption<T> | undefined) => void;
-  options: Array<SearchSelectOption<T>>;
+  options: ReadonlyArray<SearchSelectOption<T>>;
   placeholder?: string;
   searchPlaceholder?: string;
+  searchable?: boolean;
   ariaLabel?: string;
   emptyMessage?: string;
   disabled?: boolean;
@@ -49,6 +45,8 @@ export interface SelectSearchProps<T = unknown> {
   triggerContent?:
     ReactNode | ((option: SearchSelectOption<T> | undefined) => ReactNode);
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  'aria-invalid'?: boolean;
   onOpenChange?: (open: boolean) => void;
   onSearchChange?: (query: string) => void;
 }
@@ -84,7 +82,7 @@ function getTriggerContent<T>({
 }
 
 function groupOptions<T>(
-  options: Array<SearchSelectOption<T>>,
+  options: ReadonlyArray<SearchSelectOption<T>>,
 ): Array<[string, Array<SearchSelectOption<T>>]> {
   const groups = new Map<string, Array<SearchSelectOption<T>>>();
 
@@ -105,6 +103,7 @@ export function SelectSearch<T = unknown>({
   options,
   placeholder = 'Chọn...',
   searchPlaceholder = 'Tìm...',
+  searchable = true,
   ariaLabel,
   emptyMessage = 'Không có kết quả',
   disabled = false,
@@ -116,6 +115,8 @@ export function SelectSearch<T = unknown>({
   renderOption,
   triggerContent,
   className,
+  size = 'md',
+  'aria-invalid': ariaInvalid,
   onOpenChange,
   onSearchChange,
 }: SelectSearchProps<T>) {
@@ -131,14 +132,14 @@ export function SelectSearch<T = unknown>({
   }, [options, selectedOptionProp, value]);
 
   const filteredOptions = useMemo(() => {
-    if (manualFilter) {
+    if (!searchable || manualFilter) {
       return options;
     }
 
     return options.filter((option) =>
       searchMatch(getSearchSelectOptionText(option), query),
     );
-  }, [manualFilter, options, query]);
+  }, [manualFilter, options, query, searchable]);
 
   const groupedOptions = useMemo(
     () => groupOptions(filteredOptions),
@@ -184,6 +185,8 @@ export function SelectSearch<T = unknown>({
           aria-label={ariaLabel}
           aria-busy={loading}
           disabled={disabled}
+          size={size}
+          aria-invalid={ariaInvalid}
           variant="outline"
           mode="input"
           placeholder={!selectedOption}
@@ -201,14 +204,16 @@ export function SelectSearch<T = unknown>({
         align="start"
       >
         <Command shouldFilter={false} className="bg-popover text-foreground">
-          <CommandInput
-            value={query}
-            onValueChange={(nextQuery) => {
-              setQuery(nextQuery);
-              onSearchChange?.(nextQuery);
-            }}
-            placeholder={searchPlaceholder}
-          />
+          {searchable ? (
+            <CommandInput
+              value={query}
+              onValueChange={(nextQuery) => {
+                setQuery(nextQuery);
+                onSearchChange?.(nextQuery);
+              }}
+              placeholder={searchPlaceholder}
+            />
+          ) : null}
           <CommandList>
             {loading ? (
               <div
@@ -262,3 +267,6 @@ export function SelectSearch<T = unknown>({
     </Popover>
   );
 }
+
+export const OptionSelect = SelectSearch;
+export type OptionSelectProps<T = unknown> = SelectSearchProps<T>;

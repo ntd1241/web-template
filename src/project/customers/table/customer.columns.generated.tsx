@@ -18,10 +18,6 @@ import {
 import { CustomerCell } from '../components/customer-cell';
 import { BUSINESS_TYPE_LABELS, type Customer } from '../model/customer';
 import {
-  CUSTOMER_BUSINESS_TYPE_FILTER_OPTIONS,
-  CUSTOMER_STATUS_FILTER_OPTIONS,
-} from './customer-column-filters';
-import {
   CustomerBusinessTypeColumnFilter,
   CustomerContactColumnFilter,
   CustomerStatusColumnFilter,
@@ -85,7 +81,6 @@ export function useCustomerColumns(
         headerFilter: (
           <CustomerBusinessTypeColumnFilter
             value={params.businessTypes}
-            options={CUSTOMER_BUSINESS_TYPE_FILTER_OPTIONS}
             onChange={params.onBusinessTypesChange}
           />
         ),
@@ -143,7 +138,6 @@ export function useCustomerColumns(
         headerFilter: (
           <CustomerStatusColumnFilter
             value={params.statuses}
-            options={CUSTOMER_STATUS_FILTER_OPTIONS}
             onChange={params.onStatusesChange}
           />
         ),

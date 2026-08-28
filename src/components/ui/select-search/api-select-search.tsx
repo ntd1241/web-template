@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { SelectSearchOption, SelectSearchProps } from './select-search';
-import { SelectSearch } from './select-search';
+import type { OptionSelectProps, SelectOption } from './select-search';
+import { OptionSelect } from './select-search';
 
 export type ApiSelectSearchResult<T = unknown> =
-  | Array<SelectSearchOption<T>>
+  | Array<SelectOption<T>>
   | {
-      options: Array<SelectSearchOption<T>>;
+      options: Array<SelectOption<T>>;
     };
 
 export type ApiSelectSearchLoadOptions<T = unknown> = (params: {
@@ -14,11 +14,11 @@ export type ApiSelectSearchLoadOptions<T = unknown> = (params: {
 }) => Promise<ApiSelectSearchResult<T>>;
 
 export interface ApiSelectSearchProps<T = unknown> extends Omit<
-  SelectSearchProps<T>,
+  OptionSelectProps<T>,
   'options' | 'loading' | 'loadingMessage' | 'selectedOption' | 'onSearchChange'
 > {
   loadOptions: ApiSelectSearchLoadOptions<T>;
-  selectedOption?: SelectSearchOption<T>;
+  selectedOption?: SelectOption<T>;
   debounceMs?: number;
   minSearchLength?: number;
   minSearchMessage?: string;
@@ -26,9 +26,14 @@ export interface ApiSelectSearchProps<T = unknown> extends Omit<
   errorMessage?: string;
 }
 
+export type ApiOptionSelectResult<T = unknown> = ApiSelectSearchResult<T>;
+export type ApiOptionSelectLoadOptions<T = unknown> =
+  ApiSelectSearchLoadOptions<T>;
+export type ApiOptionSelectProps<T = unknown> = ApiSelectSearchProps<T>;
+
 function normalizeResult<T>(
   result: ApiSelectSearchResult<T>,
-): Array<SelectSearchOption<T>> {
+): Array<SelectOption<T>> {
   return Array.isArray(result) ? result : result.options;
 }
 
@@ -46,9 +51,9 @@ export function ApiSelectSearch<T = unknown>({
 }: ApiSelectSearchProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [options, setOptions] = useState<Array<SelectSearchOption<T>>>([]);
+  const [options, setOptions] = useState<Array<SelectOption<T>>>([]);
   const [selectedOptionState, setSelectedOptionState] = useState<
-    SelectSearchOption<T> | undefined
+    SelectOption<T> | undefined
   >(selectedOption);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
@@ -118,7 +123,7 @@ export function ApiSelectSearch<T = unknown>({
   }, [debounceMs, isOpen, minSearchLength, query, errorMessageProp]);
 
   const mergedOptions = useMemo(() => {
-    const uniqueOptions = new Map<string, SelectSearchOption<T>>();
+    const uniqueOptions = new Map<string, SelectOption<T>>();
 
     if (selectedOptionState) {
       uniqueOptions.set(selectedOptionState.value, selectedOptionState);
@@ -140,7 +145,7 @@ export function ApiSelectSearch<T = unknown>({
     }
   };
 
-  const handleSelect: NonNullable<SelectSearchProps<T>['onSelect']> = (
+  const handleSelect: NonNullable<OptionSelectProps<T>['onSelect']> = (
     option,
   ) => {
     setSelectedOptionState(option);
@@ -156,7 +161,7 @@ export function ApiSelectSearch<T = unknown>({
       : undefined;
 
   return (
-    <SelectSearch
+    <OptionSelect
       {...props}
       options={mergedOptions}
       selectedOption={selectedOptionState}
@@ -169,3 +174,5 @@ export function ApiSelectSearch<T = unknown>({
     />
   );
 }
+
+export const ApiOptionSelect = ApiSelectSearch;

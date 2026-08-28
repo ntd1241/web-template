@@ -35,9 +35,7 @@ function componentName(
 function optionsType(
   field: Extract<ColumnFilterField, { type: 'selectSearch' | 'multiSelect' }>,
 ) {
-  return field.type === 'selectSearch'
-    ? 'SearchSelectOption'
-    : 'MultiSelectOption';
+  return field.type === 'selectSearch' ? 'SelectOption' : 'MultiSelectOption';
 }
 
 function optionsName(spec: ResolvedColumnFilterSpec, field: ColumnFilterField) {
@@ -73,8 +71,8 @@ function emitProps(field: ColumnFilterField): string[] {
       '  onChange: (value: string) => void;',
       `  options${field.optionsSource === 'prop' ? '' : '?'}: ${optionsType(field)}[];`,
       '  loading?: boolean;',
-      "  triggerContent?: SelectSearchProps['triggerContent'];",
-      "  renderOption?: SelectSearchProps['renderOption'];",
+      "  triggerContent?: OptionSelectProps['triggerContent'];",
+      "  renderOption?: OptionSelectProps['renderOption'];",
     );
   } else if (field.type === 'multiSelect') {
     lines.push(
@@ -147,10 +145,11 @@ function emitComponent(
     const resolvedOptions =
       field.optionsSource === 'static' ? optionsName(spec, field) : 'options';
     lines.push(
-      '    <SelectSearch',
+      '    <OptionSelect',
       '      value={value}',
       '      onChange={onChange}',
       `      options={${resolvedOptions}}`,
+      '      searchable',
       `      placeholder={${field.placeholder ? quote(field.placeholder) : "''"}}`,
       `      searchPlaceholder={${field.searchPlaceholder ? quote(field.searchPlaceholder) : "'Tìm...'"}}`,
       ...(field.loadingMessage
@@ -223,7 +222,7 @@ function emitImports(spec: ResolvedColumnFilterSpec): string[] {
   }
   if (imports.has('selectSearch')) {
     lines.push(
-      "import { SelectSearch, type SearchSelectOption, type SelectSearchProps } from '@/components/ui/select-search';",
+      "import { OptionSelect, type OptionSelectProps, type SelectOption } from '@/components/ui/option-select';",
     );
   }
   if (imports.has('multiSelect')) {

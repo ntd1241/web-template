@@ -37,5 +37,6 @@ npm run gen:column-filter -- <spec.ts> <out.tsx>
 ```
 
 Entity-specific option conversion and renderer slots stay outside the generated file. For example,
-the contract feature can convert a customer record to `SearchSelectOption` and pass a customer
-identity renderer into the generated searchable select.
+the contract feature can convert a customer record to `SelectOption` and pass a customer identity
+renderer into the generated `OptionSelect`. `selectSearch` is retained as the builder field name for
+backward compatibility; it emits `OptionSelect` with `searchable` enabled.

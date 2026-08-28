@@ -190,21 +190,15 @@ export function buildFormFieldControl(
     }
     case 'select': {
       const optionsExpression = options.optionsExpression ?? 'options';
-      const selectLabel = attribute('label', options.selectLabel);
-      return `<Select value={${value}} onValueChange={${change}}>
-  <FormControl>
-    <SelectTrigger>
-      <SelectValue${placeholder}${selectLabel} />
-    </SelectTrigger>
-  </FormControl>
-  <SelectContent>
-    {${optionsExpression}.map((opt) => (
-      <SelectItem key={opt.value} value={opt.value}>
-        {opt.label}
-      </SelectItem>
-    ))}
-  </SelectContent>
-</Select>`;
+      const ariaLabel = expressionAttribute(
+        'ariaLabel',
+        options.ariaLabelExpression,
+      );
+      const disabled = expressionAttribute(
+        'disabled',
+        options.disabledExpression,
+      );
+      return `${controlOpen(options)}<OptionSelect value={${value}} onChange={${change}} options={${optionsExpression}} searchable={false}${placeholder}${ariaLabel}${disabled} />${controlClose(options)}`;
     }
     case 'combobox':
     case 'searchSelect': {
@@ -214,7 +208,7 @@ export function buildFormFieldControl(
         options.searchPlaceholder,
       );
       const emptyMessage = attribute('emptyMessage', options.emptyMessage);
-      return `${controlOpen(options)}<SelectSearch value={${value}} onChange={${change}} options={${optionsExpression}}${placeholder}${searchPlaceholder}${emptyMessage} />${controlClose(options)}`;
+      return `${controlOpen(options)}<OptionSelect value={${value}} onChange={${change}} options={${optionsExpression}} searchable${placeholder}${searchPlaceholder}${emptyMessage} />${controlClose(options)}`;
     }
     case 'apiSearchSelect': {
       const searchPlaceholder = attribute(
@@ -239,7 +233,7 @@ export function buildFormFieldControl(
           ? ''
           : ` debounceMs={${options.debounceMs}}`;
 
-      return `${controlOpen(options)}<ApiSelectSearch value={${value}} onChange={${change}}${loadOptions}${selectedOption}${placeholder}${searchPlaceholder}${emptyMessage}${minSearchLength}${debounceMs} />${controlClose(options)}`;
+      return `${controlOpen(options)}<ApiOptionSelect value={${value}} onChange={${change}}${loadOptions}${selectedOption}${placeholder}${searchPlaceholder}${emptyMessage}${minSearchLength}${debounceMs} />${controlClose(options)}`;
     }
     case 'customerSelect':
       return `${controlOpen(options)}<CustomerSelect value={${value}} onChange={${change}}${placeholder} />${controlClose(options)}`;

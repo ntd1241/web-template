@@ -38,9 +38,11 @@ arrives with the Phase 3 orchestrator; this table is the agent-facing index unti
 
 [`src/builders/shared/form-field-builder.ts`](./shared/form-field-builder.ts) is the lower-level
 form-control builder used by `form` and `editor-table`. It maps normalized field kinds to the existing
-UI primitives (`Input`, `DatePickerInput`, `Select`, and so on), while higher-level builders provide
-binding expressions and surface-specific attributes. It is intentionally not a CLI generator: it is
-a composition primitive so generated outputs remain scaffold-and-own files.
+UI primitives (`Input`, `DatePickerInput`, `OptionSelect`, and so on), while higher-level builders
+provide binding expressions and surface-specific attributes. Data-driven single-select fields use
+`OptionSelect`; the low-level `Select` remains for compound/custom compositions such as `inputSelect`.
+It is intentionally not a CLI generator: it is a composition primitive so generated outputs remain
+scaffold-and-own files.
 
 The matching control-level Zod schemas live in
 [`src/builders/shared/form-field-spec.ts`](./shared/form-field-spec.ts). Higher-level specs extend

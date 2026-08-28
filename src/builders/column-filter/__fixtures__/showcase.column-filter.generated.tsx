@@ -3,24 +3,22 @@
  * You own this file now — wire the generated filters into the table and keep domain mapping outside the builder.
  */
 import { cn } from '@/lib/utils';
-import { SearchInput } from '@/components/ui/inputs/search-input';
 import {
-  SelectSearch,
-  type SearchSelectOption,
-  type SelectSearchProps,
-} from '@/components/ui/select-search';
+  DateRangeFilter,
+  NumberRangeFilter,
+  type DateRangeValue,
+  type NumberRangeValue,
+} from '@/components/ui/filters/range-filter';
+import { SearchInput } from '@/components/ui/inputs/search-input';
 import {
   MultiSelect,
   type MultiSelectOption,
 } from '@/components/ui/multi-select';
 import {
-  NumberRangeFilter,
-  type NumberRangeValue,
-} from '@/components/ui/filters/range-filter';
-import {
-  DateRangeFilter,
-  type DateRangeValue,
-} from '@/components/ui/filters/range-filter';
+  OptionSelect,
+  type OptionSelectProps,
+  type SelectOption,
+} from '@/components/ui/option-select';
 
 export interface TextColumnFilterProps {
   value: string;
@@ -32,10 +30,10 @@ export interface TextColumnFilterProps {
 export interface CustomerColumnFilterProps {
   value: string;
   onChange: (value: string) => void;
-  options: SearchSelectOption[];
+  options: SelectOption[];
   loading?: boolean;
-  triggerContent?: SelectSearchProps['triggerContent'];
-  renderOption?: SelectSearchProps['renderOption'];
+  triggerContent?: OptionSelectProps['triggerContent'];
+  renderOption?: OptionSelectProps['renderOption'];
   disabled?: boolean;
   className?: string;
 }
@@ -73,8 +71,8 @@ export function ContractTextColumnFilter({
       value={value}
       onSearch={onChange}
       debounceMs={300}
-      placeholder=""
-      aria-label="Tìm theo tên hoặc mã hợp đồng"
+      placeholder={''}
+      aria-label={'Tìm theo tên hoặc mã hợp đồng'}
       variant="sm"
       className={cn('min-w-0 w-full shrink-0', className)}
       disabled={disabled}
@@ -93,14 +91,15 @@ export function ContractCustomerColumnFilter({
   className,
 }: CustomerColumnFilterProps) {
   return (
-    <SelectSearch
+    <OptionSelect
       value={value}
       onChange={onChange}
       options={options}
-      placeholder=""
-      searchPlaceholder="Tìm khách hàng..."
-      loadingMessage="Đang tải khách hàng..."
-      ariaLabel="Khách hàng"
+      searchable
+      placeholder={''}
+      searchPlaceholder={'Tìm khách hàng...'}
+      loadingMessage={'Đang tải khách hàng...'}
+      ariaLabel={'Khách hàng'}
       loading={loading}
       disabled={disabled}
       triggerContent={triggerContent}
@@ -123,16 +122,16 @@ export function ContractStatusColumnFilter({
   return (
     <MultiSelect
       value={value}
+      onChange={onChange}
       options={options}
-      placeholder=""
-      searchPlaceholder="Tìm trạng thái..."
+      placeholder={''}
+      searchPlaceholder={'Tìm trạng thái...'}
       maxChips={0}
       disabled={disabled}
       className={cn(
         'h-7 min-h-7 min-w-0 rounded-md bg-background px-2.5 text-xs',
         className,
       )}
-      onChange={onChange}
     />
   );
 }
@@ -148,8 +147,8 @@ export function ContractOutstandingColumnFilter({
       <NumberRangeFilter
         value={value}
         onChange={onChange}
-        label="Còn phải thu"
-        placeholder=""
+        label={'Còn phải thu'}
+        placeholder={''}
         disabled={disabled}
       />
     </div>
@@ -167,8 +166,8 @@ export function ContractNextDueColumnFilter({
       <DateRangeFilter
         value={value}
         onChange={onChange}
-        label="Hạn gần nhất"
-        placeholder=""
+        label={'Hạn gần nhất'}
+        placeholder={''}
         disabled={disabled}
       />
     </div>

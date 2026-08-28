@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { SelectSearch } from './select-search';
+import { OptionSelect, SelectSearch } from './select-search';
 
 const OPTIONS = [
   { value: 'nhan-vien', label: 'Nhân viên' },
@@ -44,6 +44,17 @@ describe('SelectSearch', () => {
 
     expect(screen.getByText('Nhân sự')).toBeInTheDocument();
     expect(screen.getAllByTestId('custom-option')).toHaveLength(3);
+  });
+
+  it('can disable the search input while keeping the data-driven selector', async () => {
+    const user = userEvent.setup();
+
+    render(<OptionSelect options={OPTIONS} searchable={false} />);
+
+    await user.click(screen.getByRole('combobox'));
+
+    expect(screen.queryByPlaceholderText('Tìm...')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(OPTIONS.length);
   });
 
   it('selects and clears an option by clicking the selected option again', async () => {

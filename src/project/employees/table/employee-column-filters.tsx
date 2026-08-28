@@ -1,10 +1,11 @@
-import type { MultiSelectOption } from '@/components/ui/multi-select';
-import type { SearchSelectOption } from '@/components/ui/select-search';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/data-grid-columns';
+import type { MultiSelectOption } from '@/components/ui/multi-select';
+import type { SelectOption } from '@/components/ui/option-select';
+import { ROLE_COLOR_LABELS } from '../../model/role-color';
 import {
-  EmployeeRoleBadge,
   EMPLOYEE_ACCOUNT_BADGE_CONFIG,
+  EmployeeRoleBadge,
 } from '../components/employee-badges';
 import {
   EMPLOYEE_STATUS_LABELS,
@@ -12,7 +13,6 @@ import {
   type EmployeeRoleOption,
   type EmployeeStatus,
 } from '../model/employee';
-import { ROLE_COLOR_LABELS } from '../../model/role-color';
 
 export const EMPLOYEE_STATUS_FILTER_OPTIONS: MultiSelectOption[] =
   EMPLOYEE_STATUSES.map((status) => ({
@@ -30,7 +30,7 @@ export const EMPLOYEE_STATUS_FILTER_OPTIONS: MultiSelectOption[] =
     data: status,
   }));
 
-export const EMPLOYEE_ACCOUNT_FILTER_OPTIONS: SearchSelectOption[] = [
+export const EMPLOYEE_ACCOUNT_FILTER_OPTIONS: SelectOption[] = [
   {
     value: 'linked',
     label: <StatusBadge status="true" config={EMPLOYEE_ACCOUNT_BADGE_CONFIG} />,
@@ -38,7 +38,9 @@ export const EMPLOYEE_ACCOUNT_FILTER_OPTIONS: SearchSelectOption[] = [
   },
   {
     value: 'unlinked',
-    label: <StatusBadge status="false" config={EMPLOYEE_ACCOUNT_BADGE_CONFIG} />,
+    label: (
+      <StatusBadge status="false" config={EMPLOYEE_ACCOUNT_BADGE_CONFIG} />
+    ),
     searchableText: 'Chưa liên kết',
   },
 ];
@@ -54,9 +56,7 @@ export function toEmployeeRoleFilterOption(
   };
 }
 
-export function toEmployeeStatusFilterValue(
-  value: string[],
-): EmployeeStatus[] {
+export function toEmployeeStatusFilterValue(value: string[]): EmployeeStatus[] {
   return value.filter((status): status is EmployeeStatus =>
     EMPLOYEE_STATUSES.includes(status as EmployeeStatus),
   );
