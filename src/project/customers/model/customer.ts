@@ -93,6 +93,22 @@ export interface CustomerListParams {
   tagIds?: string[];
 }
 
+export interface CustomerListFilters {
+  customerSearch: string;
+  businessTypes: BusinessType[];
+  contactSearch: string;
+  statuses: CustomerStatus[];
+  tagIds: string[];
+}
+
+export const CUSTOMER_LIST_INITIAL_FILTERS: CustomerListFilters = {
+  customerSearch: '',
+  businessTypes: [],
+  contactSearch: '',
+  statuses: [],
+  tagIds: [],
+};
+
 export interface CustomerListResult {
   customers: Customer[];
   total: number;

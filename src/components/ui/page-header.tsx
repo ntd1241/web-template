@@ -26,13 +26,15 @@ export function PageHeader({
         className,
       )}
     >
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         {onBack ? <PageBackButton label={backLabel} onClick={onBack} /> : null}
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
-        {titleAside ? <div className="shrink-0">{titleAside}</div> : null}
+        <h1 className="shrink-0 text-lg font-semibold text-foreground">
+          {title}
+        </h1>
+        {titleAside ? <div className="min-w-0 flex-1">{titleAside}</div> : null}
       </div>
       {actions ? (
-        <div className="flex items-center gap-2">{actions}</div>
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
       ) : null}
     </div>
   );

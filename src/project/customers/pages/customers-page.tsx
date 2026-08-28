@@ -1,10 +1,17 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  createTenantSavedView,
+  deleteTenantSavedView,
+  loadTenantSavedViews,
+  updateTenantSavedView,
+} from '@/project/saved-views/api/saved-views.api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,10 +41,15 @@ import {
   updateCustomer,
   uploadCustomerImage,
 } from '../api/customers.api';
+import { CustomerSavedViews } from '../components/customer-saved-views';
 import {
   CustomerFormDialog,
   useCustomerForm,
 } from '../forms/customer-form.generated';
+import {
+  CustomerSavedViewFormDialog,
+  useCustomerSavedViewForm,
+} from '../forms/customer-saved-view-form.generated';
 import { useCustomerList } from '../hooks/use-customer-list';
 import {
   CUSTOMER_STATUS_LABELS,
@@ -45,7 +57,16 @@ import {
   mapCustomerToFormValues,
   type Customer,
   type CustomerFormValues,
+  type CustomerListFilters,
 } from '../model/customer';
+import {
+  CUSTOMER_SAVED_VIEW_MANAGE_PERMISSION,
+  CUSTOMER_SAVED_VIEW_RESOURCE,
+  customerSavedViewConfigEquals,
+  normalizeCustomerSavedViewConfig,
+  type CustomerSavedView,
+  type CustomerSavedViewConfig,
+} from '../model/customer-saved-view';
 import { useCustomerColumns } from '../table/customer.columns.generated';
 import { CustomerFilterBar } from '../table/customer.filters.generated';
 
@@ -72,6 +93,7 @@ const customerStatItems = [
 
 export function CustomersPage() {
   const { tenantId } = useTenant();
+  const { userId, hasPermission } = useUser();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -79,7 +101,16 @@ export function CustomersPage() {
     null,
   );
   const [customerImageFile, setCustomerImageFile] = useState<File | null>(null);
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editingView, setEditingView] = useState<CustomerSavedView | null>(
+    null,
+  );
+  const [deletingView, setDeletingView] = useState<CustomerSavedView | null>(
+    null,
+  );
   const form = useCustomerForm();
+  const savedViewForm = useCustomerSavedViewForm();
 
   const {
     customers,
@@ -87,7 +118,9 @@ export function CustomersPage() {
     keyword,
     setKeyword,
     filters,
+    setFilters,
     setFilter,
+    resetAll,
     pagination,
     onPaginationChange,
     tenantQuery,
@@ -96,15 +129,161 @@ export function CustomersPage() {
     customerTagsByCustomerId,
   } = useCustomerList();
 
+  const savedViewsQuery = useQuery({
+    queryKey: [
+      'project',
+      'saved-views',
+      tenantId,
+      CUSTOMER_SAVED_VIEW_RESOURCE,
+    ],
+    queryFn: ({ signal }) =>
+      loadTenantSavedViews<CustomerListFilters>(
+        tenantId!,
+        CUSTOMER_SAVED_VIEW_RESOURCE,
+        signal,
+      ),
+    enabled: Boolean(tenantId),
+    staleTime: 60 * 1000,
+  });
+
   const customerRegionQuery = useQuery({
     queryKey: ['project', 'customers', 'regions'],
     queryFn: loadCustomerRegionOptions,
   });
 
+  const { columnVisibility, onColumnVisibilityChange } =
+    usePersistedColumnVisibility('project.customers.columnVisibility');
+  const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
+    'project.customers.columnOrder',
+  );
+
+  const currentViewConfig = useMemo<CustomerSavedViewConfig>(
+    () => ({
+      version: 1,
+      keyword,
+      filters,
+      columnVisibility,
+      columnOrder,
+    }),
+    [columnOrder, columnVisibility, filters, keyword],
+  );
+  const savedViews = savedViewsQuery.data ?? [];
+  const activeView =
+    savedViews.find((view) => view.id === activeViewId) ?? null;
+  const isActiveViewDirty = Boolean(
+    activeView &&
+    !customerSavedViewConfigEquals(
+      currentViewConfig,
+      normalizeCustomerSavedViewConfig(activeView.config),
+    ),
+  );
+  const canManageSavedViews = hasPermission(
+    CUSTOMER_SAVED_VIEW_MANAGE_PERMISSION,
+  );
+
   const invalidateCustomers = () =>
     queryClient.invalidateQueries({
       queryKey: ['project', 'customers'],
     });
+
+  const invalidateSavedViews = () =>
+    queryClient.invalidateQueries({
+      queryKey: [
+        'project',
+        'saved-views',
+        tenantId,
+        CUSTOMER_SAVED_VIEW_RESOURCE,
+      ],
+    });
+
+  function selectSavedView(viewId: string | null) {
+    if (!viewId) {
+      setActiveViewId(null);
+      resetAll();
+      return;
+    }
+
+    const view = savedViews.find((candidate) => candidate.id === viewId);
+    if (!view) return;
+
+    const config = normalizeCustomerSavedViewConfig(view.config);
+    setActiveViewId(view.id);
+    setKeyword(config.keyword);
+    setFilters({
+      ...config.filters,
+      businessTypes: [...config.filters.businessTypes],
+      statuses: [...config.filters.statuses],
+      tagIds: [...config.filters.tagIds],
+    });
+    onColumnVisibilityChange(config.columnVisibility);
+    onColumnOrderChange(config.columnOrder);
+  }
+
+  function openCreateSavedView() {
+    setEditingView(null);
+    savedViewForm.reset({ name: '' });
+    setViewDialogOpen(true);
+  }
+
+  function openEditSavedView(view: CustomerSavedView) {
+    selectSavedView(view.id);
+    setEditingView(view);
+    savedViewForm.reset({ name: view.name });
+    setViewDialogOpen(true);
+  }
+
+  const savedViewMutation = useMutation({
+    mutationFn: async ({
+      name,
+      view,
+    }: {
+      name: string;
+      view: CustomerSavedView | null;
+    }) => {
+      if (!tenantId || !userId) {
+        throw new Error('Chưa xác định tenant hoặc tài khoản đăng nhập.');
+      }
+
+      return view
+        ? updateTenantSavedView(tenantId, userId, view, name, currentViewConfig)
+        : createTenantSavedView(
+            tenantId,
+            userId,
+            CUSTOMER_SAVED_VIEW_RESOURCE,
+            name,
+            currentViewConfig,
+          );
+    },
+    onSuccess: async (view, variables) => {
+      setActiveViewId(view.id);
+      setViewDialogOpen(false);
+      setEditingView(null);
+      await invalidateSavedViews();
+      toast.success(
+        variables.view
+          ? 'Đã cập nhật chế độ xem.'
+          : 'Đã tạo chế độ xem dùng chung.',
+      );
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+
+  const deleteSavedViewMutation = useMutation({
+    mutationFn: (view: CustomerSavedView) => {
+      if (!tenantId) throw new Error('Chưa xác định tenant.');
+      return deleteTenantSavedView(tenantId, view.id);
+    },
+    onSuccess: async (_, view) => {
+      if (activeViewId === view.id) {
+        setActiveViewId(null);
+        resetAll();
+      }
+      setDeletingView(null);
+      await invalidateSavedViews();
+      toast.success('Đã xóa chế độ xem.');
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
 
   const saveMutation = useMutation({
     mutationFn: async (values: CustomerFormValues) => {
@@ -161,24 +340,6 @@ export function CustomersPage() {
     setDialogOpen(true);
   }
 
-  const pageHeader = (
-    <PageHeader
-      title="Khách hàng"
-      actions={
-        <ShortcutTooltip label="Thêm khách hàng" shortcut="Alt + N">
-          <Button
-            variant="primary"
-            onClick={openCreate}
-            data-shortcut-action="create"
-          >
-            <Plus />
-            Thêm khách hàng
-          </Button>
-        </ShortcutTooltip>
-      }
-    />
-  );
-
   const openEdit = useCallback(
     (customer: Customer) => {
       setEditingCustomer(customer);
@@ -206,11 +367,6 @@ export function CustomersPage() {
     onStatusesChange: (value) =>
       setFilter('statuses', value as typeof filters.statuses),
   });
-  const { columnVisibility, onColumnVisibilityChange } =
-    usePersistedColumnVisibility('project.customers.columnVisibility');
-  const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
-    'project.customers.columnOrder',
-  );
   const table = useReactTable({
     data: customers,
     columns,
@@ -226,6 +382,45 @@ export function CustomersPage() {
 
   const listError = tenantQuery.error ?? workspaceQuery.error;
   const isListLoading = tenantQuery.isPending || workspaceQuery.isLoading;
+
+  const pageHeader = (
+    <PageHeader
+      title="Khách hàng"
+      titleAside={
+        <CustomerSavedViews
+          views={savedViews}
+          activeViewId={activeViewId}
+          canManage={canManageSavedViews}
+          isLoading={savedViewsQuery.isPending}
+          isDirty={isActiveViewDirty}
+          isSaving={savedViewMutation.isPending}
+          onSelect={selectSavedView}
+          onCreate={openCreateSavedView}
+          onEdit={openEditSavedView}
+          onSaveCurrent={() => {
+            if (activeView) {
+              savedViewMutation.mutate({
+                name: activeView.name,
+                view: activeView,
+              });
+            }
+          }}
+        />
+      }
+      actions={
+        <ShortcutTooltip label="Thêm khách hàng" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={openCreate}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm khách hàng
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
@@ -324,6 +519,26 @@ export function CustomersPage() {
         isSaving={saveMutation.isPending}
         title={editingCustomer ? 'Sửa khách hàng' : 'Thêm khách hàng'}
       />
+      <CustomerSavedViewFormDialog
+        open={viewDialogOpen}
+        mode={editingView ? 'edit' : 'create'}
+        form={savedViewForm}
+        isSaving={savedViewMutation.isPending}
+        onOpenChange={(open) => {
+          setViewDialogOpen(open);
+          if (!open) setEditingView(null);
+        }}
+        onSubmit={(values) =>
+          savedViewMutation.mutate({ name: values.name, view: editingView })
+        }
+        title={editingView ? 'Sửa chế độ xem' : 'Tạo chế độ xem'}
+        onDelete={() => {
+          if (!editingView) return;
+          setViewDialogOpen(false);
+          setEditingView(null);
+          setDeletingView(editingView);
+        }}
+      />
       <ConfirmDialog
         open={Boolean(deletingCustomer)}
         onOpenChange={(open) => {
@@ -339,6 +554,23 @@ export function CustomersPage() {
         confirmVariant="destructive"
         onConfirm={() => {
           if (deletingCustomer) deleteMutation.mutate(deletingCustomer.id);
+        }}
+      />
+      <ConfirmDialog
+        open={Boolean(deletingView)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingView(null);
+        }}
+        title="Xóa chế độ xem?"
+        description={
+          deletingView
+            ? `Chế độ xem "${deletingView.name}" sẽ bị xóa cho toàn bộ tenant.`
+            : ''
+        }
+        confirmLabel="Xóa chế độ xem"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (deletingView) deleteSavedViewMutation.mutate(deletingView);
         }}
       />
     </div>

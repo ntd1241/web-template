@@ -9,30 +9,18 @@ import {
 } from '../api/customers.api';
 import {
   BUSINESS_TYPES,
+  CUSTOMER_LIST_INITIAL_FILTERS,
   CUSTOMER_STATUSES,
   type BusinessType,
+  type CustomerListFilters,
   type CustomerListParams,
   type CustomerStatus,
 } from '../model/customer';
 
-export interface CustomerListFilters {
-  customerSearch: string;
-  businessTypes: BusinessType[];
-  contactSearch: string;
-  statuses: CustomerStatus[];
-  tagIds: string[];
-}
-
 export function useCustomerList() {
   const tenantState = useTenant();
   const listState = useTableListState<CustomerListFilters>({
-    initialFilters: {
-      customerSearch: '',
-      businessTypes: [],
-      contactSearch: '',
-      statuses: [],
-      tagIds: [],
-    },
+    initialFilters: CUSTOMER_LIST_INITIAL_FILTERS,
     initialPageSize: 10,
   });
 
