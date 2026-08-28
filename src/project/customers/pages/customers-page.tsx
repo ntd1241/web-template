@@ -41,6 +41,7 @@ import {
   updateCustomer,
   uploadCustomerImage,
 } from '../api/customers.api';
+import { CustomerFilterDrawer } from '../components/customer-filter-drawer';
 import { CustomerSavedViews } from '../components/customer-saved-views';
 import {
   CustomerFormDialog,
@@ -56,6 +57,7 @@ import {
   emptyCustomerForm,
   mapCustomerToFormValues,
   type Customer,
+  type CustomerFilterFormValues,
   type CustomerFormValues,
   type CustomerListFilters,
 } from '../model/customer';
@@ -492,6 +494,21 @@ export function CustomersPage() {
                 >
                   <RefreshCw />
                 </Button>
+                <CustomerFilterDrawer
+                  filters={filters}
+                  onApply={(values: CustomerFilterFormValues) =>
+                    setFilters(values)
+                  }
+                  onReset={() =>
+                    setFilters({
+                      customerSearch: '',
+                      businessTypes: [],
+                      contactSearch: '',
+                      tagIds: [],
+                      statuses: [],
+                    })
+                  }
+                />
                 <DataGridColumnVisibility table={table} mode="drawer" />
               </>
             }

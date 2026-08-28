@@ -101,6 +101,22 @@ export interface CustomerListFilters {
   tagIds: string[];
 }
 
+export const customerFilterFormSchema = z.object({
+  customerSearch: z
+    .string()
+    .trim()
+    .max(100, 'Từ khóa khách hàng không được quá 100 ký tự.'),
+  businessTypes: z.array(z.enum(BUSINESS_TYPES)),
+  contactSearch: z
+    .string()
+    .trim()
+    .max(100, 'Từ khóa liên hệ không được quá 100 ký tự.'),
+  tagIds: z.array(z.string()),
+  statuses: z.array(z.enum(CUSTOMER_STATUSES)),
+});
+
+export type CustomerFilterFormValues = z.infer<typeof customerFilterFormSchema>;
+
 export const CUSTOMER_LIST_INITIAL_FILTERS: CustomerListFilters = {
   customerSearch: '',
   businessTypes: [],
