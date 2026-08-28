@@ -263,4 +263,14 @@ describe('MultiSelect', () => {
     expect(placeholder).toHaveClass('font-normal');
     expect(placeholder).toHaveClass('text-muted-foreground/80');
   });
+
+  it('matches input-like border and shadow styling', () => {
+    render(<MultiSelect options={OPTIONS} />);
+
+    expect(screen.getByRole('combobox')).toHaveClass(
+      'border-input',
+      'shadow-xs',
+      'shadow-black/5',
+    );
+  });
 });

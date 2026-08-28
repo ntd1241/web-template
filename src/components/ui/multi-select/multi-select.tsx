@@ -64,7 +64,7 @@ export interface MultiSelectProps<T = unknown> {
 }
 
 const multiSelectTriggerVariants = cva(
-  'flex w-full items-center justify-between gap-2 rounded-md border border-border font-normal text-foreground',
+  'flex w-full items-center justify-between gap-2 rounded-md border border-input font-normal text-foreground shadow-xs shadow-black/5',
   {
     variants: {
       size: {

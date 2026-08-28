@@ -28,6 +28,16 @@ describe('SelectSearch', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('matches input-like border and shadow styling', () => {
+    render(<SelectSearch options={OPTIONS} />);
+
+    expect(screen.getByRole('combobox')).toHaveClass(
+      'border-input',
+      'shadow-xs',
+      'shadow-black/5',
+    );
+  });
+
   it('supports grouped and custom option rendering', async () => {
     const user = userEvent.setup();
 
