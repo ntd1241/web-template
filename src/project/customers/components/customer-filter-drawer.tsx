@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataGridFilterDrawer } from '@/components/ui/data-grid-filter-drawer';
-import { DrawerClose } from '@/components/ui/drawer';
 import {
   customerFilterDefaultValues,
   CustomerFilterForm,
@@ -16,12 +15,20 @@ interface CustomerFilterDrawerProps {
   filters: CustomerListFilters;
   onApply: (values: CustomerFilterFormValues) => void;
   onReset: () => void;
+  onSaveToView?: (values: CustomerFilterFormValues) => void;
+  canSaveToView?: boolean;
+  saveDisabled?: boolean;
+  isSaving?: boolean;
 }
 
 export function CustomerFilterDrawer({
   filters,
   onApply,
   onReset,
+  onSaveToView,
+  canSaveToView = true,
+  saveDisabled = false,
+  isSaving = false,
 }: CustomerFilterDrawerProps) {
   const [open, setOpen] = useState(false);
   const form = useCustomerFilterForm({ defaultValues: filters });
@@ -45,27 +52,33 @@ export function CustomerFilterDrawer({
     onReset();
   };
 
+  const handleSaveToView = () => {
+    if (!onSaveToView) return;
+
+    void form.handleSubmit((values) => {
+      onApply(values);
+      onSaveToView(values);
+      setOpen(false);
+    })();
+  };
+
   return (
     <DataGridFilterDrawer
       open={open}
       onOpenChange={handleOpenChange}
       title="Bộ lọc khách hàng"
-      description="Lọc chi tiết danh sách khách hàng."
+      onSaveToView={onSaveToView ? handleSaveToView : undefined}
+      canSaveToView={canSaveToView}
+      saveDisabled={saveDisabled && !form.formState.isDirty}
+      isSaving={isSaving}
       footer={
         <div className="flex items-center justify-between gap-2">
           <Button type="button" variant="ghost" onClick={handleReset}>
             Xóa bộ lọc
           </Button>
-          <div className="flex items-center gap-2">
-            <DrawerClose asChild>
-              <Button type="button" variant="outline">
-                Đóng
-              </Button>
-            </DrawerClose>
-            <Button type="submit" form="customer-filter-form" variant="primary">
-              Áp dụng
-            </Button>
-          </div>
+          <Button type="submit" form="customer-filter-form" variant="primary">
+            Áp dụng
+          </Button>
         </div>
       }
     >

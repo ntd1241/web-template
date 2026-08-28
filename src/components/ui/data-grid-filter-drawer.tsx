@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, Save as SaveIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DataGridDrawerAction } from '@/components/ui/data-grid-drawer-action';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -15,10 +14,13 @@ import {
 
 export interface DataGridFilterDrawerProps {
   children: ReactNode;
-  description?: ReactNode;
   footer?: ReactNode;
+  onSaveToView?: () => void;
   onOpenChange?: (open: boolean) => void;
   open?: boolean;
+  canSaveToView?: boolean;
+  saveDisabled?: boolean;
+  isSaving?: boolean;
   title?: ReactNode;
   trigger?: ReactNode;
 }
@@ -26,10 +28,13 @@ export interface DataGridFilterDrawerProps {
 /** Shared right-side drawer shell for detailed DataGrid filters. */
 export function DataGridFilterDrawer({
   children,
-  description,
   footer,
+  onSaveToView,
   onOpenChange,
   open,
+  canSaveToView = true,
+  saveDisabled = false,
+  isSaving = false,
   title = 'Bộ lọc',
   trigger,
 }: DataGridFilterDrawerProps) {
@@ -51,24 +56,21 @@ export function DataGridFilterDrawer({
       <DrawerTrigger asChild>{trigger ?? defaultTrigger}</DrawerTrigger>
       <DrawerContent className="inset-y-0 right-0 bottom-auto left-auto mt-0 h-full w-[min(100vw,24rem)] rounded-none border-l [&>div:first-child]:hidden">
         <DrawerHeader className="border-b border-border px-5 py-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <DrawerTitle>{title}</DrawerTitle>
-              {description ? (
-                <DrawerDescription>{description}</DrawerDescription>
-              ) : null}
-            </div>
-            <DrawerClose asChild>
-              <Button
-                variant="ghost"
-                mode="icon"
-                size="md"
-                aria-label="Đóng"
-                title="Đóng"
-              >
-                <X />
-              </Button>
-            </DrawerClose>
+          <div className="flex items-center justify-between gap-3">
+            <DrawerTitle>{title}</DrawerTitle>
+            {onSaveToView ? (
+              <DataGridDrawerAction
+                icon={SaveIcon}
+                label={
+                  canSaveToView
+                    ? 'Lưu cấu hình vào view đang chọn'
+                    : 'Chọn một view để lưu cấu hình'
+                }
+                disabled={!canSaveToView || saveDisabled || isSaving}
+                loading={isSaving}
+                onClick={onSaveToView}
+              />
+            ) : null}
           </div>
         </DrawerHeader>
         <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>

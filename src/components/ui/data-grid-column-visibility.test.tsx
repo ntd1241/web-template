@@ -3,6 +3,7 @@ import {
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
+  type ColumnOrderState,
   type VisibilityState,
 } from '@tanstack/react-table';
 import { render, screen } from '@testing-library/react';
@@ -23,15 +24,20 @@ const columns: ColumnDef<TestRow>[] = [
 
 function TestColumnVisibility({
   mode = 'popover',
+  initialColumnOrder = [],
 }: {
   mode?: 'popover' | 'drawer';
+  initialColumnOrder?: ColumnOrderState;
 }) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnOrder, setColumnOrder] =
+    useState<ColumnOrderState>(initialColumnOrder);
   const table = useReactTable({
     data: [{ name: 'Nguyễn Văn A', email: 'a@example.com' }],
     columns,
-    state: { columnVisibility },
+    state: { columnVisibility, columnOrder },
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -105,5 +111,55 @@ describe('DataGridColumnVisibility', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Hiển thị cột Email' }),
     ).toBeChecked();
+  });
+
+  it('resets the column visibility and order from the drawer', async () => {
+    const user = userEvent.setup();
+    render(<TestColumnVisibility mode="drawer" />);
+
+    await user.click(screen.getByRole('button', { name: 'Hiển thị cột' }));
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Hiển thị cột Email' }),
+    );
+
+    expect(screen.getByTestId('visible-columns')).toHaveTextContent('name');
+
+    await user.click(
+      screen.getByRole('button', { name: 'Đặt lại cấu hình cột' }),
+    );
+
+    expect(screen.getByTestId('visible-columns')).toHaveTextContent(
+      'name,email',
+    );
+  });
+
+  it('uses the table default order after resetting a persisted order', async () => {
+    const user = userEvent.setup();
+    render(
+      <TestColumnVisibility
+        mode="drawer"
+        initialColumnOrder={['email', 'name']}
+      />,
+    );
+
+    expect(screen.getByTestId('visible-columns')).toHaveTextContent(
+      'email,name',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Hiển thị cột' }));
+    expect(
+      screen.getAllByRole('button', { name: 'Sắp xếp cột Email' })[0],
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Đặt lại cấu hình cột' }),
+    );
+
+    expect(screen.getByTestId('visible-columns')).toHaveTextContent(
+      'name,email',
+    );
+    const items = screen.getAllByRole('button', { name: /^Sắp xếp cột/ });
+    expect(items[0]).toHaveAccessibleName('Sắp xếp cột Tên');
+    expect(items[1]).toHaveAccessibleName('Sắp xếp cột Email');
   });
 });

@@ -18,15 +18,19 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Column, Table } from '@tanstack/react-table';
-import { Columns3Cog, GripVertical, X } from 'lucide-react';
+import {
+  Columns3Cog,
+  GripVertical,
+  RotateCcw,
+  Save as SaveIcon,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataGridDrawerAction } from '@/components/ui/data-grid-drawer-action';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -45,6 +49,10 @@ interface DataGridColumnVisibilityProps<TData> {
   table: Table<TData>;
   trigger?: ReactNode;
   mode?: DataGridColumnVisibilityMode;
+  onSaveToView?: () => void;
+  canSaveToView?: boolean;
+  saveDisabled?: boolean;
+  isSaving?: boolean;
 }
 
 function getColumnLabel<TData>(column: Column<TData, unknown>): string {
@@ -52,7 +60,9 @@ function getColumnLabel<TData>(column: Column<TData, unknown>): string {
 }
 
 function getReorderableColumns<TData>(table: Table<TData>) {
-  return table.getAllLeafColumns().filter((column) => column.getCanHide());
+  return table
+    .getAllFlatColumns()
+    .filter((column) => column.columns.length === 0 && column.getCanHide());
 }
 
 function getOrderedColumns<TData>(
@@ -130,6 +140,10 @@ function DataGridColumnVisibility<TData>({
   table,
   trigger,
   mode = 'popover',
+  onSaveToView,
+  canSaveToView = true,
+  saveDisabled = false,
+  isSaving = false,
 }: DataGridColumnVisibilityProps<TData>) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sensors = useSensors(
@@ -145,6 +159,11 @@ function DataGridColumnVisibility<TData>({
     () => getOrderedColumns(columns, columnOrder),
     [columnOrder, columns],
   );
+
+  const handleReset = () => {
+    table.resetColumnVisibility();
+    table.resetColumnOrder();
+  };
 
   const defaultTrigger = (
     <Button
@@ -180,20 +199,28 @@ function DataGridColumnVisibility<TData>({
         <DrawerTrigger asChild>{trigger ?? defaultTrigger}</DrawerTrigger>
         <DrawerContent className="inset-y-0 right-0 bottom-auto left-auto mt-0 h-full w-[min(100vw,24rem)] rounded-none border-l [&>div:first-child]:hidden">
           <DrawerHeader className="border-b border-border px-5 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <DrawerTitle>Hiển thị và sắp xếp cột</DrawerTitle>
-                <DrawerDescription>
-                  Chọn cột cần hiển thị và kéo để thay đổi thứ tự.
-                </DrawerDescription>
+            <div className="flex items-center justify-between gap-3">
+              <DrawerTitle>Hiển thị và sắp xếp cột</DrawerTitle>
+              <div className="flex items-center gap-1">
+                <DataGridDrawerAction
+                  icon={RotateCcw}
+                  label="Đặt lại cấu hình cột"
+                  onClick={handleReset}
+                />
+                {onSaveToView ? (
+                  <DataGridDrawerAction
+                    icon={SaveIcon}
+                    label={
+                      canSaveToView
+                        ? 'Lưu cấu hình vào view đang chọn'
+                        : 'Chọn một view để lưu cấu hình'
+                    }
+                    disabled={!canSaveToView || saveDisabled || isSaving}
+                    loading={isSaving}
+                    onClick={onSaveToView}
+                  />
+                ) : null}
               </div>
-              <DrawerClose
-                aria-label="Đóng"
-                className="absolute end-5 top-5 cursor-pointer rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none"
-              >
-                <X className="size-4" />
-                <span className="sr-only">Đóng</span>
-              </DrawerClose>
             </div>
           </DrawerHeader>
           <div className="min-h-0 flex-1 overflow-y-auto p-4">

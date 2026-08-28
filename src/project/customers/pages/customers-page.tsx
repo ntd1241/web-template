@@ -238,22 +238,26 @@ export function CustomersPage() {
     mutationFn: async ({
       name,
       view,
+      config,
     }: {
       name: string;
       view: CustomerSavedView | null;
+      config?: CustomerSavedViewConfig;
     }) => {
       if (!tenantId || !userId) {
         throw new Error('Chưa xác định tenant hoặc tài khoản đăng nhập.');
       }
 
+      const nextConfig = config ?? currentViewConfig;
+
       return view
-        ? updateTenantSavedView(tenantId, userId, view, name, currentViewConfig)
+        ? updateTenantSavedView(tenantId, userId, view, name, nextConfig)
         : createTenantSavedView(
             tenantId,
             userId,
             CUSTOMER_SAVED_VIEW_RESOURCE,
             name,
-            currentViewConfig,
+            nextConfig,
           );
     },
     onSuccess: async (view, variables) => {
@@ -286,6 +290,16 @@ export function CustomersPage() {
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
+
+  function saveCurrentView(config = currentViewConfig) {
+    if (!activeView) return;
+
+    savedViewMutation.mutate({
+      name: activeView.name,
+      view: activeView,
+      config,
+    });
+  }
 
   const saveMutation = useMutation({
     mutationFn: async (values: CustomerFormValues) => {
@@ -399,14 +413,7 @@ export function CustomersPage() {
           onSelect={selectSavedView}
           onCreate={openCreateSavedView}
           onEdit={openEditSavedView}
-          onSaveCurrent={() => {
-            if (activeView) {
-              savedViewMutation.mutate({
-                name: activeView.name,
-                view: activeView,
-              });
-            }
-          }}
+          onSaveCurrent={() => saveCurrentView()}
         />
       }
       actions={
@@ -508,8 +515,29 @@ export function CustomersPage() {
                       statuses: [],
                     })
                   }
+                  onSaveToView={
+                    canManageSavedViews
+                      ? (values) =>
+                          saveCurrentView({
+                            ...currentViewConfig,
+                            filters: values,
+                          })
+                      : undefined
+                  }
+                  canSaveToView={Boolean(activeView && canManageSavedViews)}
+                  saveDisabled={!isActiveViewDirty}
+                  isSaving={savedViewMutation.isPending}
                 />
-                <DataGridColumnVisibility table={table} mode="drawer" />
+                <DataGridColumnVisibility
+                  table={table}
+                  mode="drawer"
+                  onSaveToView={
+                    canManageSavedViews ? () => saveCurrentView() : undefined
+                  }
+                  canSaveToView={Boolean(activeView && canManageSavedViews)}
+                  saveDisabled={!isActiveViewDirty}
+                  isSaving={savedViewMutation.isPending}
+                />
               </>
             }
           />

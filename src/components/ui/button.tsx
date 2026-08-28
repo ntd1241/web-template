@@ -412,7 +412,7 @@ function Button({
     loading && !asChild ? (
       <>
         <LoaderCircle className="animate-spin" />
-        {loadingText ?? children}
+        {loadingText !== undefined ? loadingText : children}
       </>
     ) : (
       children
