@@ -249,7 +249,18 @@ describe('MultiSelect', () => {
       within(listbox).getByRole('option', { name: /Kỹ thuật/ }),
     ).toBeInTheDocument();
     expect(
+      within(listbox).getByRole('option', { name: /Nhóm nhân viên/ }),
+    ).toBeInTheDocument();
+    expect(
       within(listbox).queryByRole('option', { name: /Kinh doanh/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps the placeholder typography aligned with compact inputs', () => {
+    render(<MultiSelect options={OPTIONS} placeholder="Chọn vai trò" />);
+
+    const placeholder = screen.getByText('Chọn vai trò');
+    expect(placeholder).toHaveClass('font-normal');
+    expect(placeholder).toHaveClass('text-muted-foreground/80');
   });
 });

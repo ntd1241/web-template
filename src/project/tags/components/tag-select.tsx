@@ -110,7 +110,7 @@ export function TagSelect({
       nestedOptions={nestedOptions}
       placeholder={placeholder}
       searchPlaceholder={searchPlaceholder}
-      searchMode="inline"
+      searchMode="popover"
       emptyMessage={
         query.isError ? getApiErrorMessage(query.error) : emptyMessage
       }

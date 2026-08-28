@@ -64,7 +64,7 @@ export interface MultiSelectProps<T = unknown> {
 }
 
 const multiSelectTriggerVariants = cva(
-  'flex w-full items-center justify-between gap-2 rounded-md border border-border text-foreground',
+  'flex w-full items-center justify-between gap-2 rounded-md border border-border font-normal text-foreground',
   {
     variants: {
       size: {
@@ -78,6 +78,12 @@ const multiSelectTriggerVariants = cva(
     },
   },
 );
+
+const multiSelectSearchTextVariants = {
+  sm: 'text-xs',
+  md: 'text-[0.8125rem] leading-(--text-sm--line-height)',
+  lg: 'text-sm',
+} as const;
 
 export function MultiSelect<T = unknown>({
   value = [],
@@ -101,6 +107,7 @@ export function MultiSelect<T = unknown>({
 }: MultiSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const resolvedSize = size ?? 'md';
 
   const selectedOptions = useMemo(() => {
     const availableOptions = nestedOptions
@@ -260,7 +267,10 @@ export function MultiSelect<T = unknown>({
         {searchMode === 'inline' ? (
           <input
             aria-label={searchPlaceholder}
-            className="min-w-20 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            className={cn(
+              'min-w-20 flex-1 bg-transparent font-normal text-foreground outline-none placeholder:text-muted-foreground/80',
+              multiSelectSearchTextVariants[resolvedSize],
+            )}
             disabled={disabled}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -275,7 +285,9 @@ export function MultiSelect<T = unknown>({
         ) : null}
         {searchMode !== 'inline' &&
         (!hasSelection || !showSelectedOptionsInTrigger) ? (
-          <span className="truncate text-muted-foreground">{placeholder}</span>
+          <span className="truncate text-[inherit] font-normal text-muted-foreground/80">
+            {placeholder}
+          </span>
         ) : null}
       </span>
       <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
@@ -292,7 +304,7 @@ export function MultiSelect<T = unknown>({
             aria-expanded={isOpen}
             aria-busy={loading}
             className={cn(
-              multiSelectTriggerVariants({ size }),
+              multiSelectTriggerVariants({ size: resolvedSize }),
               'bg-background py-1.5',
               disabled && 'cursor-not-allowed opacity-50',
               className,
@@ -315,7 +327,7 @@ export function MultiSelect<T = unknown>({
             mode="input"
             placeholder={!hasSelection || !showSelectedOptionsInTrigger}
             className={cn(
-              multiSelectTriggerVariants({ size }),
+              multiSelectTriggerVariants({ size: resolvedSize }),
               'bg-background',
               className,
             )}

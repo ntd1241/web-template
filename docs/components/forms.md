@@ -106,8 +106,11 @@ const options: MultiSelectOption[] = [
 | `maxChips` | `number` | `2` — dư thì gom `+N` (giữ trigger 1 dòng) |
 | `showSelectedOptionWrapper` | `boolean` | `false` — bật chip wrapper và nút xóa mặc định |
 | `placeholder` / `searchPlaceholder` / `emptyMessage` | `string` | `Chọn...` / `Tìm...` / `Không có kết quả` |
+| `searchMode` | `'popover' \| 'inline'` | `'popover'` — tìm trong dropdown; `inline` hiển thị ô tìm ngay trên trigger |
 
-Nhóm 1 cấp qua `group`; số đếm qua `count`. Popover **giữ mở** khi toggle (đúng UX multi-select).
+Nhóm 1 cấp qua `group`; số đếm qua `count`. Với `nestedOptions`, group và leaf đều được hiển thị,
+group có thể chọn/bỏ chọn toàn bộ leaf. Search fuzzy giữ lại group cha khi leaf con khớp. Popover
+**giữ mở** khi toggle (đúng UX multi-select).
 
 ---
 

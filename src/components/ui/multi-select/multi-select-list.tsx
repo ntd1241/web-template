@@ -37,12 +37,14 @@ export function nodeToString(node: ReactNode): string {
 }
 
 function getOptionSearchText<T>(option: MultiSelectOption<T>): string {
-  return (
-    option.searchableText ||
-    option.ariaLabel ||
-    nodeToString(option.label) ||
-    option.value
-  );
+  return [
+    option.searchableText,
+    option.ariaLabel,
+    nodeToString(option.label),
+    option.value,
+  ]
+    .filter(Boolean)
+    .join(' ');
 }
 
 function isGroupOption<T>(
@@ -52,11 +54,13 @@ function isGroupOption<T>(
 }
 
 function getTreeOptionSearchText<T>(option: MultiSelectTreeOption<T>): string {
-  return (
-    option.searchableText ||
-    nodeToString(option.label) ||
-    ('value' in option ? option.value : '')
-  );
+  return [
+    option.searchableText,
+    nodeToString(option.label),
+    'value' in option ? option.value : undefined,
+  ]
+    .filter(Boolean)
+    .join(' ');
 }
 
 export function flattenMultiSelectOptions<T>(
