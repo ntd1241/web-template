@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import {
+  SavedViewFormDialog,
+  useSavedViewForm,
+} from '@/project/saved-views/components/saved-view-form-dialog';
+import { SavedViewsToolbar } from '@/project/saved-views/components/saved-views-toolbar';
+import { useTenantSavedViews } from '@/project/saved-views/hooks/use-tenant-saved-views';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
 import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -43,7 +50,16 @@ import {
   mapEmployeeToFormValues,
   type Employee,
   type EmployeeFormValues,
+  type EmployeeListFilters,
 } from '../model/employee';
+import {
+  EMPLOYEE_SAVED_VIEW_MANAGE_PERMISSION,
+  EMPLOYEE_SAVED_VIEW_RESOURCE,
+  employeeSavedViewConfigEquals,
+  normalizeEmployeeSavedViewConfig,
+  type EmployeeSavedView,
+  type EmployeeSavedViewConfig,
+} from '../model/employee-saved-view';
 import { useEmployeeColumns } from '../table/employee.columns.generated';
 import { EmployeeFilterBar } from '../table/employee.filters.generated';
 
@@ -70,13 +86,22 @@ const employeeStatItems = [
 
 export function EmployeesPage() {
   const { tenantId } = useTenant();
+  const { userId, hasPermission } = useUser();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(
     null,
   );
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editingView, setEditingView] = useState<EmployeeSavedView | null>(
+    null,
+  );
+  const [deletingView, setDeletingView] = useState<EmployeeSavedView | null>(
+    null,
+  );
   const form = useEmployeeForm();
+  const viewForm = useSavedViewForm();
 
   const {
     employees,
@@ -84,7 +109,9 @@ export function EmployeesPage() {
     keyword,
     setKeyword,
     filters,
+    setFilters,
     setFilter,
+    resetAll,
     pagination,
     onPaginationChange,
     tenantQuery,
@@ -94,6 +121,12 @@ export function EmployeesPage() {
     employeeRoleOptions,
     employeeRoleOptionsQuery,
   } = useEmployeeList();
+
+  const savedViewState = useTenantSavedViews<EmployeeListFilters>({
+    tenantId,
+    userId,
+    resource: EMPLOYEE_SAVED_VIEW_RESOURCE,
+  });
 
   const invalidateEmployees = () =>
     queryClient.invalidateQueries({
@@ -131,24 +164,6 @@ export function EmployeesPage() {
     setDialogOpen(true);
   }
 
-  const pageHeader = (
-    <PageHeader
-      title="Nhân viên"
-      actions={
-        <ShortcutTooltip label="Thêm nhân viên" shortcut="Alt + N">
-          <Button
-            variant="primary"
-            onClick={openCreate}
-            data-shortcut-action="create"
-          >
-            <Plus />
-            Thêm nhân viên
-          </Button>
-        </ShortcutTooltip>
-      }
-    />
-  );
-
   function openEdit(employee: Employee) {
     setEditingEmployee(employee);
     form.reset(mapEmployeeToFormValues(employee));
@@ -181,6 +196,117 @@ export function EmployeesPage() {
   const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
     'project.employees.columnOrder',
   );
+  const currentViewConfig = useMemo<EmployeeSavedViewConfig>(
+    () => ({ version: 1, keyword, filters, columnVisibility, columnOrder }),
+    [columnOrder, columnVisibility, filters, keyword],
+  );
+  const activeView = savedViewState.activeView;
+  const isActiveViewDirty = Boolean(
+    activeView &&
+    !employeeSavedViewConfigEquals(
+      currentViewConfig,
+      normalizeEmployeeSavedViewConfig(activeView.config),
+    ),
+  );
+  const canManageSavedViews = hasPermission(
+    EMPLOYEE_SAVED_VIEW_MANAGE_PERMISSION,
+  );
+
+  function selectSavedView(viewId: string | null) {
+    if (!viewId) {
+      savedViewState.setActiveViewId(null);
+      resetAll();
+      return;
+    }
+    const view = savedViewState.savedViews.find((item) => item.id === viewId);
+    if (!view) return;
+    const config = normalizeEmployeeSavedViewConfig(view.config);
+    savedViewState.setActiveViewId(view.id);
+    setKeyword(config.keyword);
+    setFilters({
+      ...config.filters,
+      statuses: [...config.filters.statuses],
+      roleIds: [...config.filters.roleIds],
+      tagIds: [...config.filters.tagIds],
+    });
+    onColumnVisibilityChange(config.columnVisibility);
+    onColumnOrderChange(config.columnOrder);
+  }
+
+  function openCreateSavedView() {
+    setEditingView(null);
+    viewForm.reset({ name: '' });
+    setViewDialogOpen(true);
+  }
+
+  function openEditSavedView(view: EmployeeSavedView) {
+    selectSavedView(view.id);
+    setEditingView(view);
+    viewForm.reset({ name: view.name });
+    setViewDialogOpen(true);
+  }
+
+  function saveView(config = currentViewConfig) {
+    if (!activeView) return;
+    savedViewState.saveMutation.mutate(
+      { name: activeView.name, view: activeView, config },
+      {
+        onSuccess: () => toast.success('Đã cập nhật chế độ xem.'),
+        onError: (error) => toast.error(getApiErrorMessage(error)),
+      },
+    );
+  }
+
+  function submitSavedView(name: string) {
+    savedViewState.saveMutation.mutate(
+      { name, view: editingView, config: currentViewConfig },
+      {
+        onSuccess: () => {
+          setViewDialogOpen(false);
+          setEditingView(null);
+          toast.success(
+            editingView
+              ? 'Đã cập nhật chế độ xem.'
+              : 'Đã tạo chế độ xem dùng chung.',
+          );
+        },
+        onError: (error) => toast.error(getApiErrorMessage(error)),
+      },
+    );
+  }
+
+  const pageHeader = (
+    <PageHeader
+      title="Nhân viên"
+      titleAside={
+        <SavedViewsToolbar
+          views={savedViewState.savedViews}
+          activeViewId={savedViewState.activeViewId}
+          canManage={canManageSavedViews}
+          isLoading={savedViewState.savedViewsQuery.isPending}
+          isDirty={isActiveViewDirty}
+          isSaving={savedViewState.saveMutation.isPending}
+          onSelect={selectSavedView}
+          onCreate={openCreateSavedView}
+          onEdit={openEditSavedView}
+          onSaveCurrent={() => saveView()}
+        />
+      }
+      actions={
+        <ShortcutTooltip label="Thêm nhân viên" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={openCreate}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm nhân viên
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
+
   const table = useReactTable({
     data: employees,
     columns,
@@ -267,7 +393,16 @@ export function EmployeesPage() {
                 >
                   <RefreshCw />
                 </Button>
-                <DataGridColumnVisibility table={table} mode="drawer" />
+                <DataGridColumnVisibility
+                  table={table}
+                  mode="drawer"
+                  onSaveToView={
+                    canManageSavedViews ? () => saveView() : undefined
+                  }
+                  canSaveToView={Boolean(activeView && canManageSavedViews)}
+                  saveDisabled={!isActiveViewDirty}
+                  isSaving={savedViewState.saveMutation.isPending}
+                />
               </>
             }
           />
@@ -291,6 +426,24 @@ export function EmployeesPage() {
         isSaving={saveMutation.isPending}
         title={editingEmployee ? 'Sửa nhân viên' : 'Thêm nhân viên'}
       />
+      <SavedViewFormDialog
+        open={viewDialogOpen}
+        onOpenChange={(open) => {
+          setViewDialogOpen(open);
+          if (!open) setEditingView(null);
+        }}
+        mode={editingView ? 'edit' : 'create'}
+        form={viewForm}
+        isSaving={savedViewState.saveMutation.isPending}
+        title={editingView ? 'Sửa chế độ xem' : 'Tạo chế độ xem'}
+        onSubmit={(values) => submitSavedView(values.name)}
+        onDelete={() => {
+          if (!editingView) return;
+          setViewDialogOpen(false);
+          setEditingView(null);
+          setDeletingView(editingView);
+        }}
+      />
       <ConfirmDialog
         open={Boolean(deletingEmployee)}
         onOpenChange={(open) => {
@@ -306,6 +459,30 @@ export function EmployeesPage() {
         confirmVariant="destructive"
         onConfirm={() => {
           if (deletingEmployee) deleteMutation.mutate(deletingEmployee.id);
+        }}
+      />
+      <ConfirmDialog
+        open={Boolean(deletingView)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingView(null);
+        }}
+        title="Xóa chế độ xem?"
+        description={
+          deletingView
+            ? `Chế độ xem "${deletingView.name}" sẽ bị xóa cho toàn bộ tenant.`
+            : ''
+        }
+        confirmLabel="Xóa chế độ xem"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (!deletingView) return;
+          savedViewState.deleteMutation.mutate(deletingView, {
+            onSuccess: () => {
+              setDeletingView(null);
+              toast.success('Đã xóa chế độ xem.');
+            },
+            onError: (error) => toast.error(getApiErrorMessage(error)),
+          });
         }}
       />
     </div>

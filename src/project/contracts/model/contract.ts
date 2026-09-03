@@ -50,6 +50,26 @@ export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   terminated: 'Đã chấm dứt',
 };
 
+export interface ContractListFilters {
+  status: ContractStatus[];
+  contractSearch: string;
+  customerId: string;
+  outstandingMin?: number;
+  outstandingMax?: number;
+  nextDueFrom: string;
+  nextDueTo: string;
+}
+
+export const CONTRACT_LIST_INITIAL_FILTERS: ContractListFilters = {
+  status: [],
+  contractSearch: '',
+  customerId: '',
+  outstandingMin: undefined,
+  outstandingMax: undefined,
+  nextDueFrom: '',
+  nextDueTo: '',
+};
+
 export const CONTRACT_VERSION_STATUS_LABELS: Record<
   ContractVersionStatus,
   string

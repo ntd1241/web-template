@@ -9,6 +9,22 @@ export const EMPLOYEE_STATUS_LABELS: Record<EmployeeStatus, string> = {
   inactive: 'Ngừng làm việc',
 };
 
+export type EmployeeAccountFilter = 'all' | 'linked' | 'unlinked';
+
+export interface EmployeeListFilters {
+  statuses: EmployeeStatus[];
+  roleIds: string[];
+  accountLinked: EmployeeAccountFilter;
+  tagIds: string[];
+}
+
+export const EMPLOYEE_LIST_INITIAL_FILTERS: EmployeeListFilters = {
+  statuses: [],
+  roleIds: [],
+  accountLinked: 'all',
+  tagIds: [],
+};
+
 export const employeeFormSchema = z.object({
   employeeCode: z
     .string()

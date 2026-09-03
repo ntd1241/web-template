@@ -9,30 +9,18 @@ import {
   loadEmployeeStatusStats,
 } from '../api/employees.api';
 import {
+  EMPLOYEE_LIST_INITIAL_FILTERS,
   EMPLOYEE_STATUSES,
   type EmployeeListParams,
   type EmployeeRoleOption,
   type EmployeeStatus,
 } from '../model/employee';
-
-export type EmployeeAccountFilter = 'all' | 'linked' | 'unlinked';
-
-export interface EmployeeListFilters {
-  statuses: EmployeeStatus[];
-  roleIds: string[];
-  accountLinked: EmployeeAccountFilter;
-  tagIds: string[];
-}
+import type { EmployeeListFilters } from '../model/employee';
 
 export function useEmployeeList() {
   const tenantState = useTenant();
   const listState = useTableListState<EmployeeListFilters>({
-    initialFilters: {
-      statuses: [],
-      roleIds: [],
-      accountLinked: 'all',
-      tagIds: [],
-    },
+    initialFilters: EMPLOYEE_LIST_INITIAL_FILTERS,
     initialPageSize: 10,
   });
 

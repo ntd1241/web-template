@@ -9,6 +9,37 @@ export const CONTRACT_TEMPLATE_STATUSES = [
 export type ContractTemplateStatus =
   (typeof CONTRACT_TEMPLATE_STATUSES)[number];
 
+export interface ContractTemplateListFilters {
+  templateSearch: string;
+  status: 'all' | ContractTemplateStatus;
+  statuses: ContractTemplateStatus[];
+  tagIds: string[];
+  lineCountMin?: number;
+  lineCountMax?: number;
+  contractCountMin?: number;
+  contractCountMax?: number;
+  versionNoMin?: number;
+  versionNoMax?: number;
+  updatedFrom: string;
+  updatedTo: string;
+}
+
+export const CONTRACT_TEMPLATE_LIST_INITIAL_FILTERS: ContractTemplateListFilters =
+  {
+    templateSearch: '',
+    status: 'all',
+    statuses: [],
+    tagIds: [],
+    lineCountMin: undefined,
+    lineCountMax: undefined,
+    contractCountMin: undefined,
+    contractCountMax: undefined,
+    versionNoMin: undefined,
+    versionNoMax: undefined,
+    updatedFrom: '',
+    updatedTo: '',
+  };
+
 export const CONTRACT_TEMPLATE_STATUS_LABELS: Record<
   ContractTemplateStatus,
   string

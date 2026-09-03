@@ -1,6 +1,5 @@
-import { Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SavedViewList } from '@/components/ui/saved-view-list';
+import { SavedViewsToolbar } from '@/project/saved-views/components/saved-views-toolbar';
+import type { CustomerListFilters } from '../model/customer';
 import type { CustomerSavedView } from '../model/customer-saved-view';
 
 interface CustomerSavedViewsProps {
@@ -29,35 +28,17 @@ export function CustomerSavedViews({
   onSaveCurrent,
 }: CustomerSavedViewsProps) {
   return (
-    <div className="flex min-w-0 max-w-full items-center gap-3">
-      <SavedViewList
-        views={views}
-        activeViewId={activeViewId}
-        onViewChange={onSelect}
-        onViewSettings={canManage ? onEdit : undefined}
-        onAdd={onCreate}
-        canAdd={canManage}
-        addLabel="Tạo view"
-        disabled={isLoading}
-        className="min-w-0 flex-1"
-      />
-      {canManage ? (
-        <div className="flex shrink-0 items-center gap-3">
-          {isDirty ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onSaveCurrent}
-              disabled={isSaving}
-              title="Lưu thay đổi vào chế độ xem"
-            >
-              <Save />
-              Lưu vào view
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+    <SavedViewsToolbar<CustomerListFilters>
+      views={views}
+      activeViewId={activeViewId}
+      canManage={canManage}
+      isLoading={isLoading}
+      isDirty={isDirty}
+      isSaving={isSaving}
+      onSelect={onSelect}
+      onCreate={onCreate}
+      onEdit={onEdit}
+      onSaveCurrent={onSaveCurrent}
+    />
   );
 }

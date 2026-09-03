@@ -22,6 +22,7 @@
     "gen:chart": "tsx tools/builders/cli/gen-chart.ts",
     "gen:tooltip": "tsx tools/builders/cli/gen-tooltip.ts",
     "gen:segmented-control": "tsx tools/builders/cli/gen-segmented-control.ts",
+    "gen:saved-view": "tsx tools/builders/cli/gen-saved-view.ts",
     "gen:filter": "tsx tools/builders/cli/gen-filter.ts",
     "gen:account-menu": "tsx tools/builders/cli/gen-account-menu.ts",
     "gen:column-filter": "tsx tools/builders/cli/gen-column-filter.ts",

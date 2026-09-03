@@ -9,34 +9,18 @@ import {
   loadContractStatusStats,
 } from '../api/contracts.api';
 import {
+  CONTRACT_LIST_INITIAL_FILTERS,
   CONTRACT_STATUSES,
+  type ContractListFilters,
   type ContractListParams,
   type ContractStatus,
 } from '../model/contract';
-
-export interface ContractListFilters {
-  status: ContractStatus[];
-  contractSearch: string;
-  customerId: string;
-  outstandingMin?: number;
-  outstandingMax?: number;
-  nextDueFrom: string;
-  nextDueTo: string;
-}
 
 export function useContractList() {
   const { userId } = useUser();
   const { tenantId, isPending, isError, error, refetch } = useTenant();
   const listState = useTableListState<ContractListFilters>({
-    initialFilters: {
-      status: [],
-      contractSearch: '',
-      customerId: '',
-      outstandingMin: undefined,
-      outstandingMax: undefined,
-      nextDueFrom: '',
-      nextDueTo: '',
-    },
+    initialFilters: CONTRACT_LIST_INITIAL_FILTERS,
     initialPageSize: 10,
   });
 

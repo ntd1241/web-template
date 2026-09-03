@@ -1,11 +1,19 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ROUTES } from '@/constants/routes';
+import {
+  SavedViewFormDialog,
+  useSavedViewForm,
+} from '@/project/saved-views/components/saved-view-form-dialog';
+import { SavedViewsToolbar } from '@/project/saved-views/components/saved-views-toolbar';
+import { useTenantSavedViews } from '@/project/saved-views/hooks/use-tenant-saved-views';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
+import { useTenant } from '@/providers/tenant-provider';
+import { useUser } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,16 +38,38 @@ import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
 import { deleteContract } from '../api/contracts.api';
 import { useContractList } from '../hooks/use-contract-list';
-import { type Contract, type ContractStatus } from '../model/contract';
+import {
+  type Contract,
+  type ContractListFilters,
+  type ContractStatus,
+} from '../model/contract';
+import {
+  CONTRACT_SAVED_VIEW_MANAGE_PERMISSION,
+  CONTRACT_SAVED_VIEW_RESOURCE,
+  contractSavedViewConfigEquals,
+  normalizeContractSavedViewConfig,
+  type ContractSavedView,
+  type ContractSavedViewConfig,
+} from '../model/contract-saved-view';
 import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
 
 export function ContractsPage() {
   const navigate = useNavigate();
+  const { tenantId } = useTenant();
+  const { userId, hasPermission } = useUser();
   const queryClient = useQueryClient();
   const [deletingContract, setDeletingContract] = useState<Contract | null>(
     null,
   );
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editingView, setEditingView] = useState<ContractSavedView | null>(
+    null,
+  );
+  const [deletingView, setDeletingView] = useState<ContractSavedView | null>(
+    null,
+  );
+  const viewForm = useSavedViewForm();
   const {
     contracts,
     total,
@@ -48,6 +78,7 @@ export function ContractsPage() {
     filters,
     setFilters,
     setFilter,
+    resetAll,
     pagination,
     onPaginationChange,
     tenantQuery,
@@ -56,6 +87,11 @@ export function ContractsPage() {
     customerOptions,
     customerOptionsQuery,
   } = useContractList();
+  const savedViewState = useTenantSavedViews<ContractListFilters>({
+    tenantId,
+    userId,
+    resource: CONTRACT_SAVED_VIEW_RESOURCE,
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteContract,
@@ -72,24 +108,6 @@ export function ContractsPage() {
   function openCreate() {
     navigate(ROUTES.PROJECT.CONTRACT_CREATE);
   }
-
-  const pageHeader = (
-    <PageHeader
-      title="Quản lý hợp đồng"
-      actions={
-        <ShortcutTooltip label="Thêm hợp đồng" shortcut="Alt + N">
-          <Button
-            variant="primary"
-            onClick={openCreate}
-            data-shortcut-action="create"
-          >
-            <Plus />
-            Thêm hợp đồng
-          </Button>
-        </ShortcutTooltip>
-      }
-    />
-  );
 
   function openEdit(contract: Contract) {
     navigate(
@@ -132,6 +150,111 @@ export function ContractsPage() {
   const { columnOrder, onColumnOrderChange } = usePersistedColumnOrder(
     'project.contracts.columnOrder',
   );
+  const currentViewConfig = useMemo<ContractSavedViewConfig>(
+    () => ({ version: 1, keyword, filters, columnVisibility, columnOrder }),
+    [columnOrder, columnVisibility, filters, keyword],
+  );
+  const activeView = savedViewState.activeView;
+  const isActiveViewDirty = Boolean(
+    activeView &&
+    !contractSavedViewConfigEquals(
+      currentViewConfig,
+      normalizeContractSavedViewConfig(activeView.config),
+    ),
+  );
+  const canManageSavedViews = hasPermission(
+    CONTRACT_SAVED_VIEW_MANAGE_PERMISSION,
+  );
+
+  function selectSavedView(viewId: string | null) {
+    if (!viewId) {
+      savedViewState.setActiveViewId(null);
+      resetAll();
+      return;
+    }
+    const view = savedViewState.savedViews.find((item) => item.id === viewId);
+    if (!view) return;
+    const config = normalizeContractSavedViewConfig(view.config);
+    savedViewState.setActiveViewId(view.id);
+    setKeyword(config.keyword);
+    setFilters({ ...config.filters, status: [...config.filters.status] });
+    onColumnVisibilityChange(config.columnVisibility);
+    onColumnOrderChange(config.columnOrder);
+  }
+
+  function openCreateSavedView() {
+    setEditingView(null);
+    viewForm.reset({ name: '' });
+    setViewDialogOpen(true);
+  }
+
+  function openEditSavedView(view: ContractSavedView) {
+    selectSavedView(view.id);
+    setEditingView(view);
+    viewForm.reset({ name: view.name });
+    setViewDialogOpen(true);
+  }
+
+  function saveView(config = currentViewConfig) {
+    if (!activeView) return;
+    savedViewState.saveMutation.mutate(
+      { name: activeView.name, view: activeView, config },
+      {
+        onSuccess: () => toast.success('Đã cập nhật chế độ xem.'),
+        onError: (error) => toast.error(getApiErrorMessage(error)),
+      },
+    );
+  }
+
+  function submitSavedView(name: string) {
+    savedViewState.saveMutation.mutate(
+      { name, view: editingView, config: currentViewConfig },
+      {
+        onSuccess: () => {
+          setViewDialogOpen(false);
+          setEditingView(null);
+          toast.success(
+            editingView
+              ? 'Đã cập nhật chế độ xem.'
+              : 'Đã tạo chế độ xem dùng chung.',
+          );
+        },
+        onError: (error) => toast.error(getApiErrorMessage(error)),
+      },
+    );
+  }
+  const pageHeader = (
+    <PageHeader
+      title="Quản lý hợp đồng"
+      titleAside={
+        <SavedViewsToolbar
+          views={savedViewState.savedViews}
+          activeViewId={savedViewState.activeViewId}
+          canManage={canManageSavedViews}
+          isLoading={savedViewState.savedViewsQuery.isPending}
+          isDirty={isActiveViewDirty}
+          isSaving={savedViewState.saveMutation.isPending}
+          onSelect={selectSavedView}
+          onCreate={openCreateSavedView}
+          onEdit={openEditSavedView}
+          onSaveCurrent={() => saveView()}
+        />
+      }
+      actions={
+        <ShortcutTooltip label="Thêm hợp đồng" shortcut="Alt + N">
+          <Button
+            variant="primary"
+            onClick={openCreate}
+            data-shortcut-action="create"
+          >
+            <Plus />
+            Thêm hợp đồng
+          </Button>
+        </ShortcutTooltip>
+      }
+    />
+  );
+
   const table = useReactTable({
     data: contracts,
     columns,
@@ -218,7 +341,16 @@ export function ContractsPage() {
                 >
                   <RefreshCw />
                 </Button>
-                <DataGridColumnVisibility table={table} mode="drawer" />
+                <DataGridColumnVisibility
+                  table={table}
+                  mode="drawer"
+                  onSaveToView={
+                    canManageSavedViews ? () => saveView() : undefined
+                  }
+                  canSaveToView={Boolean(activeView && canManageSavedViews)}
+                  saveDisabled={!isActiveViewDirty}
+                  isSaving={savedViewState.saveMutation.isPending}
+                />
               </>
             }
           />
@@ -249,6 +381,48 @@ export function ContractsPage() {
         confirmVariant="destructive"
         onConfirm={() => {
           if (deletingContract) deleteMutation.mutate(deletingContract.id);
+        }}
+      />
+      <SavedViewFormDialog
+        open={viewDialogOpen}
+        onOpenChange={(open) => {
+          setViewDialogOpen(open);
+          if (!open) setEditingView(null);
+        }}
+        mode={editingView ? 'edit' : 'create'}
+        form={viewForm}
+        isSaving={savedViewState.saveMutation.isPending}
+        title={editingView ? 'Sửa chế độ xem' : 'Tạo chế độ xem'}
+        onSubmit={(values) => submitSavedView(values.name)}
+        onDelete={() => {
+          if (!editingView) return;
+          setViewDialogOpen(false);
+          setEditingView(null);
+          setDeletingView(editingView);
+        }}
+      />
+      <ConfirmDialog
+        open={Boolean(deletingView)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingView(null);
+        }}
+        title="Xóa chế độ xem?"
+        description={
+          deletingView
+            ? `Chế độ xem "${deletingView.name}" sẽ bị xóa cho toàn bộ tenant.`
+            : ''
+        }
+        confirmLabel="Xóa chế độ xem"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (!deletingView) return;
+          savedViewState.deleteMutation.mutate(deletingView, {
+            onSuccess: () => {
+              setDeletingView(null);
+              toast.success('Đã xóa chế độ xem.');
+            },
+            onError: (error) => toast.error(getApiErrorMessage(error)),
+          });
         }}
       />
     </div>

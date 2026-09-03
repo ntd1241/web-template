@@ -8,43 +8,19 @@ import {
   loadContractTemplateStatusStats,
 } from '../api/contract-templates.api';
 import type {
+  ContractTemplateListFilters,
   ContractTemplateListParams,
   ContractTemplateStatus,
 } from '../model/contract-template';
-import { CONTRACT_TEMPLATE_STATUSES } from '../model/contract-template';
-
-export interface ContractTemplateListFilters {
-  templateSearch: string;
-  status: 'all' | ContractTemplateStatus;
-  statuses: ContractTemplateStatus[];
-  tagIds: string[];
-  lineCountMin?: number;
-  lineCountMax?: number;
-  contractCountMin?: number;
-  contractCountMax?: number;
-  versionNoMin?: number;
-  versionNoMax?: number;
-  updatedFrom: string;
-  updatedTo: string;
-}
+import {
+  CONTRACT_TEMPLATE_LIST_INITIAL_FILTERS,
+  CONTRACT_TEMPLATE_STATUSES,
+} from '../model/contract-template';
 
 export function useContractTemplateList() {
   const { tenantId, isPending, isError, error, refetch } = useTenant();
   const listState = useTableListState<ContractTemplateListFilters>({
-    initialFilters: {
-      templateSearch: '',
-      status: 'all',
-      statuses: [],
-      tagIds: [],
-      lineCountMin: undefined,
-      lineCountMax: undefined,
-      contractCountMin: undefined,
-      contractCountMax: undefined,
-      versionNoMin: undefined,
-      versionNoMax: undefined,
-      updatedFrom: '',
-      updatedTo: '',
-    },
+    initialFilters: CONTRACT_TEMPLATE_LIST_INITIAL_FILTERS,
     initialPageSize: 10,
   });
   const queryParams = buildListQueryParams(listState, {
