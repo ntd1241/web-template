@@ -126,10 +126,6 @@ function ContractSummaryCard({
   onManageResponsibles: () => void;
   canManageResponsibles: boolean;
 }) {
-  const activeStartDate =
-    contract.activeVersion?.effectiveFrom ?? contract.startDate;
-  const activeEndDate = contract.activeVersion?.effectiveTo ?? null;
-
   return (
     <Card className="relative -mt-10 overflow-visible border-border/70 shadow-lg shadow-slate-900/10 lg:-mt-14">
       <CardContent className="p-5">
@@ -154,12 +150,12 @@ function ContractSummaryCard({
           <EntityDetailInformationItem
             label="Ngày bắt đầu"
             className="xl:border-e xl:border-border xl:px-6"
-            value={formatDate(activeStartDate)}
+            value={formatDate(contract.startDate)}
           />
           <EntityDetailInformationItem
             label="Ngày kết thúc"
             className="xl:border-e xl:border-border xl:px-6"
-            value={formatDate(activeEndDate)}
+            value={formatDate(contract.endDate)}
           />
           <EntityDetailInformationItem
             label="Nhân viên phụ trách"

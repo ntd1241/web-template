@@ -7,7 +7,11 @@ import {
 import { SavedViewsToolbar } from '@/project/saved-views/components/saved-views-toolbar';
 import { useTenantSavedViews } from '@/project/saved-views/hooks/use-tenant-saved-views';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  getCoreRowModel,
+  useReactTable,
+  type ColumnPinningState,
+} from '@tanstack/react-table';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -53,6 +57,10 @@ import {
 } from '../model/contract-saved-view';
 import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
+
+const CONTRACT_COLUMN_PINNING: ColumnPinningState = {
+  right: ['actions'],
+};
 
 export function ContractsPage() {
   const navigate = useNavigate();
@@ -263,7 +271,12 @@ export function ContractsPage() {
     data: contracts,
     columns,
     getRowId: (row) => row.id,
-    state: { pagination, columnVisibility, columnOrder },
+    state: {
+      pagination,
+      columnVisibility,
+      columnOrder,
+      columnPinning: CONTRACT_COLUMN_PINNING,
+    },
     onPaginationChange,
     onColumnVisibilityChange,
     onColumnOrderChange,

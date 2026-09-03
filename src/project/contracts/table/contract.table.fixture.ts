@@ -13,13 +13,6 @@ const spec: TableSpec = {
       size: 480,
     },
     {
-      kind: 'custom',
-      id: 'endDate',
-      header: 'Ngày hết hạn hợp đồng',
-      headerClassName: 'w-[190px]',
-      size: 190,
-    },
-    {
       kind: 'badge',
       id: 'status',
       header: 'Trạng thái',
@@ -61,13 +54,11 @@ const spec: TableSpec = {
       },
     },
     {
-      kind: 'currency',
-      id: 'totalOutstanding',
-      header: 'Còn phải thu',
-      field: 'totalOutstanding',
-      headerClassName: 'w-[150px]',
-      cellClassName: 'px-3',
-      size: 150,
+      kind: 'custom',
+      id: 'endDate',
+      header: 'Ngày hết hạn hợp đồng',
+      headerClassName: 'w-[190px]',
+      size: 190,
     },
     {
       kind: 'custom',
@@ -75,6 +66,15 @@ const spec: TableSpec = {
       header: 'Hạn thu tiếp theo',
       headerClassName: 'w-[160px]',
       size: 160,
+    },
+    {
+      kind: 'currency',
+      id: 'totalOutstanding',
+      header: 'Còn phải thu',
+      field: 'totalOutstanding',
+      headerClassName: 'w-[150px]',
+      cellClassName: 'px-3',
+      size: 150,
     },
     {
       kind: 'actions',

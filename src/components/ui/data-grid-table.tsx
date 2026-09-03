@@ -142,9 +142,7 @@ function DataGridTableHeadRowCell<TData>({
         ...(props.tableLayout?.width === 'fixed' && {
           width: `${header.getSize()}px`,
         }),
-        ...(props.tableLayout?.columnsPinnable &&
-          column.getCanPin() &&
-          getPinningStyles(column)),
+        ...(isPinned ? getPinningStyles(column) : null),
         ...(dndStyle ? dndStyle : null),
       }}
       data-pinned={isPinned || undefined}
@@ -159,8 +157,7 @@ function DataGridTableHeadRowCell<TData>({
         props.tableLayout?.columnsResizable &&
           column.getCanResize() &&
           'truncate',
-        props.tableLayout?.columnsPinnable &&
-          column.getCanPin() &&
+        isPinned &&
           '[&:not([data-pinned]):has(+[data-pinned])_div.cursor-col-resize:last-child]:opacity-0 [&[data-last-col=left]_div.cursor-col-resize:last-child]:opacity-0 [&[data-pinned=left][data-last-col=left]]:border-e! [&[data-pinned=right]:last-child_div.cursor-col-resize:last-child]:opacity-0 [&[data-pinned=right][data-last-col=right]]:border-s! [&[data-pinned][data-last-col]]:border-border data-pinned:bg-muted/90 data-pinned:backdrop-blur-xs',
         header.column.columnDef.meta?.headerClassName,
         column.getIndex() === 0 ||
@@ -256,6 +253,7 @@ function DataGridTableBodyRowSkeletonCell<TData>({
   column: Column<TData>;
 }) {
   const { props, table } = useDataGrid();
+  const isPinned = column.getIsPinned();
   const bodyCellSpacing = bodyCellSpacingVariants({
     size: props.tableLayout?.dense ? 'dense' : 'default',
   });
@@ -282,8 +280,7 @@ function DataGridTableBodyRowSkeletonCell<TData>({
           column.getCanResize() &&
           'truncate',
         column.columnDef.meta?.cellClassName,
-        props.tableLayout?.columnsPinnable &&
-          column.getCanPin() &&
+        isPinned &&
           '[&[data-pinned=left][data-last-col=left]]:border-e! [&[data-pinned=right][data-last-col=right]]:border-s! [&[data-pinned][data-last-col]]:border-border data-pinned:bg-background/90 data-pinned:backdrop-blur-xs"',
         column.getIndex() === 0 ||
           column.getIndex() === table.getVisibleFlatColumns().length - 1
@@ -390,9 +387,7 @@ function DataGridTableBodyRowCell<TData>({
       ref={dndRef}
       {...(props.tableLayout?.columnsDraggable && !isPinned ? { cell } : {})}
       style={{
-        ...(props.tableLayout?.columnsPinnable &&
-          column.getCanPin() &&
-          getPinningStyles(column)),
+        ...(isPinned ? getPinningStyles(column) : null),
         ...(dndStyle ? dndStyle : null),
       }}
       data-pinned={isPinned || undefined}
@@ -407,8 +402,7 @@ function DataGridTableBodyRowCell<TData>({
           column.getCanResize() &&
           'truncate',
         cell.column.columnDef.meta?.cellClassName,
-        props.tableLayout?.columnsPinnable &&
-          column.getCanPin() &&
+        isPinned &&
           '[&[data-pinned=left][data-last-col=left]]:border-e! [&[data-pinned=right][data-last-col=right]]:border-s! [&[data-pinned][data-last-col]]:border-border data-pinned:bg-background/90 data-pinned:backdrop-blur-xs"',
         column.getIndex() === 0 ||
           column.getIndex() === row.getVisibleCells().length - 1

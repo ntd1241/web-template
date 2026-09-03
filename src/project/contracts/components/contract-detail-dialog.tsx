@@ -148,11 +148,7 @@ function getVersionFields(
   ];
 }
 
-function buildGeneralSearchText(
-  contract: ContractDetail,
-  selectedVersion?: ContractVersion | null,
-) {
-  const version = getDisplayedVersion(contract, selectedVersion);
+function buildGeneralSearchText(contract: ContractDetail) {
   const workspace = getResponsibleWorkspace(contract);
   const responsibleEmployees = workspace.employees.filter((employee) =>
     workspace.assignments.some(
@@ -182,9 +178,9 @@ function buildGeneralSearchText(
     contract.customer.customerCode,
     CONTRACT_STATUS_LABELS[contract.status],
     'ngày bắt đầu',
-    contract.activeVersion?.effectiveFrom ?? contract.startDate,
+    contract.startDate,
     'ngày kết thúc',
-    contract.activeVersion?.effectiveTo ?? contract.endDate,
+    contract.endDate,
     'tự động gia hạn',
     contract.autoRenew ? 'có yes true' : 'không no false',
     'tiền tệ',
@@ -204,8 +200,6 @@ function buildGeneralSearchText(
     contract.note,
     'cập nhật lần cuối',
     contract.updatedAt,
-    'phiên bản',
-    version?.versionNo,
   );
 }
 
@@ -427,17 +421,12 @@ function ResponsibleEmployeesList({ contract }: { contract: ContractDetail }) {
 
 function ContractGeneralFields({
   contract,
-  selectedVersion,
 }: {
   contract: ContractDetail;
-  selectedVersion?: ContractVersion | null;
 }): EntityDetailDialogField[] {
   const workspace = getResponsibleWorkspace(contract);
-  const version = getDisplayedVersion(contract, selectedVersion);
-  const versionBadgeField = version ? getVersionFields(version)[0] : null;
 
   return [
-    ...(versionBadgeField ? [versionBadgeField] : []),
     {
       label: 'Trạng thái',
       value: <ContractStatusBadge status={contract.status} />,
@@ -458,17 +447,13 @@ function ContractGeneralFields({
     },
     {
       label: 'Ngày bắt đầu',
-      value: formatDate(
-        contract.activeVersion?.effectiveFrom ?? contract.startDate,
-      ),
-      searchText: contract.activeVersion?.effectiveFrom ?? contract.startDate,
+      value: formatDate(contract.startDate),
+      searchText: contract.startDate,
     },
     {
       label: 'Ngày kết thúc',
-      value: contract.activeVersion?.effectiveTo
-        ? formatDate(contract.activeVersion.effectiveTo)
-        : 'Không giới hạn',
-      searchText: contract.activeVersion?.effectiveTo ?? 'Không giới hạn',
+      value: contract.endDate ? formatDate(contract.endDate) : 'Không giới hạn',
+      searchText: contract.endDate ?? 'Không giới hạn',
     },
     {
       label: 'Tự động gia hạn',
@@ -538,12 +523,9 @@ function ContractGeneralFields({
 function countMatchingGeneralFields({
   data,
   matches,
-  selectedVersion,
-}: EntityDetailDialogTabContext<ContractDetail> & {
-  selectedVersion?: ContractVersion | null;
-}) {
+}: EntityDetailDialogTabContext<ContractDetail>) {
   return countMatchingEntityDetailDialogFields(
-    ContractGeneralFields({ contract: data, selectedVersion }),
+    ContractGeneralFields({ contract: data }),
     matches,
   );
 }
@@ -591,24 +573,20 @@ export function ContractDetailDialog({
       data={contract}
       isLoading={isLoading}
       searchPlaceholder="Tìm theo tên, mã, khách hàng..."
-      generalFields={({ data }) =>
-        ContractGeneralFields({ contract: data, selectedVersion })
-      }
+      generalFields={({ data }) => ContractGeneralFields({ contract: data })}
       versionFields={({ data }) =>
         getVersionFields(getDisplayedVersion(data, selectedVersion))
       }
       feesContent={({ data, matches }) => (
         <ContractFeesContent contract={data} matches={matches} />
       )}
-      generalSearchText={(data) =>
-        buildGeneralSearchText(data, selectedVersion)
-      }
+      generalSearchText={buildGeneralSearchText}
       versionSearchText={(data) =>
         buildVersionSearchText(data, selectedVersion)
       }
       feesSearchText={buildFeesSearchText}
       generalSearchMatchCount={({ data, matches }) =>
-        countMatchingGeneralFields({ data, matches, selectedVersion })
+        countMatchingGeneralFields({ data, matches })
       }
       versionSearchMatchCount={({ data, matches }) =>
         countMatchingVersionFields({ data, matches, selectedVersion })

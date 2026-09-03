@@ -112,20 +112,6 @@ export function useContractColumns(
         enableSorting: false,
         cell: (row) => <ContractCustomerCell contract={row} />,
       }),
-      col.custom({
-        id: 'endDate',
-        header: 'Ngày hết hạn hợp đồng',
-        headerClassName: 'w-[190px]',
-        size: 190,
-        enableSorting: false,
-        cell: (row) => (
-          <ContractDateCell
-            date={row.endDate}
-            reminderDays={params.contractRenewalReminderDays}
-            emptyLabel="Không giới hạn"
-          />
-        ),
-      }),
       col.badge({
         id: 'status',
         header: 'Trạng thái',
@@ -144,20 +130,19 @@ export function useContractColumns(
         size: 140,
         enableSorting: false,
       }),
-      col.currency({
-        id: 'totalOutstanding',
-        header: 'Còn phải thu',
-        get: (row) => row.totalOutstanding,
-        headerFilter: (
-          <ContractOutstandingColumnFilter
-            value={{ min: params.outstandingMin, max: params.outstandingMax }}
-            onChange={params.onOutstandingChange}
+      col.custom({
+        id: 'endDate',
+        header: 'Ngày hết hạn hợp đồng',
+        headerClassName: 'w-[190px]',
+        size: 190,
+        enableSorting: false,
+        cell: (row) => (
+          <ContractDateCell
+            date={row.endDate}
+            reminderDays={params.contractRenewalReminderDays}
+            emptyLabel="Không giới hạn"
           />
         ),
-        headerClassName: 'w-[150px]',
-        cellClassName: 'px-3',
-        size: 150,
-        enableSorting: false,
       }),
       col.custom({
         id: 'nextDueDate',
@@ -178,6 +163,21 @@ export function useContractColumns(
             emptyLabel="Chưa phát sinh"
           />
         ),
+      }),
+      col.currency({
+        id: 'totalOutstanding',
+        header: 'Còn phải thu',
+        get: (row) => row.totalOutstanding,
+        headerFilter: (
+          <ContractOutstandingColumnFilter
+            value={{ min: params.outstandingMin, max: params.outstandingMax }}
+            onChange={params.onOutstandingChange}
+          />
+        ),
+        headerClassName: 'w-[150px]',
+        cellClassName: 'px-3',
+        size: 150,
+        enableSorting: false,
       }),
       col.actions({
         id: 'actions',

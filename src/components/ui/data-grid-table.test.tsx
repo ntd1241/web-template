@@ -43,6 +43,27 @@ function FetchingTable() {
   );
 }
 
+function PinnedTable() {
+  const table = useReactTable({
+    data: [{ id: '1', name: 'Nhân viên' }],
+    columns: [
+      { id: 'name', accessorKey: 'name', header: 'Tên' },
+      { id: 'actions', header: 'Thao tác', cell: () => 'Sửa', size: 80 },
+    ],
+    state: {
+      pagination: { pageIndex: 0, pageSize: 3 },
+      columnPinning: { right: ['actions'] },
+    },
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <DataGrid table={table} recordCount={1}>
+      <DataGridTable />
+    </DataGrid>
+  );
+}
+
 describe('DataGridTable loading state', () => {
   it('renders default skeleton cells for every loading row and column', () => {
     render(
@@ -113,5 +134,17 @@ describe('DataGridTable loading state', () => {
     const header = screen.getByRole('columnheader');
     expect(header).toHaveTextContent('Tên');
     expect(header).toContainElement(screen.getByTestId('header-filter'));
+  });
+
+  it('styles state-pinned columns without enabling pin controls', () => {
+    render(<PinnedTable />);
+
+    const pinnedHeader = screen
+      .getAllByRole('columnheader')
+      .find((header) => header.dataset.pinned === 'right');
+
+    expect(pinnedHeader).toHaveStyle({ position: 'sticky' });
+    expect(pinnedHeader).toHaveTextContent('Thao tác');
+    expect(screen.queryByText('Ghim phải')).not.toBeInTheDocument();
   });
 });
