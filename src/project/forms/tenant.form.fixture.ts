@@ -81,6 +81,13 @@ const spec: FormSpec = {
     },
     {
       kind: 'number',
+      name: 'contractRenewalReminderDays',
+      label: 'Nhắc gia hạn hợp đồng trước (ngày)',
+      width: 'normal',
+      format: 'plain',
+    },
+    {
+      kind: 'number',
       name: 'chargeGenerationLeadDays',
       label: 'Tạo kỳ thanh toán trước (ngày)',
       width: 'normal',

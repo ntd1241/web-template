@@ -3,7 +3,12 @@ import { buildListQueryParams } from '@/lib/list-query-params';
 import { useTableListState } from '@/hooks/use-table-list-state';
 import { useTenant } from '@/providers/tenant-provider';
 import { useUser } from '@/providers/user-provider';
+import { loadCurrentTenantSettings } from '../../api/tenant-settings.api';
 import { loadCustomerSelectOptions } from '../../customers/api/customers.api';
+import {
+  DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS,
+  DEFAULT_PAYMENT_REMINDER_DAYS,
+} from '../../model/tenant-settings';
 import {
   loadContractList,
   loadContractStatusStats,
@@ -77,6 +82,18 @@ export function useContractList() {
         : undefined,
   };
 
+  const tenantSettingsQuery = useQuery({
+    queryKey: ['project', 'tenant-settings', userId, tenantId],
+    queryFn: () => {
+      if (!userId || !tenantId) {
+        throw new Error('Chưa xác định tổ chức hiện tại.');
+      }
+      return loadCurrentTenantSettings(userId, tenantId);
+    },
+    enabled: Boolean(userId && tenantId),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const customerOptionsQuery = useQuery({
     queryKey: ['project', 'customers', 'select-options', userId, tenantId],
     queryFn: () => {
@@ -122,6 +139,13 @@ export function useContractList() {
     },
     workspaceQuery: listQuery,
     statusStatsQuery,
+    tenantSettingsQuery,
+    paymentReminderDays:
+      tenantSettingsQuery.data?.values.paymentReminderDays ??
+      DEFAULT_PAYMENT_REMINDER_DAYS,
+    contractRenewalReminderDays:
+      tenantSettingsQuery.data?.values.contractRenewalReminderDays ??
+      DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS,
     contracts: listQuery.data?.contracts ?? [],
     total: listQuery.data?.total ?? 0,
     customerOptionsQuery,

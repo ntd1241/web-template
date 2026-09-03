@@ -66,6 +66,7 @@ export const tenantSettingsDefaultValues: TenantSettingsValues = {
   address: '',
   website: '',
   paymentReminderDays: 0,
+  contractRenewalReminderDays: 0,
   chargeGenerationLeadDays: 0,
   numberLocale: '',
   currencyCode: '',
@@ -253,6 +254,32 @@ export function TenantSettingsForm({
             render={({ field }) => (
               <FormItem className="md:col-span-6">
                 <FormLabel>Nhắc hạn thanh toán trước (ngày)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    value={field.value}
+                    variant="md"
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(
+                        Number.isNaN(event.target.valueAsNumber)
+                          ? 0
+                          : event.target.valueAsNumber,
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="contractRenewalReminderDays"
+            render={({ field }) => (
+              <FormItem className="md:col-span-6">
+                <FormLabel>Nhắc gia hạn hợp đồng trước (ngày)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

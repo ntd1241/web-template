@@ -4,6 +4,46 @@ import type { CustomerSelectOption } from '../../customers/api/customers.api';
 import { CustomerIdentity } from '../../customers/components/customer-identity';
 import { ContractStatusBadge } from '../components/contract-status-badge';
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUSES } from '../model/contract';
+import {
+  ContractCustomerColumnFilter,
+  ContractTextColumnFilter,
+} from './contract-column-filters.generated';
+
+export interface ContractIdentityColumnFilterProps {
+  contractSearch: string;
+  onContractSearchChange: (value: string) => void;
+  customerId: string;
+  customerOptions: CustomerSelectOption[];
+  customerOptionsLoading?: boolean;
+  onCustomerIdChange: (value: string) => void;
+}
+
+export function ContractIdentityColumnFilter({
+  contractSearch,
+  onContractSearchChange,
+  customerId,
+  customerOptions,
+  customerOptionsLoading = false,
+  onCustomerIdChange,
+}: ContractIdentityColumnFilterProps) {
+  return (
+    <div className="grid min-w-0 grid-cols-2 gap-1.5">
+      <ContractTextColumnFilter
+        value={contractSearch}
+        onChange={onContractSearchChange}
+      />
+      <ContractCustomerColumnFilter
+        value={customerId}
+        options={customerOptions.map(toContractCustomerFilterOption)}
+        loading={customerOptionsLoading}
+        disabled={customerOptionsLoading && customerOptions.length === 0}
+        triggerContent={renderContractCustomerFilterTrigger}
+        renderOption={(option) => option.label}
+        onChange={onCustomerIdChange}
+      />
+    </div>
+  );
+}
 
 function toCustomerOption(
   customer: CustomerSelectOption,

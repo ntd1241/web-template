@@ -1,3 +1,4 @@
+import { differenceInCalendarDays, isValid, parseISO } from 'date-fns';
 import { z } from 'zod';
 import type { FileAttachment } from '../../files/model/file';
 
@@ -282,6 +283,54 @@ export interface ContractListParams {
 export interface ContractListResult {
   contracts: Contract[];
   total: number;
+}
+
+export type ContractDateStatusTone = 'neutral' | 'warning' | 'destructive';
+
+export interface ContractDateStatus {
+  daysRemaining: number;
+  label: string;
+  tone: ContractDateStatusTone;
+}
+
+export function getContractDateStatus(
+  date: string | null | undefined,
+  reminderDays: number,
+  today = new Date(),
+): ContractDateStatus | null {
+  if (!date) return null;
+
+  const targetDate = parseISO(date);
+  if (!isValid(targetDate)) return null;
+
+  const daysRemaining = differenceInCalendarDays(targetDate, today);
+  const reminderWindow = Math.max(0, reminderDays);
+
+  if (daysRemaining > reminderWindow) {
+    return {
+      daysRemaining,
+      label: `Còn lại ${daysRemaining} ngày`,
+      tone: 'neutral',
+    };
+  }
+
+  if (daysRemaining > 0) {
+    return {
+      daysRemaining,
+      label: `Còn lại ${daysRemaining} ngày`,
+      tone: 'warning',
+    };
+  }
+
+  if (daysRemaining === 0) {
+    return { daysRemaining, label: 'Đã tới hạn', tone: 'destructive' };
+  }
+
+  return {
+    daysRemaining,
+    label: `Đã quá hạn ${Math.abs(daysRemaining)} ngày`,
+    tone: 'destructive',
+  };
 }
 
 export const CONTRACT_EXPIRING_WINDOW_DAYS = 30;

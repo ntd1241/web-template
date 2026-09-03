@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const DEFAULT_PAYMENT_REMINDER_DAYS = 7;
 export const MAX_PAYMENT_REMINDER_DAYS = 365;
+export const DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS = 30;
+export const MAX_CONTRACT_RENEWAL_REMINDER_DAYS = 365;
 export const DEFAULT_CHARGE_GENERATION_LEAD_DAYS = 0;
 export const MAX_CHARGE_GENERATION_LEAD_DAYS = 365;
 export const NUMBER_FORMAT_LOCALES = ['vi-VN', 'en-US'] as const;
@@ -36,6 +38,14 @@ export const tenantSettingsSchema = z.object({
     .max(
       MAX_PAYMENT_REMINDER_DAYS,
       `Số ngày không được lớn hơn ${MAX_PAYMENT_REMINDER_DAYS}.`,
+    ),
+  contractRenewalReminderDays: z
+    .number()
+    .int('Số ngày phải là số nguyên.')
+    .min(0, 'Số ngày không được âm.')
+    .max(
+      MAX_CONTRACT_RENEWAL_REMINDER_DAYS,
+      `Số ngày không được lớn hơn ${MAX_CONTRACT_RENEWAL_REMINDER_DAYS}.`,
     ),
   chargeGenerationLeadDays: z
     .number()
@@ -72,6 +82,7 @@ export const emptyTenantSettings: TenantSettingsValues = {
   taxCode: '',
   website: '',
   paymentReminderDays: DEFAULT_PAYMENT_REMINDER_DAYS,
+  contractRenewalReminderDays: DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS,
   chargeGenerationLeadDays: DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
   numberLocale: DEFAULT_NUMBER_FORMAT_LOCALE,
   currencyCode: DEFAULT_NUMBER_FORMAT_CURRENCY_CODE,
@@ -92,6 +103,7 @@ export function mapTenantSettingsRow(
     taxCode: getStringSetting(row.settings, 'taxCode'),
     website: getStringSetting(row.settings, 'website'),
     paymentReminderDays: getPaymentReminderDays(row.settings),
+    contractRenewalReminderDays: getContractRenewalReminderDays(row.settings),
     chargeGenerationLeadDays: getChargeGenerationLeadDays(row.settings),
     numberLocale: getNumberLocale(row.settings),
     currencyCode: getCurrencyCode(row.settings, row.default_currency_code),
@@ -114,6 +126,18 @@ export function getPaymentReminderDays(
     value <= MAX_PAYMENT_REMINDER_DAYS
     ? value
     : DEFAULT_PAYMENT_REMINDER_DAYS;
+}
+
+export function getContractRenewalReminderDays(
+  settings: Record<string, unknown> | null | undefined,
+) {
+  const value = settings?.contractRenewalReminderDays;
+  return typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= MAX_CONTRACT_RENEWAL_REMINDER_DAYS
+    ? value
+    : DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS;
 }
 
 export function getChargeGenerationLeadDays(

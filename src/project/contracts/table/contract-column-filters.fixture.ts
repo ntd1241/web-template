@@ -2,24 +2,24 @@ import type { ColumnFilterSpec } from '@/builders/column-filter';
 
 const spec: ColumnFilterSpec = {
   componentName: 'Contract',
-  specPath:
-    'src/project/contracts/table/contract-column-filters.fixture.ts',
+  specPath: 'src/project/contracts/table/contract-column-filters.fixture.ts',
   fields: [
     {
       type: 'search',
       name: 'text',
-      placeholder: '',
+      placeholder: 'Hợp đồng',
       ariaLabel: 'Tìm theo tên hoặc mã hợp đồng',
       className: 'min-w-0 w-full shrink-0',
     },
     {
       type: 'selectSearch',
       name: 'customer',
-      placeholder: '',
+      placeholder: 'Khách hàng',
       searchPlaceholder: 'Tìm khách hàng...',
       loadingMessage: 'Đang tải khách hàng...',
       ariaLabel: 'Khách hàng',
-      className: 'h-7 min-h-7 min-w-0 flex-1 rounded-md bg-background px-2.5 text-xs',
+      className:
+        'h-7 min-h-7 min-w-0 flex-1 rounded-md bg-background px-2.5 text-xs',
     },
     {
       type: 'multiSelect',
@@ -39,7 +39,7 @@ const spec: ColumnFilterSpec = {
     {
       type: 'dateRange',
       name: 'nextDue',
-      label: 'Hạn gần nhất',
+      label: 'Hạn thu tiếp theo',
       placeholder: '',
       className: 'min-w-0 w-full',
     },

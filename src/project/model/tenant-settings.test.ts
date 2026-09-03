@@ -1,12 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
+  DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS,
   getChargeGenerationLeadDays,
+  getContractRenewalReminderDays,
   mapTenantSettingsRow,
   tenantSettingsSchema,
 } from './tenant-settings';
 
 describe('tenant charge generation settings', () => {
+  it('defaults missing or invalid contract renewal reminders', () => {
+    expect(getContractRenewalReminderDays(undefined)).toBe(
+      DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS,
+    );
+    expect(
+      getContractRenewalReminderDays({ contractRenewalReminderDays: -1 }),
+    ).toBe(DEFAULT_CONTRACT_RENEWAL_REMINDER_DAYS);
+    expect(
+      getContractRenewalReminderDays({ contractRenewalReminderDays: 30 }),
+    ).toBe(30);
+  });
+
   it('defaults missing or invalid lead days to zero', () => {
     expect(getChargeGenerationLeadDays(undefined)).toBe(
       DEFAULT_CHARGE_GENERATION_LEAD_DAYS,
@@ -28,11 +42,13 @@ describe('tenant charge generation settings', () => {
       default_currency_code: null,
       settings: {
         paymentReminderDays: 7,
+        contractRenewalReminderDays: 30,
         chargeGenerationLeadDays: 14,
       },
     });
 
     expect(values.paymentReminderDays).toBe(7);
+    expect(values.contractRenewalReminderDays).toBe(30);
     expect(values.chargeGenerationLeadDays).toBe(14);
   });
 
@@ -61,6 +77,7 @@ describe('tenant charge generation settings', () => {
       taxCode: '',
       website: '',
       paymentReminderDays: 7,
+      contractRenewalReminderDays: 30,
       chargeGenerationLeadDays: -1,
     });
 

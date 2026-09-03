@@ -86,6 +86,8 @@ export function ContractsPage() {
     statusStatsQuery,
     customerOptions,
     customerOptionsQuery,
+    paymentReminderDays,
+    contractRenewalReminderDays,
   } = useContractList();
   const savedViewState = useTenantSavedViews<ContractListFilters>({
     tenantId,
@@ -124,6 +126,8 @@ export function ContractsPage() {
     customerOptions,
     customerOptionsLoading: customerOptionsQuery.isPending,
     onCustomerIdChange: (value) => setFilter('customerId', value),
+    paymentReminderDays,
+    contractRenewalReminderDays,
     statuses: filters.status,
     onStatusChange: (value) => setFilter('status', value),
     outstandingMin: filters.outstandingMin,

@@ -5,10 +5,8 @@
  * hand-edit this banner or the generated badge config — that's how review detects a bypassed builder.
  */
 import { useMemo } from 'react';
-import { buildPath, ROUTES } from '@/constants/routes';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useNumberFormat } from '@/providers/number-format-provider';
 import {
   createColumnHelpers,
@@ -16,20 +14,17 @@ import {
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
 import type { CustomerSelectOption } from '../../customers/api/customers.api';
-import { CustomerIdentity } from '../../customers/components/customer-identity';
-import { ContractCell } from '../components/contract-cell';
+import { ContractCustomerCell } from '../components/contract-cell';
+import { ContractDateCell } from '../components/contract-date-cell';
 import type { Contract, ContractStatus } from '../model/contract';
 import {
   CONTRACT_STATUS_FILTER_OPTIONS,
-  renderContractCustomerFilterTrigger,
-  toContractCustomerFilterOption,
+  ContractIdentityColumnFilter,
 } from './contract-column-filters';
 import {
-  ContractCustomerColumnFilter,
   ContractNextDueColumnFilter,
   ContractOutstandingColumnFilter,
   ContractStatusColumnFilter,
-  ContractTextColumnFilter,
 } from './contract-column-filters.generated';
 
 const statusBadgeConfig: StatusBadgeConfig<string> = {
@@ -74,6 +69,8 @@ export interface UseContractColumnsParams {
   customerOptions: CustomerSelectOption[];
   customerOptionsLoading?: boolean;
   onCustomerIdChange: (value: string) => void;
+  contractRenewalReminderDays: number;
+  paymentReminderDays: number;
   statuses: ContractStatus[];
   onStatusChange: (value: ContractStatus[]) => void;
   outstandingMin?: number;
@@ -101,54 +98,32 @@ export function useContractColumns(
         id: 'contract',
         header: 'Hợp đồng',
         headerFilter: (
-          <ContractTextColumnFilter
-            value={params.contractSearch}
-            onChange={params.onContractSearchChange}
+          <ContractIdentityColumnFilter
+            contractSearch={params.contractSearch}
+            onContractSearchChange={params.onContractSearchChange}
+            customerId={params.customerId}
+            customerOptions={params.customerOptions}
+            customerOptionsLoading={params.customerOptionsLoading}
+            onCustomerIdChange={params.onCustomerIdChange}
           />
         ),
-        headerClassName: 'min-w-[320px]',
-        size: 340,
+        headerClassName: 'min-w-[440px]',
+        size: 480,
         enableSorting: false,
-        cell: (row) => <ContractCell contract={row} />,
+        cell: (row) => <ContractCustomerCell contract={row} />,
       }),
       col.custom({
-        id: 'customer',
-        header: 'Khách hàng',
-        headerFilter: (
-          <ContractCustomerColumnFilter
-            value={params.customerId}
-            options={params.customerOptions.map(toContractCustomerFilterOption)}
-            loading={params.customerOptionsLoading}
-            disabled={
-              Boolean(params.customerOptionsLoading) &&
-              params.customerOptions.length === 0
-            }
-            triggerContent={renderContractCustomerFilterTrigger}
-            renderOption={(option) => option.label}
-            onChange={params.onCustomerIdChange}
-          />
-        ),
-        headerClassName: 'min-w-[240px]',
-        size: 280,
+        id: 'endDate',
+        header: 'Ngày hết hạn hợp đồng',
+        headerClassName: 'w-[190px]',
+        size: 190,
         enableSorting: false,
         cell: (row) => (
-          <Link
-            to={buildPath(ROUTES.PROJECT.CUSTOMER_DETAIL, {
-              id: row.customerId,
-            })}
-            target="_blank"
-            rel="noreferrer"
-            className="block min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            aria-label={`Xem chi tiết khách hàng ${row.customerName ?? ''}`}
-          >
-            <CustomerIdentity
-              customer={{
-                name: row.customerName ?? 'Chưa có khách hàng',
-                customerCode: row.customerCode ?? '',
-                imageUrl: row.customerImageUrl,
-              }}
-            />
-          </Link>
+          <ContractDateCell
+            date={row.endDate}
+            reminderDays={params.contractRenewalReminderDays}
+            emptyLabel="Không giới hạn"
+          />
         ),
       }),
       col.badge({
@@ -184,10 +159,9 @@ export function useContractColumns(
         size: 150,
         enableSorting: false,
       }),
-      col.date({
+      col.custom({
         id: 'nextDueDate',
-        header: 'Hạn gần nhất',
-        get: (row) => row.nextDueDate,
+        header: 'Hạn thu tiếp theo',
         headerFilter: (
           <ContractNextDueColumnFilter
             value={{ from: params.nextDueFrom, to: params.nextDueTo }}
@@ -197,6 +171,13 @@ export function useContractColumns(
         headerClassName: 'w-[160px]',
         size: 160,
         enableSorting: false,
+        cell: (row) => (
+          <ContractDateCell
+            date={row.nextDueDate}
+            reminderDays={params.paymentReminderDays}
+            emptyLabel="Chưa phát sinh"
+          />
+        ),
       }),
       col.actions({
         id: 'actions',

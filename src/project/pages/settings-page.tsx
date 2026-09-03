@@ -123,6 +123,7 @@ export function ProjectSettingsPage() {
         taxCode: values.taxCode,
         website: values.website,
         paymentReminderDays: values.paymentReminderDays,
+        contractRenewalReminderDays: values.contractRenewalReminderDays,
         chargeGenerationLeadDays: values.chargeGenerationLeadDays,
         numberLocale: values.numberLocale,
         compactDisplay: values.compactDisplay,

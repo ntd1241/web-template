@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { contractVersionLineSchema, mapContractRow } from './contract';
+import {
+  contractVersionLineSchema,
+  getContractDateStatus,
+  mapContractRow,
+} from './contract';
 import {
   calculateContractPaymentAllocations,
   customerPaymentSchema,
@@ -10,6 +14,27 @@ import {
 } from './receivable';
 
 describe('contract model', () => {
+  it('maps contract date status using the configured reminder window', () => {
+    const today = new Date(2026, 8, 3);
+
+    expect(getContractDateStatus('2026-09-10', 2, today)).toMatchObject({
+      label: 'Còn lại 7 ngày',
+      tone: 'neutral',
+    });
+    expect(getContractDateStatus('2026-09-05', 2, today)).toMatchObject({
+      label: 'Còn lại 2 ngày',
+      tone: 'warning',
+    });
+    expect(getContractDateStatus('2026-09-03', 2, today)).toMatchObject({
+      label: 'Đã tới hạn',
+      tone: 'destructive',
+    });
+    expect(getContractDateStatus('2026-09-02', 2, today)).toMatchObject({
+      label: 'Đã quá hạn 1 ngày',
+      tone: 'destructive',
+    });
+  });
+
   it('maps a database contract row to the domain model', () => {
     expect(
       mapContractRow({

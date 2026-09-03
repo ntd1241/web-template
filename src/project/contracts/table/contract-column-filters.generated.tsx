@@ -71,7 +71,7 @@ export function ContractTextColumnFilter({
       value={value}
       onSearch={onChange}
       debounceMs={300}
-      placeholder={''}
+      placeholder={'Hợp đồng'}
       aria-label={'Tìm theo tên hoặc mã hợp đồng'}
       variant="sm"
       className={cn('min-w-0 w-full shrink-0', className)}
@@ -96,7 +96,7 @@ export function ContractCustomerColumnFilter({
       onChange={onChange}
       options={options}
       searchable
-      placeholder={''}
+      placeholder={'Khách hàng'}
       searchPlaceholder={'Tìm khách hàng...'}
       loadingMessage={'Đang tải khách hàng...'}
       ariaLabel={'Khách hàng'}
@@ -166,7 +166,7 @@ export function ContractNextDueColumnFilter({
       <DateRangeFilter
         value={value}
         onChange={onChange}
-        label={'Hạn gần nhất'}
+        label={'Hạn thu tiếp theo'}
         placeholder={''}
         disabled={disabled}
       />
