@@ -108,7 +108,7 @@ function getVersionFields(
     },
     {
       label:
-        version.status === 'draft'
+        version.status === 'draft' || version.status === 'scheduled'
           ? 'Ngày dự kiến áp dụng'
           : 'Ngày bắt đầu phiên bản',
       value: version.effectiveFrom

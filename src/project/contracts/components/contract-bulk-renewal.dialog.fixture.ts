@@ -14,11 +14,11 @@ const spec = {
     },
     {
       name: 'confirm',
-      label: 'Tạo bản nháp gia hạn',
+      label: 'Gia hạn hợp đồng',
       variant: 'primary',
       icon: 'RefreshCw',
       loadingProp: 'isSubmitting',
-      loadingText: 'Đang tạo...',
+      loadingText: 'Đang gia hạn...',
       disabledProp: 'canConfirm',
       disabledWhen: 'falsy',
     },

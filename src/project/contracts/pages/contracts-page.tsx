@@ -43,8 +43,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
 import {
-  createContractRenewalDrafts,
   deleteContract,
+  renewContracts,
   type ContractBulkRenewalInput,
 } from '../api/contracts.api';
 import { ContractBulkRenewalDialog } from '../components/contract-bulk-renewal-dialog';
@@ -133,13 +133,13 @@ export function ContractsPage() {
       if (!tenantId) {
         throw new Error('Thiếu thông tin tổ chức để gia hạn hợp đồng.');
       }
-      return createContractRenewalDrafts(tenantId, input);
+      return renewContracts(tenantId, input);
     },
     onSuccess: async (result) => {
       toast.success(
         result.overrodeDraftCount > 0
-          ? `Đã tạo bản nháp gia hạn cho ${result.total} hợp đồng và ghi đè ${result.overrodeDraftCount} bản nháp.`
-          : `Đã tạo bản nháp gia hạn cho ${result.total} hợp đồng.`,
+          ? `Đã lập lịch gia hạn cho ${result.total} hợp đồng và thay thế ${result.overrodeDraftCount} bản nháp.`
+          : `Đã lập lịch gia hạn cho ${result.total} hợp đồng.`,
       );
       setBulkRenewalDialogOpen(false);
       setRowSelection({});
@@ -430,7 +430,7 @@ export function ContractsPage() {
             size="sm"
             disabled={renewalMutation.isPending}
             loading={renewalMutation.isPending}
-            loadingText="Đang tạo..."
+            loadingText="Đang gia hạn..."
             onClick={() => setBulkRenewalDialogOpen(true)}
           >
             <RefreshCw />

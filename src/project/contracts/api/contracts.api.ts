@@ -1069,7 +1069,7 @@ export interface ContractRenewalResult {
   versionId: string;
   versionNo: number;
   versionKind: ContractVersionKind;
-  status: 'draft';
+  status: 'draft' | 'scheduled' | 'active';
   effectiveFrom: string;
   effectiveTo: string;
   generatedChargeCount: number;
@@ -1423,7 +1423,7 @@ export async function createContractRenewalDraft(
   return response;
 }
 
-export async function createContractRenewalDrafts(
+export async function renewContracts(
   tenantId: string,
   input: ContractBulkRenewalInput,
 ): Promise<ContractBulkRenewalResult> {
@@ -1433,7 +1433,7 @@ export async function createContractRenewalDrafts(
     total: number | string;
     overrodeDraftCount: number | string;
   }>(
-    supabaseApi.post('/rpc/create_contract_renewal_drafts_scoped', {
+    supabaseApi.post('/rpc/renew_contracts_scoped', {
       p_tenant_id: tenantId,
       p_contract_ids: input.contractIds,
       p_duration_value: input.durationValue,

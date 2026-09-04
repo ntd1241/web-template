@@ -45,9 +45,7 @@ describe('ContractBulkRenewalDialog', () => {
       screen.getByRole('spinbutton', { name: 'Thời gian gia hạn' }),
     ).toHaveClass('rounded-e-none');
 
-    await user.click(
-      screen.getByRole('button', { name: /Tạo bản nháp gia hạn/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Gia hạn hợp đồng/ }));
 
     expect(onConfirm).toHaveBeenCalledWith({
       contractIds: ['contract-1', 'contract-2'],
@@ -70,7 +68,7 @@ describe('ContractBulkRenewalDialog', () => {
     );
 
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Có 1 hợp đồng đã có bản nháp gia hạn',
+      'Có 1 hợp đồng đang có bản nháp gia hạn',
     );
     expect(screen.getByText(/HD-001/)).toHaveTextContent('v2');
   });

@@ -22,6 +22,15 @@ const spec: TableSpec = {
       enableSorting: false,
     },
     {
+      kind: 'date',
+      id: 'effectiveTo',
+      header: 'Ngày kết thúc',
+      field: 'effectiveTo',
+      headerClassName: 'min-w-[150px]',
+      size: 170,
+      enableSorting: false,
+    },
+    {
       kind: 'custom',
       id: 'changeReason',
       header: 'Lý do thay đổi',

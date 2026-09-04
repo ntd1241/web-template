@@ -114,12 +114,13 @@ export function ContractBulkRenewalDialog({
               </AlertIcon>
               <AlertContent>
                 <AlertTitle>
-                  Có {renewalDraftContracts.length} hợp đồng đã có bản nháp gia
-                  hạn
+                  Có {renewalDraftContracts.length} hợp đồng đang có bản nháp
+                  gia hạn
                 </AlertTitle>
                 <AlertDescription>
                   <p>
-                    Nếu tiếp tục, các bản nháp gia hạn hiện tại sẽ bị ghi đè.
+                    Nếu tiếp tục, các bản nháp hiện tại sẽ được thay thế bằng
+                    phiên bản gia hạn được kích hoạt ngay.
                   </p>
                   <div className="max-h-28 overflow-y-auto">
                     {renewalDraftContracts.map((contract) => (
@@ -200,9 +201,9 @@ export function ContractBulkRenewalDialog({
       <ConfirmDialog
         open={overrideConfirmOpen}
         onOpenChange={setOverrideConfirmOpen}
-        title="Ghi đè bản nháp gia hạn?"
-        description={`Có ${renewalDraftContracts.length} bản nháp gia hạn sẽ bị thay thế bằng thông tin mới.`}
-        confirmLabel="Ghi đè và tiếp tục"
+        title="Thay thế bản nháp và gia hạn ngay?"
+        description={`Có ${renewalDraftContracts.length} bản nháp gia hạn sẽ bị xóa để kích hoạt phiên bản gia hạn mới ngay sau khi phiên bản hiện tại kết thúc.`}
+        confirmLabel="Gia hạn và thay thế"
         onConfirm={() => {
           if (!pendingInput || isSubmitting) return;
           setOverrideConfirmOpen(false);

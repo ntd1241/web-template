@@ -29,6 +29,7 @@ const STATUS_COLORS: Record<string, string> = {
   projected: '#64748b',
   active: '#16a34a',
   effective: '#16a34a',
+  scheduled: '#ca8a04',
   paid: '#16a34a',
   upcoming: '#2563eb',
   open: '#64748b',

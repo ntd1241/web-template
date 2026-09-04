@@ -58,11 +58,11 @@ export function ContractBulkRenewalDialogShell({
             variant="primary"
             onClick={onConfirm}
             loading={isSubmitting}
-            loadingText="Đang tạo..."
+            loadingText="Đang gia hạn..."
             disabled={!canConfirm}
           >
             <RefreshCw />
-            Tạo bản nháp gia hạn
+            Gia hạn hợp đồng
           </Button>
         </DialogFooter>
       </DialogContent>

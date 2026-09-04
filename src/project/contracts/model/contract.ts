@@ -13,6 +13,7 @@ export type ContractStatus = (typeof CONTRACT_STATUSES)[number];
 
 export const CONTRACT_VERSION_STATUSES = [
   'draft',
+  'scheduled',
   'effective',
   'superseded',
   'cancelled',
@@ -76,6 +77,7 @@ export const CONTRACT_VERSION_STATUS_LABELS: Record<
   string
 > = {
   draft: 'Bản nháp',
+  scheduled: 'Chờ áp dụng',
   effective: 'Đang áp dụng',
   superseded: 'Đã thay thế',
   cancelled: 'Đã hủy',

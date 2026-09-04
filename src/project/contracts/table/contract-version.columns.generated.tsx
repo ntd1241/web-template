@@ -51,8 +51,8 @@ export function useContractVersionColumns(
         size: 170,
         enableSorting: false,
         cell: (row) => (
-          <span className="text-muted-foreground">
-            {row.status === 'draft'
+          <span>
+            {row.status === 'draft' || row.status === 'scheduled'
               ? row.effectiveFrom
                 ? `Dự kiến ${new Intl.DateTimeFormat('vi-VN').format(new Date(`${row.effectiveFrom}T00:00:00`))}`
                 : 'Chưa đặt'
@@ -65,16 +65,28 @@ export function useContractVersionColumns(
         ),
       }),
       col.custom({
+        id: 'effectiveTo',
+        header: 'Ngày kết thúc',
+        headerClassName: 'min-w-[150px]',
+        size: 170,
+        enableSorting: false,
+        cell: (row) => (
+          <span>
+            {row.effectiveTo
+              ? new Intl.DateTimeFormat('vi-VN').format(
+                  new Date(`${row.effectiveTo}T00:00:00`),
+                )
+              : 'Không giới hạn'}
+          </span>
+        ),
+      }),
+      col.custom({
         id: 'changeReason',
         header: 'Lý do thay đổi',
         headerClassName: 'min-w-[320px]',
         size: 420,
         enableSorting: false,
-        cell: (row) => (
-          <span className="text-muted-foreground">
-            {row.changeReason || '—'}
-          </span>
-        ),
+        cell: (row) => <span>{row.changeReason || '—'}</span>,
       }),
       col.custom({
         id: 'status',

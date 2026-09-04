@@ -17,7 +17,7 @@ export function ContractVersionBadge({
   const variant =
     status === 'effective'
       ? 'primary'
-      : status === 'draft'
+      : status === 'draft' || status === 'scheduled'
         ? 'warning'
         : 'secondary';
 
