@@ -26,6 +26,10 @@ Use the live tokens as source of truth. This document does not duplicate a color
 
 - Prefer compact controls and spacing without reducing readability or target size.
 - Page headers contain title, essential context, and primary actions; avoid marketing hero treatment.
+- Top-level project pages use the shared `PageHeader` primitive
+  (`src/components/ui/page-header.tsx`) instead of composing a page title with a
+  local `h1` and action wrapper. This keeps title typography, wrapping, and
+  action alignment consistent.
 - List pages prioritize filters, table, pagination, and bulk or row actions.
 - Forms group related fields, use a predictable reading order, and avoid decorative containers.
 - Dialog width follows task complexity; long or high-context workflows become a page or side panel.
@@ -45,6 +49,10 @@ Concrete APIs: [`components/data-grid.md`](./components/data-grid.md).
 ## Forms And Dialogs
 
 - Labels remain visible; placeholders are examples or hints, not replacements for labels.
+- Standard single-select form fields use `Select` with `SelectTrigger`,
+  `SelectValue`, `SelectContent`, and `SelectItem`, matching the employee form
+  pattern. Use `OptionSelect` only for searchable/combobox behavior; do not use
+  it as a visual replacement for a standard select.
 - Không ghi text description trừ khi được yêu cầu.
 - Không tự ý bọc card các input; gắn input vào form một cách bình thường như các input khác.
 - Required state and Vietnamese validation messages are explicit.

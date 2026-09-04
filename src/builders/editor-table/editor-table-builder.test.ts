@@ -150,6 +150,38 @@ describe('buildEditorTableModule', () => {
     ).toContain('<ScrollBar orientation="horizontal" />');
   });
 
+  it('supports sortable rows with a keyboard-accessible drag handle', () => {
+    const sortable = buildEditorTableModule({
+      ...orderItemsSpec,
+      reorder: { enabled: true },
+    });
+
+    expect(sortable).toContain("import { CSS } from '@dnd-kit/utilities';");
+    expect(sortable).toContain('SortableContext');
+    expect(sortable).toContain('verticalListSortingStrategy');
+    expect(sortable).toContain('useSensor(KeyboardSensor');
+    expect(sortable).toContain('const handleDragEnd = ({ active, over }');
+    expect(sortable).toContain('move(oldIndex, newIndex);');
+    expect(sortable).toContain('Kéo để sắp xếp dòng');
+  });
+
+  it('allows an editor table to keep only the configured row actions', () => {
+    const deleteOnly = buildEditorTableModule({
+      ...orderItemsSpec,
+      actions: {
+        enabled: true,
+        duplicate: false,
+        insert: false,
+        delete: true,
+      },
+    });
+
+    expect(deleteOnly).not.toContain('handleDuplicateRow');
+    expect(deleteOnly).not.toContain('handleAddRowBelow');
+    expect(deleteOnly).toContain('onClick={() => remove(index)}');
+    expect(deleteOnly).toContain('const { fields, append, remove }');
+  });
+
   it('omits unused imports/plumbing when no currency column and actions are off', () => {
     // Regression guard for `noUnusedLocals`: a lean spec must not import or
     // reference anything its cells do not use.
@@ -193,6 +225,51 @@ describe('buildEditorTableModule', () => {
     expect(withToolbar).toContain('Thêm dòng');
     // no toolbar by default → no header markup
     expect(source).not.toContain('{fields.length} dòng');
+  });
+
+  it('supports a dynamic toolbar title and content after the add action', () => {
+    const withDynamicToolbar = buildEditorTableModule({
+      ...orderItemsSpec,
+      toolbar: {
+        title: 'Danh sách dòng',
+        titleProp: 'toolbarTitle',
+        contentPosition: 'afterAdd',
+      },
+    });
+
+    expect(withDynamicToolbar).toContain('toolbarTitle?: ReactNode;');
+    expect(withDynamicToolbar).toContain("{toolbarTitle ?? 'Danh sách dòng'}");
+    expect(withDynamicToolbar.indexOf('Thêm dòng')).toBeLessThan(
+      withDynamicToolbar.indexOf('{toolbarContent}'),
+    );
+  });
+
+  it('renders editable-cell errors and warnings in tooltips', () => {
+    const withWarning = buildEditorTableModule({
+      ...orderItemsSpec,
+      columns: [
+        {
+          kind: 'text',
+          name: 'sku',
+          header: 'Mã hàng',
+          warningExpression:
+            "inputField.value === 'ST25-10KG' ? 'Cảnh báo' : undefined",
+        },
+      ],
+    });
+
+    expect(withWarning).toContain("from '@/components/ui/tooltip'");
+    expect(withWarning).toContain('<TooltipTrigger asChild>');
+    expect(withWarning).toContain(
+      "const skuWarning = inputField.value === 'ST25-10KG' ? 'Cảnh báo' : undefined;",
+    );
+    expect(withWarning).toContain('warning={Boolean(skuWarning)}');
+    expect(withWarning).toContain(
+      "variant={errors?.sku ? 'destructive' : 'warning'}",
+    );
+    expect(withWarning).not.toContain(
+      'className="mt-1 text-xs text-destructive"',
+    );
   });
 
   it('emits multi-edit selection, action bar, and optional header inputs', () => {

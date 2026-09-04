@@ -35,6 +35,7 @@ export interface NumericInputProps
   decimalScale?: number;
   thousandSeparator?: string;
   decimalSeparator?: string;
+  warning?: boolean;
 }
 
 export function NumericInput({
@@ -46,6 +47,7 @@ export function NumericInput({
   decimalScale,
   thousandSeparator,
   decimalSeparator,
+  warning = false,
   ...props
 }: NumericInputProps) {
   const { inputSeparators } = useNumberFormat();
@@ -66,6 +68,8 @@ export function NumericInput({
       className={cn(
         inputVariants({ variant }),
         'text-right tabular-nums',
+        warning &&
+          'border-[var(--color-warning-accent,var(--color-yellow-500))] focus-visible:border-[var(--color-warning-accent,var(--color-yellow-500))] focus-visible:ring-[var(--color-warning-accent,var(--color-yellow-500))]/30',
         className,
       )}
       {...props}

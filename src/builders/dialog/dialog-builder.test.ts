@@ -53,6 +53,16 @@ describe('dialog-builder', () => {
     expect(source).not.toContain('DialogDescription');
   });
 
+  it('allows a dynamic title prop to contain styled title content', () => {
+    const source = buildDialogModule({
+      ...baseSpec,
+      titleProp: 'dialogTitle',
+    });
+
+    expect(source).toContain('dialogTitle: ReactNode;');
+    expect(source).toContain('<DialogTitle>{dialogTitle}</DialogTitle>');
+  });
+
   it('rejects duplicate action names and loading text without a loading prop', () => {
     expect(() =>
       dialogSpecSchema.parse({

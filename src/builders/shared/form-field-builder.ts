@@ -41,6 +41,7 @@ export interface FormFieldControlOptions {
   format?: 'plain' | 'currency' | 'percent' | 'display' | 'iso';
   ariaLabelExpression?: string;
   ariaInvalidExpression?: string;
+  warningExpression?: string;
   disabledExpression?: string;
   className?: string;
   numberAttributes?: string;
@@ -87,6 +88,7 @@ function inputAttributes(options: FormFieldControlOptions): string {
   const attrs = [
     expressionAttribute('aria-label', options.ariaLabelExpression),
     expressionAttribute('aria-invalid', options.ariaInvalidExpression),
+    expressionAttribute('warning', options.warningExpression),
     expressionAttribute('disabled', options.disabledExpression),
     attribute('className', options.className),
   ];

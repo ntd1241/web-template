@@ -18,6 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { OrderItem, OrderItemsFormValues } from './order-item';
 
 interface OrderItemsEditorTableProps {
@@ -119,122 +124,205 @@ export function OrderItemsEditorTable({
                       <Controller
                         control={form.control}
                         name={`items.${index}.sku`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            {...inputField}
-                            aria-label={`Mã hàng dòng ${index + 1}`}
-                            aria-invalid={!!errors?.sku}
-                            variant="sm"
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const skuWarning = undefined;
+                          const skuMessage = errors?.sku?.message ?? skuWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <Input
+                                    {...inputField}
+                                    aria-label={`Mã hàng dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.sku}
+                                    variant="sm"
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {skuMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.sku ? 'destructive' : 'warning'
+                                  }
+                                >
+                                  {skuMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.sku && (
-                        <div className="mt-1 text-xs text-destructive">
-                          {errors?.sku?.message}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className="px-2 py-2">
                       <Controller
                         control={form.control}
                         name={`items.${index}.name`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            {...inputField}
-                            aria-label={`Tên hàng hóa dòng ${index + 1}`}
-                            aria-invalid={!!errors?.name}
-                            variant="sm"
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const nameWarning = undefined;
+                          const nameMessage =
+                            errors?.name?.message ?? nameWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <Input
+                                    {...inputField}
+                                    aria-label={`Tên hàng hóa dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.name}
+                                    variant="sm"
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {nameMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.name ? 'destructive' : 'warning'
+                                  }
+                                >
+                                  {nameMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.name && (
-                        <div className="mt-1 text-xs text-destructive">
-                          {errors?.name?.message}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className="px-2 py-2">
                       <Controller
                         control={form.control}
                         name={`items.${index}.quantity`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            aria-label={`Số lượng dòng ${index + 1}`}
-                            aria-invalid={!!errors?.quantity}
-                            className="text-right tabular-nums"
-                            min={0}
-                            type="number"
-                            value={inputField.value}
-                            variant="sm"
-                            onBlur={inputField.onBlur}
-                            onChange={(event) =>
-                              inputField.onChange(
-                                Number.isNaN(event.target.valueAsNumber)
-                                  ? 0
-                                  : event.target.valueAsNumber,
-                              )
-                            }
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const quantityWarning = undefined;
+                          const quantityMessage =
+                            errors?.quantity?.message ?? quantityWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <Input
+                                    aria-label={`Số lượng dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.quantity}
+                                    className="text-right tabular-nums"
+                                    min={0}
+                                    type="number"
+                                    value={inputField.value}
+                                    variant="sm"
+                                    onBlur={inputField.onBlur}
+                                    onChange={(event) =>
+                                      inputField.onChange(
+                                        Number.isNaN(event.target.valueAsNumber)
+                                          ? 0
+                                          : event.target.valueAsNumber,
+                                      )
+                                    }
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {quantityMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.quantity ? 'destructive' : 'warning'
+                                  }
+                                >
+                                  {quantityMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.quantity && (
-                        <div className="mt-1 text-right text-xs text-destructive">
-                          {errors?.quantity?.message}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className="px-2 py-2">
                       <Controller
                         control={form.control}
                         name={`items.${index}.unitPrice`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            aria-label={`Đơn giá dòng ${index + 1}`}
-                            aria-invalid={!!errors?.unitPrice}
-                            className="text-right tabular-nums"
-                            min={0}
-                            type="number"
-                            value={inputField.value}
-                            variant="sm"
-                            onBlur={inputField.onBlur}
-                            onChange={(event) =>
-                              inputField.onChange(
-                                Number.isNaN(event.target.valueAsNumber)
-                                  ? 0
-                                  : event.target.valueAsNumber,
-                              )
-                            }
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const unitPriceWarning = undefined;
+                          const unitPriceMessage =
+                            errors?.unitPrice?.message ?? unitPriceWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <Input
+                                    aria-label={`Đơn giá dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.unitPrice}
+                                    className="text-right tabular-nums"
+                                    min={0}
+                                    type="number"
+                                    value={inputField.value}
+                                    variant="sm"
+                                    onBlur={inputField.onBlur}
+                                    onChange={(event) =>
+                                      inputField.onChange(
+                                        Number.isNaN(event.target.valueAsNumber)
+                                          ? 0
+                                          : event.target.valueAsNumber,
+                                      )
+                                    }
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {unitPriceMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.unitPrice
+                                      ? 'destructive'
+                                      : 'warning'
+                                  }
+                                >
+                                  {unitPriceMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.unitPrice && (
-                        <div className="mt-1 text-right text-xs text-destructive">
-                          {errors?.unitPrice?.message}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className="px-2 py-2">
                       <Controller
                         control={form.control}
                         name={`items.${index}.expiryDate`}
-                        render={({ field: inputField }) => (
-                          <DatePickerInput
-                            aria-label={`Hạn dùng dòng ${index + 1}`}
-                            aria-invalid={!!errors?.expiryDate}
-                            calendarLabel={`Chọn hạn dùng dòng ${index + 1}`}
-                            value={inputField.value}
-                            valueMode="iso-date"
-                            variant="sm"
-                            onBlur={inputField.onBlur}
-                            onChange={inputField.onChange}
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const expiryDateWarning = undefined;
+                          const expiryDateMessage =
+                            errors?.expiryDate?.message ?? expiryDateWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <DatePickerInput
+                                    aria-label={`Hạn dùng dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.expiryDate}
+                                    calendarLabel={`Chọn hạn dùng dòng ${index + 1}`}
+                                    value={inputField.value}
+                                    valueMode="iso-date"
+                                    variant="sm"
+                                    onBlur={inputField.onBlur}
+                                    onChange={inputField.onChange}
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {expiryDateMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.expiryDate
+                                      ? 'destructive'
+                                      : 'warning'
+                                  }
+                                >
+                                  {expiryDateMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.expiryDate && (
-                        <div className="mt-1 text-xs text-destructive">
-                          {errors?.expiryDate?.message}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className="px-4 py-2 text-right tabular-nums">
                       {/* TODO(scaffold): calculate lineTotal from row. */}

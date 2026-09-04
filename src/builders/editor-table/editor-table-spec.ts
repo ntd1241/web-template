@@ -19,6 +19,7 @@ const baseColumn = {
 const fieldColumnBase = {
   name: identifier,
   ariaLabel: z.string().optional(),
+  warningExpression: z.string().optional(),
   ...baseColumn,
 };
 
@@ -91,7 +92,9 @@ export const editorTableSpecSchema = z.object({
   toolbar: z
     .object({
       title: z.string().min(1),
+      titleProp: identifierSchema.optional(),
       addLabel: z.string().min(1).default('Thêm dòng'),
+      contentPosition: z.enum(['beforeAdd', 'afterAdd']).default('beforeAdd'),
     })
     .optional(),
   viewport: z
@@ -113,8 +116,24 @@ export const editorTableSpecSchema = z.object({
       enabled: z.boolean().default(true),
       header: z.string().optional(),
       widthClass: z.string().min(1).default('w-28'),
+      duplicate: z.boolean().default(true),
+      insert: z.boolean().default(true),
+      delete: z.boolean().default(true),
     })
-    .default({ enabled: true, widthClass: 'w-28' }),
+    .default({
+      enabled: true,
+      widthClass: 'w-28',
+      duplicate: true,
+      insert: true,
+      delete: true,
+    }),
+  reorder: z
+    .object({
+      enabled: z.boolean().default(false),
+      header: z.string().default('Thứ tự'),
+      widthClass: z.string().min(1).default('w-12'),
+    })
+    .default({ enabled: false, header: 'Thứ tự', widthClass: 'w-12' }),
   columns: z
     .array(editorTableColumnSchema)
     .min(1, 'cần ít nhất một cột editor table'),

@@ -129,90 +129,78 @@ function emitBulkFieldOptions(columns: ReturnType<typeof bulkEditableColumns>) {
     .join('\n');
 }
 
+function tooltipRender(
+  column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
+  control: string,
+): string {
+  const warningName = `${column.name}Warning`;
+  const messageName = `${column.name}Message`;
+  const warningExpression = column.warningExpression ?? 'undefined';
+
+  return `render={({ field: inputField }) => {
+      const ${warningName} = ${warningExpression};
+      const ${messageName} = ${fieldError(column)}?.message ?? ${warningName};
+
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="block w-full">
+${indent(control, 14)}
+            </span>
+          </TooltipTrigger>
+          {${messageName} && (
+            <TooltipContent variant={${fieldError(column)} ? 'destructive' : 'warning'}>
+              {${messageName}}
+            </TooltipContent>
+          )}
+        </Tooltip>
+      );
+    }}`;
+}
+
 function editableCell(
   spec: NormalizedEditorTableSpec,
   column: Extract<EditorTableColumnSpec, { kind: 'text' | 'number' | 'date' }>,
 ): string {
-  if (column.kind === 'number') {
-    const control = buildFormFieldControl({
-      kind: column.kind,
-      surface: 'cell',
-      fieldExpression: 'inputField',
-      valueExpression: 'inputField.value',
-      onChangeExpression: 'inputField.onChange',
-      format: column.format,
-      variant: inputVariant(column),
-      ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
-      ariaInvalidExpression: `!!${fieldError(column)}`,
-      className: FIELD_ALIGNMENT_CLASS.right,
-      numberAttributes: numberAttrs(column),
-    });
-    return `<TableCell className="px-2 py-2">
-  <Controller
-    control={form.control}
-    name={\`${fieldName(spec, column.name)}\`}
-    render={({ field: inputField }) => (
-      ${control}
-    )}
-  />
-  {${fieldError(column)} && (
-    <div className="mt-1 text-right text-xs text-destructive">
-      {${fieldError(column)}?.message}
-    </div>
-  )}
-</TableCell>`;
-  }
-
-  if (column.kind === 'date') {
-    const control = buildFormFieldControl({
-      kind: column.kind,
-      surface: 'cell',
-      fieldExpression: 'inputField',
-      variant: inputVariant(column),
-      ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
-      ariaInvalidExpression: `!!${fieldError(column)}`,
-      calendarLabelExpression: `\`Chọn ${ariaLabel(column).toLowerCase()} dòng \${index + 1}\``,
-      format: column.kind === 'date' ? column.format : undefined,
-    });
-    return `<TableCell className="px-2 py-2">
-  <Controller
-    control={form.control}
-    name={\`${fieldName(spec, column.name)}\`}
-    render={({ field: inputField }) => (
-      ${control}
-    )}
-  />
-  {${fieldError(column)} && (
-    <div className="mt-1 text-xs text-destructive">
-      {${fieldError(column)}?.message}
-    </div>
-  )}
-</TableCell>`;
-  }
-
-  const control = buildFormFieldControl({
+  const common = {
     kind: column.kind,
-    surface: 'cell',
+    surface: 'cell' as const,
     fieldExpression: 'inputField',
-    inputType: column.inputType,
     variant: inputVariant(column),
     ariaLabelExpression: `\`${ariaLabel(column)} dòng \${index + 1}\``,
     ariaInvalidExpression: `!!${fieldError(column)}`,
-  });
+    warningExpression: column.warningExpression
+      ? `Boolean(${column.name}Warning)`
+      : undefined,
+  };
+
+  const control =
+    column.kind === 'number'
+      ? buildFormFieldControl({
+          ...common,
+          valueExpression: 'inputField.value',
+          onChangeExpression: 'inputField.onChange',
+          format: column.format,
+          className: FIELD_ALIGNMENT_CLASS.right,
+          numberAttributes: numberAttrs(column),
+        })
+      : column.kind === 'date'
+        ? buildFormFieldControl({
+            ...common,
+            calendarLabelExpression: `\`Chọn ${ariaLabel(column).toLowerCase()} dòng \${index + 1}\``,
+            format: column.format,
+          })
+        : buildFormFieldControl({
+            ...common,
+            inputType: column.inputType,
+          });
 
   return `<TableCell className="px-2 py-2">
   <Controller
     control={form.control}
     name={\`${fieldName(spec, column.name)}\`}
-    render={({ field: inputField }) => (
-      ${control}
-    )}
+    ${tooltipRender(column, control)}
   />
-  {${fieldError(column)} && (
-    <div className="mt-1 text-xs text-destructive">
-      {${fieldError(column)}?.message}
-    </div>
-  )}
 </TableCell>`;
 }
 
@@ -294,6 +282,11 @@ function emitHeaderCell(
 
 function emitHeaders(spec: NormalizedEditorTableSpec): string {
   const cells = spec.columns.map((column) => emitHeaderCell(spec, column));
+  if (spec.reorder.enabled) {
+    cells.unshift(
+      `<TableHead className="sticky top-0 z-20 bg-muted ${spec.reorder.widthClass} text-center">${spec.reorder.header}</TableHead>`,
+    );
+  }
   if (spec.multiEdit.enabled) {
     cells.unshift(`<TableHead className="sticky top-0 z-20 bg-muted w-12">
   <Checkbox
@@ -309,7 +302,7 @@ function emitHeaders(spec: NormalizedEditorTableSpec): string {
   />
 </TableHead>`);
   }
-  if (spec.actions.enabled) {
+  if (hasRowActions(spec)) {
     cells.push(
       emitHeaderCell(
         spec,
@@ -526,10 +519,10 @@ function emitCells(spec: NormalizedEditorTableSpec): string {
 </TableCell>`);
   }
 
-  if (spec.actions.enabled) {
-    cells.push(`<TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
-  <div className="flex justify-end gap-1">
-    <Button
+  if (hasRowActions(spec)) {
+    const actionButtons: string[] = [];
+    if (spec.actions.duplicate) {
+      actionButtons.push(`    <Button
       aria-label={\`Nhân đôi dòng \${index + 1}\`}
       title="Nhân đôi"
       type="button"
@@ -539,8 +532,10 @@ function emitCells(spec: NormalizedEditorTableSpec): string {
       onClick={() => handleDuplicateRow(index)}
     >
       <Copy />
-    </Button>
-    <Button
+    </Button>`);
+    }
+    if (spec.actions.insert) {
+      actionButtons.push(`    <Button
       aria-label={\`Thêm dòng dưới dòng \${index + 1}\`}
       title="Thêm dòng dưới"
       type="button"
@@ -550,8 +545,10 @@ function emitCells(spec: NormalizedEditorTableSpec): string {
       onClick={() => handleAddRowBelow(index)}
     >
       <Plus />
-    </Button>
-    <Button
+    </Button>`);
+    }
+    if (spec.actions.delete) {
+      actionButtons.push(`    <Button
       aria-label={\`Xóa dòng \${index + 1}\`}
       title="Xóa"
       type="button"
@@ -562,12 +559,40 @@ function emitCells(spec: NormalizedEditorTableSpec): string {
       onClick={() => remove(index)}
     >
       <Trash2 />
-    </Button>
+    </Button>`);
+    }
+    cells.push(`<TableCell className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]">
+  <div className="flex justify-end gap-1">
+${actionButtons.join('\n')}
   </div>
 </TableCell>`);
   }
 
   return cells.join('\n');
+}
+
+function emitReorderCell(): string {
+  return `<TableCell className="w-12 px-2 py-2">
+  <Button
+    type="button"
+    variant="ghost"
+    mode="icon"
+    size="sm"
+    aria-label={\`Kéo để sắp xếp dòng \${index + 1}\`}
+    title="Kéo để sắp xếp"
+    {...sortable.attributes}
+    {...sortable.listeners}
+  >
+    <GripVertical />
+  </Button>
+</TableCell>`;
+}
+
+function hasRowActions(spec: NormalizedEditorTableSpec): boolean {
+  return (
+    spec.actions.enabled &&
+    (spec.actions.duplicate || spec.actions.insert || spec.actions.delete)
+  );
 }
 
 function hasEditableColumn(spec: NormalizedEditorTableSpec): boolean {
@@ -621,17 +646,34 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
   const formattedNumber = hasFormattedNumberColumn(spec);
   const date = hasDateColumn(spec);
   const multiEdit = hasMultiEdit(spec);
-  const icons = spec.actions.enabled ? 'Copy, Plus, Trash2' : 'Plus';
+  const icons = [
+    ...(hasRowActions(spec) && spec.actions.duplicate ? ['Copy'] : []),
+    ...(hasRowActions(spec) && spec.actions.insert ? ['Plus'] : []),
+    ...(hasRowActions(spec) && spec.actions.delete ? ['Trash2'] : []),
+    'Plus',
+    ...(spec.reorder.enabled ? ['GripVertical'] : []),
+  ].filter((icon, index, all) => all.indexOf(icon) === index);
   const rhfValues = editable ? 'Controller, useFieldArray' : 'useFieldArray';
 
   const lines = [
-    ...(spec.toolbar ? ["import type { ReactNode } from 'react';"] : []),
+    ...(spec.toolbar || spec.reorder.enabled
+      ? ["import type { ReactNode } from 'react';"]
+      : []),
     ...(multiEdit ? ["import { useMemo, useState } from 'react';"] : []),
-    `import { ${icons} } from 'lucide-react';`,
+    ...(icons.length > 0
+      ? [`import { ${icons.join(', ')} } from 'lucide-react';`]
+      : []),
     `import { ${rhfValues} } from 'react-hook-form';`,
     "import type { UseFormReturn } from 'react-hook-form';",
     "import { Button } from '@/components/ui/button';",
   ];
+  if (spec.reorder.enabled) {
+    lines.push(
+      "import {\n  DndContext,\n  KeyboardSensor,\n  PointerSensor,\n  closestCenter,\n  useSensor,\n  useSensors,\n  type DragEndEvent,\n} from '@dnd-kit/core';",
+      "import {\n  SortableContext,\n  sortableKeyboardCoordinates,\n  useSortable,\n  verticalListSortingStrategy,\n} from '@dnd-kit/sortable';",
+      "import { CSS } from '@dnd-kit/utilities';",
+    );
+  }
   if (multiEdit)
     lines.push("import { Checkbox } from '@/components/ui/checkbox';");
   if (input || multiEdit)
@@ -654,6 +696,11 @@ function emitImports(spec: NormalizedEditorTableSpec): string {
   lines.push(
     "import {\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from '@/components/ui/table';",
   );
+  if (editable) {
+    lines.push(
+      "import {\n  Tooltip,\n  TooltipContent,\n  TooltipTrigger,\n} from '@/components/ui/tooltip';",
+    );
+  }
   if (computed) lines.push("import { formatCurrencyVND } from '@/lib/format';");
   lines.push(`import type { ${spec.entity} } from ${quote(spec.modelImport)};`);
   lines.push(
@@ -669,7 +716,10 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   const createRowProp = spec.createRowProp ?? 'createRow';
   const multiEdit = hasMultiEdit(spec);
   const columnCount =
-    spec.columns.length + (spec.actions.enabled ? 1 : 0) + (multiEdit ? 1 : 0);
+    spec.columns.length +
+    (hasRowActions(spec) ? 1 : 0) +
+    (spec.reorder.enabled ? 1 : 0) +
+    (multiEdit ? 1 : 0);
   const rowPrelude = emitRowPrelude(spec);
   const bulkEditSetup = emitBulkEditSetup(spec);
   const scrollClass = scrollAreaClass(spec);
@@ -680,18 +730,43 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   // Gate row-action plumbing on `actions.enabled` and the per-row `errors`
   // binding on having an editable column — `noUnusedLocals` rejects either if
   // emitted but unused.
-  const fieldArrayBindings = spec.actions.enabled
-    ? 'fields, append, insert, remove'
-    : 'fields, append';
-  const actionHandlers = spec.actions.enabled
-    ? `
-  const handleAddRowBelow = (index: number) => {
+  const fieldArrayOperations = ['fields', 'append'];
+  if (hasRowActions(spec) && (spec.actions.duplicate || spec.actions.insert)) {
+    fieldArrayOperations.push('insert');
+  }
+  if (hasRowActions(spec) && spec.actions.delete) {
+    fieldArrayOperations.push('remove');
+  }
+  if (spec.reorder.enabled) fieldArrayOperations.push('move');
+  const fieldArrayBindings = fieldArrayOperations.join(', ');
+  const actionHandlerLines: string[] = [];
+  if (hasRowActions(spec) && spec.actions.insert) {
+    actionHandlerLines.push(`  const handleAddRowBelow = (index: number) => {
     insert(index + 1, ${createRowProp}());
   };
-
-  const handleDuplicateRow = (index: number) => {
+`);
+  }
+  if (hasRowActions(spec) && spec.actions.duplicate) {
+    actionHandlerLines.push(`  const handleDuplicateRow = (index: number) => {
     const currentRow = form.getValues(\`${spec.arrayName}.\${index}\`);
     insert(index + 1, { ...currentRow, id: crypto.randomUUID() });
+  };
+`);
+  }
+  const actionHandlers = actionHandlerLines.join('\n\n');
+  const reorderHandlers = spec.reorder.enabled
+    ? `
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = fields.findIndex((field) => field.fieldId === active.id);
+    const newIndex = fields.findIndex((field) => field.fieldId === over.id);
+    if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
+    move(oldIndex, newIndex);
   };
 `
     : '';
@@ -703,19 +778,33 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
   // the component's own `fields` / `handleAddRow`, so a consumer never needs a
   // second `useFieldArray` to add rows.
   const toolbar = spec.toolbar;
+  const toolbarTitle = toolbar?.titleProp
+    ? `{${toolbar.titleProp} ?? ${quote(toolbar.title)}}`
+    : toolbar
+      ? toolbar.title
+      : '';
+  const toolbarActions = toolbar
+    ? toolbar.contentPosition === 'afterAdd'
+      ? `          <Button type="button" variant="primary" onClick={handleAddRow}>
+            <Plus />
+            ${toolbar.addLabel}
+          </Button>
+          {toolbarContent}`
+      : `          {toolbarContent}
+          <Button type="button" variant="primary" onClick={handleAddRow}>
+            <Plus />
+            ${toolbar.addLabel}
+          </Button>`
+    : '';
   const toolbarOpen = toolbar
     ? `    <div className="flex h-full min-h-0 min-w-0 w-full flex-col">
     <div className="flex min-w-0 shrink-0 flex-wrap items-center justify-between gap-4 border-b border-border px-5 py-4">
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="text-sm font-semibold text-foreground">${toolbar.title}</h2>
+          <h2 className="text-sm font-semibold text-foreground">${toolbarTitle}</h2>
           <div className="text-xs text-muted-foreground">{fields.length} dòng</div>
         </div>
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-          {toolbarContent}
-          <Button type="button" variant="primary" onClick={handleAddRow}>
-            <Plus />
-            ${toolbar.addLabel}
-          </Button>
+${toolbarActions}
         </div>
       </div>
 `
@@ -731,16 +820,47 @@ export function buildEditorTableModule(input: EditorTableSpec): string {
     </>`
     : toolbarClose;
 
-  const body = `interface ${componentName}Props {
+  const sortableRow = spec.reorder.enabled
+    ? `
+function ${componentName}SortableRow({
+  id,
+  renderCells,
+}: {
+  id: string;
+  renderCells: (sortable: ReturnType<typeof useSortable>) => ReactNode;
+}) {
+  const sortable = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(sortable.transform),
+    transition: sortable.transition,
+  };
+
+  return (
+    <TableRow
+      ref={sortable.setNodeRef}
+      style={style}
+      data-dragging={sortable.isDragging || undefined}
+    >
+      {renderCells(sortable)}
+    </TableRow>
+  );
+}
+`
+    : '';
+
+  const body = `${sortableRow}
+interface ${componentName}Props {
   form: UseFormReturn<${spec.valuesType}>;
   ${createRowProp}: () => ${spec.entity};
   ${toolbar ? 'toolbarContent?: ReactNode;' : ''}
+  ${toolbar?.titleProp ? `${toolbar.titleProp}?: ReactNode;` : ''}
 }
 
 export function ${componentName}({
   form,
   ${createRowProp},
   ${toolbar ? 'toolbarContent,' : ''}
+  ${toolbar?.titleProp ? `${toolbar.titleProp},` : ''}
 }: ${componentName}Props) {
   const { ${fieldArrayBindings} } = useFieldArray({
     control: form.control,
@@ -752,7 +872,7 @@ export function ${componentName}({
   const handleAddRow = () => {
     append(${createRowProp}());
   };
-${actionHandlers}${bulkEditSetup}
+${actionHandlers ? `\n${actionHandlers}` : ''}${reorderHandlers}${bulkEditSetup}
   return (
 ${returnOpen}
       <div className="${spec.tableMinWidthClass}">
@@ -762,7 +882,16 @@ ${returnOpen}
 ${indent(emitHeaders(spec), 12)}
           </TableRow>
         </TableHeader>
-        <TableBody>
+${
+  spec.reorder.enabled
+    ? `        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={fields.map((field) => field.fieldId)}
+            strategy={verticalListSortingStrategy}
+          >
+            <TableBody>`
+    : '        <TableBody>'
+}
           {fields.length === 0 ? (
             <TableRow>
               <TableCell colSpan={${columnCount}} className="h-28 text-center">
@@ -780,14 +909,35 @@ ${indent(emitHeaders(spec), 12)}
               const row = watchedRows[index] as ${spec.entity} | undefined;${errorsLine}
 ${rowPrelude ? indent(rowPrelude, 14) : '              void row;'}
 
-              return (
+${
+  spec.reorder.enabled
+    ? `              return (
+                <${componentName}SortableRow
+                  key={field.fieldId}
+                  id={field.fieldId}
+                  renderCells={(sortable) => (
+                    <>
+${indent(emitReorderCell(), 22)}
+${indent(emitCells(spec), 22)}
+                    </>
+                  )}
+                />
+              );`
+    : `              return (
                 <TableRow key={field.fieldId}>
 ${indent(emitCells(spec), 18)}
                 </TableRow>
-              );
+              );`
+}
             })
           )}
         </TableBody>
+${
+  spec.reorder.enabled
+    ? `          </SortableContext>
+        </DndContext>`
+    : ''
+}
         </table>
       </div>
       <ScrollBar orientation="horizontal" />

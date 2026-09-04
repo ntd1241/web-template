@@ -128,7 +128,7 @@ export function buildDialogModule(input: DialogSpec): string {
     '  open: boolean;',
     '  onOpenChange: (open: boolean) => void;',
     '  children: ReactNode;',
-    spec.titleProp ? `  ${spec.titleProp}: string;` : '',
+    spec.titleProp ? `  ${spec.titleProp}: ReactNode;` : '',
     actionProps,
     stateProps,
     '}',

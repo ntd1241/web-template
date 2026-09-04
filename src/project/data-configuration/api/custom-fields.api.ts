@@ -1,10 +1,9 @@
 import { assertSupabaseConfigured, supabaseApi } from '@/lib/supabase';
+import type { CustomFieldEditorRow } from '../forms/custom-fields-editor';
 import type {
   CustomField,
   CustomFieldDefinitionRow,
   CustomFieldEntityType,
-  CustomFieldFormValues,
-  CustomFieldOptionInput,
   CustomFieldOptionRow,
 } from '../model/custom-field';
 
@@ -77,90 +76,26 @@ export async function loadCustomFields(
   }));
 }
 
-async function replaceCustomFieldOptions(
-  fieldId: string,
-  options: CustomFieldOptionInput[],
-): Promise<void> {
-  await request(
-    supabaseApi.delete(
-      '/tenant_custom_field_options',
-      queryParams({ field_id: `eq.${fieldId}` }),
-    ),
-  );
-
-  if (options.length === 0) return;
-
-  await request(
-    supabaseApi.post(
-      '/tenant_custom_field_options',
-      options.map((option, index) => ({
-        field_id: fieldId,
-        value: option.value,
-        label: option.label,
-        sort_order: index,
-      })),
-    ),
-  );
-}
-
-export async function createCustomField(
+export async function saveCustomFields(
   tenantId: string,
   entityType: CustomFieldEntityType,
-  values: CustomFieldFormValues,
-  options: CustomFieldOptionInput[],
+  fields: CustomFieldEditorRow[],
 ): Promise<void> {
   assertSupabaseConfigured();
-  const rows = await request<CustomFieldDefinitionRow[]>(
-    supabaseApi.post(
-      '/tenant_custom_field_definitions',
-      {
-        tenant_id: tenantId,
-        entity_type: entityType,
-        field_key: values.key,
-        label: values.label,
-        field_type: values.fieldType,
-        is_required: values.isRequired,
-        is_active: values.isActive,
-      },
-      { headers: { Prefer: 'return=representation' } },
-    ),
-  );
-  const fieldId = rows[0]?.id;
-  if (!fieldId) throw new Error('Không nhận được trường vừa tạo.');
-  await replaceCustomFieldOptions(fieldId, options);
-}
 
-export async function updateCustomField(
-  fieldId: string,
-  values: CustomFieldFormValues,
-  options: CustomFieldOptionInput[],
-): Promise<void> {
-  assertSupabaseConfigured();
   await request(
-    supabaseApi.patch(
-      '/tenant_custom_field_definitions',
-      {
-        field_key: values.key,
-        label: values.label,
-        field_type: values.fieldType,
-        is_required: values.isRequired,
-        is_active: values.isActive,
-      },
-      {
-        ...queryParams({ id: `eq.${fieldId}` }),
-        headers: { Prefer: 'return=minimal' },
-      },
-    ),
-  );
-  await replaceCustomFieldOptions(fieldId, options);
-}
-
-export async function deleteCustomField(fieldId: string): Promise<void> {
-  assertSupabaseConfigured();
-  await request(
-    supabaseApi.delete(
-      '/tenant_custom_field_definitions',
-      queryParams({ id: `eq.${fieldId}` }),
-    ),
+    supabaseApi.post('/rpc/save_tenant_custom_fields', {
+      p_tenant_id: tenantId,
+      p_entity_type: entityType,
+      p_fields: fields.map((field) => ({
+        ...(field.id ? { id: field.id } : {}),
+        key: field.key,
+        label: field.label,
+        fieldType: field.fieldType,
+        isRequired: field.isRequired,
+        isActive: field.isActive,
+        options: field.options,
+      })),
+    }),
   );
 }

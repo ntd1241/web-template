@@ -40,13 +40,13 @@ export function Wrapper() {
   });
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-muted text-foreground">
+    <div className="flex h-screen w-full min-w-0 overflow-hidden bg-muted text-foreground">
       {!isMobile && <Sidebar />}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
         <main
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pt-(--header-height-mobile) transition-[padding] duration-200 ease-out lg:ps-[var(--sidebar-current-width)] lg:pt-(--header-height)"
+          className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto pt-(--header-height-mobile) transition-[padding] duration-200 ease-out lg:ps-[var(--sidebar-current-width)] lg:pt-(--header-height)"
           role="content"
         >
           <Outlet />

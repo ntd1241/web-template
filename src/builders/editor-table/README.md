@@ -50,7 +50,13 @@ For the current order edit pilot, prefer `remaining`.
 
 The builder emits default row actions: duplicate, insert below, and delete. The
 action column is pinned to the right so it remains visible during horizontal
-scroll.
+scroll. Set `actions.duplicate`, `actions.insert`, or `actions.delete` to
+`false` when an editor needs only a subset of those actions.
+
+Set `reorder.enabled` to add a pinned drag-handle column. The generated table
+uses `useFieldArray.move` and supports pointer plus keyboard sorting; the page
+still owns the submit mutation so it can persist the resulting array order in a
+single request.
 
 Editable cells, bulk action inputs, and optional header inputs reuse the shared
 lower-level form-field builder at `src/builders/shared/form-field-builder.ts`.
@@ -59,6 +65,11 @@ instead of duplicating the UI primitive mapping in the editor-table generator.
 The column schema extends the matching control schema from
 `src/builders/shared/form-field-spec.ts` and keeps table-only metadata such as
 `header`, `widthClass`, and `bulkEdit` local to this builder.
+
+Editable-cell validation messages are shown in a tooltip. Field errors take
+precedence and use the destructive variant; set `warningExpression` on an
+editable column to provide a warning string expression, which uses the warning
+variant and warning input styling.
 
 Use `custom` when a cell combines multiple fields, changes its controls based
 on another field in the same row, or needs domain-specific presentation. The

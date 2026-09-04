@@ -16,6 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { LeanRow, LeanRowsFormValues } from './lean-row';
 
 interface LeanRowEditorTableProps {
@@ -93,50 +98,82 @@ export function LeanRowEditorTable({
                       <Controller
                         control={form.control}
                         name={`rows.${index}.name`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            {...inputField}
-                            aria-label={`Tên dòng ${index + 1}`}
-                            aria-invalid={!!errors?.name}
-                            variant="sm"
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const nameWarning = undefined;
+                          const nameMessage =
+                            errors?.name?.message ?? nameWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <Input
+                                    {...inputField}
+                                    aria-label={`Tên dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.name}
+                                    variant="sm"
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {nameMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.name ? 'destructive' : 'warning'
+                                  }
+                                >
+                                  {nameMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.name && (
-                        <div className="mt-1 text-xs text-destructive">
-                          {errors?.name?.message}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className="px-2 py-2">
                       <Controller
                         control={form.control}
                         name={`rows.${index}.quantity`}
-                        render={({ field: inputField }) => (
-                          <Input
-                            aria-label={`Số lượng dòng ${index + 1}`}
-                            aria-invalid={!!errors?.quantity}
-                            className="text-right tabular-nums"
-                            min={0}
-                            type="number"
-                            value={inputField.value}
-                            variant="sm"
-                            onBlur={inputField.onBlur}
-                            onChange={(event) =>
-                              inputField.onChange(
-                                Number.isNaN(event.target.valueAsNumber)
-                                  ? 0
-                                  : event.target.valueAsNumber,
-                              )
-                            }
-                          />
-                        )}
+                        render={({ field: inputField }) => {
+                          const quantityWarning = undefined;
+                          const quantityMessage =
+                            errors?.quantity?.message ?? quantityWarning;
+
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block w-full">
+                                  <Input
+                                    aria-label={`Số lượng dòng ${index + 1}`}
+                                    aria-invalid={!!errors?.quantity}
+                                    className="text-right tabular-nums"
+                                    min={0}
+                                    type="number"
+                                    value={inputField.value}
+                                    variant="sm"
+                                    onBlur={inputField.onBlur}
+                                    onChange={(event) =>
+                                      inputField.onChange(
+                                        Number.isNaN(event.target.valueAsNumber)
+                                          ? 0
+                                          : event.target.valueAsNumber,
+                                      )
+                                    }
+                                  />
+                                </span>
+                              </TooltipTrigger>
+                              {quantityMessage && (
+                                <TooltipContent
+                                  variant={
+                                    errors?.quantity ? 'destructive' : 'warning'
+                                  }
+                                >
+                                  {quantityMessage}
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          );
+                        }}
                       />
-                      {errors?.quantity && (
-                        <div className="mt-1 text-right text-xs text-destructive">
-                          {errors?.quantity?.message}
-                        </div>
-                      )}
                     </TableCell>
                   </TableRow>
                 );
