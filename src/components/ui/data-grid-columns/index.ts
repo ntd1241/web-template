@@ -11,5 +11,6 @@ export {
   type StatusBadgeConfig,
   type StatusBadgeProps,
 } from './status-badge';
+export { getDataGridActionsColumnSize } from './action-column';
 export { usePersistedColumnVisibility } from './use-persisted-column-visibility';
 export { usePersistedColumnOrder } from './use-persisted-column-order';

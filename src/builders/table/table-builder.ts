@@ -136,13 +136,15 @@ function commonMetaLines(
     visibility?: boolean;
     enableSorting?: boolean;
   },
+  sizeExpression?: string,
 ): string[] {
   const lines: string[] = [];
   if (col.headerClassName)
     lines.push(`headerClassName: ${quote(col.headerClassName)},`);
   if (col.cellClassName)
     lines.push(`cellClassName: ${quote(col.cellClassName)},`);
-  if (col.size !== undefined) lines.push(`size: ${col.size},`);
+  if (sizeExpression) lines.push(`size: ${sizeExpression},`);
+  else if (col.size !== undefined) lines.push(`size: ${col.size},`);
   if (col.visibility !== undefined)
     lines.push(`visibility: ${col.visibility},`);
   // Sorting is opt-in for generated tables. A generated page usually does not
@@ -175,7 +177,11 @@ function emitColumnCall(col: ColumnSpec): string {
     const lines: string[] = [];
     if (col.id) lines.push(`id: ${quote(col.id)},`);
     if (col.header !== undefined) lines.push(`header: ${quote(col.header)},`);
-    lines.push(...commonMetaLines(col));
+    const actionSizeExpression =
+      col.kind === 'actions' && col.actionCount !== undefined
+        ? `getDataGridActionsColumnSize(${col.actionCount})`
+        : undefined;
+    lines.push(...commonMetaLines(col, actionSizeExpression));
     if (col.kind === 'actions' && (col.actionPresets?.length ?? 0) > 0) {
       lines.push(emitActionPresetCell(col));
     } else {
@@ -381,23 +387,33 @@ function emitImports(spec: TableSpec): string {
   const hasBadge = spec.columns.some((col) => col.kind === 'badge');
   const hasFormatters = hasNumberFormatColumns(spec.columns);
   const configuredActions = actionPresets(spec.columns);
+  const hasActionCount = spec.columns.some(
+    (col) => col.kind === 'actions' && col.actionCount !== undefined,
+  );
 
   const lines = ["import { useMemo } from 'react';"];
   lines.push("import type { ColumnDef } from '@tanstack/react-table';");
+
+  const dataGridSymbols = ['createColumnHelpers'];
+  if (configuredActions.length > 0)
+    dataGridSymbols.push('DataGridActionButton');
+  if (hasActionCount) dataGridSymbols.push('getDataGridActionsColumnSize');
+  if (hasBadge) dataGridSymbols.push('type StatusBadgeConfig');
+
   if (configuredActions.length > 0) {
     lines.push(
       `import { ${configuredActions.map((action) => ACTION_PRESET_META[action].icon).join(', ')} } from 'lucide-react';`,
     );
-    const symbols = ['createColumnHelpers', 'DataGridActionButton'];
-    if (hasBadge) symbols.push('type StatusBadgeConfig');
     lines.push(
-      `import {\n${symbols.map((symbol) => `  ${symbol},`).join('\n')}\n} from '@/components/ui/data-grid-columns';`,
+      `import {\n${dataGridSymbols.map((symbol) => `  ${symbol},`).join('\n')}\n} from '@/components/ui/data-grid-columns';`,
+    );
+  } else if (hasActionCount || hasBadge) {
+    lines.push(
+      `import {\n${dataGridSymbols.map((symbol) => `  ${symbol},`).join('\n')}\n} from '@/components/ui/data-grid-columns';`,
     );
   } else {
     lines.push(
-      hasBadge
-        ? "import {\n  createColumnHelpers,\n  type StatusBadgeConfig,\n} from '@/components/ui/data-grid-columns';"
-        : "import { createColumnHelpers } from '@/components/ui/data-grid-columns';",
+      "import { createColumnHelpers } from '@/components/ui/data-grid-columns';",
     );
   }
   if (hasFormatters) {

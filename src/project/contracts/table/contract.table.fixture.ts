@@ -5,6 +5,7 @@ const spec: TableSpec = {
   modelImport: '../model/contract',
   specPath: 'src/project/contracts/table/contract.table.fixture.ts',
   columns: [
+    { kind: 'select' },
     {
       kind: 'custom',
       id: 'contract',
@@ -80,9 +81,8 @@ const spec: TableSpec = {
       kind: 'actions',
       id: 'actions',
       header: '',
-      headerClassName: 'w-[100px]',
-      size: 100,
-      cellClassName: 'text-right',
+      actionCount: 2,
+      cellClassName: 'text-center',
     },
   ],
 };

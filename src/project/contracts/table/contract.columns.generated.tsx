@@ -11,6 +11,7 @@ import { useNumberFormat } from '@/providers/number-format-provider';
 import {
   createColumnHelpers,
   DataGridActionButton,
+  getDataGridActionsColumnSize,
   type StatusBadgeConfig,
 } from '@/components/ui/data-grid-columns';
 import type { CustomerSelectOption } from '../../customers/api/customers.api';
@@ -94,6 +95,7 @@ export function useContractColumns(
     });
 
     return [
+      col.select(),
       col.custom({
         id: 'contract',
         header: 'Hợp đồng',
@@ -182,12 +184,11 @@ export function useContractColumns(
       col.actions({
         id: 'actions',
         header: '',
-        headerClassName: 'w-[100px]',
-        size: 100,
-        cellClassName: 'text-right',
+        size: getDataGridActionsColumnSize(2),
+        cellClassName: 'text-center',
         enableSorting: false,
         cell: (row) => (
-          <div className="flex justify-end gap-1">
+          <div className="flex justify-center gap-1">
             <DataGridActionButton
               action="edit"
               tooltip="Sửa"

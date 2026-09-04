@@ -120,6 +120,8 @@ interface ContractListRpcRow extends ContractRow {
   customer_image_url: string | null;
   total_outstanding: number | string;
   next_due_date: string | null;
+  has_renewal_draft: boolean;
+  renewal_draft_version_no: number | string | null;
 }
 
 interface ContractListRpcResponse {
@@ -177,6 +179,11 @@ export async function loadContractList(
       customerImageUrl: row.customer_image_url,
       totalOutstanding: numberValue(row.total_outstanding),
       nextDueDate: row.next_due_date,
+      hasRenewalDraft: row.has_renewal_draft,
+      renewalDraftVersionNo:
+        row.renewal_draft_version_no === null
+          ? null
+          : numberValue(row.renewal_draft_version_no),
     })),
     total: numberValue(response.total),
   };
@@ -1069,6 +1076,22 @@ export interface ContractRenewalResult {
   overrodeDraft: boolean;
 }
 
+export type ContractRenewalDurationUnit = 'day' | 'month' | 'year';
+
+export interface ContractBulkRenewalInput {
+  contractIds: string[];
+  durationValue: number;
+  durationUnit: ContractRenewalDurationUnit;
+  feeIncreasePercent: number;
+  overrideDraft?: boolean;
+}
+
+export interface ContractBulkRenewalResult {
+  items: ContractRenewalResult[];
+  total: number;
+  overrodeDraftCount: number;
+}
+
 async function insertVersion(
   contractId: string,
   userId: string,
@@ -1398,6 +1421,33 @@ export async function createContractRenewalDraft(
   );
 
   return response;
+}
+
+export async function createContractRenewalDrafts(
+  tenantId: string,
+  input: ContractBulkRenewalInput,
+): Promise<ContractBulkRenewalResult> {
+  assertSupabaseConfigured();
+  const response = await request<{
+    items: ContractRenewalResult[];
+    total: number | string;
+    overrodeDraftCount: number | string;
+  }>(
+    supabaseApi.post('/rpc/create_contract_renewal_drafts_scoped', {
+      p_tenant_id: tenantId,
+      p_contract_ids: input.contractIds,
+      p_duration_value: input.durationValue,
+      p_duration_unit: input.durationUnit,
+      p_fee_increase_percent: input.feeIncreasePercent,
+      p_override_draft: input.overrideDraft ?? false,
+    }),
+  );
+
+  return {
+    items: response.items,
+    total: numberValue(response.total),
+    overrodeDraftCount: numberValue(response.overrodeDraftCount),
+  };
 }
 
 function toComparableLine(

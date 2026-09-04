@@ -14,6 +14,7 @@
     "test:ui": "vitest --ui",
     "gen:table": "tsx tools/builders/cli/gen-table.ts",
     "gen:form": "tsx tools/builders/cli/gen-form.ts",
+    "gen:dialog": "tsx tools/builders/cli/gen-dialog.ts",
     "gen:editor-table": "tsx tools/builders/cli/gen-editor-table.ts",
     "gen:tree": "tsx tools/builders/cli/gen-tree.ts",
     "gen:layout": "tsx tools/builders/cli/gen-layout.ts",

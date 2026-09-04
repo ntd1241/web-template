@@ -61,6 +61,8 @@ not in arbitrary shell spacing or button sizing.
 | `custom`         | optional | inline JSX stub                                                                |
 
 Common options include `headerClassName`, `cellClassName`, `size`, `visibility`, and `enableSorting`.
+For icon-only action columns, set `actionCount` instead of `size`; the generated column uses
+`getDataGridActionsColumnSize(actionCount)` so its width follows the number of buttons.
 Generated columns have sorting disabled by default; set `enableSorting: true` only after the page
 connects sorting state and its data/API behavior.
 
@@ -81,6 +83,7 @@ the shared `DataGridActionButton`, keeping the action color mapping consistent a
 {
   kind: 'actions',
   actionPresets: ['primary', 'view', 'edit', 'archive'],
+  actionCount: 4,
 }
 ```
 

@@ -138,6 +138,8 @@ const actionsColumn = z.object({
   header: z.string().optional(),
   /** Optional standard actions; when present the builder emits callbacks and colored action buttons. */
   actionPresets: z.array(actionPreset).optional(),
+  /** Derive the column width from the number of icon-only actions. */
+  actionCount: z.number().int().min(1).optional(),
   ...commonMeta,
 });
 
@@ -188,6 +190,18 @@ export const tableSpecSchema = z
           message:
             'Cột editableSelect dùng options tĩnh cần khai báo ít nhất một lựa chọn',
           path: ['columns', index, 'options'],
+        });
+      }
+
+      if (
+        column.kind === 'actions' &&
+        column.actionCount !== undefined &&
+        column.size !== undefined
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'actionCount đã tự tính size, không khai báo size cùng lúc',
+          path: ['columns', index, 'size'],
         });
       }
     });

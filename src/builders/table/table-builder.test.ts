@@ -133,6 +133,25 @@ describe('buildColumnsModule', () => {
     expect(out).toContain('params.onView(row)');
   });
 
+  it('derives icon action column size from actionCount', () => {
+    const out = buildColumnsModule({
+      entity: 'Product',
+      modelImport: '../model/product',
+      columns: [
+        {
+          kind: 'actions',
+          id: 'actions',
+          actionCount: 3,
+          cellClassName: 'text-center',
+        },
+      ],
+    });
+
+    expect(out).toContain('getDataGridActionsColumnSize');
+    expect(out).toContain('size: getDataGridActionsColumnSize(3),');
+    expect(out).not.toContain('size: 3,');
+  });
+
   it('quotes badge config keys that are not valid identifiers', () => {
     const out = buildColumnsModule({
       entity: 'Material',

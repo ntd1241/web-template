@@ -11,8 +11,9 @@ import {
   getCoreRowModel,
   useReactTable,
   type ColumnPinningState,
+  type RowSelectionState,
 } from '@tanstack/react-table';
-import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/lib/errors';
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridActionBar } from '@/components/ui/data-grid-action-bar';
 import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
 import {
   usePersistedColumnOrder,
@@ -40,7 +42,12 @@ import { PageHeader } from '@/components/ui/page-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ShortcutTooltip } from '@/components/ui/shortcut-tooltip';
 import { StatusStats, type StatusStatItem } from '@/components/ui/status-stats';
-import { deleteContract } from '../api/contracts.api';
+import {
+  createContractRenewalDrafts,
+  deleteContract,
+  type ContractBulkRenewalInput,
+} from '../api/contracts.api';
+import { ContractBulkRenewalDialog } from '../components/contract-bulk-renewal-dialog';
 import { useContractList } from '../hooks/use-contract-list';
 import {
   type Contract,
@@ -59,6 +66,7 @@ import { useContractColumns } from '../table/contract.columns.generated';
 import { ContractFilterBar } from '../table/contract.filters.generated';
 
 const CONTRACT_COLUMN_PINNING: ColumnPinningState = {
+  left: ['select'],
   right: ['actions'],
 };
 
@@ -67,9 +75,9 @@ export function ContractsPage() {
   const { tenantId } = useTenant();
   const { userId, hasPermission } = useUser();
   const queryClient = useQueryClient();
-  const [deletingContract, setDeletingContract] = useState<Contract | null>(
-    null,
-  );
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [deletingContracts, setDeletingContracts] = useState<Contract[]>([]);
+  const [bulkRenewalDialogOpen, setBulkRenewalDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editingView, setEditingView] = useState<ContractSavedView | null>(
     null,
@@ -102,12 +110,39 @@ export function ContractsPage() {
     userId,
     resource: CONTRACT_SAVED_VIEW_RESOURCE,
   });
-
   const deleteMutation = useMutation({
-    mutationFn: deleteContract,
+    mutationFn: (contractIds: string[]) =>
+      Promise.all(contractIds.map((contractId) => deleteContract(contractId))),
     onSuccess: async () => {
-      toast.success('Đã xóa hợp đồng.');
-      setDeletingContract(null);
+      toast.success(
+        deletingContracts.length > 1
+          ? `Đã xóa ${deletingContracts.length} hợp đồng.`
+          : 'Đã xóa hợp đồng.',
+      );
+      setDeletingContracts([]);
+      setRowSelection({});
+      await queryClient.invalidateQueries({
+        queryKey: ['project', 'contracts'],
+      });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  });
+
+  const renewalMutation = useMutation({
+    mutationFn: (input: ContractBulkRenewalInput) => {
+      if (!tenantId) {
+        throw new Error('Thiếu thông tin tổ chức để gia hạn hợp đồng.');
+      }
+      return createContractRenewalDrafts(tenantId, input);
+    },
+    onSuccess: async (result) => {
+      toast.success(
+        result.overrodeDraftCount > 0
+          ? `Đã tạo bản nháp gia hạn cho ${result.total} hợp đồng và ghi đè ${result.overrodeDraftCount} bản nháp.`
+          : `Đã tạo bản nháp gia hạn cho ${result.total} hợp đồng.`,
+      );
+      setBulkRenewalDialogOpen(false);
+      setRowSelection({});
       await queryClient.invalidateQueries({
         queryKey: ['project', 'contracts'],
       });
@@ -127,7 +162,7 @@ export function ContractsPage() {
 
   const columns = useContractColumns({
     onEdit: openEdit,
-    onDelete: setDeletingContract,
+    onDelete: (contract) => setDeletingContracts([contract]),
     contractSearch: filters.contractSearch,
     onContractSearchChange: (value) => setFilter('contractSearch', value),
     customerId: filters.customerId,
@@ -276,10 +311,13 @@ export function ContractsPage() {
       columnVisibility,
       columnOrder,
       columnPinning: CONTRACT_COLUMN_PINNING,
+      rowSelection,
     },
     onPaginationChange,
     onColumnVisibilityChange,
     onColumnOrderChange,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
     manualPagination: true,
     pageCount: Math.ceil(total / pagination.pageSize),
     getCoreRowModel: getCoreRowModel(),
@@ -287,6 +325,10 @@ export function ContractsPage() {
 
   const listError = tenantQuery.error ?? workspaceQuery.error;
   const isListLoading = tenantQuery.isPending || workspaceQuery.isLoading;
+  const selectedContracts = useMemo(
+    () => contracts.filter((contract) => rowSelection[contract.id]),
+    [contracts, rowSelection],
+  );
 
   if (tenantQuery.isError || workspaceQuery.isError) {
     return (
@@ -381,24 +423,68 @@ export function ContractsPage() {
             <DataGridPagination />
           </CardFooter>
         </Card>
+
+        <DataGridActionBar>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={renewalMutation.isPending}
+            loading={renewalMutation.isPending}
+            loadingText="Đang tạo..."
+            onClick={() => setBulkRenewalDialogOpen(true)}
+          >
+            <RefreshCw />
+            Gia hạn
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={deleteMutation.isPending}
+            loading={deleteMutation.isPending}
+            loadingText="Đang xóa..."
+            onClick={() => setDeletingContracts(selectedContracts)}
+          >
+            <Trash2 />
+            Xóa
+          </Button>
+        </DataGridActionBar>
       </DataGrid>
 
       <ConfirmDialog
-        open={Boolean(deletingContract)}
+        open={deletingContracts.length > 0}
         onOpenChange={(open) => {
-          if (!open) setDeletingContract(null);
+          if (!open) setDeletingContracts([]);
         }}
-        title="Xóa hợp đồng?"
-        description={
-          deletingContract
-            ? `Bạn có chắc muốn xóa hợp đồng "${deletingContract.name}"?`
-            : ''
+        title={
+          deletingContracts.length > 1
+            ? `Xóa ${deletingContracts.length} hợp đồng?`
+            : 'Xóa hợp đồng?'
         }
-        confirmLabel="Xóa hợp đồng"
+        description={
+          deletingContracts.length > 1
+            ? `Bạn có chắc muốn xóa ${deletingContracts.length} hợp đồng đã chọn?`
+            : deletingContracts[0]
+              ? `Bạn có chắc muốn xóa hợp đồng "${deletingContracts[0].name}"?`
+              : ''
+        }
+        confirmLabel={
+          deletingContracts.length > 1 ? 'Xóa các hợp đồng' : 'Xóa hợp đồng'
+        }
         confirmVariant="destructive"
         onConfirm={() => {
-          if (deletingContract) deleteMutation.mutate(deletingContract.id);
+          if (deletingContracts.length > 0) {
+            deleteMutation.mutate(deletingContracts.map((item) => item.id));
+          }
         }}
+      />
+      <ContractBulkRenewalDialog
+        open={bulkRenewalDialogOpen}
+        contracts={selectedContracts}
+        isSubmitting={renewalMutation.isPending}
+        onOpenChange={(open) => {
+          if (!renewalMutation.isPending) setBulkRenewalDialogOpen(open);
+        }}
+        onConfirm={(input) => renewalMutation.mutate(input)}
       />
       <SavedViewFormDialog
         open={viewDialogOpen}

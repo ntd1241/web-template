@@ -264,6 +264,8 @@ export interface Contract {
   customerImageUrl?: string | null;
   totalOutstanding?: number;
   nextDueDate?: string | null;
+  hasRenewalDraft?: boolean;
+  renewalDraftVersionNo?: number | null;
 }
 
 export interface ContractListParams {
