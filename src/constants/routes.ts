@@ -38,6 +38,7 @@ export const ROUTES = {
     CONTRACT_TEMPLATE_DETAIL: '/contract-templates/:id',
     CONTRACT_TEMPLATE_EDIT: '/contract-templates/:id/edit',
     ROLE_PERMISSIONS: '/permissions',
+    DATA_CONFIGURATION: '/data-configuration',
     TAGS: '/tags',
   },
 } as const;

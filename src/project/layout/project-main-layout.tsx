@@ -80,9 +80,11 @@ export function ProjectMainLayout() {
                       ? 'Cài đặt'
                       : pathname === ROUTES.PROJECT.ROLE_PERMISSIONS
                         ? 'Phân quyền'
-                        : pathname === ROUTES.PROJECT.TAGS
-                          ? 'Nhãn'
-                          : 'Tổng quan';
+                        : pathname === ROUTES.PROJECT.DATA_CONFIGURATION
+                          ? 'Cấu hình dữ liệu'
+                          : pathname === ROUTES.PROJECT.TAGS
+                            ? 'Nhãn'
+                            : 'Tổng quan';
 
   return (
     <MainLayout

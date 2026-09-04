@@ -3,6 +3,7 @@ import {
   FileText,
   Layers3,
   LayoutDashboard,
+  ListTree,
   Settings,
   ShieldCheck,
   Tags,
@@ -50,6 +51,11 @@ export const PROJECT_MENU_GROUPS: MenuGroupConfig[] = [
         label: 'Phân quyền',
         icon: ShieldCheck,
         path: ROUTES.PROJECT.ROLE_PERMISSIONS,
+      },
+      {
+        label: 'Cấu hình dữ liệu',
+        icon: ListTree,
+        path: ROUTES.PROJECT.DATA_CONFIGURATION,
       },
       {
         label: 'Nhãn',

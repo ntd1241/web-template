@@ -51,6 +51,7 @@ import { CustomerDetailPage } from '@/project/customers/pages/customer-detail-pa
 import { CustomersPage } from '@/project/customers/pages/customers-page';
 import { EmployeesPage } from '@/project/employees/pages/employees-page';
 import { ProjectMainLayout } from '@/project/layout/project-main-layout';
+import { DataConfigurationPage } from '@/project/pages/data-configuration-page';
 import { ProjectMockPage } from '@/project/pages/project-mock-page';
 import { RolePermissionsPage } from '@/project/pages/role-permissions-page';
 import { ProjectSettingsPage } from '@/project/pages/settings-page';
@@ -260,6 +261,10 @@ export function AppRoutingSetup() {
           <Route
             path={ROUTES.PROJECT.ROLE_PERMISSIONS}
             element={<RolePermissionsPage />}
+          />
+          <Route
+            path={ROUTES.PROJECT.DATA_CONFIGURATION}
+            element={<DataConfigurationPage />}
           />
           <Route path={ROUTES.PROJECT.TAGS} element={<TagsPage />} />
         </Route>
